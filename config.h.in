@@ -1,0 +1,12 @@
+#pragma once
+
+#define VERSION "@version@"
+#define TESTDISKDATE "@testdiskdate@"
+#define TARGET "@target@"
+#if __has_include("iconv.h")
+#define HAVE_ICONV_H
+#define HAVE_ICONV
+#endif
+#if __has_include(<glob.h>)
+#define HAVE_GLOB_H
+#endif
