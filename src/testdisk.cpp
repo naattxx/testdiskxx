@@ -21,7 +21,7 @@ static void display_version(void)
 {
     std::cout << "\n"
                  "Version: " VERSION "\n"
-    // "Compiler: " << get_compiler() << "\n"
+                 "Compiler: " COMPILER_ID "\n"
 #ifdef RECORD_COMPILATION_DATE
               << "Compilation date: " << get_compilation_date() << "\n"
 #endif
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
              "<grenier@cgsecurity.org>\nhttps://www.cgsecurity.orgs",
              VERSION, TESTDISKDATE);
     // log_info("OS: {}" , get_os());
-    // log_info("Compiler: {}", get_compiler());
+    log_info("Compiler: {}", COMPILER_ID);
 
 #ifdef RECORD_COMPILATION_DATE
     log_info("Compilation date: {}", get_compilation_date());

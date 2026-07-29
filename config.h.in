@@ -3,6 +3,7 @@
 #define VERSION "@version@"
 #define TESTDISKDATE "@testdiskdate@"
 #define TARGET "@target@"
+#define COMPILER_ID "@compiler_id@ @compiler_version@"
 #if __has_include("iconv.h")
 #define HAVE_ICONV_H
 #define HAVE_ICONV
