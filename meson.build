@@ -1,9 +1,9 @@
-project('testdisk++', 'cpp', version: '0.1.0')
+project('testdisk++', 'cpp', version: '0.1.0-WIP')
 
 compiler = meson.get_compiler('cpp')
 
 conf_data = configuration_data()
-conf_data.set('version', '0.1.0-WIP')
+conf_data.set('version', meson.project_version())
 conf_data.set('testdiskdate', 'July 2026')
 conf_data.set('target', host_machine.system())
 conf_data.set('compiler_id', compiler.get_id())
