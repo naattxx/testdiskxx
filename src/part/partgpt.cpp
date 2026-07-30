@@ -213,13 +213,13 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
     if ((unsigned)disk_car->pread(disk_car, gpt, disk_car->sector_size, hdr_lba * disk_car->sector_size) !=
         disk_car->sector_size)
     {
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
     if (memcmp(gpt->hdr_sig, GPT_HDR_SIG, 8) != 0)
     {
         screen_buffer_add("Bad GPT partition, invalid signature.\n");
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
     if (verbose > 0)
@@ -238,7 +238,7 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
     if (le32(gpt->hdr_size) < 92 || le32(gpt->hdr_size) > disk_car->sector_size)
     {
         screen_buffer_add("GPT: invalid header size.\n");
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
     { /* CRC check */
@@ -250,7 +250,7 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
         if (crc != origcrc)
         {
             screen_buffer_add("Bad GPT partition, invalid header checksum.\n");
-            delete (gpt);
+            delete[] (gpt);
             return NULL;
         }
         gpt->hdr_crc_self = le32(origcrc);
@@ -258,13 +258,13 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
     if (le64(gpt->hdr_lba_self) != hdr_lba)
     {
         screen_buffer_add("Bad GPT partition, invalid LBA self location.\n");
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
     if (le64(gpt->hdr_lba_start) >= le64(gpt->hdr_lba_end))
     {
         screen_buffer_add("Bad GPT partition, invalid LBA start/end location.\n");
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
     if (le32(gpt->hdr_revision) != GPT_HDR_REVISION)
@@ -278,14 +278,14 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
     if (le32(gpt->hdr_entries) == 0 || le32(gpt->hdr_entries) > 4096)
     {
         screen_buffer_add("GPT: invalid number (%u) of partition entries.\n", (unsigned int)le32(gpt->hdr_entries));
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
     /* le32(gpt->hdr_entsz)==128 */
     if (le32(gpt->hdr_entsz) % 8 != 0 || le32(gpt->hdr_entsz) < 128 || le32(gpt->hdr_entsz) > 4096)
     {
         screen_buffer_add("GPT: invalid partition entry size.\n");
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
 
@@ -294,7 +294,7 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
     {
         screen_buffer_add(
             "GPT: A minimum of 16,384 bytes of space must be reserved for the GUID Partition Entry array.\n");
-        delete (gpt);
+        delete[] (gpt);
         return NULL;
     }
     gpt_entries_offset = (uint64_t)le64(gpt->hdr_lba_table) * disk_car->sector_size;
@@ -305,7 +305,7 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
         {
             screen_buffer_add("GPT: The primary GUID Partition Entry array must be located after the primary GUID "
                               "Partition Table Header and end before the FirstUsableLBA.\n");
-            delete (gpt);
+            delete[] (gpt);
             return NULL;
         }
     }
@@ -313,8 +313,8 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
     gpt_entries = (struct gpt_ent *)new unsigned char[gpt_entries_size];
     if ((unsigned)disk_car->pread(disk_car, gpt_entries, gpt_entries_size, gpt_entries_offset) != gpt_entries_size)
     {
-        delete (gpt_entries);
-        delete (gpt);
+        delete[] (gpt_entries);
+        delete[] (gpt);
         return new_list_part;
     }
     { /* CRC check */
@@ -323,8 +323,8 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
         if (crc != le32(gpt->hdr_crc_table))
         {
             screen_buffer_add("Bad GPT partition entries, invalid checksum.\n");
-            delete (gpt_entries);
-            delete (gpt);
+            delete[] (gpt_entries);
+            delete[] (gpt);
             return NULL;
         }
     }
@@ -357,8 +357,8 @@ static list_part_t *read_part_gpt_aux(disk_t *disk_car, const int verbose, const
     /* TODO: The backup GUID Partition Entry array must be
        located after the LastUsableLBA and end before the backup GUID Partition Table Header.
      */
-    delete (gpt_entries);
-    delete (gpt);
+    delete[] (gpt_entries);
+    delete[] (gpt);
     return new_list_part;
 }
 

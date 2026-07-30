@@ -56,19 +56,19 @@ static int test_sysv4(const disk_t *disk_car, const struct sysv4_super_block *sb
 
 int check_sysv(disk_t *disk_car, partition_t *partition, const int verbose)
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[SYSV4_SECTOR_SIZE];
+    unsigned char *buffer = new unsigned char[SYSV4_SECTOR_SIZE];
     if (disk_car->pread(disk_car, buffer, SYSV4_SECTOR_SIZE, partition->part_offset + 0x200) != SYSV4_SECTOR_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_sysv4(disk_car, (const struct sysv4_super_block *)buffer, partition, verbose) == 0)
     {
         set_sysv4_info((const struct sysv4_super_block *)buffer, partition);
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
-    delete (buffer);
+    delete[] (buffer);
     return 1;
 }
 

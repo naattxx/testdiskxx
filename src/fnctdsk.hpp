@@ -21,6 +21,8 @@
  */
 #ifndef _FNCTDSK_H
 #define _FNCTDSK_H
+#include "src/common.hpp"
+#include <cstdint>
 #ifdef __cplusplus
 extern "C"
 {

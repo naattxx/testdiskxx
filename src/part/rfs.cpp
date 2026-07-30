@@ -49,26 +49,26 @@ static void set_rfs4_info(const struct reiser4_master_sb *sb4, partition_t *part
 
 int check_rfs(disk_t *disk_car, partition_t *partition, const int verbose)
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[REISERFS_SUPER_BLOCK_SIZE];
+    unsigned char *buffer = new unsigned char[REISERFS_SUPER_BLOCK_SIZE];
     if (disk_car->pread(disk_car, buffer, REISERFS_SUPER_BLOCK_SIZE, partition->part_offset + 128 * 512) !=
         REISERFS_SUPER_BLOCK_SIZE) /* 64k offset */
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_rfs(disk_car, (struct reiserfs_super_block *)buffer, partition, verbose) == 0)
     {
         set_rfs_info((struct reiserfs_super_block *)buffer, partition);
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
     if (test_rfs4(disk_car, (struct reiser4_master_sb *)buffer, partition, verbose) == 0)
     {
         set_rfs4_info((const struct reiser4_master_sb *)buffer, partition);
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
-    delete (buffer);
+    delete[] (buffer);
     return 1;
 }
 

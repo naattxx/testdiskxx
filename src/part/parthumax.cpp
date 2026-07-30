@@ -165,7 +165,7 @@ static list_part_t *read_part_humax(disk_t *disk_car, const int verbose, const i
     if (disk_car->pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
     {
         screen_buffer_add(msg_PART_RD_ERR);
-        delete (buffer);
+        delete[] (buffer);
         return NULL;
     }
     for (i = 0; i < 0x200 / 4; i++)
@@ -174,7 +174,7 @@ static list_part_t *read_part_humax(disk_t *disk_car, const int verbose, const i
     if (le16(humaxlabel->magic) != 0xAA55)
     {
         screen_buffer_add("Bad HUMAX partition\n");
-        delete (buffer);
+        delete[] (buffer);
         return NULL;
     }
     /*@
@@ -198,7 +198,7 @@ static list_part_t *read_part_humax(disk_t *disk_car, const int verbose, const i
                 delete (new_partition);
         }
     }
-    delete (buffer);
+    delete[] (buffer);
     return new_list_part;
 }
 

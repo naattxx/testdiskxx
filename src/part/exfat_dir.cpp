@@ -192,7 +192,7 @@ static unsigned int exfat_get_next_cluster(disk_t *disk_car, const partition_t *
         disk_car->sector_size)
     {
         log_error("exfat_get_next_cluster read error\n");
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
     /* 0x00000000: free cluster
@@ -200,7 +200,7 @@ static unsigned int exfat_get_next_cluster(disk_t *disk_car, const partition_t *
      * 0xFFFFFFFF: EOC End of cluster
      * */
     next_cluster = le32(p32[offset_o]);
-    delete (buffer);
+    delete[] (buffer);
     return next_cluster;
 }
 
@@ -365,7 +365,7 @@ static int exfat_dir(disk_t *disk, const partition_t *partition, dir_data_t *dir
     }
     if (nbr_cluster > 0)
         dir_exfat_aux(buffer_dir, nbr_cluster << cluster_shift, dir_data, dir_list);
-    delete (buffer_dir);
+    delete[] (buffer_dir);
     return 0;
 }
 
@@ -484,7 +484,7 @@ static copy_file_t exfat_copy(disk_t *disk, const partition_t *partition, dir_da
             fclose(f_out);
             set_date(new_file, file->td_atime, file->td_mtime);
             delete (new_file);
-            delete (buffer_file);
+            delete[] (buffer_file);
             return CP_NOSPACE;
         }
         file_size -= toread;
@@ -513,6 +513,6 @@ static copy_file_t exfat_copy(disk_t *disk, const partition_t *partition, dir_da
     fclose(f_out);
     set_date(new_file, file->td_atime, file->td_mtime);
     delete (new_file);
-    delete (buffer_file);
+    delete[] (buffer_file);
     return CP_OK;
 }

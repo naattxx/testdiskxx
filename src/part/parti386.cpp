@@ -577,7 +577,7 @@ static list_part_t *read_part_i386(disk_t *disk_car, const int verbose, const in
     test_MBR_over(disk_car, new_list_part);
     new_list_part = get_ext_data_i386(disk_car, new_list_part, verbose, saveheader);
     get_geometry_from_list_part(disk_car, new_list_part, verbose);
-    delete (buffer);
+    delete[] (buffer);
     return new_list_part;
 }
 
@@ -920,13 +920,13 @@ static int write_mbr_i386(disk_t *disk_car, const list_part_t *list_part, const 
     {
         if (disk_car->pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
         {
-            delete (buffer_org);
-            delete (buffer);
+            delete[] (buffer_org);
+            delete[] (buffer);
             return 1;
         }
     }
-    delete (buffer_org);
-    delete (buffer);
+    delete[] (buffer_org);
+    delete[] (buffer);
     return 0;
 }
 
@@ -1751,7 +1751,7 @@ static int erase_list_part_i386(disk_t *disk)
                 disk->pwrite(disk, xboxlabel, 0x800, 0);
             }
         }
-        delete (xboxlabel);
+        delete[] (xboxlabel);
     }
     {
         /* Erase EFI GPT signature if present */
@@ -1764,7 +1764,7 @@ static int erase_list_part_i386(disk_t *disk)
                 disk->pwrite(disk, gpt, disk->sector_size, disk->sector_size);
             }
         }
-        delete (gpt);
+        delete[] (gpt);
     }
     disk->sync(disk);
     return 0;

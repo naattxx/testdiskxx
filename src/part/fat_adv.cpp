@@ -770,7 +770,7 @@ static int find_dir_entries(disk_t *disk_car, const partition_t *partition, cons
                         dir_entry_found = 1;
                         break;
                     case 2: /* Failed */
-                        delete (buffer);
+                        delete[] (buffer);
                         return 0;
                     }
                 }
@@ -778,14 +778,14 @@ static int find_dir_entries(disk_t *disk_car, const partition_t *partition, cons
                 {
                     if (check_FAT_dir_entry(&buffer[j * 32], j) != 1)
                     { /* Must be in the FAT table */
-                        delete (buffer);
+                        delete[] (buffer);
                         return (i - 1) * (disk_car->sector_size / 32);
                     }
                 }
             }
         }
     }
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 
@@ -814,7 +814,7 @@ static int analyse_dir_entries(disk_t *disk_car, const partition_t *partition, c
                     {
                         if (i == 0 && j == 0)
                         { /* The first entry must not be empty, otherwise there is no file */
-                            delete (buffer);
+                            delete[] (buffer);
                             return 0;
                         }
                         etat = 1;
@@ -827,7 +827,7 @@ static int analyse_dir_entries(disk_t *disk_car, const partition_t *partition, c
                 { /* Not an entry or non empty entry */
                     if (etat == 1)
                     {
-                        delete (buffer);
+                        delete[] (buffer);
                         if (i == sector_etat1)
                         { /* In the same sector, empty entry must not be followed by non-empty entry */
                             return 0;
@@ -842,7 +842,7 @@ static int analyse_dir_entries(disk_t *disk_car, const partition_t *partition, c
         }
         hd_offset += disk_car->sector_size;
     }
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 
@@ -1745,7 +1745,7 @@ static int fat_find_type(disk_t *disk_car, const partition_t *partition, const u
     wclrtoeol(stdscr);
     wrefresh(stdscr);
 #endif
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

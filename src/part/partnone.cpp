@@ -252,7 +252,7 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
     partition_t *partition;
     int res = 0;
     partition = partition_new(&arch_none);
-    buffer_disk = (unsigned char *)new unsigned char[16 * DEFAULT_SECTOR_SIZE];
+    buffer_disk = new unsigned char[16 * DEFAULT_SECTOR_SIZE];
     partition->part_size = disk->disk_size;
 #if !defined(DISABLED_FOR_FRAMAC)
     if (recover_MD_from_partition(disk, partition, verbose) == 0)
@@ -345,7 +345,7 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
         }
     }
 #endif
-    delete (buffer_disk);
+    delete[] (buffer_disk);
     if (res <= 0)
         partition_reset(partition, &arch_none);
     partition->part_offset = 0;

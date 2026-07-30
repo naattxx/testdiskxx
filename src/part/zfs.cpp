@@ -53,19 +53,19 @@ static int test_ZFS(const disk_t *disk, const struct vdev_boot_header *sb, const
 
 int check_ZFS(disk_t *disk, partition_t *partition)
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[DEFAULT_SECTOR_SIZE];
+    unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
     if (disk->pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_ZFS(disk, (struct vdev_boot_header *)buffer, partition, 0) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_ZFS_info((struct vdev_boot_header *)buffer, partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

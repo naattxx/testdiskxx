@@ -91,7 +91,7 @@ int find_sectors_per_cluster(disk_t *disk_car, const partition_t *partition, con
             }
         }
     }
-    delete (buffer);
+    delete[] (buffer);
     return find_sectors_per_cluster_aux(sector_cluster, nbr_subdir, sectors_per_cluster, offset_org, verbose,
                                         partition->part_size / disk_car->sector_size, upart_type);
 }

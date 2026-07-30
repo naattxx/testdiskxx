@@ -216,8 +216,8 @@ int ntfs_boot_sector(disk_t *disk, partition_t *partition, const int verbose, co
                                          {'D', "Dump", "Dump boot sector and backup boot sector"},
                                          {0, NULL, NULL}};
 #endif
-    buffer_bs = (unsigned char *)new unsigned char[NTFS_BOOT_SECTOR_SIZE];
-    buffer_backup_bs = (unsigned char *)new unsigned char[NTFS_BOOT_SECTOR_SIZE];
+    buffer_bs = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
+    buffer_backup_bs = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
 
     while (1)
     {
@@ -245,8 +245,8 @@ int ntfs_boot_sector(disk_t *disk, partition_t *partition, const int verbose, co
         switch (command)
         {
         case 0:
-            delete (buffer_bs);
-            delete (buffer_backup_bs);
+            delete[] (buffer_bs);
+            delete[] (buffer_backup_bs);
             return 0;
         case 'O': /* O : copy original boot sector over backup boot */
 #ifdef HAVE_NCURSES

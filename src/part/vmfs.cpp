@@ -50,19 +50,19 @@ static int test_VMFS(const disk_t *disk, const struct vmfs_volume *sb, const par
 }
 int check_VMFS(disk_t *disk, partition_t *partition)
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[2 * DEFAULT_SECTOR_SIZE];
+    unsigned char *buffer = new unsigned char[2 * DEFAULT_SECTOR_SIZE];
     if (disk->pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition->part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_VMFS(disk, (struct vmfs_volume *)buffer, partition, 0) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_VMFS_info((struct vmfs_volume *)buffer, partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

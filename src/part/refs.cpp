@@ -50,16 +50,16 @@ int check_ReFS(disk_t *disk, partition_t *partition)
     unsigned char *buffer = (unsigned char *)new unsigned char[ReFS_BS_SIZE];
     if (disk->pread(disk, buffer, ReFS_BS_SIZE, partition->part_offset) != ReFS_BS_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_ReFS((struct ReFS_boot_sector *)buffer) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_ReFS_info(partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

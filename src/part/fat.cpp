@@ -109,7 +109,7 @@ static int fat32_set_part_name(disk_t *disk_car, partition_t *partition, const s
                 }
             }
         }
-        delete (buffer);
+        delete[] (buffer);
     }
     if (partition->fsname[0] == '\0')
     {
@@ -373,11 +373,11 @@ static unsigned int get_next_cluster_fat16(disk_t *disk, const partition_t *part
 #ifndef DISABLED_FOR_FRAMAC
         log_error("get_next_cluster_fat16 read error\n");
 #endif
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
     next_cluster = le16(p16[offset_o]);
-    delete (buffer);
+    delete[] (buffer);
     return next_cluster;
 }
 
@@ -406,7 +406,7 @@ static unsigned int get_next_cluster_fat32(disk_t *disk, const partition_t *part
 #ifndef DISABLED_FOR_FRAMAC
         log_error("get_next_cluster_fat32 read error\n");
 #endif
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
     /* FAT32 used 28 bits, the 4 high bits are reserved
@@ -415,7 +415,7 @@ static unsigned int get_next_cluster_fat32(disk_t *disk, const partition_t *part
      * 0x0FFFFFF8+: EOC End of cluster
      * */
     next_cluster = le32(p32[offset_o]) & 0xFFFFFFF;
-    delete (buffer);
+    delete[] (buffer);
     return next_cluster;
 }
 
@@ -467,7 +467,7 @@ int set_next_cluster(disk_t *disk_car, const partition_t *partition, const upart
 #ifndef DISABLED_FOR_FRAMAC
         log_critical("fat.c set_next_cluster unknown fat type\n");
 #endif
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if ((unsigned)disk_car->pread(disk_car, buffer, buffer_size,
@@ -477,7 +477,7 @@ int set_next_cluster(disk_t *disk_car, const partition_t *partition, const upart
 #ifndef DISABLED_FOR_FRAMAC
         log_error("set_next_cluster read error\n");
 #endif
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     switch (upart_type)
@@ -515,10 +515,10 @@ int set_next_cluster(disk_t *disk_car, const partition_t *partition, const upart
 #ifndef DISABLED_FOR_FRAMAC
         log_error("Write error: set_next_cluster write error\n");
 #endif
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 
@@ -547,11 +547,11 @@ unsigned int fat32_get_prev_cluster(disk_t *disk_car, const partition_t *partiti
         }
         if ((le32(p32[offset_o]) & 0xFFFFFFF) == cluster)
         {
-            delete (buffer);
+            delete[] (buffer);
             return prev_cluster;
         }
     }
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

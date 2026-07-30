@@ -98,16 +98,16 @@ int check_xfs(disk_t *disk_car, partition_t *partition, const int verbose)
     unsigned char *buffer = (unsigned char *)new unsigned char[XFS_SUPERBLOCK_SIZE];
     if (disk_car->pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE, partition->part_offset) != XFS_SUPERBLOCK_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_xfs(disk_car, (struct xfs_sb *)buffer, partition, verbose) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_xfs_info((struct xfs_sb *)buffer, partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

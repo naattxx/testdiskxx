@@ -48,16 +48,16 @@ int check_sun_i386(disk_t *disk_car, partition_t *partition, const int verbose)
     if (disk_car->pread(disk_car, buffer, SUN_PARTITION_I386_SIZE, partition->part_offset + 0x200) !=
         SUN_PARTITION_I386_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_sun_i386(disk_car, sunlabel, partition, verbose) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_sun_info_i386(partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

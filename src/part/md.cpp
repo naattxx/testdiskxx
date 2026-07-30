@@ -223,7 +223,7 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
             log_info("check_MD 1.1\n");
 #endif
             set_MD_info((struct mdp_superblock_s *)buffer, partition, verbose);
-            delete (buffer);
+            delete[] (buffer);
             return 0;
         }
         if (be32(sb1->md_magic) == (unsigned int)MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
@@ -233,7 +233,7 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
             log_info("check_MD 1.1 (BigEndian)\n");
 #endif
             set_MD_info_be((struct mdp_superblock_s *)buffer, partition, verbose);
-            delete (buffer);
+            delete[] (buffer);
             return 0;
         }
     }
@@ -248,7 +248,7 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
             log_info("check_MD 1.2\n");
 #endif
             set_MD_info((struct mdp_superblock_s *)buffer, partition, verbose);
-            delete (buffer);
+            delete[] (buffer);
             return 0;
         }
         if (be32(sb1->md_magic) == (unsigned int)MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
@@ -258,7 +258,7 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
             log_info("check_MD 1.2 (BigEndian)\n");
 #endif
             set_MD_info_be((struct mdp_superblock_s *)buffer, partition, verbose);
-            delete (buffer);
+            delete[] (buffer);
             return 0;
         }
     }
@@ -281,7 +281,7 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
                 log_info("check_MD 0.90\n");
 #endif
                 set_MD_info((struct mdp_superblock_s *)buffer, partition, verbose);
-                delete (buffer);
+                delete[] (buffer);
                 return 0;
             }
             if (be32(sb->md_magic) == (unsigned int)MD_SB_MAGIC && be32(sb->major_version) == 0 &&
@@ -291,7 +291,7 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
                 log_info("check_MD 0.90 (BigEndian)\n");
 #endif
                 set_MD_info_be((struct mdp_superblock_s *)buffer, partition, verbose);
-                delete (buffer);
+                delete[] (buffer);
                 return 0;
             }
         }
@@ -317,7 +317,7 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
                 log_info("check_MD 1.0\n");
 #endif
                 set_MD_info((struct mdp_superblock_s *)buffer, partition, verbose);
-                delete (buffer);
+                delete[] (buffer);
                 return 0;
             }
             if (be32(sb1->md_magic) == (unsigned int)MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
@@ -328,12 +328,12 @@ int check_MD(disk_t *disk_car, partition_t *partition, const int verbose)
                 log_info("check_MD 1.0 (BigEndian)\n");
 #endif
                 set_MD_info_be((struct mdp_superblock_s *)buffer, partition, verbose);
-                delete (buffer);
+                delete[] (buffer);
                 return 0;
             }
         }
     }
-    delete (buffer);
+    delete[] (buffer);
 #endif
     return 1;
 }

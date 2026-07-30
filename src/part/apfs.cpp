@@ -43,16 +43,16 @@ int check_APFS(disk_t *disk_car, partition_t *partition)
     const nx_superblock_t *sb = (const nx_superblock_t *)buffer;
     if (disk_car->pread(disk_car, buffer, APFS_SUPERBLOCK_SIZE, partition->part_offset) != APFS_SUPERBLOCK_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_APFS(sb, partition) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_APFS_info(sb, partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

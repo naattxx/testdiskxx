@@ -151,6 +151,6 @@ list_part_t *search_superblock(disk_t *disk_car, partition_t *partition, const i
         }
     }
     delete (new_partition);
-    delete (buffer);
+    delete[] (buffer);
     return list_part;
 }

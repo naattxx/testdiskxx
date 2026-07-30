@@ -65,29 +65,29 @@ static void disk_image_backward(int disk_dst, disk_t *disk, const uint64_t src_o
         const ssize_t pread_res = disk->pread(disk, buffer, disk->sector_size, src_offset);
         if ((unsigned)pread_res != disk->sector_size)
         {
-            delete (buffer);
+            delete[] (buffer);
             return;
         }
 #if defined(HAVE_PWRITE)
         if (pwrite(disk_dst, buffer, pread_res, src_offset) < 0)
         {
-            delete (buffer);
+            delete[] (buffer);
             return;
         }
 #else
         if (lseek(disk_dst, src_offset, SEEK_SET) < 0)
         {
-            delete (buffer);
+            delete[] (buffer);
             return;
         }
         if (write(disk_dst, buffer, pread_res) != pread_res)
         {
-            delete (buffer);
+            delete[] (buffer);
             return;
         }
 #endif
     }
-    delete (buffer);
+    delete[] (buffer);
 }
 
 int disk_image(disk_t *disk, const partition_t *partition, const char *image_dd)
@@ -246,7 +246,7 @@ int disk_image(disk_t *disk, const partition_t *partition, const char *image_dd)
     if (ind_stop == 2)
     {
         // display_message("No space left for the file image.\n");
-        delete (buffer);
+        delete[] (buffer);
         return -2;
     }
     if (ind_stop)
@@ -255,13 +255,13 @@ int disk_image(disk_t *disk, const partition_t *partition, const char *image_dd)
             ; // display_message("Incomplete image created.\n");
         else
             ; // display_message("Incomplete image created: read errors have occured.\n");
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
     if (nbr_read_error == 0)
         ; // display_message("Image created successfully.\n");
     else
         ; // display_message("Image created successfully but read errors have occured.\n");
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }

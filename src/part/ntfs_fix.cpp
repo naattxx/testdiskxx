@@ -89,7 +89,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
     {
         ; // display_message("Invalid NTFS MFT record size.\n");
         log_error("Invalid NTFS MFT record size.\n");
-        delete (ntfs_header);
+        delete[] (ntfs_header);
         return -1;
     }
 
@@ -108,7 +108,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
     {
         ; // display_message("Invalid NTFS MFT size.\n");
         log_error("Invalid NTFS MFT size.\n");
-        delete (ntfs_header);
+        delete[] (ntfs_header);
         return -1;
     }
     /* Check if MFT mirror is identical to the beginning of MFT */
@@ -128,7 +128,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
         log_error("Can't read NTFS MFT mirror.\n");
         delete[] (buffer_mftmirr);
         delete[] (buffer_mft);
-        delete (ntfs_header);
+        delete[] (ntfs_header);
         return -1;
     }
     if (memcmp(buffer_mft, buffer_mftmirr, mftmirr_size_bytes) == 0)
@@ -138,7 +138,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
             ; // display_message("MFT and MFT mirror match perfectly.\n");
         delete[] (buffer_mftmirr);
         delete[] (buffer_mft);
-        delete (ntfs_header);
+        delete[] (ntfs_header);
         return 0;
     }
     if (partition->sb_offset != 0)
@@ -147,7 +147,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
         ; // display_message("Please quit TestDisk and reboot your computer before trying to fix the MFT.\n");
         delete[] (buffer_mftmirr);
         delete[] (buffer_mft);
-        delete (ntfs_header);
+        delete[] (ntfs_header);
         return -1;
     }
 #ifdef DEBUG_REPAIR_MFT
@@ -175,7 +175,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
             log_error("Can't determine which MFT is correct, ntfslib is missing.\n");
             delete[] (buffer_mftmirr);
             delete[] (buffer_mft);
-            delete (ntfs_header);
+            delete[] (ntfs_header);
             io_redir_del_redir(disk_car, mftmirr_pos);
             return 0;
         }
@@ -314,6 +314,6 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
     }
     delete[] (buffer_mftmirr);
     delete[] (buffer_mft);
-    delete (ntfs_header);
+    delete[] (ntfs_header);
     return 0;
 }

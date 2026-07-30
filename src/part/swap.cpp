@@ -38,16 +38,16 @@ int check_Linux_SWAP(disk_t *disk_car, partition_t *partition)
     unsigned char *buffer = (unsigned char *)new unsigned char[MAX_PAGE_SIZE];
     if (disk_car->pread(disk_car, buffer, MAX_PAGE_SIZE, partition->part_offset) != MAX_PAGE_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_Linux_SWAP((union swap_header *)buffer) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_Linux_SWAP_info((union swap_header *)buffer, partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

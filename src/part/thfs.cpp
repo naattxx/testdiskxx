@@ -177,8 +177,8 @@ int HFS_HFSP_boot_sector(disk_t *disk, partition_t *partition, const int verbose
                                          {'D', "Dump", "Dump superblock and backup superblock"},
                                          {0, NULL, NULL}};
 #endif
-    buffer_bs = (unsigned char *)new unsigned char[HFSP_BOOT_SECTOR_SIZE];
-    buffer_backup_bs = (unsigned char *)new unsigned char[HFSP_BOOT_SECTOR_SIZE];
+    buffer_bs = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
+    buffer_backup_bs = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
 
     while (1)
     {
@@ -210,8 +210,8 @@ int HFS_HFSP_boot_sector(disk_t *disk, partition_t *partition, const int verbose
         switch (command)
         {
         case 0:
-            delete (buffer_bs);
-            delete (buffer_backup_bs);
+            delete[] (buffer_bs);
+            delete[] (buffer_backup_bs);
             return 0;
         case 'O': /* O : copy original superblock over backup boot */
 #ifdef HAVE_NCURSES

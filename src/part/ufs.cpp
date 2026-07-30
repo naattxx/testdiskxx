@@ -39,21 +39,21 @@ int check_ufs(disk_t *disk_car, partition_t *partition, const int verbose)
 {
     const struct ufs_super_block *sb;
     unsigned char *buffer;
-    buffer = (unsigned char *)new unsigned char[UFS_SUPERBLOCK_SIZE];
+    buffer = new unsigned char[UFS_SUPERBLOCK_SIZE];
     sb = (const struct ufs_super_block *)buffer;
     if (disk_car->pread(disk_car, buffer, UFS_SUPERBLOCK_SIZE, partition->part_offset + UFS_SBLOCK) !=
         UFS_SUPERBLOCK_SIZE)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     if (test_ufs(disk_car, sb, partition, verbose) != 0)
     {
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     set_ufs_info(sb, partition);
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

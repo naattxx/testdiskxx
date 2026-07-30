@@ -212,7 +212,7 @@ backup_disk_t *partition_load(const disk_t *disk_car, const int verbose)
     if (new_backup != NULL)
         td_list_add_tail(&new_backup->list, &list_backup->list);
     fclose(f_backup);
-    delete (buffer);
+    delete[] (buffer);
     return list_backup;
 }
 

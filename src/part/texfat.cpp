@@ -166,8 +166,8 @@ int exFAT_boot_sector(disk_t *disk, partition_t *partition, char **current_cmd)
                                           {'D', "Dump", "Dump superblock and backup superblock"},
                                           {0, NULL, NULL}};
 #endif
-    buffer_bs = (unsigned char *)new unsigned char[size_bs];
-    buffer_backup_bs = (unsigned char *)new unsigned char[size_bs];
+    buffer_bs = new unsigned char[size_bs];
+    buffer_backup_bs = new unsigned char[size_bs];
     while (1)
     {
         int command;
@@ -197,8 +197,8 @@ int exFAT_boot_sector(disk_t *disk, partition_t *partition, char **current_cmd)
         switch (command)
         {
         case 0:
-            delete (buffer_bs);
-            delete (buffer_backup_bs);
+            delete[] (buffer_bs);
+            delete[] (buffer_backup_bs);
             return 0;
         case 'O': /* O : copy original superblock over backup boot */
 #ifdef HAVE_NCURSES
