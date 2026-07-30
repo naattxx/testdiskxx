@@ -917,8 +917,8 @@ int comp_FAT(disk_t *disk, const partition_t *partition, const unsigned long int
 #ifndef DISABLED_FOR_FRAMAC
             log_error("comp_FAT: can't read FAT1\n");
 #endif
-            delete (buffer2);
-            delete (buffer);
+            delete[] (buffer2);
+            delete[] (buffer);
             return 1;
         }
         if ((unsigned)disk->pread(disk, buffer2, read_size, hd_offset2) != read_size)
@@ -926,8 +926,8 @@ int comp_FAT(disk_t *disk, const partition_t *partition, const unsigned long int
 #ifndef DISABLED_FOR_FRAMAC
             log_error("comp_FAT: can't read FAT2\n");
 #endif
-            delete (buffer2);
-            delete (buffer);
+            delete[] (buffer2);
+            delete[] (buffer);
             return 1;
         }
         if (memcmp(buffer, buffer2, read_size) != 0)
@@ -938,15 +938,15 @@ int comp_FAT(disk_t *disk, const partition_t *partition, const unsigned long int
                       (unsigned long)((hd_offset - partition->part_offset + read_size) / disk->sector_size - sect_res),
                       fat_size);
 #endif
-            delete (buffer2);
-            delete (buffer);
+            delete[] (buffer2);
+            delete[] (buffer);
             return 1;
         }
         hd_offset += read_size;
         hd_offset2 += read_size;
     }
-    delete (buffer2);
-    delete (buffer);
+    delete[] (buffer2);
+    delete[] (buffer);
     return 0;
 }
 
@@ -1282,7 +1282,7 @@ int fat32_free_info(disk_t *disk_car, const partition_t *partition, const unsign
 #ifndef DISABLED_FOR_FRAMAC
     log_info("next_free %u, free_count %u\n", *next_free, *free_count);
 #endif
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 

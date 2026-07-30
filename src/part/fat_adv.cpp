@@ -586,7 +586,7 @@ static unsigned int fat32_find_root_cluster(disk_t *disk_car, const partition_t 
 #endif
             delete_list_file(&rootdir_list);
         }
-        delete (buffer);
+        delete[] (buffer);
     }
     return root_cluster;
 }
@@ -866,7 +866,7 @@ static int analyse_dir_entries2(disk_t *disk_car, const partition_t *partition, 
                                                                disk_car->sector_size) != root_dir_size)
     {
         log_error("FAT 1x can't read root directory\n");
-        delete (buffer_dir);
+        delete[] (buffer_dir);
         return 0;
     }
     dir_fat_aux(buffer_dir, root_dir_size, (partition->upart_type == UP_FAT12 ? FLAG_LIST_MASK12 : FLAG_LIST_MASK16),
@@ -916,7 +916,7 @@ static int analyse_dir_entries2(disk_t *disk_car, const partition_t *partition, 
                         }
                         if (cluster_prev == 0 && cluster == new_inode)
                         {
-                            delete (buffer_dir);
+                            delete[] (buffer_dir);
                             delete_list_file(&dir_list);
                             return ((dir_entries + (disk_car->sector_size / 32) - 1) / (disk_car->sector_size / 32)) *
                                    (disk_car->sector_size / 32);
@@ -1316,8 +1316,8 @@ static void create_fat_boot_sector(disk_t *disk_car, partition_t *partition, con
         log_info("Extrapolated boot sector and current boot sector are identical.\n");
     }
     menu_write_fat_boot_sector(disk_car, partition, verbose, upart_type, orgboot, newboot, error, current_cmd);
-    delete (orgboot);
-    delete (newboot);
+    delete[] (orgboot);
+    delete[] (newboot);
 }
 
 /*@
@@ -1651,11 +1651,11 @@ static unsigned int fat_find_fat_start(const unsigned char *buffer, const int p_
             unsigned int res;
             *fat_offset = info_offset[best_j].offset;
             res = info_offset[best_j].fat_type;
-            delete (info_offset);
+            delete[] (info_offset);
             return res;
         }
     }
-    delete (info_offset);
+    delete[] (info_offset);
     return 0;
 }
 
@@ -2340,7 +2340,7 @@ int FAT_init_rootdir(disk_t *disk_car, partition_t *partition, const int verbose
         disk_car->sector_size)
     {
         // display_message("FAT_init_rootdir: Can't read boot sector\n");
-        delete (buffer);
+        delete[] (buffer);
         return 1;
     }
     fat_length = le16(fat_header->fat_length) > 0 ? le16(fat_header->fat_length) : le32(fat_header->fat32_length);
@@ -2372,7 +2372,7 @@ int FAT_init_rootdir(disk_t *disk_car, partition_t *partition, const int verbose
             log_info("TestDisk doesn't seem needed to reset the root directory.\n");
         else
             ; // display_message("TestDisk doesn't seem needed to reset the root directory.\n");
-        delete (buffer);
+        delete[] (buffer);
         return 0;
     }
 #ifdef HAVE_NCURSES
@@ -2393,12 +2393,12 @@ int FAT_init_rootdir(disk_t *disk_car, partition_t *partition, const int verbose
         if (err > 0)
         {
             display_message("FAT_init_rootdir: write failed.\n");
-            delete (buffer);
+            delete[] (buffer);
             return 1;
         }
     }
 #endif
-    delete (buffer);
+    delete[] (buffer);
     return 0;
 }
 
@@ -2441,7 +2441,7 @@ int repair_FAT_table(disk_t *disk_car, partition_t *partition, const int verbose
                 disk_car->sector_size)
             {
                 ; // display_message("repair_FAT_table: Can't read boot sector\n");
-                free(buffer);
+                delete[] (buffer);
 #ifdef HAVE_NCURSES
                 delwin(window);
                 (void)clearok(stdscr, TRUE);
@@ -2461,7 +2461,7 @@ int repair_FAT_table(disk_t *disk_car, partition_t *partition, const int verbose
             no_of_cluster = (part_size - start_data) / fat_header->sectors_per_cluster;
             fat32_root_cluster = le32(fat_header->root_cluster);
             log_info("repair_FAT_table cluster=2..%lu\n", no_of_cluster + 1);
-            delete (buffer);
+            delete[] (buffer);
         }
         if (fats == 0 || fats > 2)
         {
@@ -2986,7 +2986,7 @@ int repair_FAT_table(disk_t *disk_car, partition_t *partition, const int verbose
                 }
             }
             for (fat_nbr = 0; fat_nbr < fats; fat_nbr++)
-                delete (buffer_fat[fat_nbr]);
+                delete[] (buffer_fat[fat_nbr]);
         }
         if (fat_damaged == 0)
         {

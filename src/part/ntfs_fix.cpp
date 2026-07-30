@@ -68,7 +68,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
     ntfs_header = (struct ntfs_boot_sector *)new unsigned char[DEFAULT_SECTOR_SIZE];
     if (disk_car->pread(disk_car, ntfs_header, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
     {
-        delete (ntfs_header);
+        delete[] (ntfs_header);
         ; // display_message("Can't read NTFS boot sector.\n");
         return -1;
     }

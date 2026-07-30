@@ -255,8 +255,8 @@ int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
         switch (command)
         {
         case 0:
-            free(buffer_bs);
-            free(buffer_backup_bs);
+            delete[] (buffer_bs);
+            delete[] (buffer_backup_bs);
             return 0;
         case 'O': /* O : copy original boot sector over backup boot */
 #ifdef HAVE_NCURSES

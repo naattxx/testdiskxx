@@ -529,7 +529,7 @@ dir_partition_t dir_partition_fat_init(disk_t *disk_car, const partition_t *part
 #ifndef DISABLED_FOR_FRAMAC
         log_error("Can't read FAT boot sector.\n");
 #endif
-        delete (buffer);
+        delete[] (buffer);
         return DIR_PART_EIO;
     }
     set_secwest();

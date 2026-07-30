@@ -802,7 +802,7 @@ void mkdir_local_for_file(const char *filename)
     if (sep != NULL)
     {
         *sep = '\0';
-        free(mkdir_local(NULL, dir));
+        delete[] mkdir_local(NULL, dir);
     }
     free(dir);
 }

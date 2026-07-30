@@ -1857,9 +1857,9 @@ disk_t *file_test_availability(const char *device, const int verbose, int testdi
         }
         else if (memcmp(buffer, evf_file_signature, 8) == 0 && le16(ewf->fields_segment) == 1)
         {
-            delete (buffer);
+            delete[] (buffer);
             delete (data);
-            delete (disk_car->device);
+            free (disk_car->device);
             delete (disk_car->model);
             delete (disk_car);
             close(hd_h);
@@ -1899,7 +1899,7 @@ disk_t *file_test_availability(const char *device, const int verbose, int testdi
             autoset_geometry(disk_car, buffer, verbose);
 #endif
         }
-        delete (buffer);
+        delete[] (buffer);
     }
     update_disk_car_fields(disk_car);
     if (disk_car->disk_real_size != 0)
@@ -1934,7 +1934,7 @@ disk_t *file_test_availability(const char *device, const int verbose, int testdi
                     disk_car->sector_size, disk_car->model);
 #endif
     delete (data);
-    delete (disk_car->device);
+    free (disk_car->device);
     delete (disk_car->model);
     delete (disk_car);
     close(hd_h);
