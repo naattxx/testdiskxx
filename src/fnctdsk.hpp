@@ -23,10 +23,6 @@
 #define _FNCTDSK_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid_read(disk_car);
@@ -100,7 +96,7 @@ extern "C"
     // ensures valid_list_disk(\result);
     // ensures disk==\null ==> \result == list_disk;
     // ensures the_disk==\null || (\valid_read(the_disk) && valid_disk(*the_disk));
-    list_disk_t *insert_new_disk_aux(list_disk_t *list_disk, disk_t *disk, disk_t **the_disk);
+    void insert_new_disk_aux(list_disk_t &list_disk, disk_t *disk, disk_t **the_disk);
 
     /*@
       @ requires list_disk==\null || valid_disk(list_disk->disk);
@@ -109,10 +105,10 @@ extern "C"
       @ requires valid_list_disk(list_disk);
       @ requires (list_disk==\null && disk_car==\null) || \separated(list_disk, disk_car);
       @*/
-    // ensures \result==\null || (\valid(\result) && valid_disk(\result->disk));
+    // ensures \result==\null || \valid(\result);
     // ensures disk_car==\null ==> \result == list_disk;
     // ensures valid_list_disk(\result);
-    list_disk_t *insert_new_disk(list_disk_t *list_disk, disk_t *disk_car);
+    void insert_new_disk(list_disk_t &list_disk, disk_t *disk_car);
 
     /*@
       @ requires list_part == \null || \valid(list_part);
@@ -223,7 +219,7 @@ extern "C"
       @ requires list_disk==\null || (list_disk->disk->wbuffer == \null || \freeable(list_disk->disk->wbuffer));
       @ decreases 0;
       @*/
-    int delete_list_disk(list_disk_t *list_disk);
+    int delete_list_disk(list_disk_t &list_disk);
 
     /*@
       @ requires \valid(buffer + (0..99));
@@ -253,7 +249,4 @@ extern "C"
       @ assigns \nothing;
       @*/
     void log_disk_list(list_disk_t *list_disk);
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

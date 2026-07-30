@@ -36,15 +36,14 @@ static void display_version(void)
         ; // << "OS: " << get_os() << '\n';
 }
 
-static int display_disk_list(list_disk_t *list_disk, const int testdisk_mode, const int create_backup, const int safe,
+static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, const int create_backup, const int safe,
                              const int saveheader, const UNIT unit, const int verbose)
 {
-    list_disk_t *element_disk;
     std::cout << "Please wait...\n";
     /* Scan for available device only if no device or image has been supplied in parameter */
-    if (list_disk == nullptr)
-        list_disk = hd_parse(list_disk, verbose, testdisk_mode);
-    if (list_disk == nullptr)
+    if (list_disk.empty())
+        hd_parse(list_disk, verbose, testdisk_mode);
+    if (list_disk.empty())
     {
         std::cout << "No disk detected.\n";
 #if __has_include(<unistd.h>) && !defined(__CYGWIN__) && !defined(__MINGW32__) && !defined(DJGPP)
@@ -57,13 +56,12 @@ static int display_disk_list(list_disk_t *list_disk, const int testdisk_mode, co
     }
 
     /* Activate the cache */
-    for (element_disk = list_disk; element_disk != nullptr; element_disk = element_disk->next)
-        element_disk->disk = new_diskcache(element_disk->disk, testdisk_mode);
+    for (disk_t *disk : list_disk)
+        disk = new_diskcache(disk, testdisk_mode);
     if (safe == 0)
         hd_update_all_geometry(list_disk, verbose);
-    for (element_disk = list_disk; element_disk != nullptr; element_disk = element_disk->next)
+    for (disk_t *disk : list_disk)
     {
-        disk_t *disk = element_disk->disk;
         const int hpa_dco = is_hpa_or_dco(disk);
         std::cout << disk->description(disk) << '\n';
         std::cout << "Sector size: " << disk->sector_size << '\n';
@@ -93,9 +91,8 @@ static int display_disk_list(list_disk_t *list_disk, const int testdisk_mode, co
         std::cout << '\n';
     }
 
-    for (element_disk = list_disk; element_disk != nullptr; element_disk = element_disk->next)
+    for (disk_t* disk : list_disk)
     {
-        disk_t *disk = element_disk->disk;
         autodetect_arch(disk, nullptr);
         if (unit == UNIT::DEFAULT)
             autoset_unit(disk);
@@ -113,8 +110,7 @@ int main(int argc, char **argv)
     TD_LOG create_log{TD_LOG::NONE};
     bool log_opened = false;
     int verbose = 0;
-    list_disk_t *list_disk = nullptr;
-    list_disk_t *element_disk;
+    list_disk_t list_disk;
     int testdisk_mode = TESTDISK_O_RDWR | TESTDISK_O_READAHEAD_8K;
     UNIT unit = UNIT::DEFAULT;
 
@@ -262,11 +258,11 @@ int main(int argc, char **argv)
 #endif
 
     /* Scan for available device only if no device or image has been supplied in parameter */
-    if (list_disk == NULL)
-        list_disk = hd_parse(list_disk, verbose, testdisk_mode);
+    if (list_disk.empty())
+        hd_parse(list_disk, verbose, testdisk_mode);
     /* Activate the cache */
-    for (element_disk = list_disk; element_disk != NULL; element_disk = element_disk->next)
-        element_disk->disk = new_diskcache(element_disk->disk, testdisk_mode);
+    for (disk_t* disk : list_disk)
+        disk = new_diskcache(disk, testdisk_mode);
 
     return 0;
 }

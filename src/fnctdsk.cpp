@@ -115,83 +115,63 @@ void dup_partition_t(partition_t *dst, const partition_t *src)
   @ requires valid_disk(disk);
   @ assigns \nothing;
   @*/
-static disk_t *search_disk(const list_disk_t *list_disk, const disk_t *disk)
+static disk_t *search_disk(const list_disk_t &list_disk, const disk_t *disk)
 {
-    const list_disk_t *tmp;
     /*@
       @ loop assigns tmp;
       @*/
-    for (tmp = list_disk; tmp != NULL; tmp = tmp->next)
+    for (disk_t* tmp : list_disk)
     {
-        if (tmp->disk->device != NULL && disk->device != NULL && strcmp(tmp->disk->device, disk->device) == 0)
+        if (tmp->device != nullptr && disk->device != nullptr && strcmp(tmp->device, disk->device) == 0)
         {
-            return tmp->disk;
+            return tmp;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
-list_disk_t *insert_new_disk_aux(list_disk_t *list_disk, disk_t *disk, disk_t **the_disk)
+void insert_new_disk_aux(list_disk_t &list_disk, disk_t *disk, disk_t **the_disk)
 {
-    list_disk_t *prev = NULL;
-    list_disk_t *new_disk;
+    //list_disk_t result(list_disk);
     disk_t *found;
-    if (disk == NULL)
+    if (disk == nullptr)
     {
-        if (the_disk != NULL)
+        if (the_disk != nullptr)
         {
             /*@ assert \valid(the_disk); */
-            *the_disk = NULL;
+            *the_disk = nullptr;
         }
         /*@ assert valid_list_disk(list_disk); */
-        return list_disk;
+        return;
     }
     found = search_disk(list_disk, disk);
     /* Do not add a disk already known */
-    if (found != NULL)
+    if (found != nullptr)
     {
         disk->clean(disk);
-        if (the_disk != NULL)
+        if (the_disk != nullptr)
         {
             /*@ assert \valid(the_disk); */
             *the_disk = found;
         }
         /*@ assert valid_list_disk(list_disk); */
-        return list_disk;
+        return;
     }
     /* Add the disk at the end */
-    {
-        list_disk_t *tmp;
-        /*@
-          @ loop invariant valid_list_disk(list_disk);
-          @ loop invariant tmp==\null || \valid(tmp);
-          @ loop assigns tmp,prev;
-          @*/
-        for (tmp = list_disk; tmp != NULL; tmp = tmp->next)
-            prev = tmp;
-    }
-    new_disk = new list_disk_t;
-    /*@ assert \valid(new_disk); */
-    new_disk->disk = disk;
-    new_disk->prev = prev;
-    new_disk->next = NULL;
-    if (prev != NULL)
-    {
-        prev->next = new_disk;
-    }
-    if (the_disk != NULL)
+    list_disk.push_back(disk);
+    if (the_disk != nullptr)
     {
         /*@ assert \valid(the_disk); */
         *the_disk = disk;
     }
     /*@ assert valid_list_disk(new_disk); */
     /*@ assert valid_list_disk(list_disk); */
-    return (list_disk != NULL ? list_disk : new_disk);
+
 }
 
-list_disk_t *insert_new_disk(list_disk_t *list_disk, disk_t *disk)
+void insert_new_disk(list_disk_t &list_disk, disk_t *disk)
 {
-    return insert_new_disk_aux(list_disk, disk, NULL);
+    insert_new_disk_aux(list_disk, disk, nullptr);
 }
 
 list_part_t *insert_new_partition(list_part_t *list_part, partition_t *part, const int force_insert, int *insert_error)
@@ -250,24 +230,19 @@ list_part_t *insert_new_partition(list_part_t *list_part, partition_t *part, con
     }
 }
 
-int delete_list_disk(list_disk_t *list_disk)
+int delete_list_disk(list_disk_t& list_disk)
 {
-    list_disk_t *element_disk;
     int write_used = 0;
     /*@
       @ loop invariant valid_list_disk(element_disk);
       @*/
-    for (element_disk = list_disk; element_disk != NULL;)
+    for (disk_t *disk : list_disk)
     {
-        /*@ assert \valid_read(element_disk); */
-        list_disk_t *element_disk_next = element_disk->next;
-        /*@ assert valid_disk(element_disk->disk); */
-        write_used |= element_disk->disk->write_used;
-        /*@ assert \valid_read(element_disk->disk); */
-        /*@ assert \valid_function(element_disk->disk->clean); */
-        element_disk->disk->clean(element_disk->disk);
-        delete (element_disk);
-        element_disk = element_disk_next;
+        /*@ assert valid_disk(disk); */
+        write_used |= disk->write_used;
+        /*@ assert \valid_read(disk); */
+        /*@ assert \valid_function(disk->clean); */
+        disk->clean(disk);
     }
     return write_used;
 }
@@ -513,19 +488,17 @@ void size_to_unit(const uint64_t disk_size, char *buffer)
 #endif
 }
 
-void log_disk_list(list_disk_t *list_disk)
+void log_disk_list(const list_disk_t &list_disk)
 {
 #ifndef DISABLED_FOR_FRAMAC
-    list_disk_t *element_disk;
     /* save disk parameters to rapport */
     log_info("Hard disk list");
     /*@
       @ loop invariant valid_list_disk(list_disk);
       @ loop invariant valid_list_disk(element_disk);
       @*/
-    for (element_disk = list_disk; element_disk != NULL; element_disk = element_disk->next)
+    for (disk_t* disk : list_disk)
     {
-        disk_t *disk = element_disk->disk;
         std::string disk_description(disk->description(disk));
         disk_description.append(", sector size=").append(std::to_string(disk->sector_size));
         if (disk->model != NULL)

@@ -224,7 +224,7 @@ static list_disk_t *insert_new_disk_nodup(list_disk_t *list_disk, disk_t *disk_c
   @ requires \valid(list_disk);
   @ ensures \valid(list_disk);
   @*/
-static list_disk_t *hd_glob_parse(const char *device_pattern, list_disk_t *list_disk, const int verbose,
+void hd_glob_parse(const char *device_pattern, list_disk_t &list_disk, const int verbose,
                                   const int testdisk_mode)
 {
     glob_t globbuf;
@@ -235,15 +235,15 @@ static list_disk_t *hd_glob_parse(const char *device_pattern, list_disk_t *list_
         unsigned int i;
         for (i = 0; i < globbuf.gl_pathc; i++)
         {
-            list_disk = insert_new_disk(list_disk, file_test_availability(globbuf.gl_pathv[i], verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(globbuf.gl_pathv[i], verbose, testdisk_mode));
         }
     }
     globfree(&globbuf);
-    return list_disk;
+    //return list_disk;
 }
 #endif
 
-list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testdisk_mode)
+void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode)
 {
     unsigned int i;
 #ifdef DJGPP
@@ -315,7 +315,7 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         for (i = 0; i < 8; i++)
         {
             device_ide[strlen(device_ide) - 1] = 'a' + i;
-            list_disk = insert_new_disk(list_disk, file_test_availability(device_ide, verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(device_ide, verbose, testdisk_mode));
         }
         /* Device RAID Compaq */
         /*@
@@ -334,7 +334,7 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
             for (i = 0; i < 8; i++)
             {
                 device_ida[strlen(device_ida) - 1] = '0' + i;
-                list_disk = insert_new_disk(list_disk, file_test_availability(device_ida, verbose, testdisk_mode));
+                insert_new_disk(list_disk, file_test_availability(device_ida, verbose, testdisk_mode));
             }
         }
         /*@
@@ -345,7 +345,7 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         for (i = 0; i < 8; i++)
         {
             device_cciss[strlen(device_cciss) - 1] = '0' + i;
-            list_disk = insert_new_disk(list_disk, file_test_availability(device_cciss, verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(device_cciss, verbose, testdisk_mode));
         }
         /* Device RAID */
         /*@
@@ -356,7 +356,7 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         for (i = 0; i < 10; i++)
         {
             snprintf(device, sizeof(device), "/dev/rd/c0d%u", i);
-            list_disk = insert_new_disk(list_disk, file_test_availability(device, verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(device, verbose, testdisk_mode));
         }
         /* Device RAID IDE */
         /*@
@@ -367,7 +367,7 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         for (i = 0; i < 15; i++)
         {
             snprintf(device, sizeof(device), "/dev/ataraid/d%u", i);
-            list_disk = insert_new_disk(list_disk, file_test_availability(device, verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(device, verbose, testdisk_mode));
         }
         /* Parallel port IDE disk */
         /*@
@@ -378,7 +378,7 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         for (i = 0; i < 4; i++)
         {
             device_p_ide[strlen(device_p_ide) - 1] = 'a' + i;
-            list_disk = insert_new_disk(list_disk, file_test_availability(device_p_ide, verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(device_p_ide, verbose, testdisk_mode));
         }
         /* I2O hard disk */
         /*@
@@ -389,7 +389,7 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         for (i = 0; i < 26; i++)
         {
             device_i2o_hd[strlen(device_i2o_hd) - 1] = 'a' + i;
-            list_disk = insert_new_disk(list_disk, file_test_availability(device_i2o_hd, verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(device_i2o_hd, verbose, testdisk_mode));
         }
         /* Memory card */
         /*@
@@ -400,26 +400,26 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         for (i = 0; i < 10; i++)
         {
             device_mmc[strlen(device_mmc) - 1] = '0' + i;
-            list_disk = insert_new_disk(list_disk, file_test_availability(device_mmc, verbose, testdisk_mode));
+            insert_new_disk(list_disk, file_test_availability(device_mmc, verbose, testdisk_mode));
         }
 #if defined(HAVE_GLOB_H)
         /* Disk SCSI */
-        list_disk = hd_glob_parse("/dev/sd[a-z]", list_disk, verbose, testdisk_mode);
-        list_disk = hd_glob_parse("/dev/sd[a-z][a-z]", list_disk, verbose, testdisk_mode);
-        list_disk = hd_glob_parse("/dev/mapper/*", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/sd[a-z]", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/sd[a-z][a-z]", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/mapper/*", list_disk, verbose, testdisk_mode);
         /* Software Raid (partition level) */
-        list_disk = hd_glob_parse("/dev/md*", list_disk, verbose, testdisk_mode);
-        list_disk = hd_glob_parse("/dev/sr?", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/md*", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/sr?", list_disk, verbose, testdisk_mode);
         /* Software (ATA)Raid configured (disk level) via dmraid */
-        list_disk = hd_glob_parse("/dev/dm-*", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/dm-*", list_disk, verbose, testdisk_mode);
         /* VirtIO block devices */
-        list_disk = hd_glob_parse("/dev/vd[a-z]", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/vd[a-z]", list_disk, verbose, testdisk_mode);
         /* Xen virtual disks */
-        list_disk = hd_glob_parse("/dev/xvd?", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/xvd?", list_disk, verbose, testdisk_mode);
         /* Loop devices */
-        list_disk = hd_glob_parse("/dev/loop[0-9]*", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/loop[0-9]*", list_disk, verbose, testdisk_mode);
         /* NVME */
-        list_disk = hd_glob_parse("/dev/nvme[0-9]n[0-9]", list_disk, verbose, testdisk_mode);
+        hd_glob_parse("/dev/nvme[0-9]n[0-9]", list_disk, verbose, testdisk_mode);
 #endif
     }
 #elif defined(TARGET_SOLARIS)
@@ -520,8 +520,13 @@ list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testd
         }
     }
 #endif
-    /*@ assert valid_list_disk(list_disk); */
-    return list_disk;
+
+    for(disk_t* i : list_disk) {
+        if (i->model!=nullptr)
+            std::cout << ": " << i->model << "\n";
+    }
+    // /*@ assert valid_list_disk(list_disk); */
+    // return list_disk;
 }
 
 #ifndef DJGPP
@@ -1962,20 +1967,18 @@ void hd_update_geometry(disk_t *disk, const int verbose)
 #endif
 }
 
-void hd_update_all_geometry(const list_disk_t *list_disk, const int verbose)
+void hd_update_all_geometry(const list_disk_t &list_disk, const int verbose)
 {
-    const list_disk_t *element_disk;
-
     log_trace("hd_update_all_geometry");
     /*@
-      @ loop invariant valid_list_disk(element_disk);
+      @ loop invariant valid_list_disk(disk);
       @*/
-    for (element_disk = list_disk; element_disk != NULL; element_disk = element_disk->next)
+    for (disk_t* disk : list_disk)
     {
-        /*@ assert \valid(element_disk); */
-        /*@ assert valid_disk(element_disk->disk); */
-        hd_update_geometry(element_disk->disk, verbose);
-        /*@ assert \valid(element_disk); */
+        /*@ assert \valid(disk); */
+        /*@ assert valid_disk(disk); */
+        hd_update_geometry(disk, verbose);
+        /*@ assert \valid(disk); */
     }
 }
 

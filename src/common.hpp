@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <ctime>
+#include <list>
 
 struct efi_guid_s
 {
@@ -492,13 +493,7 @@ inductive valid_list_part{L} (list_part_t *list)
 }
   @*/
 
-typedef struct list_disk_struct list_disk_t;
-struct list_disk_struct
-{
-    disk_t *disk;
-    list_disk_t *prev;
-    list_disk_t *next;
-};
+typedef std::list<disk_t *> list_disk_t;
 
 /*@
 inductive ld_reachable{L} (list_disk_t* root, list_disk_t* node)

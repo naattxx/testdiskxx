@@ -16,13 +16,13 @@ void hd_update_geometry(disk_t *disk_car, const int verbose);
 /*@
   @ requires valid_list_disk(list_disk);
   @*/
-void hd_update_all_geometry(const list_disk_t *list_disk, const int verbose);
+void hd_update_all_geometry(const list_disk_t &list_disk, const int verbose);
 
 /*@
   @ requires valid_list_disk(list_disk);
   @ ensures  valid_list_disk(\result);
   @*/
-list_disk_t *hd_parse(list_disk_t *list_disk, const int verbose, const int testdisk_mode);
+void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode);
 
 /*@
   @ requires valid_read_string(device);
