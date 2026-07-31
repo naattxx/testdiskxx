@@ -8,6 +8,7 @@
 #include "src/hidden.hpp"
 #include "src/intrface.hpp"
 #include "src/partauto.hpp"
+#include "src/tdisksel.hpp"
 #include "tlog.hpp"
 #include <args.hxx>
 #include <cpptui.hpp>
@@ -207,14 +208,14 @@ int main(int argc, char **argv)
     }
     if (create_log != TD_LOG::NONE && !log_opened)
         log_opened = log_open(args::get(log_name), create_log);
+    App app;
+
+    Theme::set_theme(Theme::Dark());
+    app.register_exit_key('q');
     if (argc == 1 && create_log == TD_LOG::NONE)
     {
         verbose = 1;
 
-        App app;
-
-        Theme::set_theme(Theme::Dark());
-        app.register_exit_key('q');
 
         create_log = ask_testdisk_log_creation(app);
         if (create_log == TD_LOG::CREATE || create_log == TD_LOG::APPEND)
@@ -267,6 +268,8 @@ int main(int argc, char **argv)
     if(safe==0)
         hd_update_all_geometry(list_disk, verbose);
     log_disk_list(list_disk);
+
+    testdisk_disk_selection(app, verbose, dump, list_disk,save_header);
 
     return 0;
 }

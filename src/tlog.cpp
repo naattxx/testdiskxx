@@ -85,5 +85,7 @@ TD_LOG ask_testdisk_log_creation(App &app)
 
     app.run(root);
 
+    dialog->close();
+
     return log_choice;
 }

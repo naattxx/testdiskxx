@@ -105,6 +105,7 @@ sources = files(
   'src/testdisk.cpp',
   'src/tlog.cpp',
   'src/unicode.cpp',
+  'src/tdisksel.cpp',
 )
 
 executable(
