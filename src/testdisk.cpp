@@ -264,5 +264,9 @@ int main(int argc, char **argv)
     for (disk_t* disk : list_disk)
         disk = new_diskcache(disk, testdisk_mode);
 
+    if(safe==0)
+        hd_update_all_geometry(list_disk, verbose);
+    log_disk_list(list_disk);
+
     return 0;
 }

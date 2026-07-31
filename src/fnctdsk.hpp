@@ -248,5 +248,5 @@
       @ requires valid_list_disk(list_disk);
       @ assigns \nothing;
       @*/
-    void log_disk_list(list_disk_t *list_disk);
+    void log_disk_list(const list_disk_t &list_disk);
 #endif
