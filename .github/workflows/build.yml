@@ -7,12 +7,16 @@ on:
       - "**.cxx"
       - "**.hpp"
       - "**.hxx"
+      - "meson.build"
+      - "subprojects/*.warp"
   pull_request:
     paths:
       - "**.cpp"
       - "**.cxx"
       - "**.hpp"
       - "**.hxx"
+      - "meson.build"
+      - "subprojects/*.warp"
 
 jobs:
   build:
