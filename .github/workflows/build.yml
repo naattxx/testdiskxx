@@ -8,7 +8,7 @@ on:
       - "**.hpp"
       - "**.hxx"
       - "meson.build"
-      - "subprojects/*.warp"
+      - "subprojects/*.wrap"
   pull_request:
     paths:
       - "**.cpp"
@@ -16,7 +16,7 @@ on:
       - "**.hpp"
       - "**.hxx"
       - "meson.build"
-      - "subprojects/*.warp"
+      - "subprojects/*.wrap"
 
 jobs:
   build:
