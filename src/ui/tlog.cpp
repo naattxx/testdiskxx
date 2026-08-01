@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "config.h"
-#include "log.hpp"
+#include "src/log.hpp"
 #include "tlog.hpp"
 
 using namespace cpptui;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "log.hpp"
+#include "src/log.hpp"
 #include <cpptui.hpp>
 
 using namespace cpptui;

@@ -8,9 +8,9 @@
 #include "src/hidden.hpp"
 #include "src/intrface.hpp"
 #include "src/partauto.hpp"
-#include "src/tdisksel.hpp"
+#include "ui/tdisksel.hpp"
 #include "utils.hpp"
-#include "tlog.hpp"
+#include "ui/tlog.hpp"
 #include <args.hxx>
 #include <cpptui.hpp>
 #include <ctime>

@@ -103,9 +103,9 @@ sources = files(
   'src/savehdr.cpp',
   'src/setdate.cpp',
   'src/testdisk.cpp',
-  'src/tlog.cpp',
+  'src/ui/tlog.cpp',
   'src/unicode.cpp',
-  'src/tdisksel.cpp',
+  'src/ui/tdisksel.cpp',
   'src/utils.cpp',
 )
 
