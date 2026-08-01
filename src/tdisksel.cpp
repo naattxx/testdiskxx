@@ -16,12 +16,14 @@ void testdisk_disk_selection(App &app, int verbose, bool dump, list_disk_t &list
 
     auto noWarranty = std::make_shared<Paragraph>("TestDisk is free software, and comes with ABSOLUTELY NO WARRANTY.");
     noWarranty->first_line_indent = 2;
+    noWarranty->max_height = 2;
 
     root->add(aboutBuild);
     root->add(author);
     root->add(website);
     root->add(std::make_shared<VerticalSpacer>(1));
     root->add(noWarranty);
+    root->add(std::make_shared<VerticalSpacer>(1));
 
     if (list_disk.empty())
     {
