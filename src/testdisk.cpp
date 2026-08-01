@@ -9,6 +9,7 @@
 #include "src/intrface.hpp"
 #include "src/partauto.hpp"
 #include "src/tdisksel.hpp"
+#include "utils.hpp"
 #include "tlog.hpp"
 #include <args.hxx>
 #include <cpptui.hpp>
@@ -250,13 +251,11 @@ int main(int argc, char **argv)
 #endif
     log_info("cpptui.hpp: {}.{}.{}, args.hxx: {}", cpptui::VERSION_MAJOR, cpptui::VERSION_MINOR, cpptui::VERSION_PATCH,
              ARGS_VERSION);
-// TODO:
-#if __has_include("unistd.h") && !defined(__CYGWIN__) && !defined(__MINGW32__) && !defined(DJGPP)
-    if (geteuid() != 0)
+
+    if (!isAdmin())
     {
         log_warning("User is not root!");
     }
-#endif
 
     /* Scan for available device only if no device or image has been supplied in parameter */
     if (list_disk.empty())

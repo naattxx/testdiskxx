@@ -106,6 +106,7 @@ sources = files(
   'src/tlog.cpp',
   'src/unicode.cpp',
   'src/tdisksel.cpp',
+  'src/utils.cpp',
 )
 
 executable(

@@ -1,6 +1,7 @@
 #include "tdisksel.hpp"
 #include "cpptui.hpp"
 #include "src/log.hpp"
+#include "utils.hpp"
 #include <config.h>
 
 using namespace cpptui;
@@ -9,8 +10,8 @@ void testdisk_disk_selection(App &app, int verbose, bool dump, list_disk_t &list
 {
     auto root = std::make_shared<Vertical>();
 
-    auto aboutBuild = std::make_shared<Label>(
-        StyledText("TestDisk++ ").bold(VERSION).add(", Datah Recovery Utility, " TESTDISKDATE));
+    auto aboutBuild =
+        std::make_shared<Label>(StyledText("TestDisk++ ").bold(VERSION).add(", Datah Recovery Utility, " TESTDISKDATE));
     auto author = std::make_shared<Label>("naattxx <grenier@cgsecurity.org>");
     auto website = std::make_shared<Label>("https://www.github.com/");
 
@@ -29,12 +30,13 @@ void testdisk_disk_selection(App &app, int verbose, bool dump, list_disk_t &list
     {
         log_critical("No disk found");
         root->add(std::make_shared<Label>("No hard disk found"));
+        if (!isAdmin())
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
-        root->add(std::make_shared<Paragraph>("You need to be administrator to use TestDisk++.\n"
-                                              "select TestDisk++, right-click and choose \"Run as administrator\"."));
-#elif defined(DJGPP)
-#elif __has_include("unistd.h")
-        root->add(std::make_shared<Static>("You need to be root to use TestDisk++."));
+            root->add(
+                std::make_shared<Paragraph>("You need to be administrator to use TestDisk++.\n"
+                                            "select TestDisk++, right-click and choose \"Run as administrator\"."));
+#elif defined(__linux__)
+            root->add(std::make_shared<Static>("You need to be root to use TestDisk++."));
 #endif
         root->add(std::make_shared<VerticalSpacer>(1));
     }
