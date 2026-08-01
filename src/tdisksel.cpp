@@ -22,10 +22,24 @@ void testdisk_disk_selection(App &app, int verbose, bool dump, list_disk_t &list
     root->add(std::make_shared<VerticalSpacer>(1));
     root->add(noWarranty);
 
+    auto note = std::make_shared<Static>("");
+
     for (auto &disk : list_disk)
     {
         auto diskBtn = std::make_shared<Button>(disk->description_short(disk));
         diskBtn->alignment = Alignment::Left;
+        diskBtn->on_hover = [disk, note](bool hover) {
+            if (hover && disk->serial_no)
+            {
+                note->set_text(StyledText("Note: ")
+                                   .colored("Serial number ", Color::Green())
+                                   .colored(disk->serial_no, Color::Green()));
+            }
+            else
+            {
+                note->set_text("");
+            }
+        };
         root->add(diskBtn);
     }
 
@@ -36,6 +50,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump, list_disk_t &list
                                     "If a disk listed above has an incorrect size, check HD jumper settings and BIOS "
                                     "detection, and install the latest OS patches and disk drivers.");
 
+    root->add(note);
     root->add(capacityWarning);
 
     app.run(root);
