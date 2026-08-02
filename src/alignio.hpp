@@ -55,7 +55,7 @@ static int align_pread(int (*fnct_pread)(const disk_t &disk_car, void *buf, cons
         int res;
         if (disk_car.rbuffer_size < count_new)
         {
-            delete (disk_car.rbuffer);
+            delete[] (disk_car.rbuffer);
             disk_car.rbuffer = NULL;
         }
         if (disk_car.rbuffer == NULL)
@@ -112,7 +112,7 @@ static int align_pwrite(int (*fnct_pread)(const disk_t &disk_car, void *buf, con
         int tmp;
         if (disk_car.wbuffer_size < count_new)
         {
-            delete (disk_car.wbuffer);
+            delete[] (disk_car.wbuffer);
             disk_car.wbuffer = NULL;
         }
         if (disk_car.wbuffer == NULL)

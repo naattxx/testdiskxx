@@ -177,8 +177,8 @@ static uint64_t compute_device_size(const int hd_h, const char *device, const in
 void generic_clean(disk_t &disk)
 {
     delete (disk.data);
-    delete (disk.rbuffer);
-    delete (disk.wbuffer);
+    delete[] (disk.rbuffer);
+    delete[] (disk.wbuffer);
     disk.data = NULL;
     disk.rbuffer = NULL;
     disk.wbuffer = NULL;
