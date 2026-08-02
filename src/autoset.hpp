@@ -30,6 +30,6 @@
   @ terminates \true;
   @ assigns disk_car->unit;
   @*/
-void autoset_unit(disk_t *disk_car);
+void autoset_unit(disk_t &disk_car);
 
 #endif

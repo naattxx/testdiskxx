@@ -29,7 +29,7 @@
       @ requires valid_disk(disk_car);
       @ assigns \nothing;
       @*/
-    unsigned long int C_H_S2LBA(const disk_t *disk_car, const unsigned int C, const unsigned int H,
+    unsigned long int C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H,
                                 const unsigned int S);
 
     /*@
@@ -38,7 +38,7 @@
       @ requires \valid_read(CHS);
       @ assigns \nothing;
       @*/
-    uint64_t CHS2offset(const disk_t *disk_car, const CHS_t *CHS);
+    uint64_t CHS2offset(const disk_t &disk_car, const CHS_t *CHS);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -48,7 +48,7 @@
       @ assigns \nothing;
       @ ensures 0 < \result <= disk_car->geom.sectors_per_head;
       @*/
-    unsigned int offset2sector(const disk_t *disk_car, const uint64_t offset);
+    unsigned int offset2sector(const disk_t &disk_car, const uint64_t offset);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -59,7 +59,7 @@
       @ assigns \nothing;
       @ ensures \result <= disk_car->geom.heads_per_cylinder;
       @*/
-    unsigned int offset2head(const disk_t *disk_car, const uint64_t offset);
+    unsigned int offset2head(const disk_t &disk_car, const uint64_t offset);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -69,7 +69,7 @@
       @ requires disk_car->geom.heads_per_cylinder > 0;
       @ assigns \nothing;
       @*/
-    unsigned int offset2cylinder(const disk_t *disk_car, const uint64_t offset);
+    unsigned int offset2cylinder(const disk_t &disk_car, const uint64_t offset);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -81,7 +81,7 @@
       @ requires \separated(disk_car, CHS);
       @ assigns CHS->cylinder,CHS->head,CHS->sector;
       @*/
-    void offset2CHS(const disk_t *disk_car, const uint64_t offset, CHS_t *CHS);
+    void offset2CHS(const disk_t &disk_car, const uint64_t offset, CHS_t *CHS);
 
     /*@
       @ requires valid_list_disk(list_disk);
@@ -96,7 +96,7 @@
     // ensures valid_list_disk(\result);
     // ensures disk==\null ==> \result == list_disk;
     // ensures the_disk==\null || (\valid_read(the_disk) && valid_disk(*the_disk));
-    void insert_new_disk_aux(list_disk_t &list_disk, disk_t *disk, disk_t **the_disk);
+    void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t **the_disk);
 
     /*@
       @ requires list_disk==\null || valid_disk(list_disk->disk);
@@ -108,7 +108,7 @@
     // ensures \result==\null || \valid(\result);
     // ensures disk_car==\null ==> \result == list_disk;
     // ensures valid_list_disk(\result);
-    void insert_new_disk(list_disk_t &list_disk, disk_t *disk_car);
+    void insert_new_disk(list_disk_t &list_disk, disk_t &disk_car);
 
     /*@
       @ requires list_part == \null || \valid(list_part);
@@ -204,7 +204,7 @@
       @ requires valid_list_part(list_part);
       @*/
     // assigns \nothing;
-    unsigned int get_geometry_from_list_part(const disk_t *disk_car, const list_part_t *list_part, const int verbose);
+    unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t *list_part, const int verbose);
 
     /*@
       @ requires valid_list_disk(list_disk);
@@ -248,5 +248,5 @@
       @ requires valid_list_disk(list_disk);
       @ assigns \nothing;
       @*/
-    void log_disk_list(const list_disk_t &list_disk);
+    void log_disk_list(list_disk_t &list_disk);
 #endif

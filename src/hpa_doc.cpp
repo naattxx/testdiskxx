@@ -252,7 +252,7 @@ static uint64_t sg_device_configuration_identify(int fd)
 #endif
 }
 
-void disk_get_hpa_dco(const int fd, disk_t *disk)
+void disk_get_hpa_dco(const int fd, disk_t &disk)
 {
 #ifdef HDIO_DRIVE_CMD
     unsigned char id_args[4 + 512];
@@ -274,14 +274,14 @@ void disk_get_hpa_dco(const int fd, disk_t *disk)
 
     if (id_val[0] & 0x8000)
     {
-        log_warning("{} is not an ATA disk", disk->device);
+        log_warning("{} is not an ATA disk", disk.device);
         return;
     }
 
     /* Give up if LBA is not supported */
     if ((id_val[49] & 0x0200) == 0)
     {
-        log_error("{}: LBA mode not supported.", disk->device);
+        log_error("{}: LBA mode not supported.", disk.device);
         return;
     }
     {
@@ -314,42 +314,42 @@ void disk_get_hpa_dco(const int fd, disk_t *disk)
                 features += ", DCO";
             }
         }
-        log_info("{}: LBA{} support", disk->device, features);
+        log_info("{}: LBA{} support", disk.device, features);
     }
 
-    disk->user_max = 0;
+    disk.user_max = 0;
     if (flags & DISK_HAS_48_SUPPORT)
     {
-        disk->user_max = (uint64_t)id_val[103] << 48 | (uint64_t)id_val[102] << 32 | (uint64_t)id_val[101] << 16 |
+        disk.user_max = (uint64_t)id_val[103] << 48 | (uint64_t)id_val[102] << 32 | (uint64_t)id_val[101] << 16 |
                          (uint64_t)id_val[100];
     }
     /* Use the 28-bit fields */
-    if (disk->user_max == 0)
+    if (disk.user_max == 0)
     {
-        disk->user_max = (uint64_t)id_val[61] << 16 | id_val[60];
+        disk.user_max = (uint64_t)id_val[61] << 16 | id_val[60];
     }
-    disk->dco = sg_device_configuration_identify(fd);
+    disk.dco = sg_device_configuration_identify(fd);
     if (flags & DISK_HAS_HPA_SUPPORT)
     {
         if ((flags & DISK_HAS_48_SUPPORT) != 0)
-            disk->native_max = sg_read_native_max_ext(fd);
+            disk.native_max = sg_read_native_max_ext(fd);
         else
-            disk->native_max = read_native_max(fd);
+            disk.native_max = read_native_max(fd);
     }
-    if (disk->sector_size != 0)
-        log_info("{}: size       {} sectors\n", disk->device,
-                 (long long unsigned)(disk->disk_real_size / disk->sector_size));
-    if (disk->user_max != 0)
-        log_info("{}: user_max   {} sectors\n", disk->device, (long long unsigned)disk->user_max);
-    if (disk->native_max != 0)
-        log_info("{}: native_max {} sectors\n", disk->device, (long long unsigned)(disk->native_max + 1));
-    if (disk->dco != 0)
-        log_info("{}: dco        {} sectors\n", disk->device, (long long unsigned)(disk->dco + 1));
+    if (disk.sector_size != 0)
+        log_info("{}: size       {} sectors\n", disk.device,
+                 (long long unsigned)(disk.disk_real_size / disk.sector_size));
+    if (disk.user_max != 0)
+        log_info("{}: user_max   {} sectors\n", disk.device, (long long unsigned)disk.user_max);
+    if (disk.native_max != 0)
+        log_info("{}: native_max {} sectors\n", disk.device, (long long unsigned)(disk.native_max + 1));
+    if (disk.dco != 0)
+        log_info("{}: dco        {} sectors\n", disk.device, (long long unsigned)(disk.dco + 1));
 #endif
 }
 
 #else
-void disk_get_hpa_dco(const int fd, disk_t *disk)
+void disk_get_hpa_dco(const int fd, disk_t &disk)
 {
 }
 #endif

@@ -182,7 +182,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_BSD(disk_t *disk_car, partition_t *partition, const int verbose, const unsigned int max_partitions);
+    int check_BSD(disk_t &disk_car, partition_t *partition, const int verbose, const unsigned int max_partitions);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -191,7 +191,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires separation: \separated(disk_car, bsd_header, partition);
       @*/
-    int recover_BSD(const disk_t *disk_car, const struct disklabel *bsd_header, partition_t *partition,
+    int recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, partition_t *partition,
                     const int verbose, const int dump_ind);
 
 #ifdef __cplusplus

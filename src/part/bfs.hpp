@@ -93,7 +93,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_BeFS(disk_t *disk_car, partition_t *partition);
+    int check_BeFS(disk_t &disk_car, partition_t *partition);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -102,7 +102,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires separation: \separated(disk_car, beos_block, partition);
       @*/
-    int recover_BeFS(const disk_t *disk_car, const struct disk_super_block *beos_block, partition_t *partition,
+    int recover_BeFS(const disk_t &disk_car, const struct disk_super_block *beos_block, partition_t *partition,
                      const int dump_ind);
 
 #ifdef __cplusplus

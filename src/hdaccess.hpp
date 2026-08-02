@@ -1,5 +1,6 @@
 #pragma once
 #include "common.hpp"
+#include <optional>
 #include <string>
 
 /*@
@@ -11,12 +12,12 @@
   @ decreases 0;
   @ ensures  valid_disk(disk_car);
   @*/
-void hd_update_geometry(disk_t *disk_car, const int verbose);
+void hd_update_geometry(disk_t &disk_car, const int verbose);
 
 /*@
   @ requires valid_list_disk(list_disk);
   @*/
-void hd_update_all_geometry(const list_disk_t &list_disk, const int verbose);
+void hd_update_all_geometry(list_disk_t &list_disk, const int verbose);
 
 /*@
   @ requires valid_list_disk(list_disk);
@@ -31,7 +32,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
   @ ensures  \result!=\null ==> (0 < \result->geom.sectors_per_head <= 63);
   @ ensures  \result==\null || valid_disk(\result);
   @*/
-disk_t *file_test_availability(const char *device, const int verbose, const int testdisk_mode);
+std::optional<disk_t> file_test_availability(const char *device, const int verbose, const int testdisk_mode);
 
 /*@
   @ requires \valid(disk_car);
@@ -43,7 +44,7 @@ disk_t *file_test_availability(const char *device, const int verbose, const int 
   @ ensures  valid_disk(disk_car);
   @ assigns disk_car->disk_real_size, disk_car->geom.cylinders, disk_car->disk_size;
   @*/
-void update_disk_car_fields(disk_t *disk_car);
+void update_disk_car_fields(disk_t &disk_car);
 
 /*@
   @ requires \valid(disk);
@@ -68,7 +69,7 @@ void update_disk_car_fields(disk_t *disk_car);
   @ assigns disk->model, disk->serial_no, disk->fw_rev, disk->write_used;
   @ assigns disk->description_txt[0], disk->unit;
   @*/
-void init_disk(disk_t *disk);
+void init_disk(disk_t &disk);
 
 /*@
   @ requires \valid(disk);
@@ -76,4 +77,4 @@ void init_disk(disk_t *disk);
   @ requires \freeable(disk);
   @ requires valid_disk(disk);
   @*/
-void generic_clean(disk_t *disk);
+void generic_clean(disk_t &disk);

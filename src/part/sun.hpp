@@ -93,7 +93,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires separation: \separated(disk_car, sunlabel, partition);
       @*/
-    int recover_sun_i386(const disk_t *disk_car, const sun_partition_i386 *sunlabel, partition_t *partition,
+    int recover_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, partition_t *partition,
                          const int verbose, const int dump_ind);
 
     /*@
@@ -102,7 +102,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_sun_i386(disk_t *disk_car, partition_t *partition, const int verbose);
+    int check_sun_i386(disk_t &disk_car, partition_t *partition, const int verbose);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

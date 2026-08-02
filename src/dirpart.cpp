@@ -42,7 +42,7 @@
 #include "part/ntfs_dir.hpp"
 #include "part/rfs_dir.hpp"
 
-static dir_partition_t dir_partition_init(disk_t *disk, const partition_t *partition, const int verbose,
+static dir_partition_t dir_partition_init(disk_t &disk, const partition_t *partition, const int verbose,
                                           const int expert, dir_data_t *dir_data)
 {
     if (is_part_fat(partition))
@@ -87,7 +87,7 @@ static dir_partition_t dir_partition_init(disk_t *disk, const partition_t *parti
     }
 }
 
-dir_partition_t dir_partition(disk_t *disk, const partition_t *partition, const int verbose, const int expert,
+dir_partition_t dir_partition(disk_t &disk, const partition_t *partition, const int verbose, const int expert,
                               char **current_cmd)
 {
     dir_data_t dir_data;

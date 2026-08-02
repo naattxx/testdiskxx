@@ -49,7 +49,7 @@ extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
 #endif
 
-void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
+void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
 {
     list_part_t *list_part = NULL;
 #ifdef DEBUG_PARTAUTO
@@ -60,7 +60,7 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
     // old_levels=log_set_levels(0);
 #endif
     {
-        disk->arch = &arch_none;
+        disk.arch = &arch_none;
         list_part = arch_none.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
         if (list_part != NULL && list_part->part != NULL && list_part->part->upart_type == UP_UNK)
@@ -72,7 +72,7 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
     if (list_part == NULL)
     {
-        disk->arch = &arch_xbox;
+        disk.arch = &arch_xbox;
         list_part = arch_xbox.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
     }
@@ -80,7 +80,7 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
     if (list_part == NULL)
     {
-        disk->arch = &arch_gpt;
+        disk.arch = &arch_gpt;
         list_part = arch_gpt.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
     }
@@ -88,7 +88,7 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_HUMAX)
     if (list_part == NULL)
     {
-        disk->arch = &arch_humax;
+        disk.arch = &arch_humax;
         list_part = arch_humax.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
     }
@@ -96,7 +96,7 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
     if (list_part == NULL)
     {
-        disk->arch = &arch_i386;
+        disk.arch = &arch_i386;
         list_part = arch_i386.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
     }
@@ -104,7 +104,7 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
     if (list_part == NULL)
     {
-        disk->arch = &arch_sun;
+        disk.arch = &arch_sun;
         list_part = arch_sun.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
     }
@@ -112,7 +112,7 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_MAC)
     if (list_part == NULL)
     {
-        disk->arch = &arch_mac;
+        disk.arch = &arch_mac;
         list_part = arch_mac.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
     }
@@ -122,43 +122,43 @@ void autodetect_arch(disk_t *disk, const arch_fnct_t *arch)
 #endif
     if (list_part != NULL)
     {
-        disk->arch_autodetected = disk->arch;
-        log_info("Partition table type (auto): {}\n", disk->arch->part_name);
+        disk.arch_autodetected = disk.arch;
+        log_info("Partition table type (auto): {}\n", disk.arch->part_name);
         part_free_list(list_part);
         return;
     }
-    disk->arch_autodetected = NULL;
+    disk.arch_autodetected = NULL;
     if (arch != NULL)
     {
-        disk->arch = arch;
+        disk.arch = arch;
     }
     else
     {
 #ifdef DISABLED_FOR_FRAMAC
-        disk->arch = &arch_none;
+        disk.arch = &arch_none;
 #elif defined(TARGET_SOLARIS) && (!defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN))
-        disk->arch = &arch_sun;
+        disk.arch = &arch_sun;
 #elif defined(__APPLE__) && defined(TESTDISK_LSB) && (!defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT))
-        disk->arch = &arch_gpt;
+        disk.arch = &arch_gpt;
 #elif defined(__APPLE__) && !defined(TESTDISK_LSB) && (!defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_MAC))
-        disk->arch = &arch_mac;
+        disk.arch = &arch_mac;
 #else
 #if defined(__CYGWIN__) || defined(__MINGW32__)
-        if (disk->device[0] == '\\' && disk->device[1] == '\\' && disk->device[2] == '.' && disk->device[3] == '\\' &&
-            disk->device[5] == ':')
-            disk->arch = &arch_none;
+        if (disk.device[0] == '\\' && disk.device[1] == '\\' && disk.device[2] == '.' && disk.device[3] == '\\' &&
+            disk.device[5] == ':')
+            disk.arch = &arch_none;
         else
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || (defined(SINGLE_PARTITION_I386) && defined(SINGLE_PARTITION_GPT))
             /* PC/Intel partition table is limited to 2 TB, 2^32 512-bytes sectors */
-            if (disk->disk_size < ((uint64_t)1 << (32 + 9)))
-                disk->arch = &arch_i386;
+            if (disk.disk_size < ((uint64_t)1 << (32 + 9)))
+                disk.arch = &arch_i386;
             else
-                disk->arch = &arch_gpt;
+                disk.arch = &arch_gpt;
 #else
-        disk->arch = &arch_none;
+        disk.arch = &arch_none;
 #endif
 #endif
     }
-    log_info("Partition table type defaults to {}\n", disk->arch->part_name);
+    log_info("Partition table type defaults to {}\n", disk.arch->part_name);
 }

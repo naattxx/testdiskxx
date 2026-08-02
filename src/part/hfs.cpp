@@ -31,10 +31,10 @@
 
 static void set_HFS_info(partition_t *partition, const hfs_mdb_t *hfs_mdb);
 
-int check_HFS(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_HFS(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[HFS_SUPERBLOCK_SIZE];
-    if (disk_car->pread(disk_car, buffer, HFS_SUPERBLOCK_SIZE, partition->part_offset + 0x400) != HFS_SUPERBLOCK_SIZE)
+    if (disk_car.pread(disk_car, buffer, HFS_SUPERBLOCK_SIZE, partition->part_offset + 0x400) != HFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -49,7 +49,7 @@ int check_HFS(disk_t *disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-int recover_HFS(const disk_t *disk_car, const hfs_mdb_t *hfs_mdb, partition_t *partition, const int verbose,
+int recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb, partition_t *partition, const int verbose,
                 const int dump_ind, const int backup)
 {
     uint64_t part_size;
@@ -61,10 +61,10 @@ int recover_HFS(const disk_t *disk_car, const hfs_mdb_t *hfs_mdb, partition_t *p
     partition->sb_size = HFS_SUPERBLOCK_SIZE;
     if (backup > 0)
     {
-        if (partition->part_offset + 2 * disk_car->sector_size < part_size)
+        if (partition->part_offset + 2 * disk_car.sector_size < part_size)
             return 1;
         partition->sb_offset = part_size - 0x400;
-        partition->part_offset = partition->part_offset + 2 * disk_car->sector_size - part_size;
+        partition->part_offset = partition->part_offset + 2 * disk_car.sector_size - part_size;
     }
     partition->part_size = part_size;
     set_HFS_info(partition, hfs_mdb);
@@ -73,12 +73,12 @@ int recover_HFS(const disk_t *disk_car, const hfs_mdb_t *hfs_mdb, partition_t *p
     partition->part_type_gpt = GPT_ENT_TYPE_MAC_HFS;
     if (verbose > 0)
     {
-        log_info("part_size %lu\n", (long unsigned)(partition->part_size / disk_car->sector_size));
+        log_info("part_size %lu\n", (long unsigned)(partition->part_size / disk_car.sector_size));
     }
     return 0;
 }
 
-int test_HFS(const disk_t *disk_car, const hfs_mdb_t *hfs_mdb, const partition_t *partition, const int verbose,
+int test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb, const partition_t *partition, const int verbose,
              const int dump_ind)
 {
     /* Check for HFS signature */

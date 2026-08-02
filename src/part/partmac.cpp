@@ -48,20 +48,20 @@
   @ requires \valid(disk_car);
   @ requires \valid(partition);
   @*/
-static int check_part_mac(disk_t *disk_car, const int verbose, partition_t *partition, const int saveheader);
+static int check_part_mac(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader);
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t *read_part_mac(disk_t *disk_car, const int verbose, const int saveheader);
+static list_part_t *read_part_mac(disk_t &disk_car, const int verbose, const int saveheader);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static int write_part_mac(disk_t *disk_car, const list_part_t *list_part, const int ro, const int verbose);
+static int write_part_mac(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose);
 
 /*@
   @ requires \valid(disk_car);
@@ -69,7 +69,7 @@ static int write_part_mac(disk_t *disk_car, const list_part_t *list_part, const 
   @ requires separation: \separated(disk_car, list_part);
   @ assigns \nothing;
   @*/
-static list_part_t *init_part_order_mac(const disk_t *disk_car, list_part_t *list_part);
+static list_part_t *init_part_order_mac(const disk_t &disk_car, list_part_t *list_part);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -77,7 +77,7 @@ static list_part_t *init_part_order_mac(const disk_t *disk_car, list_part_t *lis
   @ requires separation: \separated(disk_car, partition);
   @ assigns partition->status;
   @*/
-static void set_next_status_mac(const disk_t *disk_car, partition_t *partition);
+static void set_next_status_mac(const disk_t &disk_car, partition_t *partition);
 
 /*@
   @ requires \valid(partition);
@@ -95,7 +95,7 @@ static int is_part_known_mac(const partition_t *partition);
   @ requires \valid_read(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static void init_structure_mac(const disk_t *disk_car, list_part_t *list_part, const int verbose);
+static void init_structure_mac(const disk_t &disk_car, list_part_t *list_part, const int verbose);
 
 /*@
   @ requires \valid_read(partition);
@@ -157,14 +157,14 @@ static unsigned int get_part_type_mac(const partition_t *partition)
     return partition->part_type_mac;
 }
 
-static list_part_t *read_part_mac(disk_t *disk_car, const int verbose, const int saveheader)
+static list_part_t *read_part_mac(disk_t &disk_car, const int verbose, const int saveheader)
 {
     unsigned char buffer[DEFAULT_SECTOR_SIZE];
     list_part_t *new_list_part = NULL;
     unsigned int i;
     unsigned int limit = 1;
     screen_buffer_reset();
-    if (disk_car->pread(disk_car, &buffer, sizeof(buffer), 0) != sizeof(buffer))
+    if (disk_car.pread(disk_car, &buffer, sizeof(buffer), 0) != sizeof(buffer))
         return NULL;
     {
         mac_Block0 *maclabel = (mac_Block0 *)&buffer;
@@ -178,7 +178,7 @@ static list_part_t *read_part_mac(disk_t *disk_car, const int verbose, const int
     for (i = 1; i <= limit; i++)
     {
         const mac_DPME *dpme = (const mac_DPME *)buffer;
-        if (disk_car->pread(disk_car, &buffer, sizeof(buffer), (uint64_t)i * PBLOCK_SIZE) != sizeof(buffer))
+        if (disk_car.pread(disk_car, &buffer, sizeof(buffer), (uint64_t)i * PBLOCK_SIZE) != sizeof(buffer))
             return new_list_part;
         if (be16(dpme->dpme_signature) != DPME_SIGNATURE)
         {
@@ -249,7 +249,7 @@ static list_part_t *read_part_mac(disk_t *disk_car, const int verbose, const int
     return new_list_part;
 }
 
-static int write_part_mac(disk_t *disk_car, const list_part_t *list_part, const int ro, const int verbose)
+static int write_part_mac(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose)
 {
     /* TODO: Implement it */
     if (ro == 0)
@@ -257,17 +257,17 @@ static int write_part_mac(disk_t *disk_car, const list_part_t *list_part, const 
     return 0;
 }
 
-static list_part_t *init_part_order_mac(const disk_t *disk_car, list_part_t *list_part)
+static list_part_t *init_part_order_mac(const disk_t &disk_car, list_part_t *list_part)
 {
     return list_part;
 }
 
-list_part_t *add_partition_mac_cli(disk_t *disk_car, list_part_t *list_part, char **current_cmd)
+list_part_t *add_partition_mac_cli(disk_t &disk_car, list_part_t *list_part, char **current_cmd)
 {
     partition_t *new_partition = partition_new(&arch_mac);
     assert(current_cmd != NULL);
-    new_partition->part_offset = disk_car->sector_size;
-    new_partition->part_size = disk_car->disk_size - disk_car->sector_size;
+    new_partition->part_offset = disk_car.sector_size;
+    new_partition->part_size = disk_car.disk_size - disk_car.sector_size;
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_read_string(*current_cmd);
@@ -281,20 +281,20 @@ list_part_t *add_partition_mac_cli(disk_t *disk_car, list_part_t *list_part, cha
             part_offset = new_partition->part_offset;
             new_partition->part_offset =
                 (uint64_t)ask_number_cli(
-                    current_cmd, new_partition->part_offset / disk_car->sector_size, 4096 / disk_car->sector_size,
-                    (disk_car->disk_size - 1) / disk_car->sector_size, "Enter the starting sector ") *
-                (uint64_t)disk_car->sector_size;
+                    current_cmd, new_partition->part_offset / disk_car.sector_size, 4096 / disk_car.sector_size,
+                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the starting sector ") *
+                (uint64_t)disk_car.sector_size;
             new_partition->part_size = new_partition->part_size + part_offset - new_partition->part_offset;
         }
         else if (check_command(current_cmd, "S,", 2) == 0)
         {
             new_partition->part_size =
                 (uint64_t)ask_number_cli(
-                    current_cmd, (new_partition->part_offset + new_partition->part_size - 1) / disk_car->sector_size,
-                    new_partition->part_offset / disk_car->sector_size,
-                    (disk_car->disk_size - 1) / disk_car->sector_size, "Enter the ending sector ") *
-                    (uint64_t)disk_car->sector_size +
-                disk_car->sector_size - new_partition->part_offset;
+                    current_cmd, (new_partition->part_offset + new_partition->part_size - 1) / disk_car.sector_size,
+                    new_partition->part_offset / disk_car.sector_size,
+                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the ending sector ") *
+                    (uint64_t)disk_car.sector_size +
+                disk_car.sector_size - new_partition->part_offset;
         }
         else if (check_command(current_cmd, "T,", 2) == 0)
         {
@@ -326,7 +326,7 @@ list_part_t *add_partition_mac_cli(disk_t *disk_car, list_part_t *list_part, cha
     }
 }
 
-static void set_next_status_mac(const disk_t *disk_car, partition_t *partition)
+static void set_next_status_mac(const disk_t &disk_car, partition_t *partition)
 {
     if (partition->status == STATUS_DELETED)
         partition->status = STATUS_PRIM;
@@ -359,7 +359,7 @@ static int is_part_known_mac(const partition_t *partition)
     return (partition->part_type_mac != PMAC_UNK);
 }
 
-static void init_structure_mac(const disk_t *disk_car, list_part_t *list_part, const int verbose)
+static void init_structure_mac(const disk_t &disk_car, list_part_t *list_part, const int verbose)
 {
     list_part_t *element;
     list_part_t *new_list_part = NULL;
@@ -393,7 +393,7 @@ static void init_structure_mac(const disk_t *disk_car, list_part_t *list_part, c
     part_free_list_only(new_list_part);
 }
 
-static int check_part_mac(disk_t *disk_car, const int verbose, partition_t *partition, const int saveheader)
+static int check_part_mac(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader)
 {
     int ret = 0;
     switch (partition->part_type_mac)

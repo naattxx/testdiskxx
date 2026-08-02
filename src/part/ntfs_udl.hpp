@@ -33,7 +33,7 @@ extern "C"
       @ requires \valid_read(partition);
       @ requires \separated(disk_car, partition);
       @*/
-    int ntfs_undelete_part(disk_t *disk_car, const partition_t *partition, const int verbose, char **current_cmd);
+    int ntfs_undelete_part(disk_t &disk_car, const partition_t *partition, const int verbose, char **current_cmd);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

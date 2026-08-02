@@ -60,7 +60,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_Linux_SWAP(disk_t *disk_car, partition_t *partition);
+    int check_Linux_SWAP(disk_t &disk_car, partition_t *partition);
 
     /*@
       @ requires \valid_read(swap_header);

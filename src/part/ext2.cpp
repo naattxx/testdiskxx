@@ -34,10 +34,10 @@
 
 static void set_EXT2_info(const struct ext2_super_block *sb, partition_t *partition, const int verbose);
 
-int check_EXT2(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_EXT2(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[EXT2_SUPERBLOCK_SIZE];
-    if (disk_car->pread(disk_car, buffer, EXT2_SUPERBLOCK_SIZE, partition->part_offset + 0x400) != EXT2_SUPERBLOCK_SIZE)
+    if (disk_car.pread(disk_car, buffer, EXT2_SUPERBLOCK_SIZE, partition->part_offset + 0x400) != EXT2_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -102,14 +102,14 @@ static void set_EXT2_info(const struct ext2_super_block *sb, partition_t *partit
 Primary superblock is at 1024 (SUPERBLOCK_OFFSET)
 Group 0 begin at s_first_data_block
 */
-int recover_EXT2(const disk_t *disk, const struct ext2_super_block *sb, partition_t *partition, const int verbose,
+int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partition_t *partition, const int verbose,
                  const int dump_ind)
 {
     if (test_EXT2(sb, partition) != 0)
         return 1;
     if (dump_ind != 0)
     {
-        if (partition != NULL && disk != NULL)
+        if (partition != NULL /*&& disk != NULL*/)
             log_info("\nEXT2/EXT3 magic value at %u/%u/%u\n", offset2cylinder(disk, partition->part_offset),
                      offset2head(disk, partition->part_offset), offset2sector(disk, partition->part_offset));
         /* There is a little offset ... */
@@ -156,10 +156,10 @@ int recover_EXT2(const disk_t *disk, const struct ext2_super_block *sb, partitio
             (unsigned int)le32(sb->s_inodes_per_group));
         log_info("recover_EXT2: s_blocksize=%u\n", partition->blocksize);
         log_info("recover_EXT2: s_blocks_count %lu\n", (long unsigned int)td_ext2fs_blocks_count(sb));
-        if (disk == NULL)
-            log_info("recover_EXT2: part_size %lu\n", (long unsigned)(partition->part_size / DEFAULT_SECTOR_SIZE));
-        else
-            log_info("recover_EXT2: part_size %lu\n", (long unsigned)(partition->part_size / disk->sector_size));
+        // if (disk == NULL)
+        //     log_info("recover_EXT2: part_size %lu\n", (long unsigned)(partition->part_size / DEFAULT_SECTOR_SIZE));
+        // else
+            log_info("recover_EXT2: part_size %lu\n", (long unsigned)(partition->part_size / disk.sector_size));
     }
     if (sb->s_mkfs_time > 0)
     {

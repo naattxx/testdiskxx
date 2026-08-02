@@ -44,10 +44,10 @@ static void set_f2fs_info(partition_t *partition, const struct f2fs_super_block 
                  partition->blocksize);
 }
 
-int check_f2fs(disk_t *disk, partition_t *partition)
+int check_f2fs(disk_t &disk, partition_t *partition)
 {
     unsigned char *buffer = new unsigned char[F2FS_BLKSIZE];
-    if (disk->pread(disk, buffer, F2FS_BLKSIZE, partition->part_offset + F2FS_SUPER_OFFSET) != F2FS_BLKSIZE)
+    if (disk.pread(disk, buffer, F2FS_BLKSIZE, partition->part_offset + F2FS_SUPER_OFFSET) != F2FS_BLKSIZE)
     {
         delete[] (buffer);
         return 1;
@@ -82,7 +82,7 @@ int test_f2fs(const struct f2fs_super_block *hdr)
     return 0;
 }
 
-int recover_f2fs(const disk_t *disk, const struct f2fs_super_block *hdr, partition_t *partition)
+int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr, partition_t *partition)
 {
     if (test_f2fs(hdr) != 0)
         return 1;

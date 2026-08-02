@@ -39,7 +39,7 @@
 #include "src/log_part.hpp"
 
 #ifdef HAVE_NCURSES
-static void dump_fat32_ncurses(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void dump_fat32_ncurses(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
                                const unsigned char *buffer_backup_bs)
 {
     WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
@@ -59,13 +59,13 @@ static void dump_fat32_ncurses(disk_t *disk_car, const partition_t *partition, c
 }
 #endif
 
-static void dump_fat32(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void dump_fat32(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
                        const unsigned char *buffer_backup_bs, char **current_cmd)
 {
     // log_info("Boot sector                        Backup boot sector\n");
-    // dump2_log(buffer_bs, buffer_backup_bs, 3*disk_car->sector_size);
+    // dump2_log(buffer_bs, buffer_backup_bs, 3*disk_car.sector_size);
     log_fat2_info((const struct fat_boot_sector *)buffer_bs, (const struct fat_boot_sector *)buffer_backup_bs, UP_FAT32,
-                  disk_car->sector_size);
+                  disk_car.sector_size);
     if (*current_cmd == NULL)
     {
 #ifdef HAVE_NCURSES
@@ -74,7 +74,7 @@ static void dump_fat32(disk_t *disk_car, const partition_t *partition, const uns
     }
 }
 
-int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbose, const int dump_ind,
+int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind,
                       const unsigned int expert, char **current_cmd)
 {
     unsigned char *buffer_bs;
@@ -91,8 +91,8 @@ int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
                                           {'C', "Repair FAT", "Very Dangerous! Expert only"},
                                           {0, NULL, NULL}};
 #endif
-    buffer_bs = new unsigned char[3 * disk_car->sector_size];
-    buffer_backup_bs = new unsigned char[3 * disk_car->sector_size];
+    buffer_bs = new unsigned char[3 * disk_car.sector_size];
+    buffer_backup_bs = new unsigned char[3 * disk_car.sector_size];
     while (1)
     {
         const char *options;
@@ -114,11 +114,11 @@ int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
             log_info("\nfat32_boot_sector\n");
             log_partition(disk_car, partition);
             screen_buffer_add("Boot sector\n");
-            if ((unsigned)disk_car->pread(disk_car, buffer_bs, 3 * disk_car->sector_size, partition->part_offset) !=
-                3 * disk_car->sector_size)
+            if ((unsigned)disk_car.pread(disk_car, buffer_bs, 3 * disk_car.sector_size, partition->part_offset) !=
+                3 * disk_car.sector_size)
             {
                 screen_buffer_add("fat32_boot_sector: Can't read boot sector.\n");
-                memset(buffer_bs, 0, 3 * disk_car->sector_size);
+                memset(buffer_bs, 0, 3 * disk_car.sector_size);
             }
             if (test_FAT(disk_car, (struct fat_boot_sector *)buffer_bs, partition, verbose, 0) == 0)
             {
@@ -138,12 +138,12 @@ int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
                 screen_buffer_add("Bad\n");
             }
             screen_buffer_add("\nBackup boot sector\n");
-            if ((unsigned)disk_car->pread(disk_car, buffer_backup_bs, 3 * disk_car->sector_size,
-                                          partition->part_offset + 6 * disk_car->sector_size) !=
-                3 * disk_car->sector_size)
+            if ((unsigned)disk_car.pread(disk_car, buffer_backup_bs, 3 * disk_car.sector_size,
+                                          partition->part_offset + 6 * disk_car.sector_size) !=
+                3 * disk_car.sector_size)
             {
                 screen_buffer_add("fat32_boot_sector: Can't read backup boot sector.\n");
-                memset(buffer_backup_bs, 0, 3 * disk_car->sector_size);
+                memset(buffer_backup_bs, 0, 3 * disk_car.sector_size);
             }
             if (test_FAT(disk_car, (struct fat_boot_sector *)buffer_backup_bs, partition, verbose, 0) == 0)
             {
@@ -173,11 +173,11 @@ int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
             {
                 if (memcmp(buffer_bs, buffer_backup_bs, 0x200) != 0)
                     screen_buffer_add("First sectors (boot code and partition information) are not identical.\n");
-                if ((memcmp(buffer_bs + disk_car->sector_size, buffer_backup_bs + disk_car->sector_size, 0x1E8) != 0) ||
-                    (memcmp(buffer_bs + disk_car->sector_size + 0x1F0, buffer_backup_bs + disk_car->sector_size + 0x1F0,
+                if ((memcmp(buffer_bs + disk_car.sector_size, buffer_backup_bs + disk_car.sector_size, 0x1E8) != 0) ||
+                    (memcmp(buffer_bs + disk_car.sector_size + 0x1F0, buffer_backup_bs + disk_car.sector_size + 0x1F0,
                             0x200 - 0x1F0) != 0))
                     screen_buffer_add("Second sectors (cluster information) are not identical.\n");
-                if (memcmp(buffer_bs + 2 * disk_car->sector_size, buffer_backup_bs + 2 * disk_car->sector_size,
+                if (memcmp(buffer_bs + 2 * disk_car.sector_size, buffer_backup_bs + 2 * disk_car.sector_size,
                            0x200) != 0)
                     screen_buffer_add("Third sectors (second part of boot code) are not identical.\n");
             }
@@ -191,7 +191,7 @@ int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
                     options = "DOBRL";
                 else if (opt_B != 0)
                 {
-                    partition->sb_offset = 6 * disk_car->sector_size;
+                    partition->sb_offset = 6 * disk_car.sector_size;
                     menu = 5;
                     options = "DBRL";
                 }
@@ -298,7 +298,7 @@ int fat32_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
         case 'L':
             if (strchr(options, 'O') == NULL && strchr(options, 'B') != NULL)
             {
-                io_redir_add_redir(disk_car, partition->part_offset, 3 * disk_car->sector_size, 0, buffer_backup_bs);
+                io_redir_add_redir(disk_car, partition->part_offset, 3 * disk_car.sector_size, 0, buffer_backup_bs);
                 dir_partition(disk_car, partition, 0, 0, current_cmd);
                 io_redir_del_redir(disk_car, partition->part_offset);
             }

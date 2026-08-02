@@ -39,7 +39,7 @@
 #include "tntfs.hpp"
 
 #ifdef HAVE_NCURSES
-static void dump_NTFS_ncurses(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void dump_NTFS_ncurses(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
                               const unsigned char *buffer_backup_bs)
 {
     WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
@@ -59,7 +59,7 @@ static void dump_NTFS_ncurses(disk_t *disk_car, const partition_t *partition, co
 }
 #endif
 
-static void dump_NTFS(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void dump_NTFS(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
                       const unsigned char *buffer_backup_bs)
 {
     log_info("Boot sector                        Backup boot sector\n");
@@ -112,7 +112,7 @@ static int is_no_confirm_command(char **current_cmd)
     return 0;
 }
 
-static const char *ntfs_boot_sector_scan(disk_t *disk, const partition_t *partition, unsigned char *buffer_bs,
+static const char *ntfs_boot_sector_scan(disk_t &disk, const partition_t *partition, unsigned char *buffer_bs,
                                          unsigned char *buffer_backup_bs, unsigned int *menu, const int verbose,
                                          const unsigned int expert)
 {
@@ -122,7 +122,7 @@ static const char *ntfs_boot_sector_scan(disk_t *disk, const partition_t *partit
 #ifdef HAVE_NCURSES
     aff_copy(stdscr);
     wmove(stdscr, 4, 0);
-    wprintw(stdscr, "%s", disk->description(disk));
+    wprintw(stdscr, "%s", disk.description(disk));
     mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
     wmove(stdscr, 6, 0);
     aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
@@ -130,7 +130,7 @@ static const char *ntfs_boot_sector_scan(disk_t *disk, const partition_t *partit
     log_info("\nntfs_boot_sector\n");
     log_partition(disk, partition);
     screen_buffer_add("Boot sector\n");
-    if (disk->pread(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE, partition->part_offset) != NTFS_BOOT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE, partition->part_offset) != NTFS_BOOT_SECTOR_SIZE)
     {
         screen_buffer_add("ntfs_boot_sector: Can't read boot sector.\n");
         memset(buffer_bs, 0, NTFS_BOOT_SECTOR_SIZE);
@@ -145,8 +145,8 @@ static const char *ntfs_boot_sector_scan(disk_t *disk, const partition_t *partit
         screen_buffer_add("Status: Bad\n");
     }
     screen_buffer_add("\nBackup boot sector\n");
-    if (disk->pread(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE,
-                    partition->part_offset + partition->part_size - disk->sector_size) != NTFS_BOOT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE,
+                    partition->part_offset + partition->part_size - disk.sector_size) != NTFS_BOOT_SECTOR_SIZE)
     {
         screen_buffer_add("ntfs_boot_sector: Can't read backup boot sector.\n");
         memset(buffer_backup_bs, 0, NTFS_BOOT_SECTOR_SIZE);
@@ -199,7 +199,7 @@ static const char *ntfs_boot_sector_scan(disk_t *disk, const partition_t *partit
     return "DR";
 }
 
-int ntfs_boot_sector(disk_t *disk, partition_t *partition, const int verbose, const unsigned int expert,
+int ntfs_boot_sector(disk_t &disk, partition_t *partition, const int verbose, const unsigned int expert,
                      char **current_cmd)
 {
     unsigned char *buffer_bs;
@@ -255,13 +255,13 @@ int ntfs_boot_sector(disk_t *disk, partition_t *partition, const int verbose, co
 #endif
             {
                 log_info("copy original boot sector over backup boot\n");
-                if (disk->pwrite(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE,
-                                 partition->part_offset + partition->part_size - disk->sector_size) !=
+                if (disk.pwrite(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE,
+                                 partition->part_offset + partition->part_size - disk.sector_size) !=
                     NTFS_BOOT_SECTOR_SIZE)
                 {
                     ; // display_message("Write error: Can't overwrite NTFS backup boot sector\n");
                 }
-                disk->sync(disk);
+                disk.sync(disk);
             }
             break;
         case 'B': /* B : copy backup boot sector over boot sector */
@@ -273,12 +273,12 @@ int ntfs_boot_sector(disk_t *disk, partition_t *partition, const int verbose, co
                 log_info("copy backup boot sector over boot sector\n");
                 /* Reset information about backup boot sector */
                 partition->sb_offset = 0;
-                if (disk->pwrite(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE, partition->part_offset) !=
+                if (disk.pwrite(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE, partition->part_offset) !=
                     NTFS_BOOT_SECTOR_SIZE)
                 {
                     ; // display_message("Write error: Can't overwrite NTFS boot sector\n");
                 }
-                disk->sync(disk);
+                disk.sync(disk);
             }
             break;
         case 'L':

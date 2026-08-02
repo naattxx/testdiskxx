@@ -44,7 +44,7 @@
 #define INTER_MFT_X 0
 #define INTER_MFT_Y 18
 
-int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, const unsigned int expert,
+int repair_MFT(disk_t &disk_car, partition_t *partition, const int verbose, const unsigned int expert,
                char **current_cmd)
 {
     struct ntfs_boot_sector *ntfs_header;
@@ -66,7 +66,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
         return -1;
     }
     ntfs_header = (struct ntfs_boot_sector *)new unsigned char[DEFAULT_SECTOR_SIZE];
-    if (disk_car->pread(disk_car, ntfs_header, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, ntfs_header, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (ntfs_header);
         ; // display_message("Can't read NTFS boot sector.\n");
@@ -97,8 +97,8 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
 
     mftmirr_size_bytes = td_max(cluster_size, 4 * mft_record_size);
 #ifdef DEBUG_REPAIR_MFT
-    log_info("mft_pos          %lu\n", (unsigned long)(mft_pos / disk_car->sector_size));
-    log_info("mftmirr_pos      %lu\n", (unsigned long)(mftmirr_pos / disk_car->sector_size));
+    log_info("mft_pos          %lu\n", (unsigned long)(mft_pos / disk_car.sector_size));
+    log_info("mftmirr_pos      %lu\n", (unsigned long)(mftmirr_pos / disk_car.sector_size));
     log_info("cluster_size     %5u bytes\n", cluster_size);
     log_info("mft_record_size  %5u bytes\n", mft_record_size);
     log_info("ntfs_sector_size %5u bytes\n", ntfs_sector_size(ntfs_header));
@@ -113,7 +113,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
     }
     /* Check if MFT mirror is identical to the beginning of MFT */
     buffer_mft = new unsigned char[mftmirr_size_bytes];
-    if ((unsigned)disk_car->pread(disk_car, buffer_mft, mftmirr_size_bytes, mft_pos) != mftmirr_size_bytes)
+    if ((unsigned)disk_car.pread(disk_car, buffer_mft, mftmirr_size_bytes, mft_pos) != mftmirr_size_bytes)
     {
         ; // display_message("Can't read NTFS MFT.\n");
         log_error("Can't read NTFS MFT.\n");
@@ -122,7 +122,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
         return -1;
     }
     buffer_mftmirr = new unsigned char[mftmirr_size_bytes];
-    if ((unsigned)disk_car->pread(disk_car, buffer_mftmirr, mftmirr_size_bytes, mftmirr_pos) != mftmirr_size_bytes)
+    if ((unsigned)disk_car.pread(disk_car, buffer_mftmirr, mftmirr_size_bytes, mftmirr_pos) != mftmirr_size_bytes)
     {
         ; // display_message("Can't read NTFS MFT mirror.\n");
         log_error("Can't read NTFS MFT mirror.\n");
@@ -259,7 +259,7 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
                                                           {0, NULL, NULL}};
                 aff_copy(stdscr);
                 wmove(stdscr, 4, 0);
-                wprintw(stdscr, "%s", disk_car->description(disk_car));
+                wprintw(stdscr, "%s", disk_car.description(disk_car));
                 mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
                 wmove(stdscr, 6, 0);
                 aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
@@ -290,25 +290,25 @@ int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, cons
     }
     if (use_MFT == 2)
     {
-        if ((unsigned)disk_car->pwrite(disk_car, buffer_mftmirr, mftmirr_size_bytes, mft_pos) != mftmirr_size_bytes)
+        if ((unsigned)disk_car.pwrite(disk_car, buffer_mftmirr, mftmirr_size_bytes, mft_pos) != mftmirr_size_bytes)
         {
             ; // display_message("Failed to fix MFT: write error.\n");
         }
         else
         {
-            disk_car->sync(disk_car);
+            disk_car.sync(disk_car);
             ; // display_message("MFT fixed.\n");
         }
     }
     else if (use_MFT == 1)
     {
-        if ((unsigned)disk_car->pwrite(disk_car, buffer_mft, mftmirr_size_bytes, mftmirr_pos) != mftmirr_size_bytes)
+        if ((unsigned)disk_car.pwrite(disk_car, buffer_mft, mftmirr_size_bytes, mftmirr_pos) != mftmirr_size_bytes)
         {
             ; // display_message("Failed to fix MFT mirror: write error.\n");
         }
         else
         {
-            disk_car->sync(disk_car);
+            disk_car.sync(disk_car);
             ; // display_message("MFT mirror fixed.\n");
         }
     }

@@ -44,7 +44,7 @@ static void set_JFS_info(const struct jfs_superblock *sb, partition_t *partition
     }
 }
 
-static int test_JFS(const disk_t *disk_car, const struct jfs_superblock *sb, const partition_t *partition,
+static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, const partition_t *partition,
                     const int dump_ind)
 {
     if (memcmp(sb->s_magic, "JFS1", 4) != 0)
@@ -69,10 +69,10 @@ static int test_JFS(const disk_t *disk_car, const struct jfs_superblock *sb, con
     return 0;
 }
 
-int check_JFS(disk_t *disk_car, partition_t *partition)
+int check_JFS(disk_t &disk_car, partition_t *partition)
 {
     unsigned char *buffer = new unsigned char[JFS_SUPERBLOCK_SIZE];
-    if (disk_car->pread(disk_car, buffer, JFS_SUPERBLOCK_SIZE, partition->part_offset + 64 * 512) !=
+    if (disk_car.pread(disk_car, buffer, JFS_SUPERBLOCK_SIZE, partition->part_offset + 64 * 512) !=
         JFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
@@ -91,7 +91,7 @@ int check_JFS(disk_t *disk_car, partition_t *partition)
 /*
 Primary superblock is at 0x8000
 */
-int recover_JFS(const disk_t *disk_car, const struct jfs_superblock *sb, partition_t *partition, const int verbose,
+int recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partition_t *partition, const int verbose,
                 const int dump_ind)
 {
     if (test_JFS(disk_car, sb, partition, dump_ind) != 0)
@@ -114,7 +114,7 @@ int recover_JFS(const disk_t *disk_car, const struct jfs_superblock *sb, partiti
         log_info("recover_JFS: s_size %lu\n", (long unsigned int)le64(sb->s_size));
         log_info("recover_JFS: s_fsckpxd.len:%d\n", (int)le24(sb->s_fsckpxd.len));
         log_info("recover_JFS: s_logpxd.len:%d\n", (int)le24(sb->s_logpxd.len));
-        log_info("recover_JFS: part_size %lu\n", (long unsigned)(partition->part_size / disk_car->sector_size));
+        log_info("recover_JFS: part_size %lu\n", (long unsigned)(partition->part_size / disk_car.sector_size));
     }
     return 0;
 }

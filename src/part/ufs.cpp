@@ -32,16 +32,16 @@
 #include "ufs.hpp"
 
 static void set_ufs_info(const struct ufs_super_block *sb, partition_t *partition);
-static int test_ufs(const disk_t *disk_car, const struct ufs_super_block *sb, const partition_t *partition,
+static int test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, const partition_t *partition,
                     const int verbose);
 
-int check_ufs(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_ufs(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     const struct ufs_super_block *sb;
     unsigned char *buffer;
     buffer = new unsigned char[UFS_SUPERBLOCK_SIZE];
     sb = (const struct ufs_super_block *)buffer;
-    if (disk_car->pread(disk_car, buffer, UFS_SUPERBLOCK_SIZE, partition->part_offset + UFS_SBLOCK) !=
+    if (disk_car.pread(disk_car, buffer, UFS_SUPERBLOCK_SIZE, partition->part_offset + UFS_SBLOCK) !=
         UFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
@@ -57,7 +57,7 @@ int check_ufs(disk_t *disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-static int test_ufs(const disk_t *disk_car, const struct ufs_super_block *sb, const partition_t *partition,
+static int test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, const partition_t *partition,
                     const int verbose)
 {
     if (le32(sb->fs_magic) == UFS_MAGIC && le32(sb->fs_size) > 0 &&
@@ -99,7 +99,7 @@ static int test_ufs(const disk_t *disk_car, const struct ufs_super_block *sb, co
     return 1;
 }
 
-int recover_ufs(const disk_t *disk_car, const struct ufs_super_block *sb, partition_t *partition, const int verbose,
+int recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, partition_t *partition, const int verbose,
                 const int dump_ind)
 {
     if (test_ufs(disk_car, sb, partition, verbose) != 0)

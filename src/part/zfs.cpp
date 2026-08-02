@@ -36,14 +36,14 @@ static void set_ZFS_info(const struct vdev_boot_header *sb, partition_t *partiti
     sprintf(partition->info, "ZFS %lu (Data size unknown)", (long unsigned)le64(sb->vb_version));
 }
 
-static int test_ZFS(const disk_t *disk, const struct vdev_boot_header *sb, const partition_t *partition,
+static int test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, const partition_t *partition,
                     const int dump_ind)
 {
     if (le64(sb->vb_magic) != VDEV_BOOT_MAGIC)
         return 1;
     if (dump_ind != 0)
     {
-        if (partition != NULL && disk != NULL)
+        if (partition != NULL /*&& disk != NULL*/)
             log_info("\nZFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition->part_offset),
                      offset2head(disk, partition->part_offset), offset2sector(disk, partition->part_offset));
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
@@ -51,10 +51,10 @@ static int test_ZFS(const disk_t *disk, const struct vdev_boot_header *sb, const
     return 0;
 }
 
-int check_ZFS(disk_t *disk, partition_t *partition)
+int check_ZFS(disk_t &disk, partition_t *partition)
 {
     unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-    if (disk->pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -69,7 +69,7 @@ int check_ZFS(disk_t *disk, partition_t *partition)
     return 0;
 }
 
-int recover_ZFS(const disk_t *disk, const struct vdev_boot_header *sb, partition_t *partition, const int verbose,
+int recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, partition_t *partition, const int verbose,
                 const int dump_ind)
 {
     if (test_ZFS(disk, sb, partition, dump_ind) != 0)

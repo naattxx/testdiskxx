@@ -51,13 +51,13 @@
 #define SYSV4_CIGAM_4GB 0x94192305
 
 static void set_sysv4_info(const struct sysv4_super_block *sbd, partition_t *partition);
-static int test_sysv4(const disk_t *disk_car, const struct sysv4_super_block *sbd, const partition_t *partition,
+static int test_sysv4(const disk_t &disk_car, const struct sysv4_super_block *sbd, const partition_t *partition,
                       const int verbose);
 
-int check_sysv(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_sysv(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[SYSV4_SECTOR_SIZE];
-    if (disk_car->pread(disk_car, buffer, SYSV4_SECTOR_SIZE, partition->part_offset + 0x200) != SYSV4_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, buffer, SYSV4_SECTOR_SIZE, partition->part_offset + 0x200) != SYSV4_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -72,7 +72,7 @@ int check_sysv(disk_t *disk_car, partition_t *partition, const int verbose)
     return 1;
 }
 
-static int test_sysv4(const disk_t *disk_car, const struct sysv4_super_block *sbd, const partition_t *partition,
+static int test_sysv4(const disk_t &disk_car, const struct sysv4_super_block *sbd, const partition_t *partition,
                       const int verbose)
 {
     if ((unsigned)sbd->s_magic != le32(0xfd187e20) && (unsigned)sbd->s_magic != be32(0xfd187e20))
@@ -83,7 +83,7 @@ static int test_sysv4(const disk_t *disk_car, const struct sysv4_super_block *sb
     return 0;
 }
 
-int recover_sysv(const disk_t *disk_car, const struct sysv4_super_block *sbd, partition_t *partition, const int verbose,
+int recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd, partition_t *partition, const int verbose,
                  const int dump_ind)
 {
     if (test_sysv4(disk_car, sbd, partition, verbose) != 0)

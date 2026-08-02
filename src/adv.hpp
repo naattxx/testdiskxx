@@ -29,7 +29,7 @@
   @ requires \valid(current_cmd);
   @ requires valid_string(*current_cmd);
   @*/
-void interface_adv(disk_t *disk_car, const int verbose, const int dump_ind, const unsigned int expert,
+void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, const unsigned int expert,
                    char **current_cmd);
 
 /*@

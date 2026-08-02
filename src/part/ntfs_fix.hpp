@@ -33,7 +33,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires \separated(disk_car, partition);
       @*/
-    int repair_MFT(disk_t *disk_car, partition_t *partition, const int verbose, const unsigned int expert,
+    int repair_MFT(disk_t &disk_car, partition_t *partition, const int verbose, const unsigned int expert,
                    char **current_cmd);
 
 #ifdef __cplusplus

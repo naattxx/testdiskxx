@@ -37,7 +37,7 @@ extern "C"
       @ requires separation: \separated(disk, partition);
       @ decreases 0;
       @*/
-    int comp_FAT(disk_t *disk, const partition_t *partition, const unsigned long int fat_size,
+    int comp_FAT(disk_t &disk, const partition_t *partition, const unsigned long int fat_size,
                  const unsigned long int sect_res);
 
     /*@
@@ -54,7 +54,7 @@ extern "C"
       @ requires valid_partition(partition);
       @ requires separation: \separated(disk, partition);
       @*/
-    unsigned int get_next_cluster(disk_t *disk, const partition_t *partition, const upart_type_t upart_type,
+    unsigned int get_next_cluster(disk_t &disk, const partition_t *partition, const upart_type_t upart_type,
                                   const int offset, const unsigned int cluster);
 
     /*@
@@ -65,7 +65,7 @@ extern "C"
       @ requires separation: \separated(disk, partition);
       @ decreases 0;
       @*/
-    int set_next_cluster(disk_t *disk, const partition_t *partition, const upart_type_t upart_type, const int offset,
+    int set_next_cluster(disk_t &disk, const partition_t *partition, const upart_type_t upart_type, const int offset,
                          const unsigned int cluster, const unsigned int next_cluster);
 
     /*@
@@ -111,7 +111,7 @@ extern "C"
       @ requires separation: \separated(disk, partition);
       @ decreases 0;
       @*/
-    unsigned int fat32_get_prev_cluster(disk_t *disk, const partition_t *partition, const unsigned int fat_offset,
+    unsigned int fat32_get_prev_cluster(disk_t &disk, const partition_t *partition, const unsigned int fat_offset,
                                         const unsigned int cluster, const unsigned int no_of_cluster);
 
     /*@
@@ -124,7 +124,7 @@ extern "C"
       @ requires \valid(free_count);
       @ decreases 0;
       @*/
-    int fat32_free_info(disk_t *disk, const partition_t *partition, const unsigned int fat_offset,
+    int fat32_free_info(disk_t &disk, const partition_t *partition, const unsigned int fat_offset,
                         const unsigned int no_of_cluster, unsigned int *next_free, unsigned int *free_count);
 
     /*@
@@ -149,7 +149,7 @@ extern "C"
       @ requires valid_partition(partition);
       @ requires separation: \separated(disk, partition, fat_header);
       @*/
-    int recover_FAT(disk_t *disk, const struct fat_boot_sector *fat_header, partition_t *partition, const int verbose,
+    int recover_FAT(disk_t &disk, const struct fat_boot_sector *fat_header, partition_t *partition, const int verbose,
                     const int dump_ind, const int backup);
 
     /*@
@@ -160,7 +160,7 @@ extern "C"
       @ requires separation: \separated(disk, partition);
       @ decreases 0;
       @*/
-    int check_FAT(disk_t *disk, partition_t *partition, const int verbose);
+    int check_FAT(disk_t &disk, partition_t *partition, const int verbose);
 
     /*@
       @ requires \valid(disk);
@@ -170,7 +170,7 @@ extern "C"
       @ requires valid_partition(partition);
       @ requires separation: \separated(disk, partition, fat_header);
       @*/
-    int test_FAT(disk_t *disk, const struct fat_boot_sector *fat_header, const partition_t *partition,
+    int test_FAT(disk_t &disk, const struct fat_boot_sector *fat_header, const partition_t *partition,
                  const int verbose, const int dump_ind);
 
     /*@
@@ -181,7 +181,7 @@ extern "C"
       @ requires valid_partition(partition);
       @ requires separation: \separated(disk, partition, fat_header);
       @*/
-    int recover_OS2MB(const disk_t *disk, const struct fat_boot_sector *fat_header, partition_t *partition,
+    int recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header, partition_t *partition,
                       const int verbose, const int dump_ind);
 
     /*@
@@ -192,7 +192,7 @@ extern "C"
       @ requires separation: \separated(disk, partition);
       @ decreases 0;
       @*/
-    int check_OS2MB(disk_t *disk, partition_t *partition, const int verbose);
+    int check_OS2MB(disk_t &disk, partition_t *partition, const int verbose);
 
     /*@
       @ requires \valid_read(name);

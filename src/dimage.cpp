@@ -54,16 +54,16 @@
 #define O_BINARY 0
 #endif
 
-static void disk_image_backward(int disk_dst, disk_t *disk, const uint64_t src_offset_start,
+static void disk_image_backward(int disk_dst, disk_t &disk, const uint64_t src_offset_start,
                                 const uint64_t src_offset_end, uint64_t dst_offset)
 {
     uint64_t src_offset;
-    unsigned char *buffer = new unsigned char[disk->sector_size];
-    for (src_offset = src_offset_end - disk->sector_size; src_offset > src_offset_start;
-         src_offset -= disk->sector_size, dst_offset -= disk->sector_size)
+    unsigned char *buffer = new unsigned char[disk.sector_size];
+    for (src_offset = src_offset_end - disk.sector_size; src_offset > src_offset_start;
+         src_offset -= disk.sector_size, dst_offset -= disk.sector_size)
     {
-        const ssize_t pread_res = disk->pread(disk, buffer, disk->sector_size, src_offset);
-        if ((unsigned)pread_res != disk->sector_size)
+        const ssize_t pread_res = disk.pread(disk, buffer, disk.sector_size, src_offset);
+        if ((unsigned)pread_res != disk.sector_size)
         {
             delete[] (buffer);
             return;
@@ -90,7 +90,7 @@ static void disk_image_backward(int disk_dst, disk_t *disk, const uint64_t src_o
     delete[] (buffer);
 }
 
-int disk_image(disk_t *disk, const partition_t *partition, const char *image_dd)
+int disk_image(disk_t &disk, const partition_t *partition, const char *image_dd)
 {
     int ind_stop = 0;
     uint64_t nbr_read_error = 0;
@@ -110,8 +110,8 @@ int disk_image(disk_t *disk, const partition_t *partition, const char *image_dd)
 #ifdef HAVE_NCURSES
     WINDOW *window;
 #endif
-    assert(disk->sector_size > 0);
-    assert(disk->sector_size <= READ_SIZE);
+    assert(disk.sector_size > 0);
+    assert(disk.sector_size <= READ_SIZE);
     if ((disk_dst = open(image_dd, O_CREAT | O_LARGEFILE | O_RDWR | O_BINARY, 0644)) < 0)
     {
         log_error("Can't create file {}.\n", image_dd);
@@ -174,7 +174,7 @@ int disk_image(disk_t *disk, const partition_t *partition, const char *image_dd)
         int update = 0;
         if (src_offset_end - src_offset < readsize)
             readsize = src_offset_end - src_offset;
-        pread_res = disk->pread(disk, buffer, readsize, src_offset);
+        pread_res = disk.pread(disk, buffer, readsize, src_offset);
         if (pread_res > 0)
         {
 #if defined(HAVE_PWRITE)
@@ -211,7 +211,7 @@ int disk_image(disk_t *disk, const partition_t *partition, const char *image_dd)
         {
             update = 1;
             nbr_read_error++;
-            readsize = disk->sector_size;
+            readsize = disk.sector_size;
             src_offset += SKIP_SIZE;
             dst_offset += SKIP_SIZE;
         }

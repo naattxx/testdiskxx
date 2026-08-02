@@ -34,7 +34,7 @@ extern "C"
       @ requires \separated(disk, partition);
       @ decreases 0;
       @*/
-    int check_f2fs(disk_t *disk, partition_t *partition);
+    int check_f2fs(disk_t &disk, partition_t *partition);
 
     /*@
       @ requires \valid_read(hdr);
@@ -48,7 +48,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires \separated(disk, hdr, partition);
       @*/
-    int recover_f2fs(const disk_t *disk, const struct f2fs_super_block *hdr, partition_t *partition);
+    int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr, partition_t *partition);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

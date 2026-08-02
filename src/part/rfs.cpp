@@ -33,10 +33,10 @@
 #include "src/log.hpp"
 
 static void set_rfs_info(const struct reiserfs_super_block *sb, partition_t *partition);
-static int test_rfs(const disk_t *disk_car, const struct reiserfs_super_block *sb, const partition_t *partition,
+static int test_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb, const partition_t *partition,
                     const int verbose);
 
-static int test_rfs4(const disk_t *disk_car, const struct reiser4_master_sb *sb, const partition_t *partition,
+static int test_rfs4(const disk_t &disk_car, const struct reiser4_master_sb *sb, const partition_t *partition,
                      const int verbose);
 
 static void set_rfs4_info(const struct reiser4_master_sb *sb4, partition_t *partition)
@@ -47,10 +47,10 @@ static void set_rfs4_info(const struct reiser4_master_sb *sb4, partition_t *part
     snprintf(partition->info, sizeof(partition->info), "ReiserFS 4 blocksize=%u", partition->blocksize);
 }
 
-int check_rfs(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_rfs(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[REISERFS_SUPER_BLOCK_SIZE];
-    if (disk_car->pread(disk_car, buffer, REISERFS_SUPER_BLOCK_SIZE, partition->part_offset + 128 * 512) !=
+    if (disk_car.pread(disk_car, buffer, REISERFS_SUPER_BLOCK_SIZE, partition->part_offset + 128 * 512) !=
         REISERFS_SUPER_BLOCK_SIZE) /* 64k offset */
     {
         delete[] (buffer);
@@ -72,7 +72,7 @@ int check_rfs(disk_t *disk_car, partition_t *partition, const int verbose)
     return 1;
 }
 
-static int test_rfs(const disk_t *disk_car, const struct reiserfs_super_block *sb, const partition_t *partition,
+static int test_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb, const partition_t *partition,
                     const int verbose)
 {
     if (memcmp(sb->s_magic, REISERFS_SUPER_MAGIC, sizeof(REISERFS_SUPER_MAGIC)) != 0 &&
@@ -109,7 +109,7 @@ static int test_rfs(const disk_t *disk_car, const struct reiserfs_super_block *s
     return 0;
 }
 
-static int test_rfs4(const disk_t *disk_car, const struct reiser4_master_sb *sb, const partition_t *partition,
+static int test_rfs4(const disk_t &disk_car, const struct reiser4_master_sb *sb, const partition_t *partition,
                      const int verbose)
 {
     if (memcmp(sb->magic, REISERFS4_SUPER_MAGIC, sizeof(REISERFS4_SUPER_MAGIC)) != 0)
@@ -126,7 +126,7 @@ static int test_rfs4(const disk_t *disk_car, const struct reiser4_master_sb *sb,
     return 0;
 }
 
-int recover_rfs(const disk_t *disk_car, const struct reiserfs_super_block *sb, partition_t *partition,
+int recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb, partition_t *partition,
                 const int verbose, const int dump_ind)
 {
     const struct reiser4_master_sb *sb4 = (const struct reiser4_master_sb *)sb;

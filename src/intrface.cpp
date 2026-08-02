@@ -46,14 +46,14 @@
 
 extern const arch_fnct_t arch_none;
 
-void interface_list(disk_t *disk, const int verbose, const int saveheader, const int backup)
+void interface_list(disk_t &disk, const int verbose, const int saveheader, const int backup)
 {
     list_part_t *list_part;
     list_part_t *parts;
-    log_info("\nAnalyse {}\n", disk->description(disk));
-    printf("%s\n", disk->description(disk));
+    log_info("\nAnalyse {}\n", disk.description(disk));
+    printf("%s\n", disk.description(disk));
     printf(msg_PART_HEADER_LONG);
-    list_part = disk->arch->read_part(disk, verbose, saveheader);
+    list_part = disk.arch->read_part(disk, verbose, saveheader);
     /*@ assert valid_list_part(list_part); */
     for (parts = list_part; parts != NULL; parts = parts->next)
     {
@@ -71,7 +71,7 @@ void interface_list(disk_t *disk, const int verbose, const int saveheader, const
     part_free_list(list_part);
 }
 
-static list_part_t *ask_structure_cli(disk_t *disk_car, list_part_t *list_part, const int verbose, char **current_cmd)
+static list_part_t *ask_structure_cli(disk_t &disk_car, list_part_t *list_part, const int verbose, char **current_cmd)
 {
     const list_part_t *pos = list_part;
     skip_comma_in_command(current_cmd);
@@ -403,7 +403,7 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
 }
 #endif
 
-list_part_t *ask_structure(disk_t *disk_car, list_part_t *list_part, const int verbose, char **current_cmd)
+list_part_t *ask_structure(disk_t &disk_car, list_part_t *list_part, const int verbose, char **current_cmd)
 {
     if (*current_cmd != NULL)
         return ask_structure_cli(disk_car, list_part, verbose, current_cmd);

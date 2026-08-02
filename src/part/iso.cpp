@@ -51,11 +51,11 @@ static int test_ISO(const struct iso_primary_descriptor *iso)
     return 0;
 }
 
-int check_ISO(disk_t *disk_car, partition_t *partition)
+int check_ISO(disk_t &disk_car, partition_t *partition)
 {
     unsigned char *buffer = new unsigned char[ISO_PD_SIZE];
     /*@ assert \valid(buffer + (0 .. ISO_PD_SIZE-1)); */
-    if (disk_car->pread(disk_car, buffer, ISO_PD_SIZE, partition->part_offset + 64 * 512) != ISO_PD_SIZE)
+    if (disk_car.pread(disk_car, buffer, ISO_PD_SIZE, partition->part_offset + 64 * 512) != ISO_PD_SIZE)
     {
         delete[] (buffer);
         return 1;

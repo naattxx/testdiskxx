@@ -37,11 +37,11 @@ static void set_APFS_info(const nx_superblock_t *sb, partition_t *partition)
     partition->upart_type = UP_APFS;
 }
 
-int check_APFS(disk_t *disk_car, partition_t *partition)
+int check_APFS(disk_t &disk_car, partition_t *partition)
 {
     unsigned char *buffer = new unsigned char[APFS_SUPERBLOCK_SIZE];
     const nx_superblock_t *sb = (const nx_superblock_t *)buffer;
-    if (disk_car->pread(disk_car, buffer, APFS_SUPERBLOCK_SIZE, partition->part_offset) != APFS_SUPERBLOCK_SIZE)
+    if (disk_car.pread(disk_car, buffer, APFS_SUPERBLOCK_SIZE, partition->part_offset) != APFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -56,14 +56,14 @@ int check_APFS(disk_t *disk_car, partition_t *partition)
     return 0;
 }
 
-int recover_APFS(const disk_t *disk, const nx_superblock_t *sb, partition_t *partition, const int verbose,
+int recover_APFS(const disk_t &disk, const nx_superblock_t *sb, partition_t *partition, const int verbose,
                  const int dump_ind)
 {
     if (test_APFS(sb, partition) != 0)
         return 1;
     if (dump_ind != 0)
     {
-        if (partition != NULL && disk != NULL)
+        if (partition != NULL /*&& disk != NULL*/)
             log_info("\nAPFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition->part_offset),
                      offset2head(disk, partition->part_offset), offset2sector(disk, partition->part_offset));
         /* There is a little offset ... */
@@ -89,10 +89,10 @@ int recover_APFS(const disk_t *disk, const nx_superblock_t *sb, partition_t *par
     {
         log_info("recover_APFS: s_blocksize=%u\n", partition->blocksize);
         log_info("recover_APFS: s_blocks_count %lu\n", (long unsigned int)le64(sb->nx_block_count));
-        if (disk == NULL)
-            log_info("recover_APFS: part_size %lu\n", (long unsigned)(partition->part_size / DEFAULT_SECTOR_SIZE));
-        else
-            log_info("recover_APFS: part_size %lu\n", (long unsigned)(partition->part_size / disk->sector_size));
+        // if (disk == NULL)
+        //     log_info("recover_APFS: part_size %lu\n", (long unsigned)(partition->part_size / DEFAULT_SECTOR_SIZE));
+        // else
+            log_info("recover_APFS: part_size %lu\n", (long unsigned)(partition->part_size / disk.sector_size));
     }
     return 0;
 }

@@ -55,9 +55,9 @@ struct exfat_dir_struct
 #endif
 };
 
-static int exfat_dir(disk_t *disk, const partition_t *partition, dir_data_t *dir_data,
+static int exfat_dir(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
                      const unsigned long int first_cluster, file_info_t *dir_list);
-static copy_file_t exfat_copy(disk_t *disk, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t exfat_copy(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
                               const file_info_t *file);
 static void dir_partition_exfat_close(dir_data_t *dir_data);
 
@@ -179,17 +179,17 @@ static unsigned int makeutf8(char *utf8, const char *utf16, int length)
 #define ATTR_DIR 16   /* directory */
 #define ATTR_ARCH 32  /* archived */
 
-static unsigned int exfat_get_next_cluster(disk_t *disk_car, const partition_t *partition, const uint64_t offset,
+static unsigned int exfat_get_next_cluster(disk_t &disk_car, const partition_t *partition, const uint64_t offset,
                                            const unsigned int cluster)
 {
-    unsigned char *buffer = new unsigned char[disk_car->sector_size];
+    unsigned char *buffer = new unsigned char[disk_car.sector_size];
     unsigned int next_cluster;
     const uint32_t *p32 = (const uint32_t *)buffer;
-    const uint64_t offset_s = cluster / (disk_car->sector_size / 4);
-    const uint64_t offset_o = cluster % (disk_car->sector_size / 4);
-    if ((unsigned)disk_car->pread(disk_car, buffer, disk_car->sector_size,
-                                  partition->part_offset + offset + offset_s * disk_car->sector_size) !=
-        disk_car->sector_size)
+    const uint64_t offset_s = cluster / (disk_car.sector_size / 4);
+    const uint64_t offset_o = cluster % (disk_car.sector_size / 4);
+    if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size,
+                                  partition->part_offset + offset + offset_s * disk_car.sector_size) !=
+        disk_car.sector_size)
     {
         log_error("exfat_get_next_cluster read error\n");
         delete[] (buffer);
@@ -302,7 +302,7 @@ static int is_EOC(const unsigned int cluster)
 }
 
 #define NBR_CLUSTER_MAX 30
-static int exfat_dir(disk_t *disk, const partition_t *partition, dir_data_t *dir_data,
+static int exfat_dir(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
                      const unsigned long int first_cluster, file_info_t *dir_list)
 {
     const struct exfat_dir_struct *ls = (const struct exfat_dir_struct *)dir_data->private_dir_data;
@@ -369,7 +369,7 @@ static int exfat_dir(disk_t *disk, const partition_t *partition, dir_data_t *dir
     return 0;
 }
 
-dir_partition_t dir_partition_exfat_init(disk_t *disk, const partition_t *partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_exfat_init(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
                                          const int verbose)
 {
     static struct exfat_dir_struct *ls;
@@ -377,7 +377,7 @@ dir_partition_t dir_partition_exfat_init(disk_t *disk, const partition_t *partit
     set_secwest();
     /* Load boot sector */
     exfat_header = new struct exfat_super_block;
-    if (disk->pread(disk, exfat_header, 0x200, partition->part_offset) != 0x200)
+    if (disk.pread(disk, exfat_header, 0x200, partition->part_offset) != 0x200)
     {
         log_error("Can't read exFAT boot sector.\n");
         delete (exfat_header);
@@ -438,7 +438,7 @@ static void dir_partition_exfat_close(dir_data_t *dir_data)
     delete (ls);
 }
 
-static copy_file_t exfat_copy(disk_t *disk, const partition_t *partition, dir_data_t *dir_data, const file_info_t *file)
+static copy_file_t exfat_copy(disk_t &disk, const partition_t *partition, dir_data_t *dir_data, const file_info_t *file)
 {
     char *new_file;
     FILE *f_out;

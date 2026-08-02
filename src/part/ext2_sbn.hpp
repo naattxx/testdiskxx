@@ -34,7 +34,7 @@ extern "C"
       @ requires valid_partition(partition);
       @ ensures  valid_list_part(\result);
       @*/
-    list_part_t *search_superblock(disk_t *disk_car, partition_t *partition, const int verbose, const int dump_ind);
+    list_part_t *search_superblock(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

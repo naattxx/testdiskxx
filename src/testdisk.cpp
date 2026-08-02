@@ -58,33 +58,33 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
     }
 
     /* Activate the cache */
-    for (disk_t *disk : list_disk)
+    for (disk_t &disk : list_disk)
         disk = new_diskcache(disk, testdisk_mode);
     if (safe == 0)
         hd_update_all_geometry(list_disk, verbose);
-    for (disk_t *disk : list_disk)
+    for (disk_t &disk : list_disk)
     {
         const int hpa_dco = is_hpa_or_dco(disk);
-        std::cout << disk->description(disk) << '\n';
-        std::cout << "Sector size: " << disk->sector_size << '\n';
-        if (disk->model != nullptr)
-            std::cout << "Model: " << disk->model;
-        if (disk->serial_no != nullptr)
-            std::cout << ", S/N: " << disk->serial_no;
-        if (disk->fw_rev != nullptr)
-            std::cout << ", FW: " << disk->fw_rev;
+        std::cout << disk.description(disk) << '\n';
+        std::cout << "Sector size: " << disk.sector_size << '\n';
+        if (disk.model != nullptr)
+            std::cout << "Model: " << disk.model;
+        if (disk.serial_no != nullptr)
+            std::cout << ", S/N: " << disk.serial_no;
+        if (disk.fw_rev != nullptr)
+            std::cout << ", FW: " << disk.fw_rev;
         std::cout << '\n';
         if (hpa_dco != 0)
         {
-            if (disk->sector_size != 0)
-                std::cout << "size       " << (long long unsigned)(disk->disk_real_size / disk->sector_size)
+            if (disk.sector_size != 0)
+                std::cout << "size       " << (long long unsigned)(disk.disk_real_size / disk.sector_size)
                           << " sectors\n";
-            if (disk->user_max != 0)
-                std::cout << "user_max   " << (long long unsigned)disk->user_max << " sectors\n";
-            if (disk->native_max != 0)
-                std::cout << "native_max " << (long long unsigned)(disk->native_max + 1) << " sectors\n";
-            if (disk->dco != 0)
-                std::cout << "dco        " << (long long unsigned)(disk->dco + 1) << " sectors\n";
+            if (disk.user_max != 0)
+                std::cout << "user_max   " << (long long unsigned)disk.user_max << " sectors\n";
+            if (disk.native_max != 0)
+                std::cout << "native_max " << (long long unsigned)(disk.native_max + 1) << " sectors\n";
+            if (disk.dco != 0)
+                std::cout << "dco        " << (long long unsigned)(disk.dco + 1) << " sectors\n";
             if (hpa_dco & 1)
                 std::cout << "Host Protected Area (HPA) present.\n";
             if (hpa_dco & 2)
@@ -93,13 +93,13 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
         std::cout << '\n';
     }
 
-    for (disk_t* disk : list_disk)
+    for (disk_t& disk : list_disk)
     {
         autodetect_arch(disk, nullptr);
         if (unit == UNIT::DEFAULT)
             autoset_unit(disk);
         else
-            disk->unit = unit;
+            disk.unit = unit;
         interface_list(disk, verbose, saveheader, create_backup);
         std::cout << '\n';
     }
@@ -261,7 +261,7 @@ int main(int argc, char **argv)
     if (list_disk.empty())
         hd_parse(list_disk, verbose, testdisk_mode);
     /* Activate the cache */
-    for (disk_t* disk : list_disk)
+    for (disk_t& disk : list_disk)
         disk = new_diskcache(disk, testdisk_mode);
 
     if(safe==0)

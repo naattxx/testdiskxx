@@ -36,7 +36,7 @@ extern "C"
       @ requires separation: \separated(disk_car, list_part, current_cmd);
       @ ensures  valid_read_string(*current_cmd);
       @*/
-    int interface_superblock(disk_t *disk_car, const list_part_t *list_part, char **current_cmd);
+    int interface_superblock(disk_t &disk_car, const list_part_t *list_part, char **current_cmd);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

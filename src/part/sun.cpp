@@ -38,14 +38,14 @@ extern const arch_fnct_t arch_sun;
 #endif
 
 static void set_sun_info_i386(partition_t *partition);
-static int test_sun_i386(const disk_t *disk_car, const sun_partition_i386 *sunlabel, const partition_t *partition,
+static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, const partition_t *partition,
                          const int verbose);
 
-int check_sun_i386(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_sun_i386(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = (unsigned char *)new unsigned char[SUN_PARTITION_I386_SIZE];
     const sun_partition_i386 *sunlabel = (const sun_partition_i386 *)buffer;
-    if (disk_car->pread(disk_car, buffer, SUN_PARTITION_I386_SIZE, partition->part_offset + 0x200) !=
+    if (disk_car.pread(disk_car, buffer, SUN_PARTITION_I386_SIZE, partition->part_offset + 0x200) !=
         SUN_PARTITION_I386_SIZE)
     {
         delete[] (buffer);
@@ -61,7 +61,7 @@ int check_sun_i386(disk_t *disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-static int test_sun_i386(const disk_t *disk_car, const sun_partition_i386 *sunlabel, const partition_t *partition,
+static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, const partition_t *partition,
                          const int verbose)
 {
     if ((le16(sunlabel->magic) != SUN_LABEL_MAGIC) || (le32(sunlabel->magic_start) != SUN_LABEL_MAGIC_START))
@@ -96,7 +96,7 @@ static int test_sun_i386(const disk_t *disk_car, const sun_partition_i386 *sunla
     return 0;
 }
 
-int recover_sun_i386(const disk_t *disk_car, const sun_partition_i386 *sunlabel, partition_t *partition,
+int recover_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, partition_t *partition,
                      const int verbose, const int dump_ind)
 {
     if (test_sun_i386(disk_car, sunlabel, partition, verbose) != 0)

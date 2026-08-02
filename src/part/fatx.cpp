@@ -34,10 +34,10 @@ static int test_fatx(const struct disk_fatx *fatx_block)
     return 0;
 }
 
-int check_FATX(disk_t *disk_car, partition_t *partition)
+int check_FATX(disk_t &disk_car, partition_t *partition)
 {
     unsigned char buffer[8 * DEFAULT_SECTOR_SIZE];
-    if (disk_car->pread(disk_car, &buffer, sizeof(buffer), partition->part_offset) != sizeof(buffer))
+    if (disk_car.pread(disk_car, &buffer, sizeof(buffer), partition->part_offset) != sizeof(buffer))
     {
         return 1;
     }

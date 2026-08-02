@@ -28,7 +28,7 @@
 #include "partgpt.hpp"
 #include "src/common.hpp"
 
-int write_part_gpt(disk_t *disk_car, const list_part_t *list_part, const int ro, const int verbose)
+int write_part_gpt(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose)
 {
     if (ro == 0)
         return -1;

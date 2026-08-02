@@ -42,7 +42,7 @@ static void set_HPFS_info(partition_t *partition)
     partition->upart_type = UP_HPFS;
 }
 
-static int test_HPFS(const disk_t *disk_car, const struct fat_boot_sector *hpfs_header, const partition_t *partition,
+static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, const partition_t *partition,
                      const int verbose, const int dump_ind)
 {
     const char *buffer = (const char *)hpfs_header;
@@ -66,7 +66,7 @@ static int test_HPFS(const disk_t *disk_car, const struct fat_boot_sector *hpfs_
     return 1;
 }
 
-int recover_HPFS(const disk_t *disk_car, const struct fat_boot_sector *hpfs_header, partition_t *partition,
+int recover_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, partition_t *partition,
                  const int verbose)
 {
     if (test_HPFS(disk_car, hpfs_header, partition, verbose, 0) != 0)
@@ -82,11 +82,11 @@ int recover_HPFS(const disk_t *disk_car, const struct fat_boot_sector *hpfs_head
     return 0;
 }
 
-int check_HPFS(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_HPFS(disk_t &disk_car, partition_t *partition, const int verbose)
 {
-    unsigned char *buffer = new unsigned char[disk_car->sector_size];
-    if ((unsigned)disk_car->pread(disk_car, buffer, disk_car->sector_size, partition->part_offset) !=
-        disk_car->sector_size)
+    unsigned char *buffer = new unsigned char[disk_car.sector_size];
+    if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, partition->part_offset) !=
+        disk_car.sector_size)
     {
         screen_buffer_add("check_HPFS: Read error\n");
         log_error("check_HPFS: Read error\n");

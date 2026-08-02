@@ -102,7 +102,7 @@ extern "C"
       @ requires \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_LVM(disk_t *disk_car, partition_t *partition, const int verbose);
+    int check_LVM(disk_t &disk_car, partition_t *partition, const int verbose);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -111,7 +111,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires \separated(disk_car, partition);
       @*/
-    int recover_LVM(const disk_t *disk_car, const pv_disk_t *pv, partition_t *partition, const int verbose,
+    int recover_LVM(const disk_t &disk_car, const pv_disk_t *pv, partition_t *partition, const int verbose,
                     const int dump_ind);
 
 #define LVM2_LABEL "LVM2 001"
@@ -150,7 +150,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_LVM2(disk_t *disk_car, partition_t *partition, const int verbose);
+    int check_LVM2(disk_t &disk_car, partition_t *partition, const int verbose);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -159,7 +159,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires separation: \separated(disk_car, buf, partition);
       @*/
-    int recover_LVM2(const disk_t *disk_car, const unsigned char *buf, partition_t *partition, const int verbose,
+    int recover_LVM2(const disk_t &disk_car, const unsigned char *buf, partition_t *partition, const int verbose,
                      const int dump_ind);
 
 #ifdef __cplusplus

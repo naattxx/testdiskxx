@@ -112,7 +112,7 @@ extern "C"
       @ requires \separated(disk, partition, exfat_header, (char *)buffer);
       @ decreases 0;
       @*/
-    int exfat_read_cluster(disk_t *disk, const partition_t *partition, const struct exfat_super_block *exfat_header,
+    int exfat_read_cluster(disk_t &disk, const partition_t *partition, const struct exfat_super_block *exfat_header,
                            void *buffer, const unsigned int cluster);
 
     /*@
@@ -122,7 +122,7 @@ extern "C"
       @ requires \separated(disk, partition);
       @ decreases 0;
       @*/
-    int check_exFAT(disk_t *disk, partition_t *partition);
+    int check_exFAT(disk_t &disk, partition_t *partition);
 
     /*@
       @ requires \valid_read(disk);
@@ -131,7 +131,7 @@ extern "C"
       @ requires valid_partition(partition);
       @ requires \separated(disk, exfat_header, partition);
       @*/
-    int recover_exFAT(const disk_t *disk, const struct exfat_super_block *exfat_header, partition_t *partition);
+    int recover_exFAT(const disk_t &disk, const struct exfat_super_block *exfat_header, partition_t *partition);
 
     /*@
       @ requires \valid_read(exfat_header);

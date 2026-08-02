@@ -43,28 +43,28 @@
   @ requires \valid(disk_car);
   @ requires \valid(partition);
   @*/
-static int check_part_xbox(disk_t *disk_car, const int verbose, partition_t *partition, const int saveheader);
+static int check_part_xbox(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader);
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @*/
 // ensures  valid_list_part(\result);
-static list_part_t *read_part_xbox(disk_t *disk_car, const int verbose, const int saveheader);
+static list_part_t *read_part_xbox(disk_t &disk_car, const int verbose, const int saveheader);
 
 /*@
   @ requires \valid_read(disk_car);
   @ requires \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_part_xbox(disk_t *disk_car, const list_part_t *list_part, const int ro, const int verbose);
+static int write_part_xbox(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static list_part_t *init_part_order_xbox(const disk_t *disk_car, list_part_t *list_part);
+static list_part_t *init_part_order_xbox(const disk_t &disk_car, list_part_t *list_part);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -72,7 +72,7 @@ static list_part_t *init_part_order_xbox(const disk_t *disk_car, list_part_t *li
   @ requires separation: \separated(disk_car, partition);
   @ assigns partition->status;
   @*/
-static void set_next_status_xbox(const disk_t *disk_car, partition_t *partition);
+static void set_next_status_xbox(const disk_t &disk_car, partition_t *partition);
 
 /*@
   @ requires list_part == \null || \valid_read(list_part);
@@ -95,7 +95,7 @@ static int is_part_known_xbox(const partition_t *partition);
   @ requires \valid_read(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static void init_structure_xbox(const disk_t *disk_car, list_part_t *list_part, const int verbose);
+static void init_structure_xbox(const disk_t &disk_car, list_part_t *list_part, const int verbose);
 
 /*@
   @ requires \valid_read(partition);
@@ -140,13 +140,13 @@ static unsigned int get_part_type_xbox(const partition_t *partition)
     return partition->part_type_xbox;
 }
 
-static list_part_t *read_part_xbox(disk_t *disk_car, const int verbose, const int saveheader)
+static list_part_t *read_part_xbox(disk_t &disk_car, const int verbose, const int saveheader)
 {
     unsigned char buffer[0x800];
     list_part_t *new_list_part = NULL;
     /*@ assert valid_list_part(new_list_part); */
     screen_buffer_reset();
-    if (disk_car->pread(disk_car, &buffer, sizeof(buffer), 0) != sizeof(buffer))
+    if (disk_car.pread(disk_car, &buffer, sizeof(buffer), 0) != sizeof(buffer))
         return new_list_part;
     {
         uint64_t offsets[] = {0x00080000, 0x2ee80000, 0x5dc80000, 0x8ca80000, 0xabe80000};
@@ -162,15 +162,15 @@ static list_part_t *read_part_xbox(disk_t *disk_car, const int verbose, const in
           @*/
         for (i = 0; i < sizeof(offsets) / sizeof(uint64_t); i++)
         {
-            if (offsets[i] < disk_car->disk_size)
+            if (offsets[i] < disk_car.disk_size)
             {
                 int insert_error = 0;
                 partition_t *partition = partition_new(&arch_xbox);
                 partition->part_type_xbox = PXBOX_FATX;
                 partition->part_offset = offsets[i];
                 partition->order = 1 + i;
-                if (i == sizeof(offsets) / sizeof(uint64_t) - 1 || disk_car->disk_size <= offsets[i + 1])
-                    partition->part_size = disk_car->disk_size - offsets[i];
+                if (i == sizeof(offsets) / sizeof(uint64_t) - 1 || disk_car.disk_size <= offsets[i + 1])
+                    partition->part_size = disk_car.disk_size - offsets[i];
                 else
                     partition->part_size = offsets[i + 1] - offsets[i];
                 partition->status = STATUS_PRIM;
@@ -186,7 +186,7 @@ static list_part_t *read_part_xbox(disk_t *disk_car, const int verbose, const in
     return new_list_part;
 }
 
-static int write_part_xbox(disk_t *disk_car, const list_part_t *list_part, const int ro, const int verbose)
+static int write_part_xbox(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose)
 {
     /* TODO: Implement it */
     if (ro == 0)
@@ -194,17 +194,17 @@ static int write_part_xbox(disk_t *disk_car, const list_part_t *list_part, const
     return 0;
 }
 
-static list_part_t *init_part_order_xbox(const disk_t *disk_car, list_part_t *list_part)
+static list_part_t *init_part_order_xbox(const disk_t &disk_car, list_part_t *list_part)
 {
     return list_part;
 }
 
-list_part_t *add_partition_xbox_cli(const disk_t *disk_car, list_part_t *list_part, char **current_cmd)
+list_part_t *add_partition_xbox_cli(const disk_t &disk_car, list_part_t *list_part, char **current_cmd)
 {
     partition_t *new_partition = partition_new(&arch_xbox);
     assert(current_cmd != NULL);
-    new_partition->part_offset = disk_car->sector_size;
-    new_partition->part_size = disk_car->disk_size - disk_car->sector_size;
+    new_partition->part_offset = disk_car.sector_size;
+    new_partition->part_size = disk_car.disk_size - disk_car.sector_size;
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_read_string(*current_cmd);
@@ -218,20 +218,20 @@ list_part_t *add_partition_xbox_cli(const disk_t *disk_car, list_part_t *list_pa
             part_offset = new_partition->part_offset;
             new_partition->part_offset =
                 (uint64_t)ask_number_cli(
-                    current_cmd, new_partition->part_offset / disk_car->sector_size, 0x800 / disk_car->sector_size,
-                    (disk_car->disk_size - 1) / disk_car->sector_size, "Enter the starting sector ") *
-                (uint64_t)disk_car->sector_size;
+                    current_cmd, new_partition->part_offset / disk_car.sector_size, 0x800 / disk_car.sector_size,
+                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the starting sector ") *
+                (uint64_t)disk_car.sector_size;
             new_partition->part_size = new_partition->part_size + part_offset - new_partition->part_offset;
         }
         else if (check_command(current_cmd, "S,", 2) == 0)
         {
             new_partition->part_size =
                 (uint64_t)ask_number_cli(
-                    current_cmd, (new_partition->part_offset + new_partition->part_size - 1) / disk_car->sector_size,
-                    new_partition->part_offset / disk_car->sector_size,
-                    (disk_car->disk_size - 1) / disk_car->sector_size, "Enter the ending sector ") *
-                    (uint64_t)disk_car->sector_size +
-                disk_car->sector_size - new_partition->part_offset;
+                    current_cmd, (new_partition->part_offset + new_partition->part_size - 1) / disk_car.sector_size,
+                    new_partition->part_offset / disk_car.sector_size,
+                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the ending sector ") *
+                    (uint64_t)disk_car.sector_size +
+                disk_car.sector_size - new_partition->part_offset;
         }
         else if (check_command(current_cmd, "T,", 2) == 0)
         {
@@ -263,7 +263,7 @@ list_part_t *add_partition_xbox_cli(const disk_t *disk_car, list_part_t *list_pa
     }
 }
 
-static void set_next_status_xbox(const disk_t *disk_car, partition_t *partition)
+static void set_next_status_xbox(const disk_t &disk_car, partition_t *partition)
 {
     if (partition->status == STATUS_DELETED)
         partition->status = STATUS_PRIM;
@@ -296,7 +296,7 @@ static int is_part_known_xbox(const partition_t *partition)
     return (partition->part_type_xbox != PXBOX_UNK);
 }
 
-static void init_structure_xbox(const disk_t *disk_car, list_part_t *list_part, const int verbose)
+static void init_structure_xbox(const disk_t &disk_car, list_part_t *list_part, const int verbose)
 {
     list_part_t *element;
     list_part_t *new_list_part = NULL;
@@ -330,7 +330,7 @@ static void init_structure_xbox(const disk_t *disk_car, list_part_t *list_part, 
     part_free_list_only(new_list_part);
 }
 
-static int check_part_xbox(disk_t *disk_car, const int verbose, partition_t *partition, const int saveheader)
+static int check_part_xbox(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader)
 {
     int ret = 0;
     switch (partition->part_type_xbox)

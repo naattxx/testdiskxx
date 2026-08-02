@@ -7,7 +7,7 @@
 #include "log_part.hpp"
 #include "src/log.hpp"
 
-void log_partition(const disk_t *disk, const partition_t *partition)
+void log_partition(const disk_t &disk, const partition_t *partition)
 {
     const char *msg;
     char buffer_part_size[100];
@@ -19,7 +19,7 @@ void log_partition(const disk_t *disk, const partition_t *partition)
     log_info("\n");
 }
 
-void log_all_partitions(const disk_t *disk, const list_part_t *list_part)
+void log_all_partitions(const disk_t &disk, const list_part_t *list_part)
 {
     const list_part_t *element;
     for (element = list_part; element != NULL; element = element->next)

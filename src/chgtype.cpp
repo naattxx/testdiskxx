@@ -54,7 +54,7 @@ static int get_hex_from_command(char **current_cmd)
     return tmp;
 }
 
-void change_part_type_cli(const disk_t *disk_car, partition_t *partition, char **current_cmd)
+void change_part_type_cli(const disk_t &disk_car, partition_t *partition, char **current_cmd)
 {
     assert(current_cmd != NULL);
     assert(partition != NULL);

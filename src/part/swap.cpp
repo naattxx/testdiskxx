@@ -33,10 +33,10 @@ static int test_Linux_SWAP(const union swap_header *swap_header);
 /* Page size can be 4k or 8k */
 #define MAX_PAGE_SIZE 8192
 
-int check_Linux_SWAP(disk_t *disk_car, partition_t *partition)
+int check_Linux_SWAP(disk_t &disk_car, partition_t *partition)
 {
     unsigned char *buffer = (unsigned char *)new unsigned char[MAX_PAGE_SIZE];
-    if (disk_car->pread(disk_car, buffer, MAX_PAGE_SIZE, partition->part_offset) != MAX_PAGE_SIZE)
+    if (disk_car.pread(disk_car, buffer, MAX_PAGE_SIZE, partition->part_offset) != MAX_PAGE_SIZE)
     {
         delete[] (buffer);
         return 1;

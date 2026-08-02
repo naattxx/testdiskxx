@@ -71,7 +71,7 @@ static uint64_t next_sb(const uint64_t hd_offset_old)
     return hd_offset;
 }
 
-list_part_t *search_superblock(disk_t *disk_car, partition_t *partition, const int verbose, const int dump_ind)
+list_part_t *search_superblock(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind)
 {
     unsigned char *buffer = new unsigned char[2 * 0x200];
     uint64_t hd_offset;
@@ -82,7 +82,7 @@ list_part_t *search_superblock(disk_t *disk_car, partition_t *partition, const i
     unsigned long int old_percent = 0;
 #endif
     struct ext2_super_block *sb = (struct ext2_super_block *)buffer;
-    partition_t *new_partition = partition_new(disk_car->arch);
+    partition_t *new_partition = partition_new(disk_car.arch);
     // log_trace("search_superblock\n");
 #ifdef HAVE_NCURSES
     aff_copy(stdscr);
@@ -106,14 +106,14 @@ list_part_t *search_superblock(disk_t *disk_car, partition_t *partition, const i
             wmove(stdscr, 9, 0);
             wclrtoeol(stdscr);
             wprintw(stdscr, "Search ext2/ext3/ext4 superblock %10lu/%lu %lu%%",
-                    (long unsigned)(hd_offset / disk_car->sector_size),
-                    (long unsigned)(partition->part_size / disk_car->sector_size), percent);
+                    (long unsigned)(hd_offset / disk_car.sector_size),
+                    (long unsigned)(partition->part_size / disk_car.sector_size), percent);
             wrefresh(stdscr);
             ind_stop |= check_enter_key_or_s(stdscr);
             old_percent = percent;
         }
 #endif
-        if (disk_car->pread(disk_car, buffer, 1024, partition->part_offset + hd_offset) == 1024)
+        if (disk_car.pread(disk_car, buffer, 1024, partition->part_offset + hd_offset) == 1024)
         {
             /* ext2/ext3/ext4 */
             if (le16(sb->s_magic) == EXT2_SUPER_MAGIC)
@@ -144,7 +144,7 @@ list_part_t *search_superblock(disk_t *disk_car, partition_t *partition, const i
                             EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
 #endif
                     list_part = insert_new_partition(list_part, new_partition, 1, &insert_error);
-                    new_partition = partition_new(disk_car->arch);
+                    new_partition = partition_new(disk_car.arch);
                     nbr_sb++;
                 }
             }

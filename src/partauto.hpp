@@ -31,6 +31,6 @@
   @ decreases 0;
   @ ensures  valid_disk(disk);
   @*/
-void autodetect_arch(disk_t *disk, const arch_fnct_t *arch);
+void autodetect_arch(disk_t &disk, const arch_fnct_t *arch);
 
 #endif

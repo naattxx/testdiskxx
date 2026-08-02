@@ -21,6 +21,7 @@
  */
 
 #include <config.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,42 +46,42 @@ static list_part_t *element_new(partition_t *part)
     return new_element;
 }
 
-unsigned long int C_H_S2LBA(const disk_t *disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
+unsigned long int C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
 {
-    return ((unsigned long int)C * disk_car->geom.heads_per_cylinder + H) * disk_car->geom.sectors_per_head + S - 1;
+    return ((unsigned long int)C * disk_car.geom.heads_per_cylinder + H) * disk_car.geom.sectors_per_head + S - 1;
 }
 
-uint64_t CHS2offset(const disk_t *disk_car, const CHS_t *CHS)
+uint64_t CHS2offset(const disk_t &disk_car, const CHS_t *CHS)
 {
-    return (((uint64_t)CHS->cylinder * disk_car->geom.heads_per_cylinder + CHS->head) *
-                disk_car->geom.sectors_per_head +
+    return (((uint64_t)CHS->cylinder * disk_car.geom.heads_per_cylinder + CHS->head) *
+                disk_car.geom.sectors_per_head +
             CHS->sector - 1) *
-           disk_car->sector_size;
-    //  return (uint64_t)C_H_S2LBA(disk_car, CHS->cylinder, CHS->head, CHS->sector) * disk_car->sector_size;
+           disk_car.sector_size;
+    //  return (uint64_t)C_H_S2LBA(disk_car, CHS->cylinder, CHS->head, CHS->sector) * disk_car.sector_size;
 }
 
-unsigned int offset2sector(const disk_t *disk_car, const uint64_t offset)
+unsigned int offset2sector(const disk_t &disk_car, const uint64_t offset)
 {
-    return ((offset / disk_car->sector_size) % disk_car->geom.sectors_per_head) + 1;
+    return ((offset / disk_car.sector_size) % disk_car.geom.sectors_per_head) + 1;
 }
 
-unsigned int offset2head(const disk_t *disk_car, const uint64_t offset)
+unsigned int offset2head(const disk_t &disk_car, const uint64_t offset)
 {
-    return ((offset / disk_car->sector_size) / disk_car->geom.sectors_per_head) % disk_car->geom.heads_per_cylinder;
+    return ((offset / disk_car.sector_size) / disk_car.geom.sectors_per_head) % disk_car.geom.heads_per_cylinder;
 }
 
-unsigned int offset2cylinder(const disk_t *disk_car, const uint64_t offset)
+unsigned int offset2cylinder(const disk_t &disk_car, const uint64_t offset)
 {
-    return ((offset / disk_car->sector_size) / disk_car->geom.sectors_per_head) / disk_car->geom.heads_per_cylinder;
+    return ((offset / disk_car.sector_size) / disk_car.geom.sectors_per_head) / disk_car.geom.heads_per_cylinder;
 }
 
-void offset2CHS(const disk_t *disk_car, const uint64_t offset, CHS_t *CHS)
+void offset2CHS(const disk_t &disk_car, const uint64_t offset, CHS_t *CHS)
 {
-    uint64_t pos = offset / disk_car->sector_size;
-    CHS->sector = (pos % disk_car->geom.sectors_per_head) + 1;
-    pos /= disk_car->geom.sectors_per_head;
-    CHS->head = pos % disk_car->geom.heads_per_cylinder;
-    CHS->cylinder = pos / disk_car->geom.heads_per_cylinder;
+    uint64_t pos = offset / disk_car.sector_size;
+    CHS->sector = (pos % disk_car.geom.sectors_per_head) + 1;
+    pos /= disk_car.geom.sectors_per_head;
+    CHS->head = pos % disk_car.geom.heads_per_cylinder;
+    CHS->cylinder = pos / disk_car.geom.heads_per_cylinder;
 }
 
 void dup_partition_t(partition_t *dst, const partition_t *src)
@@ -115,40 +116,40 @@ void dup_partition_t(partition_t *dst, const partition_t *src)
   @ requires valid_disk(disk);
   @ assigns \nothing;
   @*/
-static disk_t *search_disk(const list_disk_t &list_disk, const disk_t *disk)
+static disk_t *search_disk(const list_disk_t &list_disk, const disk_t &disk)
 {
     /*@
       @ loop assigns tmp;
       @*/
-    for (disk_t* tmp : list_disk)
+    for (const disk_t& tmp : list_disk)
     {
-        if (tmp->device != nullptr && disk->device != nullptr && strcmp(tmp->device, disk->device) == 0)
+        if (tmp.device != nullptr && disk.device != nullptr && strcmp(tmp.device, disk.device) == 0)
         {
-            return tmp;
+            return const_cast<disk_t*>(&tmp);
         }
     }
     return nullptr;
 }
 
-void insert_new_disk_aux(list_disk_t &list_disk, disk_t *disk, disk_t **the_disk)
+void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t **the_disk)
 {
     //list_disk_t result(list_disk);
-    disk_t *found;
-    if (disk == nullptr)
-    {
-        if (the_disk != nullptr)
-        {
-            /*@ assert \valid(the_disk); */
-            *the_disk = nullptr;
-        }
-        /*@ assert valid_list_disk(list_disk); */
-        return;
-    }
+    disk_t* found;
+    // if (!disk)
+    // {
+    //     if (the_disk != nullptr)
+    //     {
+    //         /*@ assert \valid(the_disk); */
+    //         *the_disk = nullptr;
+    //     }
+    //     /*@ assert valid_list_disk(list_disk); */
+    //     return;
+    // }
     found = search_disk(list_disk, disk);
     /* Do not add a disk already known */
     if (found != nullptr)
     {
-        disk->clean(disk);
+        disk.clean(disk);
         if (the_disk != nullptr)
         {
             /*@ assert \valid(the_disk); */
@@ -162,14 +163,14 @@ void insert_new_disk_aux(list_disk_t &list_disk, disk_t *disk, disk_t **the_disk
     if (the_disk != nullptr)
     {
         /*@ assert \valid(the_disk); */
-        *the_disk = disk;
+        *the_disk = &disk;
     }
     /*@ assert valid_list_disk(new_disk); */
     /*@ assert valid_list_disk(list_disk); */
 
 }
 
-void insert_new_disk(list_disk_t &list_disk, disk_t *disk)
+void insert_new_disk(list_disk_t &list_disk, disk_t &disk)
 {
     insert_new_disk_aux(list_disk, disk, nullptr);
 }
@@ -236,13 +237,13 @@ int delete_list_disk(list_disk_t& list_disk)
     /*@
       @ loop invariant valid_list_disk(element_disk);
       @*/
-    for (disk_t *disk : list_disk)
+    for (disk_t &disk : list_disk)
     {
         /*@ assert valid_disk(disk); */
-        write_used |= disk->write_used;
+        write_used |= disk.write_used;
         /*@ assert \valid_read(disk); */
-        /*@ assert \valid_function(disk->clean); */
-        disk->clean(disk);
+        /*@ assert \valid_function(disk.clean); */
+        disk.clean(disk);
     }
     return write_used;
 }
@@ -394,7 +395,7 @@ partition_t *partition_new(const arch_fnct_t *arch)
   @ requires \valid_read(list_part);
   @ assigns \nothing;
   @*/
-static unsigned int get_geometry_from_list_part_aux(const disk_t *disk_car, const list_part_t *list_part,
+static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, const list_part_t *list_part,
                                                     const int verbose)
 {
     const list_part_t *element;
@@ -414,17 +415,17 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t *disk_car, cons
         if (start.sector == 1 && start.head <= 1)
         {
             nbr++;
-            if (end.head == disk_car->geom.heads_per_cylinder - 1)
+            if (end.head == disk_car.geom.heads_per_cylinder - 1)
             {
                 nbr++;
-                /* Doesn't check if end.sector==disk_car->CHS.sector */
+                /* Doesn't check if end.sector==disk_car.CHS.sector */
             }
         }
     }
 #ifndef DISABLED_FOR_FRAMAC
     if (nbr > 0)
     {
-        log_info("get_geometry_from_list_part_aux head={} nbr={}", disk_car->geom.heads_per_cylinder, nbr);
+        log_info("get_geometry_from_list_part_aux head={} nbr={}", disk_car.geom.heads_per_cylinder, nbr);
         if (verbose > 1)
         {
             for (element = list_part; element != NULL; element = element->next)
@@ -433,7 +434,7 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t *disk_car, cons
                 CHS_t end;
                 offset2CHS(disk_car, element->part->part_offset, &start);
                 offset2CHS(disk_car, element->part->part_offset + element->part->part_size - 1, &end);
-                if (start.sector == 1 && start.head <= 1 && end.head == disk_car->geom.heads_per_cylinder - 1)
+                if (start.sector == 1 && start.head <= 1 && end.head == disk_car.geom.heads_per_cylinder - 1)
                 {
                     log_partition(disk_car, element->part);
                 }
@@ -444,21 +445,20 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t *disk_car, cons
     return nbr;
 }
 
-unsigned int get_geometry_from_list_part(const disk_t *disk_car, const list_part_t *list_part, const int verbose)
+unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t *list_part, const int verbose)
 {
     const unsigned int head_list[] = {8, 16, 32, 64, 128, 240, 255, 0};
     unsigned int best_score;
     unsigned int i;
-    unsigned int heads_per_cylinder = disk_car->geom.heads_per_cylinder;
-    disk_t new_disk_car;
-    memcpy(&new_disk_car, disk_car, sizeof(new_disk_car));
-    best_score = get_geometry_from_list_part_aux(&new_disk_car, list_part, verbose);
+    unsigned int heads_per_cylinder = disk_car.geom.heads_per_cylinder;
+    disk_t new_disk_car = disk_car;
+    best_score = get_geometry_from_list_part_aux(new_disk_car, list_part, verbose);
     /*@ loop assigns i, best_score, heads_per_cylinder, new_disk_car.geom.heads_per_cylinder; */
     for (i = 0; head_list[i] != 0; i++)
     {
         unsigned int score;
         new_disk_car.geom.heads_per_cylinder = head_list[i];
-        score = get_geometry_from_list_part_aux(&new_disk_car, list_part, verbose);
+        score = get_geometry_from_list_part_aux(new_disk_car, list_part, verbose);
         if (score >= best_score)
         {
             best_score = score;
@@ -488,7 +488,7 @@ void size_to_unit(const uint64_t disk_size, char *buffer)
 #endif
 }
 
-void log_disk_list(const list_disk_t &list_disk)
+void log_disk_list(list_disk_t &list_disk)
 {
 #ifndef DISABLED_FOR_FRAMAC
     /* save disk parameters to rapport */
@@ -497,16 +497,16 @@ void log_disk_list(const list_disk_t &list_disk)
       @ loop invariant valid_list_disk(list_disk);
       @ loop invariant valid_list_disk(element_disk);
       @*/
-    for (disk_t* disk : list_disk)
+    for (disk_t& disk : list_disk)
     {
-        std::string disk_description(disk->description(disk));
-        disk_description.append(", sector size=").append(std::to_string(disk->sector_size));
-        if (disk->model != NULL)
-            disk_description.append(" - ").append(disk->model);
-        if (disk->serial_no != NULL)
-            disk_description.append(", S/N:").append(disk->serial_no);
-        if (disk->fw_rev != NULL)
-            disk_description.append(", FW:").append(disk->fw_rev);
+        std::string disk_description(disk.description(disk));
+        disk_description.append(", sector size=").append(std::to_string(disk.sector_size));
+        if (disk.model != NULL)
+            disk_description.append(" - ").append(disk.model);
+        if (disk.serial_no != NULL)
+            disk_description.append(", S/N:").append(disk.serial_no);
+        if (disk.fw_rev != NULL)
+            disk_description.append(", FW:").append(disk.fw_rev);
         log_info("{}", disk_description);
     }
 #endif

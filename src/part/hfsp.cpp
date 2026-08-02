@@ -46,10 +46,10 @@ static void set_HFSP_info(partition_t *partition, const struct hfsp_vh *vh)
     }
 }
 
-int check_HFSP(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_HFSP(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
-    if (disk_car->pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE, partition->part_offset + 0x400) !=
+    if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE, partition->part_offset + 0x400) !=
         HFSP_BOOT_SECTOR_SIZE)
     {
         delete[] (buffer);
@@ -61,7 +61,7 @@ int check_HFSP(disk_t *disk_car, partition_t *partition, const int verbose)
         return 1;
     }
     set_HFSP_info(partition, (const struct hfsp_vh *)buffer);
-    if (disk_car->pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
+    if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
                         partition->part_offset + partition->part_size - 0x400) == HFSP_BOOT_SECTOR_SIZE &&
         test_HFSP(disk_car, (struct hfsp_vh *)buffer, partition, verbose, 0) == 0)
     {
@@ -71,7 +71,7 @@ int check_HFSP(disk_t *disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-int recover_HFSP(disk_t *disk_car, const struct hfsp_vh *vh, partition_t *partition, const int verbose,
+int recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh, partition_t *partition, const int verbose,
                  const int dump_ind, const int backup)
 {
     uint64_t part_size;
@@ -82,7 +82,7 @@ int recover_HFSP(disk_t *disk_car, const struct hfsp_vh *vh, partition_t *partit
     partition->sb_size = HFSP_BOOT_SECTOR_SIZE;
     if (backup > 0)
     {
-        if (partition->part_offset + 2 * disk_car->sector_size < part_size)
+        if (partition->part_offset + 2 * disk_car.sector_size < part_size)
             return 1;
         /* backup is at total_blocks-2 */
         partition->sb_offset = part_size - 0x400;
@@ -93,7 +93,7 @@ int recover_HFSP(disk_t *disk_car, const struct hfsp_vh *vh, partition_t *partit
     if (backup == 0)
     {
         unsigned char *buffer = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
-        if (disk_car->pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
+        if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
                             partition->part_offset + partition->part_size - 0x400) == HFSP_BOOT_SECTOR_SIZE &&
             test_HFSP(disk_car, (struct hfsp_vh *)buffer, partition, verbose, 0) == 0)
         {
@@ -106,12 +106,12 @@ int recover_HFSP(disk_t *disk_car, const struct hfsp_vh *vh, partition_t *partit
     partition->part_type_gpt = GPT_ENT_TYPE_MAC_HFS;
     if (verbose > 0)
     {
-        log_info("part_size %lu\n", (long unsigned)(partition->part_size / disk_car->sector_size));
+        log_info("part_size %lu\n", (long unsigned)(partition->part_size / disk_car.sector_size));
     }
     return 0;
 }
 
-int test_HFSP(const disk_t *disk_car, const struct hfsp_vh *vh, const partition_t *partition, const int verbose,
+int test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh, const partition_t *partition, const int verbose,
               const int dump_ind)
 {
     if (be32(vh->free_blocks) > be32(vh->total_blocks))

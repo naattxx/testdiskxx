@@ -45,10 +45,10 @@ static int test_ReFS(const struct ReFS_boot_sector *refs_header)
     return 0;
 }
 
-int check_ReFS(disk_t *disk, partition_t *partition)
+int check_ReFS(disk_t &disk, partition_t *partition)
 {
     unsigned char *buffer = (unsigned char *)new unsigned char[ReFS_BS_SIZE];
-    if (disk->pread(disk, buffer, ReFS_BS_SIZE, partition->part_offset) != ReFS_BS_SIZE)
+    if (disk.pread(disk, buffer, ReFS_BS_SIZE, partition->part_offset) != ReFS_BS_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -63,7 +63,7 @@ int check_ReFS(disk_t *disk, partition_t *partition)
     return 0;
 }
 
-int recover_ReFS(const disk_t *disk, const struct ReFS_boot_sector *refs_header, partition_t *partition)
+int recover_ReFS(const disk_t &disk, const struct ReFS_boot_sector *refs_header, partition_t *partition)
 {
     if (test_ReFS(refs_header) != 0)
         return 1;
@@ -71,7 +71,7 @@ int recover_ReFS(const disk_t *disk, const struct ReFS_boot_sector *refs_header,
     partition->sb_size = 0x200;
     partition->part_type_i386 = P_NTFS;
     partition->part_type_gpt = GPT_ENT_TYPE_MS_BASIC_DATA;
-    partition->part_size = disk->sector_size;
+    partition->part_size = disk.sector_size;
     set_ReFS_info(partition);
     return 0;
 }

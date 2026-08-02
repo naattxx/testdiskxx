@@ -80,9 +80,9 @@ struct dir_data
     int verbose;
     unsigned int param;
     unsigned int capabilities;
-    int (*get_dir)(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+    int (*get_dir)(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                    const unsigned long int first_inode, file_info_t *list);
-    copy_file_t (*copy_file)(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+    copy_file_t (*copy_file)(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                              const file_info_t *file);
     void (*close)(dir_data_t *dir_data);
     char *local_dir;

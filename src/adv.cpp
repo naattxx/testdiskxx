@@ -147,7 +147,7 @@ static int is_linux(const partition_t *partition)
 }
 
 #ifdef HAVE_NCURSES
-static void interface_adv_ncurses(disk_t *disk, const int rewrite, list_part_t *list_part,
+static void interface_adv_ncurses(disk_t &disk, const int rewrite, list_part_t *list_part,
                                   const list_part_t *current_element, const int offset)
 {
     list_part_t *element;
@@ -307,7 +307,7 @@ static const char *adv_get_options_for_partition(const partition_t *partition)
 }
 #endif
 
-static int adv_menu_boot_selected(disk_t *disk, partition_t *partition, const int verbose, const int dump_ind,
+static int adv_menu_boot_selected(disk_t &disk, partition_t *partition, const int verbose, const int dump_ind,
                                   const unsigned int expert, char **current_cmd)
 {
     if (is_part_fat32(partition))
@@ -351,7 +351,7 @@ static int adv_menu_boot_selected(disk_t *disk, partition_t *partition, const in
     return 0;
 }
 
-static void adv_menu_image_selected(disk_t *disk, const partition_t *partition, char **current_cmd)
+static void adv_menu_image_selected(disk_t &disk, const partition_t *partition, char **current_cmd)
 {
     char dst_path[4096];
     dst_path[0] = '\0';
@@ -379,7 +379,7 @@ static void adv_menu_image_selected(disk_t *disk, const partition_t *partition, 
     }
 }
 
-static void adv_menu_undelete_selected(disk_t *disk, const partition_t *partition, const int verbose,
+static void adv_menu_undelete_selected(disk_t &disk, const partition_t *partition, const int verbose,
                                        char **current_cmd)
 {
     if (partition->sb_offset != 0 && partition->sb_size > 0)
@@ -401,7 +401,7 @@ static void adv_menu_undelete_selected(disk_t *disk, const partition_t *partitio
     }
 }
 
-static void adv_menu_list_selected(disk_t *disk, const partition_t *partition, const int verbose, const int expert,
+static void adv_menu_list_selected(disk_t &disk, const partition_t *partition, const int verbose, const int expert,
                                    char **current_cmd)
 {
     if (partition->sb_offset != 0 && partition->sb_size > 0)
@@ -415,7 +415,7 @@ static void adv_menu_list_selected(disk_t *disk, const partition_t *partition, c
         dir_partition(disk, partition, verbose, expert, current_cmd);
 }
 
-static void adv_menu_superblock_selected(disk_t *disk, partition_t *partition, const int verbose, const int dump_ind,
+static void adv_menu_superblock_selected(disk_t &disk, partition_t *partition, const int verbose, const int dump_ind,
                                          char **current_cmd)
 {
     if (is_linux(partition))
@@ -430,7 +430,7 @@ static void adv_menu_superblock_selected(disk_t *disk, partition_t *partition, c
     }
 }
 
-void interface_adv(disk_t *disk_car, const int verbose, const int dump_ind, const unsigned int expert,
+void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, const unsigned int expert,
                    char **current_cmd)
 {
     int current_element_num = 0;
@@ -443,7 +443,7 @@ void interface_adv(disk_t *disk_car, const int verbose, const int dump_ind, cons
     list_part_t *current_element;
     assert(current_cmd != NULL);
     log_info("\nInterface Advanced\n");
-    list_part = disk_car->arch->read_part(disk_car, verbose, 0);
+    list_part = disk_car.arch->read_part(disk_car, verbose, 0);
     /*@ assert valid_list_part(list_part); */
     current_element = list_part;
     log_all_partitions(disk_car, list_part);
@@ -473,7 +473,7 @@ void interface_adv(disk_t *disk_car, const int verbose, const int dump_ind, cons
         }
         else
         {
-            if (menu == 0 && (disk_car->arch != &arch_none || current_element->part->upart_type != UP_UNK))
+            if (menu == 0 && (disk_car.arch != &arch_none || current_element->part->upart_type != UP_UNK))
                 menu = 1;
 #ifdef HAVE_NCURSES
             options = adv_get_options_for_partition(current_element->part);
@@ -501,7 +501,7 @@ void interface_adv(disk_t *disk_car, const int verbose, const int dump_ind, cons
             return;
         case 'a':
         case 'A':
-            if (disk_car->arch != &arch_none)
+            if (disk_car.arch != &arch_none)
             {
                 if (*current_cmd != NULL)
                     list_part = add_partition_cli(disk_car, list_part, current_cmd);

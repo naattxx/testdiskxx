@@ -35,7 +35,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires \separated(disk_car, hpfs_header, partition);
       @*/
-    int recover_HPFS(const disk_t *disk_car, const struct fat_boot_sector *hpfs_header, partition_t *partition,
+    int recover_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, partition_t *partition,
                      const int verbose);
 
     /*@
@@ -45,7 +45,7 @@ extern "C"
       @ requires \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_HPFS(disk_t *disk_car, partition_t *partition, const int verbose);
+    int check_HPFS(disk_t &disk_car, partition_t *partition, const int verbose);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

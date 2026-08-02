@@ -60,7 +60,7 @@ struct fat_dir_struct
   @ requires \separated(disk_car, partition, dir_data, fat_header, dir_list);
   @ decreases 0;
   @*/
-static int fat1x_rootdir(disk_t *disk_car, const partition_t *partition, const dir_data_t *dir_data,
+static int fat1x_rootdir(disk_t &disk_car, const partition_t *partition, const dir_data_t *dir_data,
                          const struct fat_boot_sector *fat_header, file_info_t *dir_list);
 
 /*@
@@ -72,7 +72,7 @@ static int fat1x_rootdir(disk_t *disk_car, const partition_t *partition, const d
   @ requires \valid(file);
   @ requires \separated(disk_car, partition, dir_data, file);
   @*/
-static copy_file_t fat_copy(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t fat_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                             const file_info_t *file);
 
 /*@
@@ -361,7 +361,7 @@ static int is_EOC(const unsigned int cluster, const upart_type_t upart_type)
   @ requires \separated(disk_car, partition, dir_data, dir_list);
   @ decreases 0;
   @*/
-static int fat_dir(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static int fat_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                    const unsigned long int first_cluster, file_info_t *dir_list)
 {
     const struct fat_dir_struct *ls = (const struct fat_dir_struct *)dir_data->private_dir_data;
@@ -414,7 +414,7 @@ static int fat_dir(disk_t *disk_car, const partition_t *partition, dir_data_t *d
         part_size = (fat_sectors(fat_header) > 0 ? fat_sectors(fat_header) : le32(fat_header->total_sect));
         start_fat1 = le16(fat_header->reserved);
         start_data = start_fat1 + fat_header->fats * fat_length +
-                     (get_dir_entries(fat_header) * 32 + disk_car->sector_size - 1) / disk_car->sector_size;
+                     (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) / disk_car.sector_size;
         no_of_cluster = (part_size - start_data) / fat_header->sectors_per_cluster;
         nbr_cluster = 0;
         while (!is_EOC(cluster, partition->upart_type) && cluster >= 2 && nbr_cluster < nbr_cluster_max && stop == 0)
@@ -429,7 +429,7 @@ static int fat_dir(disk_t *disk_car, const partition_t *partition, dir_data_t *d
                          (long unsigned)(start / fat_sector_size(fat_header)));
 #endif
             }
-            if ((unsigned)disk_car->pread(disk_car, buffer_dir + (uint64_t)cluster_size * nbr_cluster, cluster_size,
+            if ((unsigned)disk_car.pread(disk_car, buffer_dir + (uint64_t)cluster_size * nbr_cluster, cluster_size,
                                           start) != cluster_size)
             {
 #ifndef DISABLED_FOR_FRAMAC
@@ -484,17 +484,17 @@ static int fat_dir(disk_t *disk_car, const partition_t *partition, dir_data_t *d
     }
 }
 
-static int fat1x_rootdir(disk_t *disk_car, const partition_t *partition, const dir_data_t *dir_data,
+static int fat1x_rootdir(disk_t &disk_car, const partition_t *partition, const dir_data_t *dir_data,
                          const struct fat_boot_sector *fat_header, file_info_t *dir_list)
 {
     const unsigned int root_size =
-        (get_dir_entries(fat_header) * 32 + disk_car->sector_size - 1) / disk_car->sector_size * disk_car->sector_size;
+        (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) / disk_car.sector_size * disk_car.sector_size;
     if (root_size == 0)
         return -1;
 #ifndef DISABLED_FOR_FRAMAC
     if (dir_data->verbose > 1)
     {
-        ; // log_trace("fat1x_rootdir root_size=%u sectors\n",root_size/disk_car->sector_size);
+        ; // log_trace("fat1x_rootdir root_size=%u sectors\n",root_size/disk_car.sector_size);
     }
 #endif
     {
@@ -504,8 +504,8 @@ static int fat1x_rootdir(disk_t *disk_car, const partition_t *partition, const d
         buffer_dir = new unsigned char[root_size];
         start = partition->part_offset +
                 (uint64_t)((le16(fat_header->reserved) + fat_header->fats * le16(fat_header->fat_length)) *
-                           disk_car->sector_size);
-        if ((unsigned)disk_car->pread(disk_car, buffer_dir, root_size, start) != root_size)
+                           disk_car.sector_size);
+        if ((unsigned)disk_car.pread(disk_car, buffer_dir, root_size, start) != root_size)
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_error("FAT 1x: Can't read root directory.\n");
@@ -518,13 +518,13 @@ static int fat1x_rootdir(disk_t *disk_car, const partition_t *partition, const d
     }
 }
 
-dir_partition_t dir_partition_fat_init(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_fat_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                                        const int verbose)
 {
     static unsigned char *buffer;
     static struct fat_dir_struct *ls;
     buffer = new unsigned char[0x200];
-    if (disk_car->pread(disk_car, buffer, 0x200, partition->part_offset) != 0x200)
+    if (disk_car.pread(disk_car, buffer, 0x200, partition->part_offset) != 0x200)
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_error("Can't read FAT boot sector.\n");
@@ -569,7 +569,7 @@ static void dir_partition_fat_close(dir_data_t *dir_data)
   @ requires \separated(disk_car, partition, dir_data, file);
   @ decreases 0;
   @*/
-static copy_file_t fat_copy(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t fat_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                             const file_info_t *file)
 {
     char *new_file;
@@ -599,7 +599,7 @@ static copy_file_t fat_copy(disk_t *disk_car, const partition_t *partition, dir_
     part_size = (fat_sectors(fat_header) > 0 ? fat_sectors(fat_header) : le32(fat_header->total_sect));
     start_fat1 = le16(fat_header->reserved);
     start_data = start_fat1 + fat_header->fats * fat_length +
-                 (get_dir_entries(fat_header) * 32 + disk_car->sector_size - 1) / disk_car->sector_size;
+                 (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) / disk_car.sector_size;
     no_of_cluster = (part_size - start_data) / sectors_per_cluster;
 #ifndef DISABLED_FOR_FRAMAC
     ; // log_trace("fat_copy dst=%s first_cluster=%u (%llu) size=%lu\n", new_file,
@@ -618,7 +618,7 @@ static copy_file_t fat_copy(disk_t *disk_car, const partition_t *partition, dir_
         unsigned int toread = block_size;
         if (toread > file_size)
             toread = file_size;
-        if ((unsigned)disk_car->pread(disk_car, buffer_file, toread, start) != toread)
+        if ((unsigned)disk_car.pread(disk_car, buffer_file, toread, start) != toread)
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_error("fat_copy: Can't read cluster %u.\n", cluster);

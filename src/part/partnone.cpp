@@ -77,7 +77,7 @@
   @ requires \valid(disk_car);
   @ requires \valid(partition);
   @*/
-static int check_part_none(disk_t *disk_car, const int verbose, partition_t *partition, const int saveheader);
+static int check_part_none(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader);
 
 /*@
   @ requires \valid_read(buffer + (0 .. 0x200-1));
@@ -92,19 +92,19 @@ static int get_geometry_from_nonembr(const unsigned char *buffer, const int verb
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t *read_part_none(disk_t *disk_car, const int verbose, const int saveheader);
+static list_part_t *read_part_none(disk_t &disk_car, const int verbose, const int saveheader);
 
 /*@
   @ requires \valid_read(disk_car);
   @ assigns \nothing;
   @*/
-static list_part_t *init_part_order_none(const disk_t *disk_car, list_part_t *list_part);
+static list_part_t *init_part_order_none(const disk_t &disk_car, list_part_t *list_part);
 
 /*@
   @ requires \valid_read(disk_car);
   @ assigns \nothing;
   @*/
-static void set_next_status_none(const disk_t *disk_car, partition_t *partition);
+static void set_next_status_none(const disk_t &disk_car, partition_t *partition);
 
 /*@
   @ requires list_part == \null || \valid_read(list_part);
@@ -128,7 +128,7 @@ static int is_part_known_none(const partition_t *partition);
   @ requires \valid_read(disk_car);
   @ requires list_part==\null || \valid(list_part);
   @*/
-static void init_structure_none(const disk_t *disk_car, list_part_t *list_part, const int verbose);
+static void init_structure_none(const disk_t &disk_car, list_part_t *list_part, const int verbose);
 
 /*@
   @ requires \valid_read(partition);
@@ -244,7 +244,7 @@ static int get_geometry_from_nonembr(const unsigned char *buffer, const int verb
     return 0;
 }
 
-static list_part_t *read_part_none(disk_t *disk, const int verbose, const int saveheader)
+static list_part_t *read_part_none(disk_t &disk, const int verbose, const int saveheader)
 {
     int insert_error = 0;
     unsigned char *buffer_disk;
@@ -253,7 +253,7 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
     int res = 0;
     partition = partition_new(&arch_none);
     buffer_disk = new unsigned char[16 * DEFAULT_SECTOR_SIZE];
-    partition->part_size = disk->disk_size;
+    partition->part_size = disk.disk_size;
 #if !defined(DISABLED_FOR_FRAMAC)
     if (recover_MD_from_partition(disk, partition, verbose) == 0)
         res = 1;
@@ -261,7 +261,7 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
         partition_reset(partition, &arch_none);
     if (res <= 0)
     {
-        if (disk->pread(disk, buffer_disk, 16 * DEFAULT_SECTOR_SIZE, partition->part_offset) ==
+        if (disk.pread(disk, buffer_disk, 16 * DEFAULT_SECTOR_SIZE, partition->part_offset) ==
             16 * DEFAULT_SECTOR_SIZE)
             res = search_type_2(buffer_disk, disk, partition, verbose, 0);
     }
@@ -279,13 +279,13 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
     }
     if (res <= 0)
     {
-        if (disk->pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE, partition->part_offset + 16 * 512) ==
+        if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE, partition->part_offset + 16 * 512) ==
             3 * DEFAULT_SECTOR_SIZE)
             res = search_type_16(buffer_disk, disk, partition, verbose, 0);
     }
     if (res <= 0)
     {
-        if (disk->pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE, partition->part_offset + 63 * 512) ==
+        if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE, partition->part_offset + 63 * 512) ==
             3 * DEFAULT_SECTOR_SIZE)
             res = search_type_64(buffer_disk, disk, partition, verbose, 0);
     }
@@ -294,7 +294,7 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
     if (res <= 0)
     {
         /* 64k offset */
-        if (disk->pread(disk, buffer_disk, 11 * DEFAULT_SECTOR_SIZE, partition->part_offset + 126 * 512) ==
+        if (disk.pread(disk, buffer_disk, 11 * DEFAULT_SECTOR_SIZE, partition->part_offset + 126 * 512) ==
             11 * DEFAULT_SECTOR_SIZE)
             res = search_type_128(buffer_disk, disk, partition, verbose, 0);
     }
@@ -309,14 +309,14 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
     }
     if (res <= 0)
     { /* Search exFAT backup */
-        partition->part_offset = 12 * disk->sector_size;
+        partition->part_offset = 12 * disk.sector_size;
         res = search_exFAT_backup(buffer_disk, disk, partition);
     }
     if (res <= 0)
     { /* Search NTFS backup */
-        if (disk->disk_size > disk->sector_size)
+        if (disk.disk_size > disk.sector_size)
         {
-            partition->part_offset = disk->disk_size - disk->sector_size;
+            partition->part_offset = disk.disk_size - disk.sector_size;
             res = search_NTFS_backup(buffer_disk, disk, partition, verbose, 0);
             if (res > 0 && partition->part_offset != 0)
                 res = 0;
@@ -332,7 +332,7 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
             const uint64_t hd_offset =
                 3 * (EXT2_MIN_BLOCK_SIZE << s_log_block_size) * 8 * (EXT2_MIN_BLOCK_SIZE << s_log_block_size) +
                 (s_log_block_size == 0 ? 2 * DEFAULT_SECTOR_SIZE : 0);
-            if (disk->pread(disk, buffer_disk, 1024, hd_offset) == 1024)
+            if (disk.pread(disk, buffer_disk, 1024, hd_offset) == 1024)
             {
                 const struct ext2_super_block *sb = (const struct ext2_super_block *)buffer_disk;
                 partition->part_offset = hd_offset;
@@ -349,7 +349,7 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
     if (res <= 0)
         partition_reset(partition, &arch_none);
     partition->part_offset = 0;
-    partition->part_size = disk->disk_size;
+    partition->part_size = disk.disk_size;
     partition->order = NO_ORDER;
     partition->status = STATUS_PRIM;
     screen_buffer_reset();
@@ -364,12 +364,12 @@ static list_part_t *read_part_none(disk_t *disk, const int verbose, const int sa
     return list_part;
 }
 
-static list_part_t *init_part_order_none(const disk_t *disk_car, list_part_t *list_part)
+static list_part_t *init_part_order_none(const disk_t &disk_car, list_part_t *list_part)
 {
     return list_part;
 }
 
-static void set_next_status_none(const disk_t *disk_car, partition_t *partition)
+static void set_next_status_none(const disk_t &disk_car, partition_t *partition)
 {
 }
 
@@ -389,7 +389,7 @@ static int is_part_known_none(const partition_t *partition)
     return 1;
 }
 
-static void init_structure_none(const disk_t *disk_car, list_part_t *list_part, const int verbose)
+static void init_structure_none(const disk_t &disk_car, list_part_t *list_part, const int verbose)
 {
     list_part_t *element;
     for (element = list_part; element != NULL; element = element->next)
@@ -400,7 +400,7 @@ static void init_structure_none(const disk_t *disk_car, list_part_t *list_part, 
     }
 }
 
-static int check_part_none(disk_t *disk_car, const int verbose, partition_t *partition, const int saveheader)
+static int check_part_none(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader)
 {
     int ret = 0;
 #if !defined(DISABLED_FOR_FRAMAC)

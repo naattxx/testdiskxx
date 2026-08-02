@@ -70,7 +70,7 @@ static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int
 static errcode_t my_write_blk64(io_channel channel, unsigned long long block, int count, const void *buf);
 
 static void dir_partition_ext2_close(dir_data_t *dir_data);
-static copy_file_t ext2_copy(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t ext2_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                              const file_info_t *file);
 
 static struct struct_io_manager my_struct_manager = {
@@ -107,7 +107,7 @@ static io_channel shared_ioch = NULL;
 /*
  * Allocate libext2fs structures associated with I/O manager
  */
-static io_channel alloc_io_channel(const disk_t *disk_car, my_data_t *my_data)
+static io_channel alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
 {
     io_channel ioch;
 #ifdef DEBUG_EXT2
@@ -263,7 +263,7 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     return 0;
 }
 
-static int ext2_dir(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static int ext2_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                     const unsigned long int cluster, file_info_t *dir_list)
 {
     errcode_t retval;
@@ -285,7 +285,7 @@ static void dir_partition_ext2_close(dir_data_t *dir_data)
     delete (ls);
 }
 
-static copy_file_t ext2_copy(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t ext2_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                              const file_info_t *file)
 {
     copy_file_t error = CP_OK;
@@ -354,7 +354,7 @@ static copy_file_t ext2_copy(disk_t *disk_car, const partition_t *partition, dir
 }
 #endif
 
-dir_partition_t dir_partition_ext2_init(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                                         const int verbose)
 {
 #if defined(HAVE_LIBEXT2FS)

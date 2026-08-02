@@ -37,7 +37,7 @@
 #include "thfs.hpp"
 
 #ifdef HAVE_NCURSES
-static void hfs_dump_ncurses(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void hfs_dump_ncurses(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
                              const unsigned char *buffer_backup_bs)
 {
     WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
@@ -57,7 +57,7 @@ static void hfs_dump_ncurses(disk_t *disk_car, const partition_t *partition, con
 }
 #endif
 
-static void hfs_dump(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void hfs_dump(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
                      const unsigned char *buffer_backup_bs, char **current_cmd)
 {
     log_info("Superblock                        Backup superblock\n");
@@ -90,7 +90,7 @@ static int HFS_HFSP_boot_sector_command(char **current_cmd, const char *options)
     return 0;
 }
 
-static const char *HFS_HFSP_boot_sector_rescan(disk_t *disk_car, const partition_t *partition, unsigned char *buffer_bs,
+static const char *HFS_HFSP_boot_sector_rescan(disk_t &disk_car, const partition_t *partition, unsigned char *buffer_bs,
                                                unsigned char *buffer_backup_bs, const int verbose)
 {
     int opt_B = 0;
@@ -106,7 +106,7 @@ static const char *HFS_HFSP_boot_sector_rescan(disk_t *disk_car, const partition
     log_info("\nHFS_HFSP_boot_sector\n");
     log_partition(disk_car, partition);
     screen_buffer_add("Volume header\n");
-    if (disk_car->pread(disk_car, buffer_bs, HFSP_BOOT_SECTOR_SIZE, partition->part_offset + 0x400) !=
+    if (disk_car.pread(disk_car, buffer_bs, HFSP_BOOT_SECTOR_SIZE, partition->part_offset + 0x400) !=
         HFSP_BOOT_SECTOR_SIZE)
     {
         screen_buffer_add("Bad: can't read HFS/HFS+ volume header.\n");
@@ -125,7 +125,7 @@ static const char *HFS_HFSP_boot_sector_rescan(disk_t *disk_car, const partition
     else
         screen_buffer_add("Bad\n");
     screen_buffer_add("\nBackup volume header\n");
-    if (disk_car->pread(disk_car, buffer_backup_bs, HFSP_BOOT_SECTOR_SIZE,
+    if (disk_car.pread(disk_car, buffer_backup_bs, HFSP_BOOT_SECTOR_SIZE,
                         partition->part_offset + partition->part_size - 0x400) != HFSP_BOOT_SECTOR_SIZE)
     {
         screen_buffer_add("Bad: can't read HFS/HFS+ backup volume header.\n");
@@ -162,7 +162,7 @@ static const char *HFS_HFSP_boot_sector_rescan(disk_t *disk_car, const partition
     return "D";
 }
 
-int HFS_HFSP_boot_sector(disk_t *disk, partition_t *partition, const int verbose, char **current_cmd)
+int HFS_HFSP_boot_sector(disk_t &disk, partition_t *partition, const int verbose, char **current_cmd)
 {
     unsigned char *buffer_bs;
     unsigned char *buffer_backup_bs;
@@ -219,12 +219,12 @@ int HFS_HFSP_boot_sector(disk_t *disk, partition_t *partition, const int verbose
 #endif
             {
                 log_info("copy original superblock over backup boot\n");
-                if (disk->pwrite(disk, buffer_bs, HFSP_BOOT_SECTOR_SIZE,
+                if (disk.pwrite(disk, buffer_bs, HFSP_BOOT_SECTOR_SIZE,
                                  partition->part_offset + partition->part_size - 0x400) != HFSP_BOOT_SECTOR_SIZE)
                 {
                     ; // display_message("Write error: Can't overwrite HFS/HFS+ backup volume header\n");
                 }
-                disk->sync(disk);
+                disk.sync(disk);
                 rescan = 1;
             }
             break;
@@ -236,12 +236,12 @@ int HFS_HFSP_boot_sector(disk_t *disk, partition_t *partition, const int verbose
                 log_info("copy backup superblock over main superblock\n");
                 /* Reset information about backup boot sector */
                 partition->sb_offset = 0;
-                if (disk->pwrite(disk, buffer_backup_bs, HFSP_BOOT_SECTOR_SIZE, partition->part_offset + 0x400) !=
+                if (disk.pwrite(disk, buffer_backup_bs, HFSP_BOOT_SECTOR_SIZE, partition->part_offset + 0x400) !=
                     HFSP_BOOT_SECTOR_SIZE)
                 {
                     ; // display_message("Write error: Can't overwrite HFS/HFS+ main volume header\n");
                 }
-                disk->sync(disk);
+                disk.sync(disk);
                 rescan = 1;
             }
             break;

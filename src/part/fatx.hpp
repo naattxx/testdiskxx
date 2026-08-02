@@ -44,7 +44,7 @@ extern "C"
       @ requires \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_FATX(disk_t *disk_car, partition_t *partition);
+    int check_FATX(disk_t &disk_car, partition_t *partition);
 
     /*@
       @ requires \valid_read(fatx_block);

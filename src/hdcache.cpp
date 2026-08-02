@@ -19,6 +19,9 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <algorithm>
+#include <iostream>
+#include <utility>
 #if !defined(DISABLED_FOR_FRAMAC)
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,10 +65,10 @@ struct cache_struct
   @ requires \valid((char *)buffer + (0 .. count-1));
   @ requires separation: \separated(disk_car, (char *)buffer + (0 .. count-1));
   @*/
-static int cache_pread_aux(disk_t *disk_car, void *buffer, const unsigned int count, const uint64_t offset,
+static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset,
                            const unsigned int read_ahead)
 {
-    struct cache_struct *data = (struct cache_struct *)disk_car->data;
+    struct cache_struct *data = (struct cache_struct *)disk_car.data;
 #ifdef DEBUG_CACHE
     log_info("cache_pread(buffer, count=%u, offset=%llu, read_ahead=%u)\n", count, (long long unsigned)offset,
              read_ahead);
@@ -129,7 +132,7 @@ static int cache_pread_aux(disk_t *disk_car, void *buffer, const unsigned int co
         }
         cache->cache_size = count_new;
         cache->cache_offset = offset;
-        cache->cache_status = data->disk_car->pread(data->disk_car, cache->buffer, count_new, offset);
+        cache->cache_status = data->disk_car->pread(*data->disk_car, cache->buffer, count_new, offset);
 #ifdef DEBUG_CACHE
         data->nbr_fnct_sect += count;
         data->nbr_pread_call++;
@@ -145,7 +148,7 @@ static int cache_pread_aux(disk_t *disk_car, void *buffer, const unsigned int co
         }
         /* Read failure */
         data->last_io_error_nbr++;
-        if (count_new <= disk_car->sector_size || disk_car->sector_size <= 0 || data->last_io_error_nbr > 1)
+        if (count_new <= disk_car.sector_size || disk_car.sector_size <= 0 || data->last_io_error_nbr > 1)
         {
             memcpy(buffer, cache->buffer, count);
             return cache->cache_status;
@@ -156,10 +159,10 @@ static int cache_pread_aux(disk_t *disk_car, void *buffer, const unsigned int co
         {
             unsigned int off;
             memset(buffer, 0, count);
-            for (off = 0; off < count; off += disk_car->sector_size)
+            for (off = 0; off < count; off += disk_car.sector_size)
             {
                 if (cache_pread_aux(disk_car, (unsigned char *)buffer + off,
-                                    (disk_car->sector_size < count - off ? disk_car->sector_size : count - off),
+                                    (disk_car.sector_size < count - off ? disk_car.sector_size : count - off),
                                     offset + off, 0) <= 0)
                 {
                     return off;
@@ -176,9 +179,9 @@ static int cache_pread_aux(disk_t *disk_car, void *buffer, const unsigned int co
   @ requires \valid((char *)buffer + (0 .. count-1));
   @ requires separation: \separated(disk_car, (char *)buffer + (0 .. count-1));
   @*/
-static int cache_pread(disk_t *disk_car, void *buffer, const unsigned int count, const uint64_t offset)
+static int cache_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset)
 {
-    const struct cache_struct *data = (const struct cache_struct *)disk_car->data;
+    const struct cache_struct *data = (const struct cache_struct *)disk_car.data;
     return cache_pread_aux(disk_car, buffer, count, offset, (data->last_io_error_nbr == 0));
 }
 
@@ -189,9 +192,9 @@ static int cache_pread(disk_t *disk_car, void *buffer, const unsigned int count,
   @ requires separation: \separated(disk_car, (const char *)buffer + (0 .. count-1));
   @ decreases 0;
   @*/
-static int cache_pwrite(disk_t *disk_car, const void *buffer, const unsigned int count, const uint64_t offset)
+static int cache_pwrite(disk_t &disk_car, const void *buffer, const unsigned int count, const uint64_t offset)
 {
-    struct cache_struct *data = (struct cache_struct *)disk_car->data;
+    struct cache_struct *data = (struct cache_struct *)disk_car.data;
     unsigned int i;
     for (i = 0; i < CACHE_BUFFER_NBR; i++)
     {
@@ -202,8 +205,8 @@ static int cache_pwrite(disk_t *disk_car, const void *buffer, const unsigned int
             cache->cache_size = 0;
         }
     }
-    disk_car->write_used = 1;
-    return data->disk_car->pwrite(data->disk_car, buffer, count, offset);
+    disk_car.write_used = 1;
+    return data->disk_car->pwrite(*data->disk_car, buffer, count, offset);
 }
 
 /*@
@@ -211,38 +214,37 @@ static int cache_pwrite(disk_t *disk_car, const void *buffer, const unsigned int
   @ requires valid_disk(disk_car);
   @ decreases 0;
   @*/
-static void cache_clean(disk_t *disk_car)
+static void cache_clean(disk_t &disk_car)
 {
-    if (disk_car->data)
+    if (disk_car.data)
     {
-        struct cache_struct *data = (struct cache_struct *)disk_car->data;
+        struct cache_struct *data = (struct cache_struct *)disk_car.data;
         unsigned int i;
 #ifdef DEBUG_CACHE
         log_info("%s\ncache_pread total_call=%u, total_count=%llu\n      read total_call=%u, total_count=%llu\n",
-                 data->disk_car->description(data->disk_car), data->nbr_fnct_call,
+                 data->disk_car.description(*data->disk_car), data->nbr_fnct_call,
                  (long long unsigned)data->nbr_fnct_sect, data->nbr_pread_call,
                  (long long unsigned)data->nbr_pread_sect);
 #endif
-        data->disk_car->clean(data->disk_car);
+        data->disk_car->clean(*data->disk_car);
         for (i = 0; i < CACHE_BUFFER_NBR; i++)
         {
             struct cache_buffer_struct *cache = &data->cache[i];
             delete (cache->buffer);
         }
-        delete (disk_car->data);
-        disk_car->data = NULL;
+        delete (disk_car.data);
+        disk_car.data = NULL;
     }
-    delete (disk_car);
 }
 
 /*@
   @ requires \valid(disk_car);
   @ decreases 0;
   @*/
-static int cache_sync(disk_t *disk_car)
+static int cache_sync(disk_t &disk_car)
 {
-    struct cache_struct *data = (struct cache_struct *)disk_car->data;
-    return data->disk_car->sync(data->disk_car);
+    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    return data->disk_car->sync(*data->disk_car);
 }
 
 /*@
@@ -267,13 +269,15 @@ static void dup_geometry(CHSgeometry_t *CHS_dst, const CHSgeometry_t *CHS_source
   @ decreases 0;
   @ ensures valid_read_string(\result);
   @*/
-static const char *cache_description(disk_t *disk_car)
+static const char *cache_description(disk_t &disk_car)
 {
+    std::cout << "log_disk_list: " << disk_car.device << "\n";
+
     const char *tmp;
-    struct cache_struct *data = (struct cache_struct *)disk_car->data;
-    dup_geometry(&data->disk_car->geom, &disk_car->geom);
-    data->disk_car->disk_size = disk_car->disk_size;
-    tmp = data->disk_car->description(data->disk_car);
+    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    dup_geometry(&data->disk_car->geom, &disk_car.geom);
+    data->disk_car->disk_size = disk_car.disk_size;
+    tmp = data->disk_car->description(*data->disk_car);
     /*@ assert valid_read_string(tmp); */
     return tmp;
 }
@@ -284,24 +288,23 @@ static const char *cache_description(disk_t *disk_car)
   @ decreases 0;
   @ ensures valid_read_string(\result);
   @*/
-static const char *cache_description_short(disk_t *disk_car)
+static const char *cache_description_short(disk_t &disk_car)
 {
     const char *tmp;
-    struct cache_struct *data = (struct cache_struct *)disk_car->data;
-    dup_geometry(&data->disk_car->geom, &disk_car->geom);
-    data->disk_car->disk_size = disk_car->disk_size;
-    tmp = data->disk_car->description_short(data->disk_car);
+    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    dup_geometry(&data->disk_car->geom, &disk_car.geom);
+    data->disk_car->disk_size = disk_car.disk_size;
+    tmp = data->disk_car->description_short(*data->disk_car);
     /*@ assert valid_read_string(tmp); */
     return tmp;
 }
 
-disk_t *new_diskcache(disk_t *disk_car, const unsigned int testdisk_mode)
+disk_t new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode)
 {
     unsigned int i;
     struct cache_struct *data = new struct cache_struct;
-    disk_t *new_disk_car = new disk_t;
-    memcpy(new_disk_car, disk_car, sizeof(*new_disk_car));
-    data->disk_car = disk_car;
+    disk_t new_disk_car = disk_car;
+    data->disk_car = &disk_car;
 #ifdef DEBUG_CACHE
     data->nbr_fnct_sect = 0;
     data->nbr_pread_sect = 0;
@@ -316,26 +319,27 @@ disk_t *new_diskcache(disk_t *disk_car, const unsigned int testdisk_mode)
         data->cache_size_min = 64 * 512;
     else
         data->cache_size_min = 0;
-    dup_geometry(&new_disk_car->geom, &disk_car->geom);
-    new_disk_car->disk_size = disk_car->disk_size;
-    new_disk_car->disk_real_size = disk_car->disk_real_size;
-    new_disk_car->write_used = 0;
-    new_disk_car->data = data;
-    new_disk_car->pread = &cache_pread;
-    new_disk_car->pwrite = &cache_pwrite;
-    new_disk_car->sync = &cache_sync;
-    new_disk_car->clean = &cache_clean;
-    new_disk_car->description = &cache_description;
-    new_disk_car->description_short = &cache_description_short;
-    new_disk_car->rbuffer = NULL;
-    new_disk_car->wbuffer = NULL;
-    new_disk_car->rbuffer_size = 0;
-    new_disk_car->wbuffer_size = 0;
+    dup_geometry(&new_disk_car.geom, &disk_car.geom);
+    new_disk_car.disk_size = disk_car.disk_size;
+    new_disk_car.disk_real_size = disk_car.disk_real_size;
+    new_disk_car.write_used = 0;
+    new_disk_car.data = data;
+    new_disk_car.pread = &cache_pread;
+    new_disk_car.pwrite = &cache_pwrite;
+    new_disk_car.sync = &cache_sync;
+    new_disk_car.clean = &cache_clean;
+    new_disk_car.description = &cache_description;
+    new_disk_car.description_short = &cache_description_short;
+    new_disk_car.rbuffer = NULL;
+    new_disk_car.wbuffer = NULL;
+    new_disk_car.rbuffer_size = 0;
+    new_disk_car.wbuffer_size = 0;
     for (i = 0; i < CACHE_BUFFER_NBR; i++)
     {
         data->cache[i].buffer = NULL;
         data->cache[i].buffer_size = 0;
     }
+    std::swap(new_disk_car,disk_car);
     return new_disk_car;
 }
 #endif

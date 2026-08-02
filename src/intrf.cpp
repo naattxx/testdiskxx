@@ -133,7 +133,7 @@ char get_partition_status(const partition_t *partition)
     }
 }
 
-const char *aff_part_aux(const unsigned int newline, const disk_t *disk_car, const partition_t *partition)
+const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t *partition)
 {
     char status = ' ';
     static char msg[200];
@@ -174,12 +174,12 @@ const char *aff_part_aux(const unsigned int newline, const disk_t *disk_car, con
         pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " Sys=%02X               ", arch->get_part_type(partition));
     else
         pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " Unknown              ");
-    if (disk_car->unit == UNIT::SECTOR)
+    if (disk_car.unit == UNIT::SECTOR)
     {
         pos +=
             snprintf(&msg[pos], sizeof(msg) - pos - 1, " %10llu %10llu ",
-                     (long long unsigned)(partition->part_offset / disk_car->sector_size),
-                     (long long unsigned)((partition->part_offset + partition->part_size - 1) / disk_car->sector_size));
+                     (long long unsigned)(partition->part_offset / disk_car.sector_size),
+                     (long long unsigned)((partition->part_offset + partition->part_size - 1) / disk_car.sector_size));
     }
     else
     {
@@ -191,7 +191,7 @@ const char *aff_part_aux(const unsigned int newline, const disk_t *disk_car, con
                         offset2sector(disk_car, partition->part_offset + partition->part_size - 1));
     }
     pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%10llu",
-                    (long long unsigned)(partition->part_size / disk_car->sector_size));
+                    (long long unsigned)(partition->part_size / disk_car.sector_size));
     if (partition->partname[0] != '\0')
         pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition->partname);
     if (partition->fsname[0] != '\0')
@@ -253,22 +253,22 @@ uint64_t ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64
     return val_cur;
 }
 
-void aff_part_buffer(const unsigned int newline, const disk_t *disk_car, const partition_t *partition)
+void aff_part_buffer(const unsigned int newline, const disk_t &disk_car, const partition_t *partition)
 {
     const char *msg;
     msg = aff_part_aux(newline, disk_car, partition);
     screen_buffer_add("%s\n", msg);
 }
 
-void log_CHS_from_LBA(const disk_t *disk_car, const unsigned long int pos_LBA)
+void log_CHS_from_LBA(const disk_t &disk_car, const unsigned long int pos_LBA)
 {
     unsigned long int tmp;
     unsigned long int cylinder, head, sector;
-    tmp = disk_car->geom.sectors_per_head;
+    tmp = disk_car.geom.sectors_per_head;
     sector = (pos_LBA % tmp) + 1;
     tmp = pos_LBA / tmp;
-    cylinder = tmp / disk_car->geom.heads_per_cylinder;
-    head = tmp % disk_car->geom.heads_per_cylinder;
+    cylinder = tmp / disk_car.geom.heads_per_cylinder;
+    head = tmp % disk_car.geom.heads_per_cylinder;
 #ifndef DISABLED_FOR_FRAMAC
     log_info("{}/{}/{}", cylinder, head, sector);
 #endif

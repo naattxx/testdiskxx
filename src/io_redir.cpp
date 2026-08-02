@@ -54,38 +54,37 @@ struct info_io_redir
   @ requires separation: \separated(disk_car, (char *)buffer + (0 .. count-1));
   @ decreases 0;
   @*/
-static int io_redir_pread(disk_t *disk_car, void *buffer, const unsigned int count, const uint64_t offset);
+static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset);
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @ decreases 0;
   @*/
-static void io_redir_clean(disk_t *disk_car);
+static void io_redir_clean(disk_t &disk_car);
 
-int io_redir_add_redir(disk_t *disk_car, const uint64_t org_offset, const unsigned int size, const uint64_t new_offset,
+int io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsigned int size, const uint64_t new_offset,
                        const void *mem)
 {
-    if (disk_car->pread != &io_redir_pread)
+    if (disk_car.pread != &io_redir_pread)
     {
         struct info_io_redir *data = new struct info_io_redir;
-        disk_t *old_disk_car = new disk_t;
+        disk_t old_disk_car = disk_car;
 #ifdef DEBUG_IO_REDIR
         log_trace("io_redir_add_redir: install functions org_offset=%llu, size=%u, new_offset=%llu, mem=%p\n",
                   (long long unsigned)org_offset, size, (long long unsigned)new_offset, mem);
 #endif
-        memcpy(old_disk_car, disk_car, sizeof(*old_disk_car));
-        data->disk_car = old_disk_car;
+        data->disk_car = &old_disk_car;
         data->list_redir = NULL;
-        disk_car->write_used = 0;
-        disk_car->data = data;
-        disk_car->description = old_disk_car->description;
-        disk_car->pwrite = old_disk_car->pwrite;
-        disk_car->pread = &io_redir_pread;
-        disk_car->clean = &io_redir_clean;
+        disk_car.write_used = 0;
+        disk_car.data = data;
+        disk_car.description = old_disk_car.description;
+        disk_car.pwrite = old_disk_car.pwrite;
+        disk_car.pread = &io_redir_pread;
+        disk_car.clean = &io_redir_clean;
     }
     {
-        struct info_io_redir *data = (struct info_io_redir *)disk_car->data;
+        struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
         list_redir_t *prev_redir = NULL;
         list_redir_t *current_redir;
         for (current_redir = data->list_redir;
@@ -117,15 +116,15 @@ int io_redir_add_redir(disk_t *disk_car, const uint64_t org_offset, const unsign
     return 0;
 }
 
-int io_redir_del_redir(disk_t *disk_car, uint64_t org_offset)
+int io_redir_del_redir(disk_t &disk_car, uint64_t org_offset)
 {
-    if (disk_car->pread != &io_redir_pread)
+    if (disk_car.pread != &io_redir_pread)
     {
         log_critical("io_redir_del_redir: BUG, no redirection present.\n");
         return 1;
     }
     {
-        struct info_io_redir *data = (struct info_io_redir *)disk_car->data;
+        struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
         list_redir_t *current_redir;
         for (current_redir = data->list_redir; (current_redir != NULL) && org_offset != current_redir->org_offset;
              current_redir = current_redir->next)
@@ -147,7 +146,7 @@ int io_redir_del_redir(disk_t *disk_car, uint64_t org_offset)
 #ifdef DEBUG_IO_REDIR
                 log_trace("io_redir_del_redir: uninstall functions\n");
 #endif
-                memcpy(disk_car, data->disk_car, sizeof(*disk_car));
+                memcpy(&disk_car, data->disk_car, sizeof(disk_car));
                 delete (data->disk_car);
                 delete (data);
             }
@@ -158,9 +157,9 @@ int io_redir_del_redir(disk_t *disk_car, uint64_t org_offset)
     }
 }
 
-static int io_redir_pread(disk_t *disk_car, void *buffer, const unsigned int count, const uint64_t offset)
+static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset)
 {
-    struct info_io_redir *data = (struct info_io_redir *)disk_car->data;
+    struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
     uint64_t current_offset = offset;
     unsigned int current_count = count;
     list_redir_t *current_redir;
@@ -185,7 +184,7 @@ static int io_redir_pread(disk_t *disk_car, void *buffer, const unsigned int cou
 #ifdef DEBUG_IO_REDIR
                 log_trace("io_redir_pread: read %u bytes before redirection\n", read_size);
 #endif
-                res = data->disk_car->pread(data->disk_car, buffer, read_size, current_offset);
+                res = data->disk_car->pread(*data->disk_car, buffer, read_size, current_offset);
                 current_count -= read_size;
                 current_offset += read_size;
                 buffer = (unsigned char *)buffer + read_size;
@@ -206,7 +205,7 @@ static int io_redir_pread(disk_t *disk_car, void *buffer, const unsigned int cou
 #ifdef DEBUG_IO_REDIR
                 log_trace("io_redir_pread: read %u from another position\n", read_size);
 #endif
-                res = data->disk_car->pread(data->disk_car, buffer, read_size,
+                res = data->disk_car->pread(*data->disk_car, buffer, read_size,
                                             current_redir->new_offset + current_offset - current_redir->org_offset);
                 ;
             }
@@ -217,7 +216,7 @@ static int io_redir_pread(disk_t *disk_car, void *buffer, const unsigned int cou
 #ifdef DEBUG_IO_REDIR
             log_trace("io_redir_pread: normal read of %u bytes\n", read_size);
 #endif
-            res = data->disk_car->pread(data->disk_car, buffer, read_size, current_offset);
+            res = data->disk_car->pread(*data->disk_car, buffer, read_size, current_offset);
         }
         if ((unsigned)res != read_size)
             return res;
@@ -228,14 +227,14 @@ static int io_redir_pread(disk_t *disk_car, void *buffer, const unsigned int cou
     return count;
 }
 
-static void io_redir_clean(disk_t *disk_car)
+static void io_redir_clean(disk_t &disk_car)
 {
-    if (disk_car->data)
+    if (disk_car.data)
     {
-        struct info_io_redir *data = (struct info_io_redir *)disk_car->data;
-        data->disk_car->clean(data->disk_car);
+        struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
+        data->disk_car->clean(*data->disk_car);
         delete (data->disk_car);
-        delete (disk_car->data);
-        disk_car->data = NULL;
+        delete (disk_car.data);
+        disk_car.data = NULL;
     }
 }

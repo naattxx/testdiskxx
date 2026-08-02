@@ -34,13 +34,13 @@
 #include "src/log.hpp"
 
 static void set_cramfs_info(const struct cramfs_super *sb, partition_t *partition);
-static int test_cramfs(const disk_t *disk_car, const struct cramfs_super *sb, const partition_t *partition,
+static int test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, const partition_t *partition,
                        const int verbose);
 
-int check_cramfs(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_cramfs(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[CRAMFS_SUPERBLOCK_SIZE];
-    if (disk_car->pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE, partition->part_offset + 0x200) ==
+    if (disk_car.pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE, partition->part_offset + 0x200) ==
         CRAMFS_SUPERBLOCK_SIZE)
     {
         if (test_cramfs(disk_car, (struct cramfs_super *)buffer, partition, verbose) == 0)
@@ -50,7 +50,7 @@ int check_cramfs(disk_t *disk_car, partition_t *partition, const int verbose)
             return 0;
         }
     }
-    if (disk_car->pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE, partition->part_offset) == CRAMFS_SUPERBLOCK_SIZE)
+    if (disk_car.pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE, partition->part_offset) == CRAMFS_SUPERBLOCK_SIZE)
     {
         if (test_cramfs(disk_car, (struct cramfs_super *)buffer, partition, verbose) == 0)
         {
@@ -63,7 +63,7 @@ int check_cramfs(disk_t *disk_car, partition_t *partition, const int verbose)
     return 1;
 }
 
-static int test_cramfs(const disk_t *disk_car, const struct cramfs_super *sb, const partition_t *partition,
+static int test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, const partition_t *partition,
                        const int verbose)
 {
     if (sb->magic != le32(CRAMFS_MAGIC))
@@ -76,7 +76,7 @@ static int test_cramfs(const disk_t *disk_car, const struct cramfs_super *sb, co
     return 0;
 }
 
-int recover_cramfs(const disk_t *disk_car, const struct cramfs_super *sb, partition_t *partition, const int verbose,
+int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partition_t *partition, const int verbose,
                    const int dump_ind)
 {
     if (test_cramfs(disk_car, sb, partition, verbose) != 0)

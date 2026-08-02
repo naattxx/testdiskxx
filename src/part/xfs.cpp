@@ -69,7 +69,7 @@ static void set_xfs_info(const struct xfs_sb *sb, partition_t *partition)
     set_part_name(partition, sb->sb_fname, 12);
 }
 
-static int test_xfs(const disk_t *disk_car, const struct xfs_sb *sb, const partition_t *partition, const int verbose)
+static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const partition_t *partition, const int verbose)
 {
     if (sb->sb_magicnum != be32(XFS_SB_MAGIC) || (uint16_t)be16(sb->sb_sectsize) != (1U << sb->sb_sectlog) ||
         (uint32_t)be32(sb->sb_blocksize) != (1U << sb->sb_blocklog) ||
@@ -93,10 +93,10 @@ static int test_xfs(const disk_t *disk_car, const struct xfs_sb *sb, const parti
     return 0;
 }
 
-int check_xfs(disk_t *disk_car, partition_t *partition, const int verbose)
+int check_xfs(disk_t &disk_car, partition_t *partition, const int verbose)
 {
     unsigned char *buffer = (unsigned char *)new unsigned char[XFS_SUPERBLOCK_SIZE];
-    if (disk_car->pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE, partition->part_offset) != XFS_SUPERBLOCK_SIZE)
+    if (disk_car.pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE, partition->part_offset) != XFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -111,7 +111,7 @@ int check_xfs(disk_t *disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-int recover_xfs(const disk_t *disk_car, const struct xfs_sb *sb, partition_t *partition, const int verbose,
+int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t *partition, const int verbose,
                 const int dump_ind)
 {
     if (test_xfs(disk_car, sb, partition, verbose) != 0)

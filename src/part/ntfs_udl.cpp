@@ -1271,7 +1271,7 @@ static struct td_list_head *ntfs_prev_non_deleted(struct td_list_head *current_f
     return current_file;
 }
 
-static void ntfs_undelete_menu_ncurses(const disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static void ntfs_undelete_menu_ncurses(const disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                                        file_info_t *dir_list)
 {
     struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)dir_data->private_dir_data;
@@ -1666,7 +1666,7 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const file_info_t *dir_list)
     opts.dest = NULL;
 }
 
-static void ntfs_undelete_menu(const disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static void ntfs_undelete_menu(const disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                                file_info_t *dir_list, char **current_cmd)
 {
     log_list_file(disk_car, partition, dir_data, dir_list);
@@ -1684,7 +1684,7 @@ static void ntfs_undelete_menu(const disk_t *disk_car, const partition_t *partit
 #endif
 }
 
-int ntfs_undelete_part(disk_t *disk_car, const partition_t *partition, const int verbose, char **current_cmd)
+int ntfs_undelete_part(disk_t &disk_car, const partition_t *partition, const int verbose, char **current_cmd)
 {
     dir_data_t dir_data;
 #ifdef HAVE_NCURSES
@@ -1756,7 +1756,7 @@ int ntfs_undelete_part(disk_t *disk_car, const partition_t *partition, const int
     return res;
 }
 #else
-int ntfs_undelete_part(disk_t *disk_car, const partition_t *partition, const int verbose, char **current_cmd)
+int ntfs_undelete_part(disk_t &disk_car, const partition_t *partition, const int verbose, char **current_cmd)
 {
 #ifdef HAVE_NCURSES
     WINDOW *window;

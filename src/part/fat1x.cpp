@@ -37,13 +37,13 @@
 #include "src/log_part.hpp"
 
 #ifdef HAVE_NCURSES
-static void dump_fat1x_ncurses(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs)
+static void dump_fat1x_ncurses(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs)
 {
     WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
     keypad(window, TRUE);                       /* Need it to get arrow key */
     aff_copy(window);
     wmove(window, 4, 0);
-    wprintw(window, "%s", disk_car->description(disk_car));
+    wprintw(window, "%s", disk_car.description(disk_car));
     wmove(window, 5, 0);
     aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
     mvwaddstr(window, 6, 0, "Boot sector");
@@ -56,7 +56,7 @@ static void dump_fat1x_ncurses(disk_t *disk_car, const partition_t *partition, c
 }
 #endif
 
-static void dump_fat1x(disk_t *disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void dump_fat1x(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
                        char **current_cmd)
 {
     log_info("Boot sector\n");
@@ -69,7 +69,7 @@ static void dump_fat1x(disk_t *disk_car, const partition_t *partition, const uns
     }
 }
 
-int fat1x_boot_sector(disk_t *disk_car, partition_t *partition, const int verbose, const int dump_ind,
+int fat1x_boot_sector(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind,
                       const unsigned int expert, char **current_cmd)
 {
     unsigned char *buffer_bs;
@@ -97,7 +97,7 @@ int fat1x_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
 #ifdef HAVE_NCURSES
             aff_copy(stdscr);
             wmove(stdscr, 4, 0);
-            wprintw(stdscr, "%s", disk_car->description(disk_car));
+            wprintw(stdscr, "%s", disk_car.description(disk_car));
             mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
             wmove(stdscr, 6, 0);
             aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
@@ -105,7 +105,7 @@ int fat1x_boot_sector(disk_t *disk_car, partition_t *partition, const int verbos
             log_info("\nfat1x_boot_sector\n");
             log_partition(disk_car, partition);
             screen_buffer_add("Boot sector\n");
-            if (disk_car->pread(disk_car, buffer_bs, FAT1x_BOOT_SECTOR_SIZE, partition->part_offset) !=
+            if (disk_car.pread(disk_car, buffer_bs, FAT1x_BOOT_SECTOR_SIZE, partition->part_offset) !=
                 FAT1x_BOOT_SECTOR_SIZE)
             {
                 screen_buffer_add("fat1x_boot_sector: Can't read boot sector.\n");

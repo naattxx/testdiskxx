@@ -60,7 +60,7 @@ struct rfs_dir_struct
     dal_t *dal;
     int flags;
 };
-static int reiser_dir(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static int reiser_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                       const unsigned long int cluster, file_info_t *dir_list);
 static void dir_partition_reiser_close(dir_data_t *dir_data);
 
@@ -451,7 +451,7 @@ blk_t dal_len(dal_t *dal)
     return 0;
 }
 
-static int reiser_dir(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static int reiser_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                       const unsigned long int cluster, file_info_t *dir_list)
 {
     struct rfs_dir_struct *ls = (struct rfs_dir_struct *)dir_data->private_dir_data;
@@ -507,7 +507,7 @@ static void dir_partition_reiser_close(dir_data_t *dir_data)
     delete (ls);
 }
 
-static copy_file_t reiser_copy(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t reiser_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                                const file_info_t *file)
 {
     reiserfs_file_t *in;
@@ -582,7 +582,7 @@ static copy_file_t reiser_copy(disk_t *disk_car, const partition_t *partition, d
 }
 #endif
 
-dir_partition_t dir_partition_reiser_init(disk_t *disk_car, const partition_t *partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_reiser_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                                           const int verbose)
 {
 #ifdef HAVE_LIBREISERFS
