@@ -176,17 +176,9 @@ static uint64_t compute_device_size(const int hd_h, const char *device, const in
 
 void generic_clean(disk_t &disk)
 {
-    delete (disk.device);
-    delete (disk.model);
-    delete (disk.serial_no);
-    delete (disk.fw_rev);
     delete (disk.data);
     delete (disk.rbuffer);
     delete (disk.wbuffer);
-    disk.device = NULL;
-    disk.model = NULL;
-    disk.serial_no = NULL;
-    disk.fw_rev = NULL;
     disk.data = NULL;
     disk.rbuffer = NULL;
     disk.wbuffer = NULL;
@@ -548,7 +540,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
 #endif
 
     for(disk_t& i : list_disk) {
-        if (i.model!=nullptr)
+        if (!i.model.empty())
             std::cout << ": " << i.model << "\n";
     }
     // /*@ assert valid_list_disk(list_disk); */
@@ -982,12 +974,12 @@ static void rtrim(char *buf)
   @ ensures \result==-1 || \result==0;
   @ ensures \result==-1 || valid_string(buf);
   @*/
-static int read_device_sysfs_file(char *buf, const disk_t &disk_car, const char *file)
+static int read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file)
 {
     FILE *f;
 #ifndef DISABLED_FOR_FRAMAC
     char name_buf[128];
-    snprintf(name_buf, 127, "/sys/block/%s/device/%s", basename(disk_car.device), file);
+    snprintf(name_buf, 127, "/sys/block/%s/device/%s", basename(disk_car.device.data()), file);
     if ((f = fopen(name_buf, "r")) == NULL)
         return -1;
 #else
@@ -1161,7 +1153,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
     }
 #endif
 #ifdef HDIO_GET_IDENTITY
-    if (dev.model != NULL)
+    if (!dev.model.empty())
         return;
     {
         struct hd_driveid hdi;
@@ -1169,19 +1161,19 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         if (ioctl(hd_h, HDIO_GET_IDENTITY, &hdi) == 0)
         {
             char tmp[41];
-            if (dev.model == NULL)
+            if (dev.model.empty())
             {
                 memcpy(tmp, hdi.model, 40);
                 tmp[40] = '\0';
                 dev.model = strip_dup(tmp);
             }
-            if (dev.serial_no == NULL)
+            if (dev.serial_no.empty())
             {
                 memcpy(tmp, hdi.serial_no, 20);
                 tmp[20] = '\0';
                 dev.serial_no = strip_dup(tmp);
             }
-            if (dev.fw_rev == NULL)
+            if (dev.fw_rev.empty())
             {
                 memcpy(tmp, hdi.fw_rev, 8);
                 tmp[8] = '\0';
@@ -1208,7 +1200,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
     }
 #endif
 #ifdef __linux__
-    if (dev.model != NULL)
+    if (!dev.model.empty())
         return;
     {
         /* Use modern /sys interface for SCSI device */
@@ -1222,8 +1214,8 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
             if (read_device_sysfs_file(&product[0], dev, "model") == 0)
             {
                 /*@ assert valid_string(&product[0]); */
-                dev.model = new char[8 + 16 + 2];
-                sprintf(dev.model, "%.8s %.16s", vendor, product);
+                dev.model.reserve(8 + 16 + 2);
+                sprintf(dev.model.data(), "%.8s %.16s", vendor, product);
             }
         }
     }
@@ -1310,11 +1302,11 @@ static const char *file_description(disk_t &disk)
 #endif
     size_to_unit(disk.disk_size, buffer_disk_size);
     if (disk.geom.heads_per_cylinder == 1 && disk.geom.sectors_per_head == 1)
-        snprintf(disk.description_txt, sizeof(disk.description_txt), "Disk %s - %s - %llu sectors%s", disk.device,
+        snprintf(disk.description_txt, sizeof(disk.description_txt), "Disk %s - %s - %llu sectors%s", disk.device.c_str(),
                  buffer_disk_size, (long long unsigned)(disk.disk_size / disk.sector_size),
                  ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     else
-        snprintf(disk.description_txt, sizeof(disk.description_txt), "Disk %s - %s - CHS %lu %u %u%s", disk.device,
+        snprintf(disk.description_txt, sizeof(disk.description_txt), "Disk %s - %s - CHS %lu %u %u%s", disk.device.c_str(),
                  buffer_disk_size, disk.geom.cylinders, disk.geom.heads_per_cylinder, disk.geom.sectors_per_head,
                  ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     /*@ assert valid_read_string((char *)&disk.description_txt); */
@@ -1337,12 +1329,12 @@ static const char *file_description_short(disk_t &disk_car)
     memset(&buffer_disk_size, 0, sizeof(buffer_disk_size));
 #endif
     size_to_unit(disk_car.disk_size, buffer_disk_size);
-    if (disk_car.model == NULL)
-        snprintf(disk_car.description_short_txt, sizeof(disk_car.description_txt), "Disk %s - %s%s", disk_car.device,
+    if (disk_car.model.empty())
+        snprintf(disk_car.description_short_txt, sizeof(disk_car.description_txt), "Disk %s - %s%s", disk_car.device.c_str(),
                  buffer_disk_size, ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     else
         snprintf(disk_car.description_short_txt, sizeof(disk_car.description_txt), "Disk %s - %s%s - %s",
-                 disk_car.device, buffer_disk_size, ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"), disk_car.model);
+                 disk_car.device.c_str(), buffer_disk_size, ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"), disk_car.model.c_str());
     /*@ assert valid_read_string((char *)&disk_car.description_short_txt); */
     /*@ assert valid_disk(disk_car); */
     return disk_car.description_short_txt;
@@ -1799,7 +1791,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
 #else
     disk_car.device = strdup(device);
 #endif
-    if (disk_car.device == NULL)
+    if (disk_car.device.empty())
     {
         close(hd_h);
         return std::nullopt;
@@ -1815,7 +1807,6 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
     disk_car.pwrite = ((mode & O_RDWR) == O_RDWR ? &file_pwrite : &file_nopwrite);
     disk_car.sync = &file_sync;
     disk_car.access_mode = ((mode & O_RDWR) == O_RDWR ? TESTDISK_O_RDWR : TESTDISK_O_RDONLY);
-    disk_car.model = NULL;
 #ifdef O_DIRECT
     if ((mode & O_DIRECT) == O_DIRECT)
         disk_car.access_mode |= TESTDISK_O_DIRECT;
@@ -1888,8 +1879,6 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
         {
             delete[] (buffer);
             delete (data);
-            free (disk_car.device);
-            delete (disk_car.model);
             close(hd_h);
 #if defined(HAVE_LIBEWF_H) && defined(HAVE_LIBEWF)
             log_info("EWF format detected.");
@@ -1954,7 +1943,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
     }
     /*@ assert disk_car.description == &file_description; */
 #ifndef DISABLED_FOR_FRAMAC
-    if (disk_car.model == NULL)
+    if (disk_car.model.empty())
         log_warning("Warning: can't get size for {}, sector size={}", file_description(disk_car),
                     disk_car.sector_size);
     else
@@ -1962,8 +1951,6 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
                     disk_car.sector_size, disk_car.model);
 #endif
     delete (data);
-    free (disk_car.device);
-    delete (disk_car.model);
     close(hd_h);
     return std::nullopt;
 }
@@ -2017,9 +2004,6 @@ void init_disk(disk_t &disk)
     disk.wbuffer = NULL;
     disk.rbuffer_size = 0;
     disk.wbuffer_size = 0;
-    disk.model = NULL;
-    disk.serial_no = NULL;
-    disk.fw_rev = NULL;
     disk.write_used = 0;
     disk.description_txt[0] = '\0';
     disk.unit = UNIT::CHS;

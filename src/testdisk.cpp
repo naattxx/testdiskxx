@@ -67,11 +67,11 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
         const int hpa_dco = is_hpa_or_dco(disk);
         std::cout << disk.description(disk) << '\n';
         std::cout << "Sector size: " << disk.sector_size << '\n';
-        if (disk.model != nullptr)
+        if (!disk.model.empty())
             std::cout << "Model: " << disk.model;
-        if (disk.serial_no != nullptr)
+        if (!disk.serial_no.empty())
             std::cout << ", S/N: " << disk.serial_no;
-        if (disk.fw_rev != nullptr)
+        if (!disk.fw_rev.empty())
             std::cout << ", FW: " << disk.fw_rev;
         std::cout << '\n';
         if (hpa_dco != 0)

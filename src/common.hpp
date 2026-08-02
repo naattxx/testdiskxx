@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <ctime>
 #include <list>
+#include <string>
 
 struct efi_guid_s
 {
@@ -551,10 +552,10 @@ struct param_disk_struct
     char description_short_txt[DISKDESCRIPTION_MAX];
     CHSgeometry_t geom; /* logical CHS */
     uint64_t disk_size;
-    char *device;
-    char *model;
-    char *serial_no;
-    char *fw_rev;
+    std::string device;
+    std::string model;
+    std::string serial_no;
+    std::string fw_rev;
     const char *(*description)(disk_t &disk);
     const char *(*description_short)(disk_t &disk);
     int (*pread)(disk_t &disk, void *buf, const unsigned int count, const uint64_t offset);

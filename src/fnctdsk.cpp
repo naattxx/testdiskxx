@@ -123,7 +123,7 @@ static disk_t *search_disk(const list_disk_t &list_disk, const disk_t &disk)
       @*/
     for (const disk_t& tmp : list_disk)
     {
-        if (tmp.device != nullptr && disk.device != nullptr && strcmp(tmp.device, disk.device) == 0)
+        if (!tmp.device.empty() && !disk.device.empty() && tmp.device == disk.device)
         {
             return const_cast<disk_t*>(&tmp);
         }
@@ -501,11 +501,11 @@ void log_disk_list(list_disk_t &list_disk)
     {
         std::string disk_description(disk.description(disk));
         disk_description.append(", sector size=").append(std::to_string(disk.sector_size));
-        if (disk.model != NULL)
+        if (!disk.model.empty())
             disk_description.append(" - ").append(disk.model);
-        if (disk.serial_no != NULL)
+        if (!disk.serial_no.empty())
             disk_description.append(", S/N:").append(disk.serial_no);
-        if (disk.fw_rev != NULL)
+        if (!disk.fw_rev.empty())
             disk_description.append(", FW:").append(disk.fw_rev);
         log_info("{}", disk_description);
     }
