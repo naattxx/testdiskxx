@@ -234,7 +234,7 @@ static void io_redir_clean(disk_t &disk_car)
         struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
         data->disk_car->clean(*data->disk_car);
         delete (data->disk_car);
-        delete (disk_car.data);
+        delete (struct info_io_redir *)disk_car.data;
         disk_car.data = NULL;
     }
 }

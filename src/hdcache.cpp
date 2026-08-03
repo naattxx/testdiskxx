@@ -232,7 +232,7 @@ static void cache_clean(disk_t &disk_car)
             struct cache_buffer_struct *cache = &data->cache[i];
             delete (cache->buffer);
         }
-        delete (disk_car.data);
+        delete (struct cache_struct *)disk_car.data;
         disk_car.data = NULL;
     }
 }
