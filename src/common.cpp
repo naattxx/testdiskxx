@@ -52,46 +52,46 @@ static long secwest = 0;
 // }
 // #endif
 
-void set_part_name(partition_t *partition, const char *src, const unsigned int max_size)
+void partition_struct::set_name(const char *src, const unsigned int max_size)
 {
     unsigned int i;
     /*@
       @ loop invariant \separated(partition, src + (..));
-      @ loop invariant 0 <= i < sizeof(partition->fsname);
+      @ loop invariant 0 <= i < sizeof(fsname);
       @ loop invariant 0 <= i <= max_size;
-      @ loop invariant \initialized(partition->fsname+(0 .. i-1));
-      @ loop assigns i, partition->fsname[0 .. i];
-      @ loop variant sizeof(partition->fsname)-1 - i;
+      @ loop invariant \initialized(fsname+(0 .. i-1));
+      @ loop assigns i, fsname[0 .. i];
+      @ loop variant sizeof(fsname)-1 - i;
       @*/
-    for (i = 0; i < sizeof(partition->fsname) - 1 && i < max_size && src[i] != '\0'; i++)
-        partition->fsname[i] = src[i];
-    partition->fsname[i] = '\0';
-    /*@ assert valid_string((char *)&partition->fsname); */
+    for (i = 0; i < sizeof(fsname) - 1 && i < max_size && src[i] != '\0'; i++)
+        fsname[i] = src[i];
+    fsname[i] = '\0';
+    /*@ assert valid_string(fsname); */
 }
 
-void set_part_name_chomp(partition_t *partition, const char *src, const unsigned int max_size)
+void partition_struct::set_name_chomp(const char *src, const unsigned int max_size)
 {
     unsigned int i;
     /*@
       @ loop invariant \separated(partition, src + (..));
-      @ loop invariant 0 <= i < sizeof(partition->fsname);
+      @ loop invariant 0 <= i < sizeof(fsname);
       @ loop invariant 0 <= i <= max_size;
-      @ loop invariant \initialized(partition->fsname+(0 .. i-1));
-      @ loop assigns i, partition->fsname[0 .. i];
-      @ loop variant sizeof(partition->fsname)-1 - i;
+      @ loop invariant \initialized(fsname+(0 .. i-1));
+      @ loop assigns i, fsname[0 .. i];
+      @ loop variant sizeof(fsname)-1 - i;
       @*/
-    for (i = 0; i < sizeof(partition->fsname) - 1 && i < max_size && src[i] != '\0'; i++)
-        partition->fsname[i] = src[i];
+    for (i = 0; i < sizeof(fsname) - 1 && i < max_size && src[i] != '\0'; i++)
+        fsname[i] = src[i];
     /*@
-      @ loop invariant 0 <= i < sizeof(partition->fsname);
-      @ loop invariant \initialized(partition->fsname+(0 .. i-1));
+      @ loop invariant 0 <= i < sizeof(fsname);
+      @ loop invariant \initialized(fsname+(0 .. i-1));
       @ loop assigns i;
       @ loop variant i;
       @*/
-    while (i > 0 && partition->fsname[i - 1] == ' ')
+    while (i > 0 && fsname[i - 1] == ' ')
         i--;
-    partition->fsname[i] = '\0';
-    /*@ assert valid_string((char *)&partition->fsname); */
+    fsname[i] = '\0';
+    /*@ assert valid_string(fsname); */
 }
 
 char *strip_dup(char *str)

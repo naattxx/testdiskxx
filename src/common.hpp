@@ -614,6 +614,9 @@ valid_list_disk(list->next);
 
 struct partition_struct
 {
+    void set_name(const char *src, const unsigned int max_size);
+    void set_name_chomp(const char *src, const unsigned int max_size);
+
     char fsname[128];
     char partname[128];
     char info[128];
@@ -650,26 +653,6 @@ struct my_data_struct
     const partition_t *partition;
     uint64_t offset;
 };
-
-/*@
-  @ requires \valid(partition);
-  @ requires valid_partition(partition);
-  @ requires \valid_read(src + (0 .. max_size-1));
-  @ requires \separated(partition, src + (..));
-  @ terminates \true;
-  @ ensures valid_string((char *)&partition->fsname);
-  @*/
-void set_part_name(partition_t *partition, const char *src, const unsigned int max_size);
-
-/*@
-  @ requires \valid(partition);
-  @ requires valid_partition(partition);
-  @ requires \valid_read(src + (0 .. max_size-1));
-  @ requires \separated(partition, src);
-  @ terminates \true;
-  @ ensures valid_string((char *)&partition->fsname);
-  @*/
-void set_part_name_chomp(partition_t *partition, const char *src, const unsigned int max_size);
 
 /*@
   @ requires valid_read_string(str);

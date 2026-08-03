@@ -66,7 +66,7 @@ static void set_EXT2_info(const struct ext2_super_block *sb, partition_t *partit
     else
         partition->upart_type = UP_EXT2;
     partition->blocksize = EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size);
-    set_part_name(partition, sb->s_volume_name, 16);
+    partition->set_name(sb->s_volume_name, 16);
     /* sb->s_last_mounted seems to be unemployed in kernel 2.2.16 */
     if (EXT2_HAS_RO_COMPAT_FEATURE(sb, EXT4_FEATURE_RO_COMPAT_HUGE_FILE) != 0 ||
         EXT2_HAS_RO_COMPAT_FEATURE(sb, EXT4_FEATURE_RO_COMPAT_GDT_CSUM) != 0 ||

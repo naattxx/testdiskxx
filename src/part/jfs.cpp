@@ -40,7 +40,7 @@ static void set_JFS_info(const struct jfs_superblock *sb, partition_t *partition
     partition->fsname[0] = '\0';
     if (le32(sb->s_version) == 1)
     {
-        set_part_name(partition, sb->s_fpack, 11);
+        partition->set_name(sb->s_fpack, 11);
     }
 }
 

@@ -114,5 +114,5 @@ static void set_sysv4_info(const struct sysv4_super_block *sbd, partition_t *par
 {
     partition->upart_type = UP_SYSV4;
     strncpy(partition->info, "SysV4", sizeof(partition->info));
-    set_part_name(partition, sbd->s_fname, sizeof(sbd->s_fname));
+    partition->set_name(sbd->s_fname, sizeof(sbd->s_fname));
 }

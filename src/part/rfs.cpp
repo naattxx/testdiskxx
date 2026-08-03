@@ -192,7 +192,7 @@ static void set_rfs_info(const struct reiserfs_super_block *sb, partition_t *par
         partition->upart_type = UP_RFS2;
         snprintf(partition->info, sizeof(partition->info), "ReiserFS 3.6 with standard journal blocksize=%u",
                  partition->blocksize);
-        set_part_name(partition, (const char *)sb->s_label, 16);
+        partition->set_name((const char *)sb->s_label, 16);
     }
     else if (memcmp(sb->s_magic, REISERFS3_SUPER_MAGIC, sizeof(REISERFS3_SUPER_MAGIC)) == 0)
     {
@@ -206,7 +206,7 @@ static void set_rfs_info(const struct reiserfs_super_block *sb, partition_t *par
         else
             snprintf(partition->info, sizeof(partition->info), "ReiserFS 3.? with non standard journal blocksize=%u",
                      partition->blocksize);
-        set_part_name(partition, (const char *)sb->s_label, 16);
+        partition->set_name((const char *)sb->s_label, 16);
     }
     if (le16(sb->s_state) == REISERFS_ERROR_FS)
     {

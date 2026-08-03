@@ -189,28 +189,28 @@ static void set_ufs_info(const struct ufs_super_block *sb, partition_t *partitio
     {
         partition->upart_type = UP_UFS_LE;
         partition->blocksize = le32(sb->fs_fsize);
-        set_part_name(partition, (const char *)sb->fs_u11.fs_u1.fs_fsmnt, sizeof(sb->fs_u11.fs_u1.fs_fsmnt));
+        partition->set_name((const char *)sb->fs_u11.fs_u1.fs_fsmnt, sizeof(sb->fs_u11.fs_u1.fs_fsmnt));
         snprintf(partition->info, sizeof(partition->info), "UFS1 blocksize=%u", partition->blocksize);
     }
     if (be32(sb->fs_magic) == UFS_MAGIC)
     {
         partition->upart_type = UP_UFS;
         partition->blocksize = be32(sb->fs_fsize);
-        set_part_name(partition, (const char *)sb->fs_u11.fs_u1.fs_fsmnt, sizeof(sb->fs_u11.fs_u1.fs_fsmnt));
+        partition->set_name((const char *)sb->fs_u11.fs_u1.fs_fsmnt, sizeof(sb->fs_u11.fs_u1.fs_fsmnt));
         snprintf(partition->info, sizeof(partition->info), "UFS1 blocksize=%u", partition->blocksize);
     }
     if (le32(sb->fs_magic) == UFS2_MAGIC)
     {
         partition->blocksize = le32(sb->fs_fsize);
         partition->upart_type = UP_UFS2_LE;
-        set_part_name(partition, (const char *)sb->fs_u11.fs_u2.fs_fsmnt, sizeof(sb->fs_u11.fs_u2.fs_fsmnt));
+        partition->set_name((const char *)sb->fs_u11.fs_u2.fs_fsmnt, sizeof(sb->fs_u11.fs_u2.fs_fsmnt));
         snprintf(partition->info, sizeof(partition->info), "UFS2 blocksize=%u", partition->blocksize);
     }
     if (be32(sb->fs_magic) == UFS2_MAGIC)
     {
         partition->upart_type = UP_UFS2;
         partition->blocksize = be32(sb->fs_fsize);
-        set_part_name(partition, (const char *)sb->fs_u11.fs_u2.fs_fsmnt, sizeof(sb->fs_u11.fs_u2.fs_fsmnt));
+        partition->set_name((const char *)sb->fs_u11.fs_u2.fs_fsmnt, sizeof(sb->fs_u11.fs_u2.fs_fsmnt));
         snprintf(partition->info, sizeof(partition->info), "UFS2 blocksize=%u", partition->blocksize);
     }
 }

@@ -101,6 +101,6 @@ int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partit
 static void set_cramfs_info(const struct cramfs_super *sb, partition_t *partition)
 {
     partition->upart_type = UP_CRAMFS;
-    set_part_name(partition, (const char *)sb->name, 16);
+    partition->set_name((const char *)sb->name, 16);
     strncpy(partition->info, "cramfs", sizeof(partition->info));
 }

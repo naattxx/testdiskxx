@@ -111,7 +111,7 @@ static void set_MD_info(const struct mdp_superblock_s *sb, partition_t *partitio
     {
         const struct mdp_superblock_1 *sb1 = (const struct mdp_superblock_1 *)sb;
         partition->upart_type = UP_MD1;
-        set_part_name(partition, sb1->set_name, 32);
+        partition->set_name(sb1->set_name, 32);
         sprintf(partition->info, "md %u.x L.Endian Raid %u - Array Slot : %lu", (unsigned int)le32(sb1->major_version),
                 (unsigned int)le32(sb1->level), (long unsigned)le32(sb1->dev_number));
 #ifndef DISABLED_FOR_FRAMAC
@@ -174,7 +174,7 @@ static void set_MD_info_be(const struct mdp_superblock_s *sb, partition_t *parti
     {
         const struct mdp_superblock_1 *sb1 = (const struct mdp_superblock_1 *)sb;
         partition->upart_type = UP_MD1;
-        set_part_name(partition, sb1->set_name, 32);
+        partition->set_name(sb1->set_name, 32);
         sprintf(partition->info, "md %u.x B.Endian Raid %u - Array Slot : %lu", (unsigned int)be32(sb1->major_version),
                 (unsigned int)be32(sb1->level), (long unsigned)be32(sb1->dev_number));
 #if !defined(DISABLED_FOR_FRAMAC)

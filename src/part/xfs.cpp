@@ -66,7 +66,7 @@ static void set_xfs_info(const struct xfs_sb *sb, partition_t *partition)
         snprintf(partition->info, sizeof(partition->info), "XFS unknown version %u\n", version);
         break;
     }
-    set_part_name(partition, sb->sb_fname, 12);
+    partition->set_name(sb->sb_fname, 12);
 }
 
 static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const partition_t *partition, const int verbose)
