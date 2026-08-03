@@ -48,12 +48,14 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
     if (list_disk.empty())
     {
         std::cout << "No disk detected.\n";
-#if __has_include(<unistd.h>) && !defined(__CYGWIN__) && !defined(__MINGW32__) && !defined(DJGPP)
-        if (geteuid() != 0)
+        if (!isAdmin())
         {
+#if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
+            std::cout << "You need to be Administrator to use TestDisk." << std::endl;
+#elif defined(__linux__)
             std::cout << "You need to be root to use TestDisk." << std::endl;
-        }
 #endif
+        }
         return 1;
     }
 
