@@ -188,7 +188,7 @@ static list_part_t *read_part_mac(disk_t &disk_car, const int verbose, const int
         else
         {
             int insert_error = 0;
-            partition_t *new_partition = partition_new(&arch_mac);
+            partition_t *new_partition = new partition_t(&arch_mac);
             new_partition->order = i;
             if (strcmp(dpme->dpme_type, "Apple_UNIX_SVR2") == 0)
             {
@@ -264,7 +264,7 @@ static list_part_t *init_part_order_mac(const disk_t &disk_car, list_part_t *lis
 
 list_part_t *add_partition_mac_cli(disk_t &disk_car, list_part_t *list_part, char **current_cmd)
 {
-    partition_t *new_partition = partition_new(&arch_mac);
+    partition_t *new_partition = new partition_t(&arch_mac);
     assert(current_cmd != NULL);
     new_partition->part_offset = disk_car.sector_size;
     new_partition->part_size = disk_car.disk_size - disk_car.sector_size;

@@ -336,7 +336,7 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
             le64(gpt_entry->ent_lba_start) < le64(gpt_entry->ent_lba_end))
         {
             int insert_error = 0;
-            partition_t *new_partition = partition_new(&arch_gpt);
+            partition_t *new_partition = new partition_t(&arch_gpt);
             new_partition->order = i + 1;
             guid_cpy(&new_partition->part_uuid, &gpt_entry->ent_uuid);
             guid_cpy(&new_partition->part_type_gpt, &gpt_entry->ent_type);
@@ -390,7 +390,7 @@ list_part_t *add_partition_gpt_cli(const disk_t &disk_car, list_part_t *list_par
 {
     partition_t *new_partition;
     assert(current_cmd != NULL);
-    new_partition = partition_new(&arch_gpt);
+    new_partition = new partition_t(&arch_gpt);
     new_partition->part_offset = disk_car.sector_size;
     new_partition->part_size = disk_car.disk_size - new_partition->part_offset;
     /*@

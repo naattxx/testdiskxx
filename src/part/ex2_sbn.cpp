@@ -82,7 +82,7 @@ list_part_t *search_superblock(disk_t &disk_car, partition_t *partition, const i
     unsigned long int old_percent = 0;
 #endif
     struct ext2_super_block *sb = (struct ext2_super_block *)buffer;
-    partition_t *new_partition = partition_new(disk_car.arch);
+    partition_t *new_partition = new partition_t(disk_car.arch);
     // log_trace("search_superblock\n");
 #ifdef HAVE_NCURSES
     aff_copy(stdscr);
@@ -144,7 +144,7 @@ list_part_t *search_superblock(disk_t &disk_car, partition_t *partition, const i
                             EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
 #endif
                     list_part = insert_new_partition(list_part, new_partition, 1, &insert_error);
-                    new_partition = partition_new(disk_car.arch);
+                    new_partition = new partition_t(disk_car.arch);
                     nbr_sb++;
                 }
             }

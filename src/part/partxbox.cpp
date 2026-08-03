@@ -165,7 +165,7 @@ static list_part_t *read_part_xbox(disk_t &disk_car, const int verbose, const in
             if (offsets[i] < disk_car.disk_size)
             {
                 int insert_error = 0;
-                partition_t *partition = partition_new(&arch_xbox);
+                partition_t *partition = new partition_t(&arch_xbox);
                 partition->part_type_xbox = PXBOX_FATX;
                 partition->part_offset = offsets[i];
                 partition->order = 1 + i;
@@ -201,7 +201,7 @@ static list_part_t *init_part_order_xbox(const disk_t &disk_car, list_part_t *li
 
 list_part_t *add_partition_xbox_cli(const disk_t &disk_car, list_part_t *list_part, char **current_cmd)
 {
-    partition_t *new_partition = partition_new(&arch_xbox);
+    partition_t *new_partition = new partition_t(&arch_xbox);
     assert(current_cmd != NULL);
     new_partition->part_offset = disk_car.sector_size;
     new_partition->part_size = disk_car.disk_size - disk_car.sector_size;

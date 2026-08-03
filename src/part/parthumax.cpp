@@ -185,7 +185,7 @@ static list_part_t *read_part_humax(disk_t &disk_car, const int verbose, const i
         if (humaxlabel->partitions[i].num_sectors > 0)
         {
             int insert_error = 0;
-            partition_t *new_partition = partition_new(&arch_humax);
+            partition_t *new_partition = new partition_t(&arch_humax);
             new_partition->order = i + 1;
             new_partition->part_type_humax = PHUMAX_PARTITION;
             new_partition->part_offset = be32(humaxlabel->partitions[i].start_sector) * disk_car.sector_size;
@@ -232,7 +232,7 @@ static list_part_t *init_part_order_humax(const disk_t &disk_car, list_part_t *l
 list_part_t *add_partition_humax_cli(const disk_t &disk_car, list_part_t *list_part, char **current_cmd)
 {
     CHS_t start, end;
-    partition_t *new_partition = partition_new(&arch_humax);
+    partition_t *new_partition = new partition_t(&arch_humax);
     assert(current_cmd != NULL);
     start.cylinder = 0;
     start.head = 0;

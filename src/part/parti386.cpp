@@ -559,7 +559,7 @@ static list_part_t *read_part_i386(disk_t &disk_car, const int verbose, const in
         if (p->sys_ind != P_NO_OS)
         {
             int insert_error = 0;
-            partition_t *new_partition = partition_new(&arch_i386);
+            partition_t *new_partition = new partition_t(&arch_i386);
             i386_entry2partition(disk_car, (uint64_t)0, new_partition, p, status, i + 1, verbose, saveheader);
             if (verbose > 1)
                 log_dos_entry(p);
@@ -712,7 +712,7 @@ static list_part_t *get_ext_data_i386(disk_t &disk_car, list_part_t *list_part, 
             if (p->sys_ind != 0)
             {
                 int insert_error = 0;
-                partition_t *new_partition = partition_new(&arch_i386);
+                partition_t *new_partition = new partition_t(&arch_i386);
                 new_partition->order = order;
                 if (verbose > 1)
                     log_dos_entry(p);
@@ -1230,7 +1230,7 @@ static int i386_entry2partition(disk_t &disk_car, const uint64_t offset, partiti
 {
     CHS_t start, end;
     CHS_t start_calculated, end_calculated;
-    partition_reset(partition, &arch_i386);
+    partition->reset(&arch_i386);
     partition->part_type_i386 = p->sys_ind;
     partition->part_offset = offset + (uint64_t)get_start_sect(p) * disk_car.sector_size;
     partition->order = order;
@@ -1424,7 +1424,7 @@ static int is_extended(const unsigned int part_type)
 list_part_t *add_partition_i386_cli(disk_t &disk_car, list_part_t *list_part, char **current_cmd)
 {
     CHS_t start, end;
-    partition_t *new_partition = partition_new(&arch_i386);
+    partition_t *new_partition = new partition_t(&arch_i386);
     assert(current_cmd != NULL);
     start.cylinder = 0;
     start.head = 0;

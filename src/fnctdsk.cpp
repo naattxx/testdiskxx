@@ -354,40 +354,82 @@ int is_part_overlapping(const list_part_t *list_part)
     }
 }
 
-void partition_reset(partition_t *partition, const arch_fnct_t *arch)
+/*@
+  @ requires \valid(partition);
+  @ requires valid_partition(partition);
+  @ requires \valid_read(arch);
+  @ requires \separated(partition, arch);
+  @ ensures partition->part_size == 0;
+  @ ensures partition->sborg_offset == 0;
+  @ ensures partition->sb_offset == 0;
+  @ ensures partition->sb_size == 0;
+  @ ensures partition->blocksize == 0;
+  @ ensures partition->part_type_i386 == P_NO_OS;
+  @ ensures partition->part_type_sun == PSUN_UNK;
+  @ ensures partition->part_type_mac == PMAC_UNK;
+  @ ensures partition->part_type_xbox == PXBOX_UNK;
+  @ ensures partition->upart_type == UP_UNK;
+  @ ensures partition->status == STATUS_DELETED;
+  @ ensures partition->order == NO_ORDER;
+  @ ensures partition->errcode == BAD_NOERR;
+  @ ensures partition->fsname[0] == '\0';
+  @ ensures partition->partname[0] == '\0';
+  @ ensures partition->info[0] == '\0';
+  @ ensures partition->arch == arch;
+  @*/
+// assigns partition->part_size;
+// assigns partition->sborg_offset;
+// assigns partition->sb_offset;
+// assigns partition->sb_size;
+// assigns partition->blocksize;
+// assigns partition->part_type_i386;
+// assigns partition->part_type_sun;
+// assigns partition->part_type_mac;
+// assigns partition->part_type_xbox;
+// assigns partition->part_type_gpt;
+// assigns partition->part_uuid;
+// assigns partition->upart_type;
+// assigns partition->status;
+// assigns partition->order;
+// assigns partition->errcode;
+// assigns partition->fsname[0];
+// assigns partition->partname[0];
+// assigns partition->info[0];
+void partition_t::reset(const arch_fnct_t *arch)
 {
-    /* partition->lba=0; Don't reset lba, used by search_part */
-    partition->part_size = (uint64_t)0;
-    partition->sborg_offset = 0;
-    partition->sb_offset = 0;
-    partition->sb_size = 0;
-    partition->blocksize = 0;
-    partition->part_type_i386 = P_NO_OS;
-    partition->part_type_sun = PSUN_UNK;
-    partition->part_type_mac = PMAC_UNK;
-    partition->part_type_xbox = PXBOX_UNK;
-    partition->part_type_gpt = (const efi_guid_t)GPT_ENT_TYPE_UNUSED;
+    /* lba=0; Don't reset lba, used by search_part */
+    part_size = (uint64_t)0;
+    sborg_offset = 0;
+    sb_offset = 0;
+    sb_size = 0;
+    blocksize = 0;
+    part_type_i386 = P_NO_OS;
+    part_type_sun = PSUN_UNK;
+    part_type_mac = PMAC_UNK;
+    part_type_xbox = PXBOX_UNK;
+    part_type_gpt = (const efi_guid_t)GPT_ENT_TYPE_UNUSED;
 #ifndef DISABLED_FOR_FRAMAC
-    partition->part_uuid = GPT_ENT_TYPE_UNUSED;
-    // guid_cpy(&partition->part_uuid, &GPT_ENT_TYPE_UNUSED);
+    part_uuid = GPT_ENT_TYPE_UNUSED;
+    // guid_cpy(&part_uuid, &GPT_ENT_TYPE_UNUSED);
 #endif
-    partition->upart_type = UP_UNK;
-    partition->status = STATUS_DELETED;
-    partition->order = NO_ORDER;
-    partition->errcode = BAD_NOERR;
-    partition->fsname[0] = '\0';
-    partition->partname[0] = '\0';
-    partition->info[0] = '\0';
-    partition->arch = arch;
+    upart_type = UP_UNK;
+    status = STATUS_DELETED;
+    order = NO_ORDER;
+    errcode = BAD_NOERR;
+    fsname[0] = '\0';
+    partname[0] = '\0';
+    info[0] = '\0';
+    this->arch = arch;
 }
 
-partition_t *partition_new(const arch_fnct_t *arch)
+/*@
+  @ requires \valid_read(arch);
+  @*/
+// ensures valid_partition(\result);
+// ensures \result->arch == arch;
+partition_t::partition_struct(const arch_fnct_t *arch)
 {
-    partition_t *partition = new partition_t;
-    /*@ assert \valid(partition); */
-    partition_reset(partition, arch);
-    /*@ assert valid_partition(partition); */
-    return partition;
+    reset(arch);
 }
 
 /*@

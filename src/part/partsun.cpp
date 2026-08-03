@@ -219,7 +219,7 @@ static list_part_t *read_part_sun(disk_t &disk_car, const int verbose, const int
             sunlabel->infos[i].id != PSUN_WHOLE_DISK)
         {
             int insert_error = 0;
-            partition_t *new_partition = partition_new(&arch_sun);
+            partition_t *new_partition = new partition_t(&arch_sun);
             new_partition->order = i;
             new_partition->part_type_sun = sunlabel->infos[i].id;
             new_partition->part_offset = be32(sunlabel->partitions[i].start_cylinder) * be16(sunlabel->ntrks) *
@@ -267,7 +267,7 @@ static list_part_t *init_part_order_sun(const disk_t &disk_car, list_part_t *lis
             break;
         }
     }
-    new_partition = partition_new(&arch_sun);
+    new_partition = new partition_t(&arch_sun);
     new_partition->part_offset = 0;
     new_partition->part_size = disk_car.disk_size;
     new_partition->status = STATUS_PRIM;
@@ -284,7 +284,7 @@ list_part_t *add_partition_sun_cli(const disk_t &disk_car, list_part_t *list_par
     CHS_t start, end;
     partition_t *new_partition;
     assert(current_cmd != NULL);
-    new_partition = partition_new(&arch_sun);
+    new_partition = new partition_t(&arch_sun);
     start.cylinder = 0;
     start.head = 0;
     start.sector = 1;

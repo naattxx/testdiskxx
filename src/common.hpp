@@ -616,6 +616,9 @@ struct partition_struct
 {
     void set_name(const char *src, const unsigned int max_size);
     void set_name_chomp(const char *src, const unsigned int max_size);
+    void reset(const arch_fnct_t *arch);
+    partition_struct() = default;
+    partition_struct(const arch_fnct_t *arch);
 
     char fsname[128];
     char partname[128];

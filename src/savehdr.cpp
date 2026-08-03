@@ -156,7 +156,7 @@ backup_disk_t *partition_load(const disk_t &disk_car, const int verbose)
         }
         else if (new_backup != NULL)
         {
-            partition_t *new_partition = partition_new(disk_car.arch);
+            partition_t *new_partition = new partition_t(disk_car.arch);
             char status;
             unsigned int part_type;
             unsigned long part_size;

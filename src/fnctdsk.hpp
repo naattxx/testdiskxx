@@ -148,56 +148,6 @@
     void part_free_list_only(list_part_t *list_part);
 
     /*@
-      @ requires \valid(partition);
-      @ requires valid_partition(partition);
-      @ requires \valid_read(arch);
-      @ requires \separated(partition, arch);
-      @ ensures partition->part_size == 0;
-      @ ensures partition->sborg_offset == 0;
-      @ ensures partition->sb_offset == 0;
-      @ ensures partition->sb_size == 0;
-      @ ensures partition->blocksize == 0;
-      @ ensures partition->part_type_i386 == P_NO_OS;
-      @ ensures partition->part_type_sun == PSUN_UNK;
-      @ ensures partition->part_type_mac == PMAC_UNK;
-      @ ensures partition->part_type_xbox == PXBOX_UNK;
-      @ ensures partition->upart_type == UP_UNK;
-      @ ensures partition->status == STATUS_DELETED;
-      @ ensures partition->order == NO_ORDER;
-      @ ensures partition->errcode == BAD_NOERR;
-      @ ensures partition->fsname[0] == '\0';
-      @ ensures partition->partname[0] == '\0';
-      @ ensures partition->info[0] == '\0';
-      @ ensures partition->arch == arch;
-      @*/
-    // assigns partition->part_size;
-    // assigns partition->sborg_offset;
-    // assigns partition->sb_offset;
-    // assigns partition->sb_size;
-    // assigns partition->blocksize;
-    // assigns partition->part_type_i386;
-    // assigns partition->part_type_sun;
-    // assigns partition->part_type_mac;
-    // assigns partition->part_type_xbox;
-    // assigns partition->part_type_gpt;
-    // assigns partition->part_uuid;
-    // assigns partition->upart_type;
-    // assigns partition->status;
-    // assigns partition->order;
-    // assigns partition->errcode;
-    // assigns partition->fsname[0];
-    // assigns partition->partname[0];
-    // assigns partition->info[0];
-    void partition_reset(partition_t *partition, const arch_fnct_t *arch);
-
-    /*@
-      @ requires \valid_read(arch);
-      @*/
-    // ensures valid_partition(\result);
-    // ensures \result->arch == arch;
-    partition_t *partition_new(const arch_fnct_t *arch);
-
-    /*@
       @ requires \valid_read(disk_car);
       @ requires valid_disk(disk_car);
       @ requires \valid_read(list_part);

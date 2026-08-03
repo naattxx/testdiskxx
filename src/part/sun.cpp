@@ -72,13 +72,13 @@ static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunla
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
     {
         int i;
-        partition_t *new_partition = partition_new(NULL);
+        partition_t *new_partition = new partition_t(NULL);
         for (i = 0; i < 16; i++)
         {
             if (sunlabel->partitions[i].num_sectors > 0 && sunlabel->partitions[i].id > 0)
             //	    && sunlabel->partitions[i].id != WHOLE_DISK)
             {
-                partition_reset(new_partition, &arch_sun);
+                new_partition->reset(&arch_sun);
                 new_partition->order = i;
                 new_partition->part_type_sun = sunlabel->partitions[i].id;
                 new_partition->part_offset =
