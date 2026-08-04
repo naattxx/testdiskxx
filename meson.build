@@ -1,4 +1,4 @@
-project('testdisk++', 'cpp', version: '0.1.0-WIP')
+project('testdisk++', 'cpp', version: '0.1.0-WIP', meson_version: '>=1.3.0')
 
 compiler = meson.get_compiler('cpp')
 
