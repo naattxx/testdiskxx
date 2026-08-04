@@ -14,7 +14,9 @@
 #include <args.hxx>
 #include <cpptui.hpp>
 #include <ctime>
+#include <fmt/format.h>
 #include <iostream>
+#include <optional>
 #include <string>
 
 using namespace cpptui;
@@ -152,12 +154,18 @@ int main(int argc, char **argv)
     args::Flag safe(parser, "safe", "", {"safe"});
     args::Flag save_header(parser, "save-header", "", {"saveheader"});
     args::ValueFlag<std::string> cmd(parser, "cmd", "Specify the command to execute", {"cmd"});
+    args::Positional<std::string> path(parser, "path", "file or disk path");
     try
     {
-        parser.LongPrefix("/");
-        parser.ShortPrefix("/");
-        parser.LongSeparator(" ");
         parser.ParseCLI(argc, argv);
+
+        if (cmd || path) {
+            std::optional<disk_t> disk_car=file_test_availability(path.Get().c_str(), verbose, testdisk_mode);
+            if (!disk_car.has_value())
+                throw args::ParseError(fmt::format("Unable to open file or device \"{}\": {}", path.Get(), strerror(errno)));
+
+            insert_new_disk(list_disk,disk_car.value());
+        }
     }
     catch (const args::Completion &e)
     {
