@@ -23,14 +23,14 @@
 #define _SAVEHDR_H
 #include "common.hpp"
 
-#include "list.h"
-typedef struct
+#include <list>
+struct backup_disk_t
 {
-    td_list_head list;
     time_t my_time;
     char description[128];
     list_part_t *list_part;
-} backup_disk_t;
+};
+typedef std::list<backup_disk_t *> backup_disk_list_t;
 
 /*@
   @ requires valid_disk(disk_car);
@@ -50,6 +50,6 @@ int partition_save(disk_t &disk_car, const list_part_t *list_part, const int ver
   @ requires valid_disk(disk_car);
   @ decreases 0;
   @*/
-backup_disk_t *partition_load(const disk_t &disk_car, const int verbose);
+backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose);
 
 #endif

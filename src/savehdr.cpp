@@ -96,17 +96,14 @@ int save_header(disk_t &disk_car, const partition_t *partition, const int verbos
     return res;
 }
 
-backup_disk_t *partition_load(const disk_t &disk_car, const int verbose)
+backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
 {
     FILE *f_backup;
     char *buffer;
     char *pos = NULL;
     int taille;
     backup_disk_t *new_backup = NULL;
-    backup_disk_t *list_backup;
-    list_backup = (backup_disk_t *)new unsigned char[sizeof(*list_backup)];
-    list_backup->list.prev = &list_backup->list;
-    list_backup->list.next = &list_backup->list;
+    backup_disk_list_t list_backup;
 
     if (verbose > 1)
     {
@@ -143,8 +140,8 @@ backup_disk_t *partition_load(const disk_t &disk_car, const int verbose)
                 // log_verbose("new disk: %s\n",pos);
             }
             if (new_backup != NULL)
-                td_list_add_tail(&new_backup->list, &list_backup->list);
-            new_backup = (backup_disk_t *)new unsigned char[sizeof(*new_backup)];
+                list_backup.push_front(new_backup);
+            new_backup = new backup_disk_t;
             new_backup->description[0] = '\0';
             new_backup->list_part = NULL;
             new_backup->my_time = strtol(pos, &pos, 10);
@@ -210,7 +207,7 @@ backup_disk_t *partition_load(const disk_t &disk_car, const int verbose)
         }
     }
     if (new_backup != NULL)
-        td_list_add_tail(&new_backup->list, &list_backup->list);
+        list_backup.push_front(new_backup);
     fclose(f_backup);
     delete[] (buffer);
     return list_backup;
