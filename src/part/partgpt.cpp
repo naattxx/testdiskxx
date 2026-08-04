@@ -34,11 +34,11 @@
 #include <stdlib.h>
 #include <string.h>
 // #include "types.h"
-#if defined(HAVE_UUID_H)
+#if __has_include(<uuid.h>)
 #include <uuid.h>
-#elif defined(HAVE_UUID_UUID_H)
+#elif __has_include(<uuid/uuid.h>)
 #include <uuid/uuid.h>
-#elif defined(HAVE_SYS_UUID_H)
+#elif __has_include(<sys/uuid.h>)
 #include <sys/uuid.h>
 #endif
 #include "src/common.hpp"

@@ -33,21 +33,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#if __has_include("sys/stat.h")
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
 #include <string.h>
 #include <time.h>
-#if __has_include("errno.h")
+#if __has_include(<errno.h>)
 #include <errno.h>
 #endif
-#if __has_include("sys/param.h")
+#if __has_include(<sys/param.h>)
 #include <sys/param.h>
 #endif
-#if __has_include("machine/endian.h")
+#if __has_include(<machine/endian.h>)
 #include <machine/endian.h>
 #endif
-#ifdef HAVE_ICONV_H
+#if __has_include(<iconv.h>)
 #include <iconv.h>
 #endif
 #include <ctype.h> /* isalpha */
@@ -57,7 +57,7 @@
 #if defined(HAVE_LIBNTFS)
 #include <ntfs/attrib.h>
 #include <ntfs/volume.h>
-#ifdef HAVE_NTFS_VERSION_H
+#if __has_include(<ntfs/version.h>)
 #include <ntfs/version.h>
 #endif
 #endif

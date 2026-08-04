@@ -33,7 +33,7 @@
 // #include <malloc.h>
 #include <string.h>
 #ifdef __MINGW32__
-#ifdef HAVE_IO_H
+#ifdef __has_include(<io.h>)
 #include <io.h>
 #endif
 #endif

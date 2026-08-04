@@ -24,9 +24,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h> /* free */
-#endif
 // #include "types.h"
 #include "fat.hpp"
 #include "fat_common.hpp"

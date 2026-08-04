@@ -23,7 +23,7 @@
 #include <config.h>
 #include <ctype.h>
 #include <stdio.h>
-#ifdef HAVE_ICONV_H
+#if __has_include(<iconv.h>)
 #include <iconv.h>
 #endif
 #include <stdlib.h>

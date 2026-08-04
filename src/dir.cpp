@@ -33,7 +33,7 @@
 #endif
 // #include "types.h"
 #include <errno.h>
-#ifdef HAVE_IO_H
+#if __has_include(<io.h>)
 #include <io.h>
 #endif
 #include "common.hpp"

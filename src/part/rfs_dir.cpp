@@ -24,14 +24,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_SYS_STAT_H
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
-#ifdef HAVE_FCNTL_H
+#if __has_include(<fcntl.h>)
 #include <fcntl.h>
 #endif
 #include <string.h>
-#ifdef HAVE_ERRNO_H
+#if __has_include(<errno.h>)
 #include <errno.h>
 #endif
 // #include "types.h"
@@ -45,10 +45,10 @@
 
 #ifdef HAVE_LIBREISERFS
 #include "dal/dal.h"
-#ifdef HAVE_DAL_FILE_DAL_H
+#if __has_include("dal/file_dal.h")
 #include "dal/file_dal.h"
 #endif
-#ifdef HAVE_DAL_FILE_H
+#if __has_include("dal/file.h")
 #include "dal/file.h"
 #endif
 #include "reiserfs/reiserfs.h"

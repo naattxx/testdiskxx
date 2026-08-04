@@ -21,10 +21,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_SYS_STAT_H
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
-#ifdef HAVE_SYS_PARAM_H
+#if __has_include(<sys/param.h>)
 #include <sys/param.h>
 #endif
 #include <string.h>

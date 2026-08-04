@@ -51,38 +51,40 @@
 #include <sys/mount.h> /* BLKFLSBUF */
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/sysmacros.h>
 #include <unistd.h> /* lseek, read, write, close */
+#endif
+#if __has_include(<sys/sysmacros.h>)
+#include <sys/sysmacros.h>
 #endif
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 // #include "types.h"
 #include "common.hpp"
-#ifdef HAVE_SYS_DISKLABEL_H
+#if __has_include(<sys/disklabel.h>)
 #include <sys/disklabel.h>
 #endif
-#ifdef HAVE_SYS_DISK_H
+#if __has_include(<sys/disk.h>)
 #include <sys/disk.h>
 #endif
-#ifdef HAVE_SYS_DKIO_H
+#if __has_include(<sys/dkio.h>)
 #include <sys/dkio.h>
 #endif
 /* linux/fs.h may not be needed because sys/mount.h is present */
 /* #ifdef HAVE_LINUX_FS_H */
 /* #include <linux/fs.h> */
 /* #endif */
-#ifdef HAVE_WINDEF_H
+#if __has_include(<windef.h>)
 #include <windef.h>
 #endif
-#ifdef HAVE_WINBASE_H
+#if __has_include(<winbase.h>)
 #include <stdarg.h>
 #include <winbase.h>
 #endif
-#ifdef HAVE_WINIOCTL_H
+#if __has_include(<winioctl.h>)
 #include <winioctl.h>
 #endif
-#ifdef HAVE_FNCTL_H
+#if __has_include(<fnctl.h>)
 #include <fnctl.h>
 #endif
 #include <ctype.h>  /* isspace */
@@ -210,7 +212,7 @@ static list_disk_t *insert_new_disk_nodup(list_disk_t *list_disk, disk_t &disk_c
 }
 #endif
 
-#if defined(HAVE_GLOB_H)
+#if __has_include(<glob.h>)
 /*@
   @ requires valid_read_string(device_pattern);
   @ requires \valid(list_disk);
@@ -420,7 +422,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
                 insert_new_disk(list_disk, *disk);
             }
         }
-#if defined(HAVE_GLOB_H)
+#if __has_include(<glob.h>)
         /* Disk SCSI */
         hd_glob_parse("/dev/sd[a-z]", list_disk, verbose, testdisk_mode);
         hd_glob_parse("/dev/sd[a-z][a-z]", list_disk, verbose, testdisk_mode);
@@ -454,7 +456,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
     }
 #elif defined(__HAIKU__)
     {
-#ifdef HAVE_GLOB_H
+#if __has_include(<glob.h>)
         list_disk = hd_glob_parse("/dev/disk/*/*/*/raw", list_disk, verbose, testdisk_mode);
         list_disk = hd_glob_parse("/dev/disk/*/*/*/*/raw", list_disk, verbose, testdisk_mode);
 #endif
@@ -1004,13 +1006,13 @@ static int read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file)
  * issue this query.
  */
 #if defined(__linux__)
-#ifdef HAVE_SCSI_SCSI_H
+#if __has_include(<scsi/scsi.h>)
 #include <scsi/scsi.h>
 #endif
-#ifdef HAVE_SCSI_SCSI_IOCTL_H
+#if __has_include(<scsi/scsi_ioctl.h>)
 #include <scsi/scsi_ioctl.h>
 #endif
-#ifdef HAVE_SCSI_SG_H
+#if __has_include(<scsi/sg.h>)
 #include <scsi/sg.h>
 #endif
 #endif
@@ -1102,7 +1104,7 @@ static int scsi_query_product_info(const int sg_fd, char **vendor, char **produc
   @*/
 static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbose)
 {
-#if defined(__linux__) && defined(HAVE_SYS_SYSMACROS_H)
+#if defined(__linux__) && __has_include(<sys/sysmacros.h>)
     struct stat stat_rec;
     if (fstat(hd_h, &stat_rec) >= 0 && S_ISBLK(stat_rec.st_mode))
     {
@@ -1770,7 +1772,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
         /* Handle 'testdisk disk.E*' or 'photorec "disk.E*"' case */
         if (strncmp(device, "/dev/", 5) != 0)
         {
-#if defined(HAVE_LIBEWF_H) && defined(HAVE_LIBEWF) && defined(HAVE_GLOB_H)
+#if __has_include(<libewf.h>) && defined(HAVE_LIBEWF) && __has_include(<glob.h>)
             return fewf_init(device, testdisk_mode);
 #endif
         }
@@ -1880,7 +1882,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
             delete[] (buffer);
             delete (data);
             close(hd_h);
-#if defined(HAVE_LIBEWF_H) && defined(HAVE_LIBEWF)
+#if __has_include(<libewf.h>) && defined(HAVE_LIBEWF)
             log_info("EWF format detected.");
             return fewf_init(device, testdisk_mode);
 #else

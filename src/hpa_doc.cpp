@@ -40,7 +40,7 @@
 #include <string.h>
 // #include "types.h"
 #include "common.hpp"
-#ifdef HAVE_FNCTL_H
+#if __has_include(<fnctl.h>)
 #include <fnctl.h>
 #endif
 #include "hpa_dco.hpp"

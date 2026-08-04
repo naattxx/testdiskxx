@@ -32,10 +32,10 @@
 #endif
 
 #if defined(HAVE_LIBEXT2FS)
-#ifdef HAVE_EXT2FS_EXT2_FS_H
+#if __has_include("ext2fs/ext2_fs.h")
 #include "ext2fs/ext2_fs.h"
 #endif
-#ifdef HAVE_EXT2FS_EXT2FS_H
+#if __has_include("ext2fs/ext2fs.h")
 #include "ext2fs/ext2fs.h"
 #endif
 #endif

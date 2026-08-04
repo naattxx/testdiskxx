@@ -35,7 +35,7 @@
 // #include <features.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef HAVE_ERRNO_H
+#if __has_include(<errno.h>)
 #include <errno.h>
 #endif
 // #include "types.h"
@@ -70,7 +70,7 @@
 #include <ntfs/layout.h>
 #include <ntfs/mft.h>
 #include <ntfs/ntfstime.h>
-#ifdef HAVE_NTFS_VERSION_H
+#if __has_include(<ntfs/version.h>)
 #include <ntfs/version.h>
 #endif
 #endif
@@ -87,7 +87,7 @@
 #endif
 
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
-#ifdef HAVE_ICONV_H
+#if __has_include(<iconv.h>)
 #include <iconv.h>
 #endif
 #include "askloc.h"

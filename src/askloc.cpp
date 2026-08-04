@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #endif
-#ifdef HAVE_SYS_CYGWIN_H
+#if __has_include(<sys/cygwin.h>)
 #include <sys/cygwin.h>
 #endif
 #include <stdarg.h>
