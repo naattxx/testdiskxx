@@ -215,7 +215,7 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
     ni = ntfs_inode_open(ls->vol, mref);
     if (!ni)
         goto freefn;
-    new_file = (file_info_t *)new unsigned char[sizeof(*new_file)];
+    new_file = new file_info_t;
     new_file->status = 0;
     new_file->st_ino = MREF(mref);
     new_file->st_uid = 0;
@@ -247,7 +247,7 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
             new_file->name = strdup(filename);
             new_file->st_mode = LINUX_S_IFDIR | LINUX_S_IRUGO | LINUX_S_IXUGO;
             new_file->st_size = 0;
-            td_list_add_tail(&new_file->list, &ls->dir_list->list);
+            ls->dir_list.push_front(new_file);
             first = 0;
         }
         ctx = ntfs_attr_get_search_ctx(ni, ni->mrec);
@@ -261,7 +261,7 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
             if (first == 0)
             {
                 const file_info_t *old_file = new_file;
-                new_file = (file_info_t *)new unsigned char[sizeof(*new_file)];
+                new_file = new file_info_t;
                 memcpy(new_file, old_file, sizeof(*new_file));
             }
             new_file->st_mode = LINUX_S_IFREG | LINUX_S_IRUGO;
@@ -287,7 +287,7 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
             {
                 new_file->name = strdup(filename);
             }
-            td_list_add_tail(&new_file->list, &ls->dir_list->list);
+            ls->dir_list.push_front(new_file);
             first = 0;
         }
         ntfs_attr_put_search_ctx(ctx);
@@ -306,7 +306,7 @@ freefn:
 }
 
 static int ntfs_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                    const unsigned long int cluster, file_info_t *dir_list)
+                    const unsigned long int cluster, dir_list_t &dir_list)
 {
     ntfs_inode *inode;
     s64 pos;
@@ -336,7 +336,7 @@ static int ntfs_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *
         log_critical("ntfs_readdir BUG not MFT_RECORD_IS_DIRECTORY\n");
     /* Finished with the inode; release it. */
     ntfs_inode_close(inode);
-    td_list_sort(&dir_list->list, filesort);
+    dir_list.sort(filesort);
     return 0;
 }
 
@@ -538,8 +538,7 @@ dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *par
         log_warning("NTFS Volume is dirty.\n");
     }
     {
-        struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)new unsigned char[sizeof(*ls)];
-        ls->dir_list = NULL;
+        struct ntfs_dir_struct *ls = new struct ntfs_dir_struct;
         ls->vol = vol;
         ls->my_data = my_data;
         ls->dir_data = dir_data;

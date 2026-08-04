@@ -976,24 +976,21 @@ static int fat_has_EFI_entry(disk_t &disk, const partition_t *partition, const i
 {
 #ifndef DISABLED_FOR_FRAMAC
     dir_data_t dir_data;
-    struct td_list_head *file_walker = NULL;
-    file_info_t dir_list;
+    dir_list_t dir_list;
     const dir_partition_t res = dir_partition_fat_init(disk, partition, &dir_data, verbose);
     if (res != DIR_PART_OK)
         return 0;
-    TD_INIT_LIST_HEAD(&dir_list.list);
-    dir_data.get_dir(disk, partition, &dir_data, 0, &dir_list);
-    td_list_for_each(file_walker, &dir_list.list)
+    dir_data.get_dir(disk, partition, &dir_data, 0, dir_list);
+    for (const file_info_t *current_file : dir_list)
     {
-        const file_info_t *current_file = td_list_entry_const(file_walker, const file_info_t, list);
         if (strcmp(current_file->name, "EFI") == 0)
         {
-            delete_list_file(&dir_list);
+            delete_list_file(dir_list);
             dir_data.close(&dir_data);
             return 1;
         }
     }
-    delete_list_file(&dir_list);
+    delete_list_file(dir_list);
     dir_data.close(&dir_data);
 #endif
     return 0;

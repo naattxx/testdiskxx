@@ -17,6 +17,7 @@
     with this program; if not, write the Free Software Foundation, Inc., 51
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#include "src/dir_common.hpp"
 #include <config.h>
 
 #include <stdio.h>
@@ -181,14 +182,13 @@ int repair_MFT(disk_t &disk_car, partition_t *partition, const int verbose, cons
         }
         if (res1 == DIR_PART_OK)
         {
-            file_info_t dir_list;
-            TD_INIT_LIST_HEAD(&dir_list.list);
-            dir_data.get_dir(disk_car, partition, &dir_data, dir_data.current_inode, &dir_list);
-            if (!td_list_empty(&dir_list.list))
+            dir_list_t dir_list;
+            dir_data.get_dir(disk_car, partition, &dir_data, dir_data.current_inode, dir_list);
+            if (!dir_list.empty())
             {
                 log_info("NTFS listing using MFT:\n");
-                dir_aff_log(&dir_data, &dir_list);
-                if (delete_list_file(&dir_list) > 2)
+                dir_aff_log(&dir_data, dir_list);
+                if (delete_list_file(dir_list) > 2)
                     res1++;
             }
             dir_data.close(&dir_data);
@@ -199,14 +199,13 @@ int repair_MFT(disk_t &disk_car, partition_t *partition, const int verbose, cons
         res2 = dir_partition_ntfs_init(disk_car, partition, &dir_data, verbose, 0);
         if (res2 == DIR_PART_OK)
         {
-            file_info_t dir_list;
-            TD_INIT_LIST_HEAD(&dir_list.list);
-            dir_data.get_dir(disk_car, partition, &dir_data, dir_data.current_inode, &dir_list);
-            if (!td_list_empty(&dir_list.list))
+            dir_list_t dir_list;
+            dir_data.get_dir(disk_car, partition, &dir_data, dir_data.current_inode, dir_list);
+            if (!dir_list.empty())
             {
                 log_info("NTFS listing using MFT mirror:\n");
-                dir_aff_log(&dir_data, &dir_list);
-                if (delete_list_file(&dir_list) > 2)
+                dir_aff_log(&dir_data, dir_list);
+                if (delete_list_file(dir_list) > 2)
                     res2++;
             }
             dir_data.close(&dir_data);

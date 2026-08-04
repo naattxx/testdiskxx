@@ -19,7 +19,9 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include "src/dir_common.hpp"
 #include <config.h>
+#include <utility>
 
 #if defined(DISABLED_FOR_FRAMAC)
 #undef HAVE_LIBEXT2FS
@@ -222,7 +224,7 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
 {
     struct ext2_inode inode;
     ext2_ino_t ino;
-    const struct ext2_dir_struct *ls = (const struct ext2_dir_struct *)privateinfo;
+    struct ext2_dir_struct *ls = (struct ext2_dir_struct *)privateinfo;
     file_info_t *new_file;
     errcode_t retval;
     if (entry == DIRENT_DELETED_FILE && (ls->dir_data->param & FLAG_LIST_DELETED) == 0)
@@ -237,7 +239,7 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     }
     if (inode.i_mode == 0)
         return 0;
-    new_file = (file_info_t *)new unsigned char[sizeof(*new_file)];
+    new_file = new file_info_t;
     {
         const unsigned int thislen =
             ((dirent->name_len & 0xFF) < EXT2_NAME_LEN) ? (dirent->name_len & 0xFF) : EXT2_NAME_LEN;
@@ -260,12 +262,12 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     new_file->td_atime = inode.i_atime;
     new_file->td_mtime = inode.i_mtime;
     new_file->td_ctime = inode.i_ctime;
-    td_list_add_tail(&new_file->list, &ls->dir_list->list);
+    ls->dir_list.push_front(new_file);
     return 0;
 }
 
 static int ext2_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                    const unsigned long int cluster, file_info_t *dir_list)
+                    const unsigned long int cluster, dir_list_t &dir_list)
 {
     errcode_t retval;
     struct ext2_dir_struct *ls = (struct ext2_dir_struct *)dir_data->private_dir_data;
@@ -359,10 +361,9 @@ dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t *par
                                         const int verbose)
 {
 #if defined(HAVE_LIBEXT2FS)
-    struct ext2_dir_struct *ls = (struct ext2_dir_struct *)new unsigned char[sizeof(*ls)];
+    struct ext2_dir_struct *ls = new struct ext2_dir_struct;
     io_channel ioch;
     my_data_t *my_data;
-    ls->dir_list = NULL;
     /*  ls->flags = DIRENT_FLAG_INCLUDE_EMPTY; */
     ls->flags = DIRENT_FLAG_INCLUDE_REMOVED;
     ls->dir_data = dir_data;

@@ -29,7 +29,7 @@
   @ requires \valid(dir_list);
   @ requires \separated(dir_list, buffer+(..));
   @*/
-int dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsigned int param, file_info_t *dir_list);
+int dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsigned int param, dir_list_t &dir_list);
 
 /*@
   @ requires \valid(disk_car);

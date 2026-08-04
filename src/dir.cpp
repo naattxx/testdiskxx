@@ -176,18 +176,16 @@ int set_datestr(char *datestr, size_t n, const time_t timev)
     return 0;
 }
 
-int dir_aff_log(const dir_data_t *dir_data, const file_info_t *dir_list)
+int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
 {
     int test_date = 0;
-    struct td_list_head *file_walker = NULL;
     if (dir_data != NULL)
     {
         log_info("Directory %s\n", dir_data->current_directory);
     }
 #ifndef DISABLED_FOR_FRAMAC
-    td_list_for_each(file_walker, &dir_list->list)
-    {
-        const file_info_t *current_file = td_list_entry_const(file_walker, const file_info_t, list);
+    for (const file_info_t *current_file : dir_list)
+        {
         char datestr[80];
         char str[11];
         test_date = set_datestr((char *)&datestr, sizeof(datestr), current_file->td_mtime);
@@ -213,20 +211,18 @@ int dir_aff_log(const dir_data_t *dir_data, const file_info_t *dir_list)
 }
 
 void log_list_file(const disk_t &disk, const partition_t *partition, const dir_data_t *dir_data,
-                   const file_info_t *list)
+                   const dir_list_t &list)
 {
 #ifndef DISABLED_FOR_FRAMAC
-    struct td_list_head *tmp;
     log_partition(disk, partition);
     if (dir_data != NULL)
     {
         log_info("Directory %s\n", dir_data->current_directory);
     }
-    td_list_for_each(tmp, &list->list)
+    for (const file_info_t *current_file : list)
     {
         char datestr[80];
         char str[11];
-        const file_info_t *current_file = td_list_entry_const(tmp, const file_info_t, list);
         if ((current_file->status & FILE_STATUS_DELETED) != 0)
             log_info("X");
         else
@@ -241,18 +237,13 @@ void log_list_file(const disk_t &disk, const partition_t *partition, const dir_d
 #endif
 }
 
-unsigned int delete_list_file(file_info_t *file_info)
+unsigned int delete_list_file(dir_list_t &dir_list)
 {
     unsigned int nbr = 0;
-    struct td_list_head *file_walker = NULL;
-    struct td_list_head *file_walker_next = NULL;
 #ifndef DISABLED_FOR_FRAMAC
-    td_list_for_each_safe(file_walker, file_walker_next, &file_info->list)
+    for (file_info_t *tmp : dir_list)
     {
-        file_info_t *tmp;
-        tmp = td_list_entry(file_walker, file_info_t, list);
         delete (tmp->name);
-        td_list_del(file_walker);
         delete (tmp);
         nbr++;
     }
@@ -296,23 +287,20 @@ static int is_inode_valid(const file_info_t *current_file, const unsigned int di
 static int dir_whole_partition_log_aux(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
                                        const unsigned long int inode)
 {
-    struct td_list_head *file_walker = NULL;
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
     const unsigned int current_directory_namelength = strlen(dir_data->current_directory);
-    file_info_t dir_list;
-    TD_INIT_LIST_HEAD(&dir_list.list);
+    dir_list_t dir_list;
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
     if (dir_data->verbose > 0)
         log_info("\ndir_partition inode=%lu\n", inode);
-    dir_data->get_dir(disk, partition, dir_data, inode, &dir_list);
-    dir_aff_log(dir_data, &dir_list);
+    dir_data->get_dir(disk, partition, dir_data, inode, dir_list);
+    dir_aff_log(dir_data, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
-    td_list_for_each(file_walker, &dir_list.list)
+    for (file_info_t *current_file : dir_list)
     {
-        const file_info_t *current_file = td_list_entry_const(file_walker, const file_info_t, list);
         if (LINUX_S_ISDIR(current_file->st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0 &&
             strlen(dir_data->current_directory) + 1 + strlen(current_file->name) <
                 sizeof(dir_data->current_directory) - 1)
@@ -325,7 +313,7 @@ static int dir_whole_partition_log_aux(disk_t &disk, const partition_t *partitio
             dir_data->current_directory[current_directory_namelength] = '\0';
         }
     }
-    delete_list_file(&dir_list);
+    delete_list_file(dir_list);
     dir_nbr--;
     return 0;
 }
@@ -351,20 +339,17 @@ int dir_whole_partition_log(disk_t &disk, const partition_t *partition, dir_data
 static int dir_whole_partition_copy_aux(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
                                         const unsigned long int inode, unsigned int *copy_ok, unsigned int *copy_bad)
 {
-    struct td_list_head *file_walker = NULL;
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
     const unsigned int current_directory_namelength = strlen(dir_data->current_directory);
-    file_info_t dir_list;
-    TD_INIT_LIST_HEAD(&dir_list.list);
+    dir_list_t dir_list;
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
-    dir_data->get_dir(disk, partition, dir_data, inode, &dir_list);
+    dir_data->get_dir(disk, partition, dir_data, inode, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
-    td_list_for_each(file_walker, &dir_list.list)
+    for (file_info_t *current_file : dir_list)
     {
-        const file_info_t *current_file = td_list_entry_const(file_walker, const file_info_t, list);
         if (strlen(dir_data->current_directory) + 1 + strlen(current_file->name) <
             sizeof(dir_data->current_directory) - 1)
         {
@@ -389,7 +374,7 @@ static int dir_whole_partition_copy_aux(disk_t &disk, const partition_t *partiti
         /* restore current_directory name */
         dir_data->current_directory[current_directory_namelength] = '\0';
     }
-    delete_list_file(&dir_list);
+    delete_list_file(dir_list);
     dir_nbr--;
     return 0;
 }
@@ -414,29 +399,24 @@ void dir_whole_partition_copy(disk_t &disk, const partition_t *partition, dir_da
     log_info("Copy done! %u ok, %u failed", copy_ok, copy_bad);
 }
 
-int filesort(const struct td_list_head *a, const struct td_list_head *b)
+bool filesort(const struct file_info_t *file_a, const struct file_info_t *file_b)
 {
-    const file_info_t *file_a = td_list_entry_const(a, const file_info_t, list);
-    /*@ assert \valid_read(file_a); */
-    const file_info_t *file_b = td_list_entry_const(b, const file_info_t, list);
-    /*@ assert \valid_read(file_b); */
-    /* Directories must be listed before files */
-    const int res = ((file_b->st_mode & LINUX_S_IFDIR) - (file_a->st_mode & LINUX_S_IFDIR));
-    if (res)
-        return res;
-    /*@ assert valid_read_string(file_a->name); */
     /* . and .. must listed before the other directories */
+    /* Directories must be listed before files */
+    /*@ assert valid_read_string(file_a->name); */
     if ((file_a->st_mode & LINUX_S_IFDIR) && strcmp(file_a->name, ".") == 0)
-        return -1;
+        return true;
     if ((file_a->st_mode & LINUX_S_IFDIR) && strcmp(file_a->name, "..") == 0 && strcmp(file_b->name, ".") != 0)
-        return -1;
+        return true;
     /*@ assert valid_read_string(file_b->name); */
     if ((file_b->st_mode & LINUX_S_IFDIR) && strcmp(file_b->name, ".") == 0)
-        return 1;
+        return false;
     if ((file_b->st_mode & LINUX_S_IFDIR) && strcmp(file_b->name, "..") == 0 && strcmp(file_a->name, ".") != 0)
-        return 1;
+        return false;
+    if ((file_a->st_mode & LINUX_S_IFDIR) && !(file_b->st_mode & LINUX_S_IFDIR))
+        return true;
     /* Files and directories are sorted by name */
-    return strcmp(file_a->name, file_b->name);
+    return strcmp(file_a->name, file_b->name) <= 0;
 }
 
 /*

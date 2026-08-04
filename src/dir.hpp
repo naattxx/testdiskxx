@@ -34,7 +34,7 @@ int set_datestr(char *datestr, size_t n, const time_t timev);
   @ requires \valid_read(dir_list);
   @ requires \separated(dir_data, dir_list);
   @*/
-int dir_aff_log(const dir_data_t *dir_data, const file_info_t *dir_list);
+int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -45,12 +45,12 @@ int dir_aff_log(const dir_data_t *dir_data, const file_info_t *dir_list);
   @ requires \valid_read(list);
   @*/
 void log_list_file(const disk_t &disk_car, const partition_t *partition, const dir_data_t *dir_data,
-                   const file_info_t *list);
+                   const dir_list_t &list);
 
 /*@
   @ requires \valid(list);
   @*/
-unsigned int delete_list_file(file_info_t *list);
+unsigned int delete_list_file(dir_list_t &list);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -111,6 +111,6 @@ void mkdir_local_for_file(const char *filename);
   @ requires \valid_read(a);
   @ requires \valid_read(b);
   @*/
-int filesort(const struct td_list_head *a, const struct td_list_head *b);
+bool filesort(const struct file_info_t *a, const struct file_info_t *b);
 
 #endif

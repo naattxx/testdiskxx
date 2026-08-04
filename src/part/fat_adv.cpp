@@ -20,9 +20,11 @@
 
  */
 
+#include "src/dir_common.hpp"
 #include <config.h>
 
 #include <ctype.h>
+#include <iterator>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -310,11 +312,12 @@ static int ask_root_directory(const disk_t &disk_car, const partition_t *partiti
 }
 #endif
 
-static int is_root_cluster_candidat(const file_info_t *dir_list)
+static int is_root_cluster_candidat(const dir_list_t &dir_list)
 {
-    const file_info_t *file1 = td_list_first_entry(&dir_list->list, const file_info_t, list);
-    const file_info_t *file2 = td_list_next_entry(file1, list);
-    return (!td_list_empty(&dir_list->list) && (&file2->list == &dir_list->list || file1->st_ino != file2->st_ino));
+    const file_info_t *file1 = dir_list.front();
+    const file_info_t *file2 = *std::next(dir_list.begin());
+    //return (!dir_list.empty() && (&file2->list == &dir_list->list || file1->st_ino != file2->st_ino));
+    return (!dir_list.empty() && (file2 == file1 || file1->st_ino != file2->st_ino));
 }
 
 static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t *partition,
@@ -337,8 +340,7 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
 #endif
         unsigned char *buffer;
         int ind_stop = 0;
-        file_info_t rootdir_list;
-        TD_INIT_LIST_HEAD(&rootdir_list.list);
+        dir_list_t rootdir_list;
         buffer = new unsigned char[cluster_size];
 #ifdef HAVE_NCURSES
         wmove(stdscr, 22, 0);
@@ -378,24 +380,23 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                     if (fat_get_cluster_from_entry(entry2) == 0 &&
                         buffer[0x40] != 0) /* First-level directory with files */
                     {
-                        file_info_t dir_list;
-                        TD_INIT_LIST_HEAD(&dir_list.list);
+                        dir_list_t dir_list;
                         log_info("First-level directory found at cluster %lu\n", root_cluster);
-                        dir_fat_aux(buffer, cluster_size, 0, &dir_list);
+                        dir_fat_aux(buffer, cluster_size, 0, dir_list);
                         if (verbose > 0)
                         {
-                            dir_aff_log(NULL, &dir_list);
+                            dir_aff_log(NULL, dir_list);
                         }
                         {
                             const file_info_t *first_entry =
-                                td_list_first_entry(&dir_list.list, const file_info_t, list);
+                                dir_list.front();
                             file_info_t *new_file = new file_info_t;
                             memcpy(new_file, first_entry, sizeof(*new_file));
                             new_file->name = new char[32];
                             snprintf(new_file->name, 32, "DIR%05u", ++dir_nbr);
-                            td_list_add_tail(&new_file->list, &rootdir_list.list);
+                            rootdir_list.push_front(new_file);
                         }
-                        delete_list_file(&dir_list);
+                        delete_list_file(dir_list);
                     }
                 }
                 else if (memcmp(entry1, entry2, 0x20) != 0)
@@ -520,16 +521,15 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                             }
                         }
                         {
-                            file_info_t dir_list;
-                            TD_INIT_LIST_HEAD(&dir_list.list);
-                            dir_fat_aux(buffer, cluster_size, 0, &dir_list);
-                            if (is_root_cluster_candidat(&dir_list))
+                            dir_list_t dir_list;
+                            dir_fat_aux(buffer, cluster_size, 0, dir_list);
+                            if (is_root_cluster_candidat(dir_list))
                             {
                                 int test_date = 1;
                                 if (verbose > 0)
                                 {
                                     // log_verbose("Potential root_cluster %lu\n",root_cluster);
-                                    test_date = dir_aff_log(NULL, &dir_list);
+                                    test_date = dir_aff_log(NULL, dir_list);
                                 }
 #ifdef HAVE_NCURSES
                                 if (interactive > 0 && test_date > 0)
@@ -553,7 +553,7 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                                 }
 #endif
                             }
-                            delete_list_file(&dir_list);
+                            delete_list_file(dir_list);
                         }
                     }
                 }
@@ -564,13 +564,13 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
         else
             log_error("Search root cluster failed\n");
         root_cluster = 0;
-        if (td_list_empty(&rootdir_list.list))
+        if (rootdir_list.empty())
         {
             log_warning("No first-level directory found.\n");
         }
         else
         {
-            dir_aff_log(NULL, &rootdir_list);
+            dir_aff_log(NULL, rootdir_list);
 #ifdef HAVE_NCURSES
             if (expert > 0)
             {
@@ -584,7 +584,7 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                 }
             }
 #endif
-            delete_list_file(&rootdir_list);
+            delete_list_file(rootdir_list);
         }
         delete[] (buffer);
     }
@@ -852,9 +852,7 @@ static int analyse_dir_entries2(disk_t &disk_car, const partition_t *partition, 
 {
     unsigned char *buffer_dir;
     unsigned int root_dir_size;
-    file_info_t dir_list;
-    struct td_list_head *file_walker = NULL;
-    TD_INIT_LIST_HEAD(&dir_list.list);
+    dir_list_t dir_list;
     if (root_size_max == 0)
     {
         root_size_max = 4096;
@@ -870,14 +868,13 @@ static int analyse_dir_entries2(disk_t &disk_car, const partition_t *partition, 
         return 0;
     }
     dir_fat_aux(buffer_dir, root_dir_size, (partition->upart_type == UP_FAT12 ? FLAG_LIST_MASK12 : FLAG_LIST_MASK16),
-                &dir_list);
+                dir_list);
     if (verbose > 1)
     {
-        dir_aff_log(NULL, &dir_list);
+        dir_aff_log(NULL, dir_list);
     }
-    td_list_for_each(file_walker, &dir_list.list)
+    for (const file_info_t *current_file : dir_list)
     {
-        const file_info_t *current_file = td_list_entry_const(file_walker, const file_info_t, list);
         if (LINUX_S_ISDIR(current_file->st_mode) && (current_file->status & FILE_STATUS_DELETED) == 0)
         {
             const unsigned long int new_inode = current_file->st_ino;
@@ -917,7 +914,7 @@ static int analyse_dir_entries2(disk_t &disk_car, const partition_t *partition, 
                         if (cluster_prev == 0 && cluster == new_inode)
                         {
                             delete[] (buffer_dir);
-                            delete_list_file(&dir_list);
+                            delete_list_file(dir_list);
                             return ((dir_entries + (disk_car.sector_size / 32) - 1) / (disk_car.sector_size / 32)) *
                                    (disk_car.sector_size / 32);
                         }
@@ -928,7 +925,7 @@ static int analyse_dir_entries2(disk_t &disk_car, const partition_t *partition, 
     }
     log_warning("No directory found\n");
     delete (buffer_dir);
-    delete_list_file(&dir_list);
+    delete_list_file(dir_list);
     return root_size_max;
 }
 

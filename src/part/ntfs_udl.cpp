@@ -24,6 +24,7 @@
  * distribution in the file COPYING); if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#include "src/dir_common.hpp"
 #include <config.h>
 
 #if defined(DISABLED_FOR_FRAMAC)
@@ -1158,7 +1159,7 @@ static file_info_t *ufile_to_file_data(const struct ufile *file, const struct da
  * The list can be filtered by name, size and date, using command line options.
  *
  */
-static void scan_disk(ntfs_volume *vol, file_info_t *dir_list)
+static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
 {
     uint64_t nr_mft_records;
     const unsigned int BUFSIZE = 8192;
@@ -1226,7 +1227,7 @@ static void scan_disk(ntfs_volume *vol, file_info_t *dir_list)
                         new_file = ufile_to_file_data(file, d);
                         if (new_file != NULL)
                         {
-                            td_list_add_tail(&new_file->list, &dir_list->list);
+                            dir_list.push_front(new_file);
                             results++;
                         }
                     }
@@ -1239,7 +1240,7 @@ done:
     log_info("\nFiles with potentially recoverable content: %u\n", results);
     delete[] (buffer);
     ntfs_attr_close(attr);
-    td_list_sort(&dir_list->list, filesort);
+    dir_list.sort(filesort);
 }
 
 #ifdef HAVE_NCURSES
@@ -1644,19 +1645,17 @@ static void ntfs_undelete_menu_ncurses(const disk_t &disk_car, const partition_t
 }
 #endif
 
-static void ntfs_undelete_cli(dir_data_t *dir_data, const file_info_t *dir_list)
+static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
 {
     unsigned int file_ok = 0;
     unsigned int file_bad = 0;
-    const struct td_list_head *file_walker = NULL;
     const struct ntfs_dir_struct *ls = (const struct ntfs_dir_struct *)dir_data->private_dir_data;
     char *dst_path;
     dst_path = get_default_location();
     dir_data->local_dir = dst_path;
     opts.dest = dst_path;
-    td_list_for_each(file_walker, &dir_list->list)
+    for (const file_info_t *file_info : dir_list)
     {
-        const file_info_t *file_info = td_list_entry_const(file_walker, const file_info_t, list);
         if (undelete_file(ls->vol, file_info->st_ino) < 0)
             file_bad++;
         else
@@ -1669,7 +1668,7 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const file_info_t *dir_list)
 }
 
 static void ntfs_undelete_menu(const disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                               file_info_t *dir_list, char **current_cmd)
+                               dir_list_t &dir_list, char **current_cmd)
 {
     log_list_file(disk_car, partition, dir_data, dir_list);
     if (*current_cmd != NULL)
@@ -1739,11 +1738,10 @@ int ntfs_undelete_part(disk_t &disk_car, const partition_t *partition, const int
         break;
     default: {
         struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)dir_data.private_dir_data;
-        file_info_t dir_list;
-        TD_INIT_LIST_HEAD(&dir_list.list);
-        scan_disk(ls->vol, &dir_list);
-        ntfs_undelete_menu(disk_car, partition, &dir_data, &dir_list, current_cmd);
-        delete_list_file(&dir_list);
+        dir_list_t dir_list;
+        scan_disk(ls->vol, dir_list);
+        ntfs_undelete_menu(disk_car, partition, &dir_data, dir_list, current_cmd);
+        delete_list_file(dir_list);
         dir_data.close(&dir_data);
     }
     break;

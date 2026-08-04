@@ -25,7 +25,6 @@
 #include <sys/stat.h>
 #endif
 #include "common.hpp"
-#include "list.h"
 #define DIR_NAME_LEN 1024
 #define FLAG_LIST_DELETED 1
 #define FLAG_LIST_MASK12 2
@@ -57,9 +56,8 @@ typedef enum
 } dir_partition_t;
 typedef struct dir_data dir_data_t;
 
-typedef struct
+struct file_info_t
 {
-    struct td_list_head list;
     char *name;
     uint32_t st_ino;
     uint32_t st_mode;
@@ -70,7 +68,8 @@ typedef struct
     time_t td_mtime; /* time of last modification */
     time_t td_ctime; /* time of last status change */
     unsigned int status;
-} file_info_t;
+};
+typedef std::list<file_info_t *> dir_list_t;
 
 struct dir_data
 {
@@ -81,7 +80,7 @@ struct dir_data
     unsigned int param;
     unsigned int capabilities;
     int (*get_dir)(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                   const unsigned long int first_inode, file_info_t *list);
+                   const unsigned long int first_inode, dir_list_t &list);
     copy_file_t (*copy_file)(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                              const file_info_t *file);
     void (*close)(dir_data_t *dir_data);

@@ -199,11 +199,10 @@ dir_partition_t dir_partition(disk_t &disk, const partition_t *partition, const 
                 log_partition(disk, partition);
             }
             {
-                file_info_t dir_list;
-                TD_INIT_LIST_HEAD(&dir_list.list);
-                dir_data.get_dir(disk, partition, &dir_data, dir_data.current_inode, &dir_list);
-                dir_aff_log(&dir_data, &dir_list);
-                delete_list_file(&dir_list);
+                dir_list_t dir_list;
+                dir_data.get_dir(disk, partition, &dir_data, dir_data.current_inode, dir_list);
+                dir_aff_log(&dir_data, dir_list);
+                delete_list_file(dir_list);
             }
 #endif
         }

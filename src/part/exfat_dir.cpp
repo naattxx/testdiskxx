@@ -20,6 +20,7 @@
 
  */
 
+#include "src/dir_common.hpp"
 #include <config.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -205,7 +206,7 @@ static unsigned int exfat_get_next_cluster(disk_t &disk_car, const partition_t *
 }
 
 static int dir_exfat_aux(const unsigned char *buffer, const unsigned int size, const dir_data_t *dir_data,
-                         file_info_t *dir_list)
+                         dir_list_t &dir_list)
 {
 #ifdef HAVE_ICONV
     const struct exfat_dir_struct *ls = (const struct exfat_dir_struct *)dir_data->private_dir_data;
@@ -246,7 +247,7 @@ static int dir_exfat_aux(const unsigned char *buffer, const unsigned int size, c
             new_file->td_mtime = date_dos2unix(le16(entry->mtime), le16(entry->mdate));
             new_file->status = ((entry->type & 0x80) == 0x80 ? 0 : FILE_STATUS_DELETED);
             current_file = new_file;
-            td_list_add_tail(&new_file->list, &dir_list->list);
+            dir_list.push_front(new_file);
         }
         else if (sec_count > 0 && current_file != NULL)
         {
@@ -303,7 +304,7 @@ static int is_EOC(const unsigned int cluster)
 
 #define NBR_CLUSTER_MAX 30
 static int exfat_dir(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
-                     const unsigned long int first_cluster, file_info_t *dir_list)
+                     const unsigned long int first_cluster, dir_list_t &dir_list)
 {
     const struct exfat_dir_struct *ls = (const struct exfat_dir_struct *)dir_data->private_dir_data;
     const struct exfat_super_block *exfat_header = ls->boot_sector;

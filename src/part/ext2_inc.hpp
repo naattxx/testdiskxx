@@ -32,7 +32,7 @@
 #include <ext2fs/ext2fs.h>
 #include "src/dir_common.hpp"
 struct ext2_dir_struct {
-	file_info_t *dir_list;
+	dir_list_t dir_list;
 	ext2_filsys current_fs;
 	int flags;
 	dir_data_t *dir_data;

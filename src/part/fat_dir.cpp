@@ -20,6 +20,7 @@
 
  */
 
+#include "src/dir_common.hpp"
 #include <config.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -61,7 +62,7 @@ struct fat_dir_struct
   @ decreases 0;
   @*/
 static int fat1x_rootdir(disk_t &disk_car, const partition_t *partition, const dir_data_t *dir_data,
-                         const struct fat_boot_sector *fat_header, file_info_t *dir_list);
+                         const struct fat_boot_sector *fat_header, dir_list_t &dir_list);
 
 /*@
   @ requires \valid(disk_car);
@@ -98,7 +99,7 @@ static inline void fat16_towchar(wchar_t *dst, const uint8_t *src, size_t len)
     }
 }
 
-int dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsigned int param, file_info_t *dir_list)
+int dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsigned int param, dir_list_t &dir_list)
 {
     const struct msdos_dir_entry *de = (const struct msdos_dir_entry *)buffer;
     wchar_t unicode[1000];
@@ -270,8 +271,8 @@ RecEnd:
         {
             status = FILE_STATUS_DELETED;
             if ((de->attr & ATTR_DIR) == ATTR_DIR &&
-                ((td_list_empty(&dir_list->list) && unicode[1] == '\0') ||
-                 (!td_list_empty(&dir_list->list) && dir_list->list.next == dir_list->list.prev && unicode[1] == '.' &&
+                ((dir_list.empty() && unicode[1] == '\0') ||
+                 (dir_list.size() == 1 && unicode[1] == '.' &&
                   unicode[2] == '\0')))
                 unicode[0] = '.'; /* "." and ".." are the first two entries */
             else
@@ -318,7 +319,7 @@ RecEnd:
                 date_dos2unix(le16(de->time), le16(de->date));
             new_file->status = status;
             /* log_debug("fat: new file %s de=%p size=%u\n",new_file->name,de,le32(de->size)); */
-            td_list_add_tail(&new_file->list, &dir_list->list);
+            dir_list.push_front(new_file);
         }
     }
     de++;
@@ -362,7 +363,7 @@ static int is_EOC(const unsigned int cluster, const upart_type_t upart_type)
   @ decreases 0;
   @*/
 static int fat_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                   const unsigned long int first_cluster, file_info_t *dir_list)
+                   const unsigned long int first_cluster, dir_list_t &dir_list)
 {
     const struct fat_dir_struct *ls = (const struct fat_dir_struct *)dir_data->private_dir_data;
     const struct fat_boot_sector *fat_header = ls->boot_sector;
@@ -485,7 +486,7 @@ static int fat_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *d
 }
 
 static int fat1x_rootdir(disk_t &disk_car, const partition_t *partition, const dir_data_t *dir_data,
-                         const struct fat_boot_sector *fat_header, file_info_t *dir_list)
+                         const struct fat_boot_sector *fat_header, dir_list_t &dir_list)
 {
     const unsigned int root_size =
         (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) / disk_car.sector_size * disk_car.sector_size;
