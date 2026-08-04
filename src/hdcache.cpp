@@ -271,8 +271,6 @@ static void dup_geometry(CHSgeometry_t *CHS_dst, const CHSgeometry_t *CHS_source
   @*/
 static const char *cache_description(disk_t &disk_car)
 {
-    std::cout << "log_disk_list: " << disk_car.device << "\n";
-
     const char *tmp;
     struct cache_struct *data = (struct cache_struct *)disk_car.data;
     dup_geometry(&data->disk_car->geom, &disk_car.geom);

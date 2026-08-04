@@ -540,11 +540,6 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
         }
     }
 #endif
-
-    for(disk_t& i : list_disk) {
-        if (!i.model.empty())
-            std::cout << ": " << i.model << "\n";
-    }
     // /*@ assert valid_list_disk(list_disk); */
     // return list_disk;
 }
