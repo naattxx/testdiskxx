@@ -285,7 +285,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
         log_error("ERROR: Couldn't open $MFT/$DATA\n");
         return;
     }
-    rec = (MFT_RECORD *)calloc(1, vol->mft_record_size);
+    rec = new MFT_RECORD;
     if (!rec)
     {
         log_error("ERROR: Couldn't allocate memory in get_parent_name()\n");
@@ -345,7 +345,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
             }
         } while (ok);
     }
-    delete (rec);
+    delete rec;
     ntfs_attr_close(mft_data);
     return;
 }
@@ -904,7 +904,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
     if (file->mft->flags & MFT_RECORD_IN_USE)
     {
         log_error("Record is in use by the mft\n");
-        delete (buffer);
+        delete[] (buffer);
         free_file(file);
         return -2;
     }
@@ -1116,11 +1116,11 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
         }
         set_date(pathname, file->date, file->date);
     }
-    delete (buffer);
+    delete[] (buffer);
     free_file(file);
     return 0;
 free:
-    delete (buffer);
+    delete[] (buffer);
     free_file(file);
     return -2;
 }
@@ -1237,7 +1237,7 @@ static void scan_disk(ntfs_volume *vol, file_info_t *dir_list)
     }
 done:
     log_info("\nFiles with potentially recoverable content: %u\n", results);
-    delete (buffer);
+    delete[] (buffer);
     ntfs_attr_close(attr);
     td_list_sort(&dir_list->list, filesort);
 }

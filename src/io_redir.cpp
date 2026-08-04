@@ -146,7 +146,7 @@ int io_redir_del_redir(disk_t &disk_car, uint64_t org_offset)
 #ifdef DEBUG_IO_REDIR
                 log_trace("io_redir_del_redir: uninstall functions\n");
 #endif
-                memcpy(&disk_car, data->disk_car, sizeof(disk_car));
+                disk_car = *data->disk_car;
                 delete (data->disk_car);
                 delete (data);
             }
