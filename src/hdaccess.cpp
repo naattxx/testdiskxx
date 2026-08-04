@@ -1042,7 +1042,7 @@ typedef struct _scsi_inquiry_data
   @ requires \valid(product);
   @ requires \valid(fw_rev);
   @*/
-static int scsi_query_product_info(const int sg_fd, char **vendor, char **product, char **fw_rev)
+static int scsi_query_product_info(const int sg_fd, char **vendor, char **product, std::string& fw_rev)
 {
     unsigned char inqCmdBlk[INQ_CMD_LEN] = {INQUIRY, 0, 0, 0, INQ_REPLY_LEN, 0};
     scsi_inquiry_data_t inqBuff;
@@ -1090,7 +1090,7 @@ static int scsi_query_product_info(const int sg_fd, char **vendor, char **produc
     /* Information is truncated */
     memcpy(buf, inqBuff.product_revision, 4);
     buf[4] = '\0';
-    *fw_rev = strip_dup(buf);
+    fw_rev = buf;
 
     return 0;
 }
@@ -1110,7 +1110,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
     {
         FILE *f;
         char name_buf[4096];
-        if (dev.model == NULL)
+        if (dev.model.empty())
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/model", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
@@ -1124,7 +1124,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
                 fclose(f);
             }
         }
-        if (dev.serial_no == NULL)
+        if (dev.serial_no.empty())
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/serial", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
@@ -1138,7 +1138,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
                 fclose(f);
             }
         }
-        if (dev.fw_rev == NULL)
+        if (dev.fw_rev.empty())
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/rev", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
@@ -1185,17 +1185,17 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
     }
 #endif
 #if defined(__linux__) && defined(SCSI_IOCTL_GET_IDLUN) && defined(SCSI_IOCTL_SEND_COMMAND)
-    if (dev.model != NULL)
+    if (!dev.model.empty())
         return;
     {
         /* Uses direct queries via the deprecated ioctl SCSI_IOCTL_SEND_COMMAND */
         char *vendor = NULL;
         char *product = NULL;
-        scsi_query_product_info(hd_h, &vendor, &product, &dev.fw_rev);
+        scsi_query_product_info(hd_h, &vendor, &product, dev.fw_rev);
         if (vendor && product)
         {
-            dev.model = new char[8 + 16 + 2];
-            sprintf(dev.model, "%.8s %.16s", vendor, product);
+            dev.model.reserve(8 + 16 + 2);
+            sprintf(dev.model.data(), "%.8s %.16s", vendor, product);
         }
         delete (vendor);
         delete (product);

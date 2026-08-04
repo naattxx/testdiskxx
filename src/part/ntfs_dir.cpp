@@ -488,7 +488,7 @@ dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *par
     {
         my_data = (my_data_t *)new unsigned char[sizeof(*my_data)];
         my_data->partition = partition;
-        my_data->disk_car = disk_car;
+        my_data->disk_car = &disk_car;
         my_data->offset = 0;
         dev->d_private = my_data;
         /* Call ntfs_device_mount() to do the actual mount. */
