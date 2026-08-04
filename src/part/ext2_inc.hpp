@@ -1,8 +1,8 @@
 /*
 
-    File: ntfs_dir.h
+    File: ext2_inc.h
 
-    Copyright (C) 2005-2006  Christophe GRENIER <grenier@cgsecurity.org>
+    Copyright (C) 2007 Christophe GRENIER <grenier@cgsecurity.org>
 
     This software is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,24 +19,24 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#ifndef _NTFS_DIR_H
-#define _NTFS_DIR_H
+#ifndef _EXT2_INC_H
+#define _EXT2_INC_H
+
+#include <config.h>
+
+#if defined(DISABLED_FOR_FRAMAC)
+#undef HAVE_LIBEXT2FS
+#endif
+
+#if defined(HAVE_LIBEXT2FS)
+#include <ext2fs/ext2fs.h>
 #include "src/dir_common.hpp"
-
-extern "C" {
-/*@
-  @ requires \valid(disk_car);
-  @ requires valid_disk(disk_car);
-  @ requires \valid_read(partition);
-  @ requires \separated(disk_car, partition);
-  @*/
-dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                                        const int verbose, const int expert);
-}
-
-/*@
-  @ assigns \nothing;
-  @*/
-const char *td_ntfs_version(void);
+struct ext2_dir_struct {
+	file_info_t *dir_list;
+	ext2_filsys current_fs;
+	int flags;
+	dir_data_t *dir_data;
+};
+#endif
 
 #endif

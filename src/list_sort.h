@@ -1,8 +1,7 @@
 /*
+    File: list_sort.h
 
-    File: ntfs_dir.h
-
-    Copyright (C) 2005-2006  Christophe GRENIER <grenier@cgsecurity.org>
+    Copyright (C) 2011 Christophe GRENIER <grenier@cgsecurity.org>
 
     This software is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,26 +16,20 @@
     You should have received a copy of the GNU General Public License along
     with this program; if not, write the Free Software Foundation, Inc., 51
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
- */
-#ifndef _NTFS_DIR_H
-#define _NTFS_DIR_H
-#include "src/dir_common.hpp"
-
+*/
+#ifndef _LIST_SORT_H
+#define _LIST_SORT_H
+#ifdef __cplusplus
 extern "C" {
-/*@
-  @ requires \valid(disk_car);
-  @ requires valid_disk(disk_car);
-  @ requires \valid_read(partition);
-  @ requires \separated(disk_car, partition);
-  @*/
-dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                                        const int verbose, const int expert);
-}
+#endif
 
 /*@
-  @ assigns \nothing;
+  @ requires \valid(head);
   @*/
-const char *td_ntfs_version(void);
+void td_list_sort(struct td_list_head *head,
+    int (*cmp)(const struct td_list_head *a, const struct td_list_head *b));
 
+#ifdef __cplusplus
+} /* closing brace for extern "C" */
+#endif
 #endif

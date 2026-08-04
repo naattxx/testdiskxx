@@ -38,6 +38,7 @@
 #if __has_include("ext2fs/ext2fs.h")
 #include "ext2fs/ext2fs.h"
 #endif
+#undef clamp
 #endif
 
 // #include "types.h"
@@ -45,7 +46,7 @@
 #include "src/common.hpp"
 #include "src/dir.hpp"
 #include "src/intrf.hpp"
-// #include "ext2_inc.hpp"
+#include "ext2_inc.hpp"
 #include "src/log.hpp"
 #include "src/setdate.hpp"
 

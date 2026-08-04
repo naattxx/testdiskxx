@@ -62,18 +62,29 @@
 #endif
 #endif
 #if defined(HAVE_LIBNTFS3G)
+extern "C"
+{
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYS_STAT_H
+#define HAVE_TIME_H
+#define HAVE_STDDEF_H
 #include <ntfs-3g/attrib.h>
+#include <ntfs-3g/ntfstime.h>
 #include <ntfs-3g/volume.h>
+}
 #endif
 
+#undef min
+#undef max
+
+#include "ntfs_dir.hpp"
+#include "ntfs_inc.hpp"
+#include "ntfs_utl.hpp"
 #include "src/common.hpp"
+#include "src/dir.hpp"
 #include "src/intrf.hpp"
 #include "src/list.h"
-// #include "src/list_sort.hpp"
-#include "ntfs_dir.hpp"
-#include "src/dir.hpp"
-// #include "ntfs_utl.hpp"
-// #include "ntfs_inc.hpp"
+#include "src/list_sort.h"
 #include "src/log.hpp"
 #include "src/setdate.hpp"
 
@@ -95,9 +106,11 @@
 typedef int (*ntfs_filldir_t)(void *dirent, const ntfschar *name, const int name_len, const int name_type,
                               const s64 pos, const MFT_REF mref, const unsigned dt_type);
 
-extern struct ntfs_device_operations ntfs_device_testdisk_io_ops;
-
-extern int ntfs_readdir(ntfs_inode *dir_ni, s64 *pos, void *dirent, ntfs_filldir_t filldir);
+extern "C"
+{
+    extern struct ntfs_device_operations ntfs_device_testdisk_io_ops;
+    extern int ntfs_readdir(ntfs_inode *dir_ni, s64 *pos, void *dirent, ntfs_filldir_t filldir);
+}
 static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const int name_len, const int name_type,
                               const s64 pos, const MFT_REF mref, const unsigned dt_type);
 static int ntfs_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
@@ -144,7 +157,7 @@ static int ntfs_ucstoutf8(iconv_t cd, char *ins, const int ins_len, char **outs,
     outb_left = outs_len - 1; // reserve 1 byte for NUL
 
     *outp = '\0';
-    if (iconv(cd, (ICONV_CONST char **)&inp, &inb_left, &outp, &outb_left) == (size_t)(-1))
+    if (iconv(cd, &inp, &inb_left, &outp, &outb_left) == (size_t)(-1))
     {
         // Regardless of the value of errno
         log_error("ntfs_ucstoutf8: iconv failed\n");
@@ -471,6 +484,7 @@ static void dir_partition_ntfs_close(dir_data_t *dir_data)
 }
 #endif
 
+extern "C"{
 dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
                                         const int verbose, const int expert)
 {
@@ -482,6 +496,7 @@ dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *par
     ntfs_log_set_levels(NTFS_LOG_LEVEL_VERBOSE);
     ntfs_log_set_handler(ntfs_log_handler_stderr);
 #endif
+
 
     dev = ntfs_device_alloc("/", 0, &ntfs_device_testdisk_io_ops, NULL);
     if (dev)
@@ -551,6 +566,7 @@ dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *par
 #else
     return DIR_PART_ENOSYS;
 #endif
+}
 }
 
 const char *td_ntfs_version(void)

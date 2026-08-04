@@ -53,8 +53,8 @@
 #define REG_NOERROR 0
 #endif
 
-// #include "src/list.h"
-// #include "list_sort.h"
+#include "src/list.h"
+#include "src/list_sort.h"
 #include "ntfs_udl.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
@@ -76,6 +76,7 @@
 #endif
 
 #ifdef HAVE_LIBNTFS3G
+extern "C" {
 #include <ntfs-3g/attrib.h>
 #include <ntfs-3g/bootsect.h>
 #include <ntfs-3g/debug.h>
@@ -84,18 +85,19 @@
 #include <ntfs-3g/layout.h>
 #include <ntfs-3g/mft.h>
 #include <ntfs-3g/ntfstime.h>
+}
 #endif
 
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
 #if __has_include(<iconv.h>)
 #include <iconv.h>
 #endif
-#include "askloc.h"
-#include "dir.h"
-#include "ntfs_dir.h"
-#include "ntfs_inc.h"
-#include "ntfs_utl.h"
-#include "setdate.h"
+#include "src/askloc.hpp"
+#include "src/dir.hpp"
+#include "ntfs_dir.hpp"
+#include "ntfs_inc.hpp"
+#include "ntfs_utl.hpp"
+#include "src/setdate.hpp"
 
 struct options
 {
@@ -947,7 +949,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
                 goto free;
             }
 
-            log_verbose("File has resident data.\n");
+            //log_verbose("File has resident data.\n");
             if (write_data(fd, (const char *)d->data, d->size_data) < d->size_data)
             {
                 log_error("Write failed\n");
@@ -969,13 +971,13 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
             rl = d->runlist;
             if (!rl)
             {
-                log_verbose("File has no runlist, hence no data.\n");
+                ;//log_verbose("File has no runlist, hence no data.\n");
                 continue;
             }
 
             if (rl[0].length <= 0)
             {
-                log_verbose("File has an empty runlist, hence no data.\n");
+                ;//log_verbose("File has an empty runlist, hence no data.\n");
                 continue;
             }
 
@@ -989,9 +991,9 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
             if (rl[0].lcn == LCN_RL_NOT_MAPPED)
             { /* extended mft record */
                 uint64_t k;
-                log_verbose("Missing segment at beginning, %lld "
-                            "clusters.\n",
-                            (long long)rl[0].length);
+                ;//log_verbose("Missing segment at beginning, %lld "
+                //            "clusters.\n",
+                //            (long long)rl[0].length);
                 memset(buffer, 0, bufsize);
                 for (k = 0; k < (uint64_t)rl[0].length * vol->cluster_size; k += bufsize)
                 {
@@ -1013,9 +1015,9 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
                 if (rl[i].lcn == LCN_RL_NOT_MAPPED)
                 {
                     uint64_t k;
-                    log_verbose("Missing segment at end, "
-                                "%lld clusters.\n",
-                                (long long)rl[i].length);
+                    // log_verbose("Missing segment at end, "
+                    //             "%lld clusters.\n",
+                    //             (long long)rl[i].length);
                     memset(buffer, 0, bufsize);
                     for (k = 0; k < (uint64_t)rl[i].length * vol->cluster_size; k += bufsize)
                     {
@@ -1033,7 +1035,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
                 if (rl[i].lcn == LCN_HOLE)
                 {
                     uint64_t k;
-                    log_verbose("File has a sparse section.\n");
+                    // log_verbose("File has a sparse section.\n");
                     memset(buffer, 0, bufsize);
                     for (k = 0; k < (uint64_t)rl[i].length * vol->cluster_size; k += bufsize)
                     {

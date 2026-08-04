@@ -1,8 +1,8 @@
 /*
 
-    File: ntfs_dir.h
+    File: ntfs_inc.h
 
-    Copyright (C) 2005-2006  Christophe GRENIER <grenier@cgsecurity.org>
+    Copyright (C) 2007 Christophe GRENIER <grenier@cgsecurity.org>
 
     This software is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,24 +19,24 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#ifndef _NTFS_DIR_H
-#define _NTFS_DIR_H
+#ifndef _NTFS_INC_H
+#define _NTFS_INC_H
+
+#include <config.h>
+
+#if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
 #include "src/dir_common.hpp"
 
-extern "C" {
-/*@
-  @ requires \valid(disk_car);
-  @ requires valid_disk(disk_car);
-  @ requires \valid_read(partition);
-  @ requires \separated(disk_car, partition);
-  @*/
-dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                                        const int verbose, const int expert);
-}
-
-/*@
-  @ assigns \nothing;
-  @*/
-const char *td_ntfs_version(void);
+struct ntfs_dir_struct {
+	file_info_t *dir_list;
+	ntfs_volume *vol;
+	my_data_t *my_data;
+	dir_data_t *dir_data;
+	unsigned long int inode;
+#ifdef HAVE_ICONV
+        iconv_t cd;
+#endif
+};
+#endif
 
 #endif

@@ -1,8 +1,8 @@
 /*
 
-    File: ntfs_dir.h
+    File: ntfs_utl.h
 
-    Copyright (C) 2005-2006  Christophe GRENIER <grenier@cgsecurity.org>
+    Copyright (C) 2007 Christophe GRENIER <grenier@cgsecurity.org>
 
     This software is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,24 +19,21 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#ifndef _NTFS_DIR_H
-#define _NTFS_DIR_H
-#include "src/dir_common.hpp"
+#ifndef _NTFS_UTL_H
+#define _NTFS_UTL_H
 
-extern "C" {
-/*@
-  @ requires \valid(disk_car);
-  @ requires valid_disk(disk_car);
-  @ requires \valid_read(partition);
-  @ requires \separated(disk_car, partition);
-  @*/
-dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
-                                        const int verbose, const int expert);
-}
+#include <config.h>
 
-/*@
-  @ assigns \nothing;
-  @*/
-const char *td_ntfs_version(void);
+#ifdef __FRAMAC__
+#undef HAVE_LIBNTFS
+#undef HAVE_LIBNTFS3G
+#endif
 
+#if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
+
+ATTR_RECORD * find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx);
+ATTR_RECORD * find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft);
+int utils_cluster_in_use(ntfs_volume *vol, long long lcn);
+
+#endif
 #endif

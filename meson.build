@@ -3,12 +3,108 @@ project('testdisk++', 'cpp', version: '0.1.0-WIP')
 compiler = meson.get_compiler('cpp')
 
 conf_data = configuration_data()
-conf_data.set('version', meson.project_version())
-conf_data.set('testdiskdate', 'July 2026')
-conf_data.set('target', host_machine.system())
-conf_data.set('compiler_id', compiler.get_id())
-conf_data.set('compiler_version', compiler.version())
-configure_file(input: 'config.h.in', output: 'config.h', configuration: conf_data)
+conf_data.set_quoted('VERSION', meson.project_version())
+conf_data.set_quoted('TESTDISKDATE', 'July 2026')
+conf_data.set_quoted('TARGET', host_machine.system())
+conf_data.set_quoted('COMPILER_ID', compiler.get_id() + ' ' + compiler.version())
+
+libewf = compiler.find_library('libewf', required: false)
+libntfs = compiler.find_library('libntfs', required: false)
+libntfs3g = compiler.find_library('libntfs-3g', required: false)
+libext2fs = compiler.find_library('libext2fs', required: false)
+reiserfs = compiler.find_library('reiserfs', required: false)
+libiconv = compiler.find_library('libiconv', required: false)
+conf_data.set('HAVE_LIBEWF', libewf.found())
+conf_data.set('HAVE_LIBNTFS', libntfs.found())
+conf_data.set('HAVE_LIBNTFS3G', libntfs3g.found())
+conf_data.set('HAVE_LIBEXT2FS', libext2fs.found())
+conf_data.set('HAVE_LIBREISERFS', reiserfs.found())
+conf_data.set('HAVE_ICONV', libiconv.found())
+
+conf_data.set(
+  'NTFS_MBSTOUCS_HAVE_TWO_ARGUMENTS',
+  compiler.compiles(
+    '''
+  #define HAVE_SYS_TYPES_H
+  #define HAVE_SYS_STAT_H
+  #define HAVE_TIME_H
+  #include <cstdarg>
+  extern "C" {
+  #if __has_include(<ntfs/volume.h>)
+  #include <ntfs/volume.h>
+  #include <ntfs/attrib.h>
+  #elif __has_include(<ntfs-3g/volume.h>)
+  #include <ntfs-3g/volume.h>
+  #include <ntfs-3g/attrib.h>
+  #endif
+  void test(){
+  ntfs_mbstoucs(NULL,NULL);
+  }
+  }
+  ''',
+    name: 'NTFS_MBSTOUCS_HAVE_TWO_ARGUMENTS',
+  ),
+)
+
+conf_data.set(
+  'NTFS_DEVICE_OPERATIONS_IOCTL_INT',
+  compiler.compiles(
+    '''
+  #define HAVE_SYS_TYPES_H
+  #define HAVE_SYS_STAT_H
+  #define HAVE_TIME_H
+  #include <cstdarg>
+  extern "C" {
+  #if __has_include(<ntfs/device.h>)
+  #include <ntfs/device.h>
+  #elif __has_include(<ntfs-3g/device.h>)
+  #include <ntfs-3g/types.h>
+  #include <ntfs-3g/device.h>
+  #endif
+  static int ntfs_device_testdisk_io_ioctl(struct ntfs_device *dev, int request, void *argp)
+  {
+    return -1;
+  }
+  struct ntfs_device_operations ntfs_device_testdisk_io_ops = {
+      .ioctl = &ntfs_device_testdisk_io_ioctl,
+  };
+  }
+  ''',
+    name: 'NTFS_DEVICE_OPERATIONS_IOCTL_INT',
+    werror: true,
+  ),
+)
+
+conf_data.set(
+  'NTFS_DEVICE_OPERATIONS_IOCTL_UL',
+  compiler.compiles(
+    '''
+  #define HAVE_SYS_TYPES_H
+  #define HAVE_SYS_STAT_H
+  #define HAVE_TIME_H
+  #include <cstdarg>
+  extern "C" {
+  #if __has_include(<ntfs/device.h>)
+  #include <ntfs/device.h>
+  #elif __has_include(<ntfs-3g/device.h>)
+  #include <ntfs-3g/types.h>
+  #include <ntfs-3g/device.h>
+  #endif
+  static int ntfs_device_testdisk_io_ioctl(struct ntfs_device *dev, unsigned long request, void *argp)
+  {
+    return -1;
+  }
+  struct ntfs_device_operations ntfs_device_testdisk_io_ops = {
+      .ioctl = &ntfs_device_testdisk_io_ioctl,
+  };
+  }
+  ''',
+    name: 'NTFS_DEVICE_OPERATIONS_IOCTL_UL',
+    werror: true,
+  ),
+)
+
+configure_file(output: 'config.h', configuration: conf_data)
 
 spdlog_dep = dependency(
   'spdlog',
@@ -38,6 +134,7 @@ sources = files(
   'src/intrf.cpp',
   'src/intrface.cpp',
   'src/io_redir.cpp',
+  'src/list_sort.cpp',
   'src/log.cpp',
   'src/log_part.cpp',
   'src/part/apfs.cpp',
@@ -76,7 +173,9 @@ sources = files(
   'src/part/ntfs_adv.cpp',
   'src/part/ntfs_dir.cpp',
   'src/part/ntfs_fix.cpp',
+  'src/part/ntfs_io.cpp',
   'src/part/ntfs_udl.cpp',
+  'src/part/ntfs_utl.cpp',
   'src/part/partgpt.cpp',
   'src/part/partgpto.cpp',
   'src/part/parthumax.cpp',
@@ -103,15 +202,17 @@ sources = files(
   'src/savehdr.cpp',
   'src/setdate.cpp',
   'src/testdisk.cpp',
+  'src/ui/tdisksel.cpp',
   'src/ui/tlog.cpp',
   'src/unicode.cpp',
-  'src/ui/tdisksel.cpp',
   'src/utils.cpp',
 )
+
+deps = [spdlog_dep, libntfs, libntfs3g, libext2fs, libewf, reiserfs, libiconv]
 
 executable(
   'testdisk',
   sources,
   include_directories: inc_dirs,
-  dependencies: [spdlog_dep],
+  dependencies: deps,
 )
