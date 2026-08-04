@@ -12,8 +12,9 @@
 #include "utils.hpp"
 #include "ui/tlog.hpp"
 #include <args.hxx>
+#include <chrono>
 #include <cpptui.hpp>
-#include <ctime>
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <iostream>
 #include <optional>
@@ -239,11 +240,7 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    {
-        std::time_t my_time;
-        my_time = time(NULL);
-        log_info("{}", ctime(&my_time));
-    }
+    log_info("{}", std::chrono::system_clock::now());
     {
         std::string cmd("Command line:");
         for (int i{0}; i < argc; i++)
