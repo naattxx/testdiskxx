@@ -23,10 +23,7 @@
 #define _PARTGPT_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
 
     struct gpt_hdr
@@ -77,7 +74,7 @@ extern "C"
       @*/
     // ensures  valid_list_part(\result);
     // ensures  valid_read_string(*current_cmd);
-    list_part_t *add_partition_gpt_cli(const disk_t &disk_car, list_part_t *list_part, char **current_cmd);
+    void add_partition_gpt_cli(const disk_t &disk_car, list_part_t &list_part, char **current_cmd);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -86,10 +83,7 @@ extern "C"
       @ requires valid_list_part(list_part);
       @ requires separation: \separated(disk_car, list_part);
       @*/
-    int write_part_gpt(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose);
+    int write_part_gpt(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
 
-#endif
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
 #endif
 #endif /* _PARTGPT_H */

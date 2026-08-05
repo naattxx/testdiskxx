@@ -118,7 +118,7 @@
       @ requires (list_part==\null && part==\null) || \separated(list_part, part, insert_error);
       @ ensures  valid_list_part(\result);
       @*/
-    list_part_t *insert_new_partition(list_part_t *list_part, partition_t *part, const int force_insert,
+    void insert_new_partition(list_part_t &list_part, partition_t *part, const int force_insert,
                                       int *insert_error);
 
     /*@
@@ -126,26 +126,20 @@
       @ requires valid_list_part(list_part);
       @ ensures  valid_list_part(\result);
       @*/
-    list_part_t *sort_partition_list(list_part_t *list_part);
+    void sort_partition_list(list_part_t &list_part);
 
     /*@
       @ requires \valid_read(list_part);
       @ requires valid_list_part(list_part);
       @ ensures  valid_list_part(\result);
       @*/
-    list_part_t *gen_sorted_partition_list(const list_part_t *list_part);
+    list_part_t gen_sorted_partition_list(const list_part_t &list_part);
 
     /*@
       @ requires \valid(list_part);
       @ requires valid_list_part(list_part);
       @*/
-    void part_free_list(list_part_t *list_part);
-
-    /*@
-      @ requires \valid(list_part);
-      @ requires valid_list_part(list_part);
-      @*/
-    void part_free_list_only(list_part_t *list_part);
+    void part_free_list(list_part_t &list_part);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -154,7 +148,7 @@
       @ requires valid_list_part(list_part);
       @*/
     // assigns \nothing;
-    unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t *list_part, const int verbose);
+    unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t &list_part, const int verbose);
 
     /*@
       @ requires valid_list_disk(list_disk);
@@ -183,7 +177,7 @@
       @ requires valid_list_part(list_part);
       @ assigns \nothing;
       @*/
-    int is_part_overlapping(const list_part_t *list_part);
+    int is_part_overlapping(const list_part_t &list_part);
 
     /*@
       @ requires \valid(dest);

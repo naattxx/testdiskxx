@@ -177,7 +177,7 @@ sources = files(
   'src/part/ntfs_udl.cpp',
   'src/part/ntfs_utl.cpp',
   'src/part/partgpt.cpp',
-  'src/part/partgpto.cpp',
+  'src/part/partgptw.cpp',
   'src/part/parthumax.cpp',
   'src/part/parti386.cpp',
   'src/part/partmac.cpp',

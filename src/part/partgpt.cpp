@@ -81,14 +81,14 @@ static int check_part_gpt(disk_t &disk, const int verbose, partition_t *partitio
   @ requires \valid(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t *read_part_gpt(disk_t &disk_car, const int verbose, const int saveheader);
+static list_part_t read_part_gpt(disk_t &disk_car, const int verbose, const int saveheader);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static list_part_t *init_part_order_gpt(const disk_t &disk_car, list_part_t *list_part);
+static void init_part_order_gpt(const disk_t &disk_car, list_part_t &list_part);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -101,7 +101,7 @@ static void set_next_status_gpt(const disk_t &disk_car, partition_t *partition);
 /*@
   @ requires list_part == \null || \valid_read(list_part);
   @*/
-static int test_structure_gpt(const list_part_t *list_part);
+static int test_structure_gpt(const list_part_t &list_part);
 
 /*@
   @ requires \valid(partition);
@@ -113,7 +113,7 @@ static int is_part_known_gpt(const partition_t *partition);
   @ requires \valid_read(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static void init_structure_gpt(const disk_t &disk_car, list_part_t *list_part, const int verbose);
+static void init_structure_gpt(const disk_t &disk_car, list_part_t &list_part, const int verbose);
 
 /*@
   @ requires \valid_read(partition);
@@ -200,11 +200,11 @@ arch_fnct_t arch_gpt = {.part_name = "EFI GPT",
   @ requires valid_disk(disk_car);
   @*/
 // ensures  valid_list_part(\result);
-static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const int saveheader, const uint64_t hdr_lba)
+static list_part_t read_part_gpt_aux(disk_t &disk_car, const int verbose, const int saveheader, const uint64_t hdr_lba)
 {
     struct gpt_hdr *gpt;
     struct gpt_ent *gpt_entries;
-    list_part_t *new_list_part = NULL;
+    list_part_t new_list_part;
     unsigned int i;
     uint32_t gpt_entries_size;
     uint64_t gpt_entries_offset;
@@ -214,13 +214,14 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
         disk_car.sector_size)
     {
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
     if (memcmp(gpt->hdr_sig, GPT_HDR_SIG, 8) != 0)
     {
         screen_buffer_add("Bad GPT partition, invalid signature.\n");
+        log_error("Bad GPT partition, invalid signature. {}", gpt->hdr_sig);
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
     if (verbose > 0)
     {
@@ -239,7 +240,7 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
     {
         screen_buffer_add("GPT: invalid header size.\n");
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
     { /* CRC check */
         uint32_t crc;
@@ -251,7 +252,7 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
         {
             screen_buffer_add("Bad GPT partition, invalid header checksum.\n");
             delete[] (gpt);
-            return NULL;
+            return new_list_part;
         }
         gpt->hdr_crc_self = le32(origcrc);
     }
@@ -259,13 +260,13 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
     {
         screen_buffer_add("Bad GPT partition, invalid LBA self location.\n");
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
     if (le64(gpt->hdr_lba_start) >= le64(gpt->hdr_lba_end))
     {
         screen_buffer_add("Bad GPT partition, invalid LBA start/end location.\n");
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
     if (le32(gpt->hdr_revision) != GPT_HDR_REVISION)
     {
@@ -279,14 +280,14 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
     {
         screen_buffer_add("GPT: invalid number (%u) of partition entries.\n", (unsigned int)le32(gpt->hdr_entries));
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
     /* le32(gpt->hdr_entsz)==128 */
     if (le32(gpt->hdr_entsz) % 8 != 0 || le32(gpt->hdr_entsz) < 128 || le32(gpt->hdr_entsz) > 4096)
     {
         screen_buffer_add("GPT: invalid partition entry size.\n");
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
 
     gpt_entries_size = le32(gpt->hdr_entries) * le32(gpt->hdr_entsz);
@@ -295,7 +296,7 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
         screen_buffer_add(
             "GPT: A minimum of 16,384 bytes of space must be reserved for the GUID Partition Entry array.\n");
         delete[] (gpt);
-        return NULL;
+        return new_list_part;
     }
     gpt_entries_offset = (uint64_t)le64(gpt->hdr_lba_table) * disk_car.sector_size;
     if (hdr_lba == 1)
@@ -306,7 +307,7 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
             screen_buffer_add("GPT: The primary GUID Partition Entry array must be located after the primary GUID "
                               "Partition Table Header and end before the FirstUsableLBA.\n");
             delete[] (gpt);
-            return NULL;
+            return new_list_part;
         }
     }
 
@@ -325,7 +326,7 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
             screen_buffer_add("Bad GPT partition entries, invalid checksum.\n");
             delete[] (gpt_entries);
             delete[] (gpt);
-            return NULL;
+            return new_list_part;
         }
     }
     for (i = 0; i < le32(gpt->hdr_entries); i++)
@@ -349,7 +350,7 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
             /* log_debug("%u ent_attr %08llx\n", new_partition->order, (long long unsigned)le64(gpt_entry->ent_attr));
              */
             aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-            new_list_part = insert_new_partition(new_list_part, new_partition, 0, &insert_error);
+            insert_new_partition(new_list_part, new_partition, 0, &insert_error);
             if (insert_error > 0)
                 delete (new_partition);
         }
@@ -362,11 +363,12 @@ static list_part_t *read_part_gpt_aux(disk_t &disk_car, const int verbose, const
     return new_list_part;
 }
 
-list_part_t *read_part_gpt(disk_t &disk, const int verbose, const int saveheader)
+list_part_t read_part_gpt(disk_t &disk, const int verbose, const int saveheader)
 {
-    list_part_t *list_part;
+    list_part_t list_part;
     screen_buffer_reset();
-    if ((list_part = read_part_gpt_aux(disk, verbose, saveheader, 1)) != NULL)
+    list_part = read_part_gpt_aux(disk, verbose, saveheader, 1);
+    if (!list_part.empty())
         return list_part;
     screen_buffer_add("Trying alternate GPT\n");
     list_part = read_part_gpt_aux(disk, verbose, saveheader, (disk.disk_size - 1) / disk.sector_size);
@@ -374,19 +376,17 @@ list_part_t *read_part_gpt(disk_t &disk, const int verbose, const int saveheader
     return list_part;
 }
 
-static list_part_t *init_part_order_gpt(const disk_t &disk_car, list_part_t *list_part)
+static void init_part_order_gpt(const disk_t &disk_car, list_part_t &list_part)
 {
-    list_part_t *element;
     unsigned int order = 1;
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
     {
-        if (element->part->part_size > 0 && guid_cmp(element->part->part_type_gpt, GPT_ENT_TYPE_UNUSED) != 0)
-            element->part->order = order++;
+        if (element->part_size > 0 && guid_cmp(element->part_type_gpt, GPT_ENT_TYPE_UNUSED) != 0)
+            element->order = order++;
     }
-    return list_part;
 }
 
-list_part_t *add_partition_gpt_cli(const disk_t &disk_car, list_part_t *list_part, char **current_cmd)
+void add_partition_gpt_cli(const disk_t &disk_car, list_part_t &list_part, char **current_cmd)
 {
     partition_t *new_partition;
     assert(current_cmd != NULL);
@@ -428,25 +428,20 @@ list_part_t *add_partition_gpt_cli(const disk_t &disk_car, list_part_t *list_par
         else if (new_partition->part_size > 0 && guid_cmp(new_partition->part_type_gpt, GPT_ENT_TYPE_UNUSED) != 0)
         {
             int insert_error = 0;
-            list_part_t *new_list_part = insert_new_partition(list_part, new_partition, 0, &insert_error);
-            /*@ assert valid_list_part(new_list_part); */
+            insert_new_partition(list_part, new_partition, 0, &insert_error);
             if (insert_error > 0)
             {
                 delete (new_partition);
-                /*@ assert valid_list_part(new_list_part); */
-                return new_list_part;
+                return;
             }
             new_partition->status = STATUS_PRIM;
             if (test_structure_gpt(list_part) != 0)
                 new_partition->status = STATUS_DELETED;
-            /*@ assert valid_list_part(new_list_part); */
-            return new_list_part;
         }
         else
         {
             delete (new_partition);
             /*@ assert valid_list_part(list_part); */
-            return list_part;
         }
     }
 }
@@ -459,13 +454,12 @@ static void set_next_status_gpt(const disk_t &disk_car, partition_t *partition)
         partition->status = STATUS_DELETED;
 }
 
-static int test_structure_gpt(const list_part_t *list_part)
+static int test_structure_gpt(const list_part_t &list_part)
 { /* Return 1 if bad*/
     int res;
-    list_part_t *new_list_part;
+    list_part_t new_list_part;
     new_list_part = gen_sorted_partition_list(list_part);
     res = is_part_overlapping(new_list_part);
-    part_free_list_only(new_list_part);
     return res;
 }
 
@@ -474,36 +468,34 @@ static int is_part_known_gpt(const partition_t *partition)
     return (guid_cmp(partition->part_type_gpt, GPT_ENT_TYPE_UNUSED) != 0);
 }
 
-static void init_structure_gpt(const disk_t &disk_car, list_part_t *list_part, const int verbose)
+static void init_structure_gpt(const disk_t &disk_car, list_part_t &list_part, const int verbose)
 {
-    list_part_t *element;
-    list_part_t *new_list_part = NULL;
+    list_part_t new_list_part;
     /* Create new list */
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
         element->to_be_removed = 0;
-    for (element = list_part; element != NULL; element = element->next)
+    for (auto element = list_part.begin(); element != list_part.end(); element = std::next(element))
     {
         int insert_error = 0;
-        list_part_t *element2;
-        for (element2 = element->next; element2 != NULL; element2 = element2->next)
+        for (auto element2 = std::next(element); element2 != list_part.end(); element2 = std::next(element2))
         {
-            if (element->part->part_offset + element->part->part_size - 1 >= element2->part->part_offset)
+            if ((*element)->part_offset + (*element)->part_size - 1 >= (*element2)->part_offset)
             {
-                element->to_be_removed = 1;
-                element2->to_be_removed = 1;
+                (*element)->to_be_removed = 1;
+                (*element2)->to_be_removed = 1;
             }
         }
-        if (element->to_be_removed == 0)
-            new_list_part = insert_new_partition(new_list_part, element->part, 0, &insert_error);
+        if ((*element)->to_be_removed == 0)
+            insert_new_partition(new_list_part, *element, 0, &insert_error);
     }
-    for (element = new_list_part; element != NULL; element = element->next)
-        element->part->status = STATUS_PRIM;
+    for (partition_t *element : new_list_part)
+        element->status = STATUS_PRIM;
     if (test_structure_gpt(new_list_part))
     {
-        for (element = new_list_part; element != NULL; element = element->next)
-            element->part->status = STATUS_DELETED;
+        for (partition_t *element : new_list_part)
+            element->status = STATUS_DELETED;
     }
-    part_free_list_only(new_list_part);
+    list_part = new_list_part;
 }
 
 static int check_part_gpt(disk_t &disk, const int verbose, partition_t *partition, const int saveheader)

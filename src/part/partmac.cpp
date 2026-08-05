@@ -55,13 +55,13 @@ static int check_part_mac(disk_t &disk_car, const int verbose, partition_t *part
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t *read_part_mac(disk_t &disk_car, const int verbose, const int saveheader);
+static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int saveheader);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static int write_part_mac(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose);
+static int write_part_mac(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
 
 /*@
   @ requires \valid(disk_car);
@@ -69,7 +69,7 @@ static int write_part_mac(disk_t &disk_car, const list_part_t *list_part, const 
   @ requires separation: \separated(disk_car, list_part);
   @ assigns \nothing;
   @*/
-static list_part_t *init_part_order_mac(const disk_t &disk_car, list_part_t *list_part);
+static void init_part_order_mac(const disk_t &disk_car, list_part_t &list_part);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -95,7 +95,7 @@ static int is_part_known_mac(const partition_t *partition);
   @ requires \valid_read(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static void init_structure_mac(const disk_t &disk_car, list_part_t *list_part, const int verbose);
+static void init_structure_mac(const disk_t &disk_car, list_part_t &list_part, const int verbose);
 
 /*@
   @ requires \valid_read(partition);
@@ -157,15 +157,15 @@ static unsigned int get_part_type_mac(const partition_t *partition)
     return partition->part_type_mac;
 }
 
-static list_part_t *read_part_mac(disk_t &disk_car, const int verbose, const int saveheader)
+static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int saveheader)
 {
     unsigned char buffer[DEFAULT_SECTOR_SIZE];
-    list_part_t *new_list_part = NULL;
+    list_part_t new_list_part;
     unsigned int i;
     unsigned int limit = 1;
     screen_buffer_reset();
     if (disk_car.pread(disk_car, &buffer, sizeof(buffer), 0) != sizeof(buffer))
-        return NULL;
+        return new_list_part;
     {
         mac_Block0 *maclabel = (mac_Block0 *)&buffer;
         if (be16(maclabel->sbSig) != BLOCK0_SIGNATURE)
@@ -237,7 +237,7 @@ static list_part_t *read_part_mac(disk_t &disk_car, const int verbose, const int
             new_partition->status = STATUS_PRIM;
             check_part_mac(disk_car, verbose, new_partition, saveheader);
             aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-            new_list_part = insert_new_partition(new_list_part, new_partition, 0, &insert_error);
+            insert_new_partition(new_list_part, new_partition, 0, &insert_error);
             if (insert_error > 0)
                 free(new_partition);
             if (i == 1)
@@ -249,7 +249,7 @@ static list_part_t *read_part_mac(disk_t &disk_car, const int verbose, const int
     return new_list_part;
 }
 
-static int write_part_mac(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose)
+static int write_part_mac(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
 {
     /* TODO: Implement it */
     if (ro == 0)
@@ -257,12 +257,12 @@ static int write_part_mac(disk_t &disk_car, const list_part_t *list_part, const 
     return 0;
 }
 
-static list_part_t *init_part_order_mac(const disk_t &disk_car, list_part_t *list_part)
+static void init_part_order_mac(const disk_t &disk_car, list_part_t &list_part)
 {
-    return list_part;
+    ;
 }
 
-list_part_t *add_partition_mac_cli(disk_t &disk_car, list_part_t *list_part, char **current_cmd)
+void add_partition_mac_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd)
 {
     partition_t *new_partition = new partition_t(&arch_mac);
     assert(current_cmd != NULL);
@@ -303,25 +303,24 @@ list_part_t *add_partition_mac_cli(disk_t &disk_car, list_part_t *list_part, cha
         else if (new_partition->part_size > 0 && new_partition->part_type_mac > 0)
         {
             int insert_error = 0;
-            list_part_t *new_list_part = insert_new_partition(list_part, new_partition, 0, &insert_error);
-            /*@ assert valid_list_part(new_list_part); */
+            insert_new_partition(list_part, new_partition, 0, &insert_error);
+            /*@ assert valid_list_part(list_part); */
             if (insert_error > 0)
             {
-                free(new_partition);
-                /*@ assert valid_list_part(new_list_part); */
-                return new_list_part;
+                delete new_partition;
+                /*@ assert valid_list_part(list_part); */
+                return;
             }
             new_partition->status = STATUS_PRIM;
             if (test_structure_mac(list_part) != 0)
                 new_partition->status = STATUS_DELETED;
-            /*@ assert valid_list_part(new_list_part); */
-            return new_list_part;
+            /*@ assert valid_list_part(list_part); */
+            return;
         }
         else
         {
             delete (new_partition);
             /*@ assert valid_list_part(list_part); */
-            return list_part;
         }
     }
 }
@@ -334,13 +333,12 @@ static void set_next_status_mac(const disk_t &disk_car, partition_t *partition)
         partition->status = STATUS_DELETED;
 }
 
-int test_structure_mac(const list_part_t *list_part)
+int test_structure_mac(const list_part_t &list_part)
 { /* Return 1 if bad*/
-    list_part_t *new_list_part;
+    list_part_t new_list_part;
     int res;
     new_list_part = gen_sorted_partition_list(list_part);
     res = is_part_overlapping(new_list_part);
-    part_free_list_only(new_list_part);
     return res;
 }
 
@@ -359,38 +357,34 @@ static int is_part_known_mac(const partition_t *partition)
     return (partition->part_type_mac != PMAC_UNK);
 }
 
-static void init_structure_mac(const disk_t &disk_car, list_part_t *list_part, const int verbose)
+static void init_structure_mac(const disk_t &disk_car, list_part_t &list_part, const int verbose)
 {
-    list_part_t *element;
-    list_part_t *new_list_part = NULL;
+    list_part_t new_list_part;
     /* Create new list */
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
         element->to_be_removed = 0;
-    for (element = list_part; element != NULL; element = element->next)
+    for (auto element = list_part.begin(); element != list_part.end(); element = std::next(element))
     {
-        list_part_t *element2;
-        for (element2 = element->next; element2 != NULL; element2 = element2->next)
+        int insert_error = 0;
+        for (auto element2 = std::next(element); element2 != list_part.end(); element2 = std::next(element2))
         {
-            if (element->part->part_offset + element->part->part_size - 1 >= element2->part->part_offset)
+            if ((*element)->part_offset + (*element)->part_size - 1 >= (*element2)->part_offset)
             {
-                element->to_be_removed = 1;
-                element2->to_be_removed = 1;
+                (*element)->to_be_removed = 1;
+                (*element2)->to_be_removed = 1;
             }
         }
-        if (element->to_be_removed == 0)
-        {
-            int insert_error = 0;
-            new_list_part = insert_new_partition(new_list_part, element->part, 0, &insert_error);
-        }
+        if ((*element)->to_be_removed == 0)
+            insert_new_partition(new_list_part, *element, 0, &insert_error);
     }
-    for (element = new_list_part; element != NULL; element = element->next)
-        element->part->status = STATUS_PRIM;
+    for (partition_t *element : new_list_part)
+        element->status = STATUS_PRIM;
     if (test_structure_mac(new_list_part))
     {
-        for (element = new_list_part; element != NULL; element = element->next)
-            element->part->status = STATUS_DELETED;
+        for (partition_t *element : new_list_part)
+            element->status = STATUS_DELETED;
     }
-    part_free_list_only(new_list_part);
+    list_part = new_list_part;
 }
 
 static int check_part_mac(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader)

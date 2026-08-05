@@ -32,20 +32,6 @@
 #include "log_part.hpp"
 // #include "guid_cpy.hpp"
 
-/*@
-  @ requires \valid(part);
-  @ ensures \valid(\result);
-  @*/
-static list_part_t *element_new(partition_t *part)
-{
-    list_part_t *new_element = new list_part_t;
-    /*@ assert \valid(new_element); */
-    new_element->part = part;
-    new_element->prev = new_element->next = NULL;
-    new_element->to_be_removed = 0;
-    return new_element;
-}
-
 unsigned long int C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
 {
     return ((unsigned long int)C * disk_car.geom.heads_per_cylinder + H) * disk_car.geom.sectors_per_head + S - 1;
@@ -175,59 +161,54 @@ void insert_new_disk(list_disk_t &list_disk, disk_t &disk)
     insert_new_disk_aux(list_disk, disk, nullptr);
 }
 
-list_part_t *insert_new_partition(list_part_t *list_part, partition_t *part, const int force_insert, int *insert_error)
+void insert_new_partition(list_part_t &list_part, partition_t *new_partition, const int force_insert, int *insert_error)
 {
-    list_part_t *prev = NULL;
-    list_part_t *next;
+    if (new_partition == nullptr)
+    {
+        *insert_error = 1;
+        return;
+    }
+
     *insert_error = 0;
+    if (list_part.empty())
+    {
+        list_part.push_back(new_partition);
+        return;
+    }
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_partition(part);
       @ loop invariant \valid(insert_error);
       @*/
-    for (next = list_part;; next = next->next)
+    for (partition_t *partition : list_part)
     { /* prev new next */
-        /*@ assert next == \null || (\valid(next) && valid_partition(next->part)); */
-        if ((next == NULL) || (part->part_offset < next->part->part_offset) ||
-            (part->part_offset == next->part->part_offset &&
-             ((part->part_size < next->part->part_size) ||
-              (part->part_size == next->part->part_size &&
-               (force_insert == 0 || part->sb_offset < next->part->sb_offset)))))
+        /*@ assert partition != \null || valid_partition(partition); */
+        if ((new_partition->part_offset < partition->part_offset) ||
+            (new_partition->part_offset == partition->part_offset &&
+             ((new_partition->part_size < partition->part_size) ||
+              (new_partition->part_size == partition->part_size &&
+               (force_insert == 0 || new_partition->sb_offset < partition->sb_offset)))))
         {
-            if (force_insert == 0 && (next != NULL) && (next->part->part_offset == part->part_offset) &&
-                (next->part->part_size == part->part_size) && (next->part->part_type_i386 == part->part_type_i386) &&
-                (next->part->part_type_mac == part->part_type_mac) &&
-                (next->part->part_type_sun == part->part_type_sun) &&
-                (next->part->part_type_xbox == part->part_type_xbox) &&
-                (next->part->upart_type == part->upart_type || part->upart_type == UP_UNK))
+            if (force_insert == 0 && (partition->part_offset == new_partition->part_offset) &&
+                (partition->part_size == new_partition->part_size) && (partition->part_type_i386 == new_partition->part_type_i386) &&
+                (partition->part_type_mac == new_partition->part_type_mac) &&
+                (partition->part_type_sun == new_partition->part_type_sun) &&
+                (partition->part_type_xbox == new_partition->part_type_xbox) &&
+                (partition->upart_type == new_partition->upart_type || new_partition->upart_type == UP_UNK))
             { /*CGR 2004/05/31*/
-                if (next->part->status == STATUS_DELETED)
+                if (partition->status == STATUS_DELETED)
                 {
-                    next->part->status = part->status;
+                    partition->status = new_partition->status;
                 }
                 *insert_error = 1;
                 /*@ assert valid_list_part(list_part); */
-                return list_part;
+                return;
             }
             { /* prev new_element next */
-                list_part_t *new_element;
-                new_element = element_new(part);
-                /*@ assert \valid(new_element); */
-                new_element->next = next;
-                new_element->prev = prev;
-                if (next != NULL)
-                    next->prev = new_element;
-                if (prev != NULL)
-                {
-                    prev->next = new_element;
-                    /*@ assert valid_list_part(list_part); */
-                    return list_part;
-                }
-                /*@ assert valid_list_part(new_element); */
-                return new_element;
+                list_part.push_back(new_partition);
+                return;
             }
         }
-        prev = next;
     }
 }
 
@@ -248,107 +229,80 @@ int delete_list_disk(list_disk_t& list_disk)
     return write_used;
 }
 
-list_part_t *sort_partition_list(list_part_t *list_part)
+void sort_partition_list(list_part_t &list_part)
 {
-    list_part_t *new_list_part = NULL;
-    list_part_t *element;
-    list_part_t *next;
+    list_part_t new_list_part;
     /*@ assert valid_list_part(new_list_part); */
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_list_part(new_list_part);
       @*/
-    for (element = list_part; element != NULL; element = next)
+    for (partition_t * element : list_part)
     {
         int insert_error = 0;
         /*@ assert \valid(element); */
-        next = element->next;
-        new_list_part = insert_new_partition(new_list_part, element->part, 0, &insert_error);
-        if (insert_error > 0)
-            delete (element->part);
-        delete (element);
+        insert_new_partition(new_list_part, element, 0, &insert_error);
     }
     /*@ assert valid_list_part(new_list_part); */
-    return new_list_part;
+    list_part = new_list_part;
 }
 
-list_part_t *gen_sorted_partition_list(const list_part_t *list_part)
+list_part_t gen_sorted_partition_list(const list_part_t &list_part)
 {
-    list_part_t *new_list_part = NULL;
-    const list_part_t *element;
+    list_part_t new_list_part;
     /*@ assert valid_list_part(new_list_part); */
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_list_part(new_list_part);
       @*/
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
     {
         /*@ assert \valid_read(element); */
-        /*@ assert \valid_read(element->part); */
-        int insert_error = 0;
-        if (element->part->status != STATUS_DELETED)
-            new_list_part = insert_new_partition(new_list_part, element->part, 1, &insert_error);
+        int _insert_error = 0;
+
+        if (element->status != STATUS_DELETED)
+            insert_new_partition(new_list_part, element, 1, &_insert_error);
         /*@ assert \valid_read(element); */
     }
     /*@ assert valid_list_part(new_list_part); */
     return new_list_part;
 }
 
-/* Delete the list and its content */
-void part_free_list(list_part_t *list_part)
+/* Delete the list content */
+void part_free_list(list_part_t &list_part)
 {
-    list_part_t *element;
-    element = list_part;
     /*@ loop invariant valid_list_part(element); */
-    while (element != NULL)
-    {
-        list_part_t *next = element->next;
-        delete (element->part);
-        delete (element);
-        element = next;
-    }
+    for (partition_t *element : list_part)
+        delete element;
 }
 
-/* Free the list but not its content */
-void part_free_list_only(list_part_t *list_part)
+int is_part_overlapping(const list_part_t &list_part)
 {
-    list_part_t *element;
-    element = list_part;
-    /*@ loop invariant valid_list_part(element); */
-    while (element != NULL)
-    {
-        list_part_t *next = element->next;
-        delete (element);
-        element = next;
-    }
-}
 
-int is_part_overlapping(const list_part_t *list_part)
-{
-    const list_part_t *element;
     /* Test overlapping
        Must be space between a primary/logical partition and a logical partition for an extended
     */
-    if (list_part == NULL)
+    if (list_part.empty())
         return 0;
-    element = list_part;
+    auto element = list_part.cbegin();
     /*@
       @ loop invariant \valid_read(element);
       @ loop assigns element;
       @*/
     while (1)
     {
-        const partition_t *partition = element->part;
-        const list_part_t *next = element->next;
-        if (next == NULL)
+        auto next = std::next(element);
+        const partition_t *partition = *element;
+        const partition_t *next_part = *next;
+        if (next == list_part.cend())
             return 0;
         /*@ assert \valid_read(partition); */
         /*@ assert \valid_read(next->part); */
-        if ((partition->part_offset + partition->part_size - 1 >= next->part->part_offset) ||
+        if ((partition->part_offset + partition->part_size - 1 >= next_part->part_offset) ||
             ((partition->status == STATUS_PRIM || partition->status == STATUS_PRIM_BOOT ||
               partition->status == STATUS_LOG) &&
-             next->part->status == STATUS_LOG &&
-             partition->part_offset + partition->part_size - 1 + 1 >= next->part->part_offset))
+             next_part->status == STATUS_LOG &&
+             partition->part_offset + partition->part_size - 1 + 1 >= next_part->part_offset))
             return 1;
         element = next;
     }
@@ -437,23 +391,21 @@ partition_t::partition_struct(const arch_fnct_t *arch)
   @ requires \valid_read(list_part);
   @ assigns \nothing;
   @*/
-static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, const list_part_t *list_part,
+static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, const list_part_t &list_part,
                                                     const int verbose)
 {
-    const list_part_t *element;
     unsigned int nbr = 0;
     /*@
       @ loop assigns element, nbr;
       @ loop invariant valid_list_part(element);
       @*/
-    for (element = list_part; element != NULL; element = element->next)
+    for (const partition_t *element : list_part)
     {
         CHS_t start;
         CHS_t end;
         /*@ assert \valid_read(element); */
-        /*@ assert \valid_read(element->part); */
-        offset2CHS(disk_car, element->part->part_offset, &start);
-        offset2CHS(disk_car, element->part->part_offset + element->part->part_size - 1, &end);
+        offset2CHS(disk_car, element->part_offset, &start);
+        offset2CHS(disk_car, element->part_offset + element->part_size - 1, &end);
         if (start.sector == 1 && start.head <= 1)
         {
             nbr++;
@@ -470,15 +422,15 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, cons
         log_info("get_geometry_from_list_part_aux head={} nbr={}", disk_car.geom.heads_per_cylinder, nbr);
         if (verbose > 1)
         {
-            for (element = list_part; element != NULL; element = element->next)
+            for (const partition_t *element : list_part)
             {
                 CHS_t start;
                 CHS_t end;
-                offset2CHS(disk_car, element->part->part_offset, &start);
-                offset2CHS(disk_car, element->part->part_offset + element->part->part_size - 1, &end);
+                offset2CHS(disk_car, element->part_offset, &start);
+                offset2CHS(disk_car, element->part_offset + element->part_size - 1, &end);
                 if (start.sector == 1 && start.head <= 1 && end.head == disk_car.geom.heads_per_cylinder - 1)
                 {
-                    log_partition(disk_car, element->part);
+                    log_partition(disk_car, element);
                 }
             }
         }
@@ -487,7 +439,7 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, cons
     return nbr;
 }
 
-unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t *list_part, const int verbose)
+unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t &list_part, const int verbose)
 {
     const unsigned int head_list[] = {8, 16, 32, 64, 128, 240, 255, 0};
     unsigned int best_score;

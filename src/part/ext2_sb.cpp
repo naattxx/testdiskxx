@@ -34,9 +34,8 @@
 #include "src/guid_cmp.hpp"
 #include "src/log.hpp"
 
-int interface_superblock(disk_t &disk_car, const list_part_t *list_part, char **current_cmd)
+int interface_superblock(disk_t &disk_car, const list_part_t &list_part, char **current_cmd)
 {
-    const list_part_t *parts;
     const partition_t *old_part = NULL;
 #ifdef HAVE_NCURSES
     const struct MenuItem menuSuperblock[] = {
@@ -50,9 +49,8 @@ int interface_superblock(disk_t &disk_car, const list_part_t *list_part, char **
     wmove(stdscr, 5, 0);
     mvwaddstr(stdscr, 6, 0, msg_PART_HEADER_LONG);
 #endif
-    for (parts = list_part; parts != NULL; parts = parts->next)
+    for (const partition_t *partition : list_part)
     {
-        const partition_t *partition = parts->part;
         if (old_part == NULL || old_part->part_offset != partition->part_offset ||
             old_part->part_size != partition->part_size ||
             guid_cmp(old_part->part_type_gpt, partition->part_type_gpt) != 0 ||
@@ -68,9 +66,9 @@ int interface_superblock(disk_t &disk_car, const list_part_t *list_part, char **
                               (long unsigned)(partition->sb_offset / partition->blocksize), partition->blocksize,
                               partition->fsname);
     }
-    if (list_part != NULL)
+    if (!list_part.empty())
     {
-        const partition_t *partition = list_part->part;
+        const partition_t *partition = list_part.front();
         screen_buffer_add("\n");
         screen_buffer_add("To repair the filesystem using alternate superblock, run\n");
         screen_buffer_add("fsck.ext%u -p -b superblock -B blocksize device\n",

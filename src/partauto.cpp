@@ -51,7 +51,7 @@ extern const arch_fnct_t arch_xbox;
 
 void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
 {
-    list_part_t *list_part = NULL;
+    list_part_t list_part;
 #ifdef DEBUG_PARTAUTO
     const int verbose = 2;
 #else
@@ -63,14 +63,14 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
         disk.arch = &arch_none;
         list_part = arch_none.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
-        if (list_part != NULL && list_part->part != NULL && list_part->part->upart_type == UP_UNK)
+        if (!list_part.empty() && list_part.front() != NULL && list_part.front()->upart_type == UP_UNK)
         {
             part_free_list(list_part);
-            list_part = NULL;
+            list_part.clear();
         }
     }
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
-    if (list_part == NULL)
+    if (list_part.empty())
     {
         disk.arch = &arch_xbox;
         list_part = arch_xbox.read_part(disk, verbose, 0);
@@ -78,7 +78,7 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
     }
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
-    if (list_part == NULL)
+    if (list_part.empty())
     {
         disk.arch = &arch_gpt;
         list_part = arch_gpt.read_part(disk, verbose, 0);
@@ -86,7 +86,7 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
     }
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_HUMAX)
-    if (list_part == NULL)
+    if (list_part.empty())
     {
         disk.arch = &arch_humax;
         list_part = arch_humax.read_part(disk, verbose, 0);
@@ -94,7 +94,7 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
     }
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
-    if (list_part == NULL)
+    if (list_part.empty())
     {
         disk.arch = &arch_i386;
         list_part = arch_i386.read_part(disk, verbose, 0);
@@ -102,7 +102,7 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
     }
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
-    if (list_part == NULL)
+    if (list_part.empty())
     {
         disk.arch = &arch_sun;
         list_part = arch_sun.read_part(disk, verbose, 0);
@@ -110,7 +110,7 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
     }
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_MAC)
-    if (list_part == NULL)
+    if (list_part.empty())
     {
         disk.arch = &arch_mac;
         list_part = arch_mac.read_part(disk, verbose, 0);
@@ -120,7 +120,7 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
 #ifndef DEBUG_PARTAUTO
     // log_set_levels(old_levels);
 #endif
-    if (list_part != NULL)
+    if (!list_part.empty())
     {
         disk.arch_autodetected = disk.arch;
         log_info("Partition table type (auto): {}\n", disk.arch->part_name);

@@ -92,13 +92,13 @@ static int get_geometry_from_nonembr(const unsigned char *buffer, const int verb
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t *read_part_none(disk_t &disk_car, const int verbose, const int saveheader);
+static list_part_t read_part_none(disk_t &disk_car, const int verbose, const int saveheader);
 
 /*@
   @ requires \valid_read(disk_car);
   @ assigns \nothing;
   @*/
-static list_part_t *init_part_order_none(const disk_t &disk_car, list_part_t *list_part);
+static void init_part_order_none(const disk_t &disk_car, list_part_t &list_part);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -110,7 +110,7 @@ static void set_next_status_none(const disk_t &disk_car, partition_t *partition)
   @ requires list_part == \null || \valid_read(list_part);
   @ assigns \nothing;
   @*/
-static int test_structure_none(const list_part_t *list_part);
+static int test_structure_none(const list_part_t &list_part);
 
 /*@
   @ requires \valid(partition);
@@ -128,7 +128,7 @@ static int is_part_known_none(const partition_t *partition);
   @ requires \valid_read(disk_car);
   @ requires list_part==\null || \valid(list_part);
   @*/
-static void init_structure_none(const disk_t &disk_car, list_part_t *list_part, const int verbose);
+static void init_structure_none(const disk_t &disk_car, list_part_t &list_part, const int verbose);
 
 /*@
   @ requires \valid_read(partition);
@@ -244,11 +244,11 @@ static int get_geometry_from_nonembr(const unsigned char *buffer, const int verb
     return 0;
 }
 
-static list_part_t *read_part_none(disk_t &disk, const int verbose, const int saveheader)
+static list_part_t read_part_none(disk_t &disk, const int verbose, const int saveheader)
 {
     int insert_error = 0;
     unsigned char *buffer_disk;
-    list_part_t *list_part;
+    list_part_t list_part;
     partition_t *partition;
     int res = 0;
     partition = new partition_t(&arch_none);
@@ -357,23 +357,23 @@ static list_part_t *read_part_none(disk_t &disk, const int verbose, const int sa
 #ifndef DISABLED_FOR_FRAMAC
     aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
 #endif
-    list_part = insert_new_partition(NULL, partition, 0, &insert_error);
+    insert_new_partition(list_part, partition, 0, &insert_error);
     /*@ assert valid_list_part(list_part); */
     if (insert_error > 0)
         delete (partition);
     return list_part;
 }
 
-static list_part_t *init_part_order_none(const disk_t &disk_car, list_part_t *list_part)
+static void init_part_order_none(const disk_t &disk_car, list_part_t &list_part)
 {
-    return list_part;
+    ;
 }
 
 static void set_next_status_none(const disk_t &disk_car, partition_t *partition)
 {
 }
 
-static int test_structure_none(const list_part_t *list_part)
+static int test_structure_none(const list_part_t &list_part)
 {
     return 0;
 }
@@ -389,14 +389,12 @@ static int is_part_known_none(const partition_t *partition)
     return 1;
 }
 
-static void init_structure_none(const disk_t &disk_car, list_part_t *list_part, const int verbose)
+static void init_structure_none(const disk_t &disk_car, list_part_t &list_part, const int verbose)
 {
-    list_part_t *element;
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
     {
         /*@ assert \valid_read(element); */
-        /*@ assert \valid(element->part); */
-        element->part->status = STATUS_PRIM;
+        element->status = STATUS_PRIM;
     }
 }
 

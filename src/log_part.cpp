@@ -19,9 +19,8 @@ void log_partition(const disk_t &disk, const partition_t *partition)
     log_info("\n");
 }
 
-void log_all_partitions(const disk_t &disk, const list_part_t *list_part)
+void log_all_partitions(const disk_t &disk, const list_part_t &list_part)
 {
-    const list_part_t *element;
-    for (element = list_part; element != NULL; element = element->next)
-        log_partition(disk, element->part);
+    for (const partition_t *element : list_part)
+        log_partition(disk, element);
 }

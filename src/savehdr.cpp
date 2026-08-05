@@ -143,7 +143,6 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
                 list_backup.push_front(new_backup);
             new_backup = new backup_disk_t;
             new_backup->description[0] = '\0';
-            new_backup->list_part = NULL;
             new_backup->my_time = strtol(pos, &pos, 10);
             if (pos != NULL)
             {
@@ -186,8 +185,7 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
                 }
                 {
                     int insert_error = 0;
-                    new_backup->list_part =
-                        insert_new_partition(new_backup->list_part, new_partition, 0, &insert_error);
+                    insert_new_partition(new_backup->list_part, new_partition, 0, &insert_error);
                     if (insert_error > 0)
                         delete (new_partition);
                 }
@@ -213,9 +211,8 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
     return list_backup;
 }
 
-int partition_save(disk_t &disk_car, const list_part_t *list_part, const int verbose)
+int partition_save(disk_t &disk_car, const list_part_t &list_part, const int verbose)
 {
-    const list_part_t *parts;
     FILE *f_backup;
     if (verbose > 0)
     {
@@ -228,10 +225,10 @@ int partition_save(disk_t &disk_car, const list_part_t *list_part, const int ver
         return -1;
     }
     fprintf(f_backup, "#%lu %s\n", (unsigned long int)time(NULL), disk_car.description(disk_car));
-    for (parts = list_part; parts != NULL; parts = parts->next)
+    for (const partition_t *partition : list_part)
     {
         char status = 'D';
-        switch (parts->part->status)
+        switch (partition->status)
         {
         case STATUS_PRIM:
             status = 'P';
@@ -253,10 +250,10 @@ int partition_save(disk_t &disk_car, const list_part_t *list_part, const int ver
             break;
         }
         fprintf(f_backup, "%2u : start=%9lu, size=%9lu, Id=%02X, %c\n",
-                (parts->part->order < 100 ? parts->part->order : 0),
-                (unsigned long)(parts->part->part_offset / disk_car.sector_size),
-                (unsigned long)(parts->part->part_size / disk_car.sector_size),
-                (disk_car.arch->get_part_type != NULL ? disk_car.arch->get_part_type(parts->part) : 0), status);
+                (partition->order < 100 ? partition->order : 0),
+                (unsigned long)(partition->part_offset / disk_car.sector_size),
+                (unsigned long)(partition->part_size / disk_car.sector_size),
+                (disk_car.arch->get_part_type != NULL ? disk_car.arch->get_part_type(partition) : 0), status);
     }
     fclose(f_backup);
     return 0;

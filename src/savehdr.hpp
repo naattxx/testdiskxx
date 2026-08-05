@@ -28,7 +28,7 @@ struct backup_disk_t
 {
     time_t my_time;
     char description[128];
-    list_part_t *list_part;
+    list_part_t list_part;
 };
 typedef std::list<backup_disk_t *> backup_disk_list_t;
 
@@ -44,7 +44,7 @@ int save_header(disk_t &disk_car, const partition_t *partition, const int verbos
   @ requires valid_list_part(list_part);
   @ decreases 0;
   @*/
-int partition_save(disk_t &disk_car, const list_part_t *list_part, const int verbose);
+int partition_save(disk_t &disk_car, const list_part_t &list_part, const int verbose);
 
 /*@
   @ requires valid_disk(disk_car);

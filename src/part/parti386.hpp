@@ -45,7 +45,7 @@ extern "C"
       @*/
     // ensures  valid_list_part(\result);
     // ensures  valid_read_string(*current_cmd);
-    list_part_t *add_partition_i386_cli(disk_t &disk_car, list_part_t *list_part, char **current_cmd);
+    void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd);
 
     /*@
       @ requires \valid(disk);

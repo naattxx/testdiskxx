@@ -31,5 +31,5 @@
   @ requires valid_read_string(*current_cmd);
   @ requires separation: \separated(disk, list_part, current_cmd);
   @*/
-list_part_t *add_partition_cli(disk_t &disk, list_part_t *list_part, char **current_cmd);
+void add_partition_cli(disk_t &disk, list_part_t &list_part, char **current_cmd);
 #endif

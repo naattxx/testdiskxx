@@ -101,7 +101,7 @@ extern "C"
     /*@
       @ requires valid_list_part(list_part);
       @*/
-    int test_structure_mac(const list_part_t *list_part);
+    int test_structure_mac(const list_part_t &list_part);
 
     /*@
       @ requires valid_disk(disk_car);
@@ -113,7 +113,7 @@ extern "C"
       @*/
     // ensures  valid_list_part(\result);
     // ensures  valid_read_string(*current_cmd);
-    list_part_t *add_partition_mac_cli(disk_t &disk_car, list_part_t *list_part, char **current_cmd);
+    void add_partition_mac_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd);
 
 #endif
 #ifdef __cplusplus

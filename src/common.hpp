@@ -475,14 +475,7 @@ struct CHS_struct
     unsigned int sector;
 };
 
-typedef struct list_part_struct list_part_t;
-struct list_part_struct
-{
-    partition_t *part;
-    list_part_t *prev;
-    list_part_t *next;
-    int to_be_removed;
-};
+typedef std::list<partition_t *> list_part_t;
 
 /*@
 inductive valid_list_part{L} (list_part_t *list)
@@ -519,19 +512,19 @@ struct arch_fnct_struct
     const char *part_name;
     const char *part_name_option;
     const char *msg_part_type;
-    list_part_t *(*read_part)(disk_t &disk, const int verbose, const int saveheader);
-    int (*write_part)(disk_t &disk, const list_part_t *list_part, const int ro, const int verbose);
-    list_part_t *(*init_part_order)(const disk_t &disk, list_part_t *list_part);
+    list_part_t (*read_part)(disk_t &disk, const int verbose, const int saveheader);
+    int (*write_part)(disk_t &disk, const list_part_t &list_part, const int ro, const int verbose);
+    void (*init_part_order)(const disk_t &disk, list_part_t &list_part);
     /* geometry must be initialized to 0,0,0 in get_geometry_from_mbr()*/
     int (*get_geometry_from_mbr)(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry);
     int (*check_part)(disk_t &disk, const int verbose, partition_t *partition, const int saveheader);
     int (*write_MBR_code)(disk_t &disk);
     void (*set_prev_status)(const disk_t &disk, partition_t *partition);
     void (*set_next_status)(const disk_t &disk, partition_t *partition);
-    int (*test_structure)(const list_part_t *list_part);
+    int (*test_structure)(const list_part_t &list_part);
     unsigned int (*get_part_type)(const partition_t *partition);
     int (*set_part_type)(partition_t *partition, unsigned int part_type);
-    void (*init_structure)(const disk_t &disk, list_part_t *list_part, const int verbose);
+    void (*init_structure)(const disk_t &disk, list_part_t &list_part, const int verbose);
     int (*erase_list_part)(disk_t &disk);
     const char *(*get_partition_typename)(const partition_t *partition);
     int (*is_part_known)(const partition_t *partition);
@@ -614,6 +607,8 @@ valid_list_disk(list->next);
 
 struct partition_struct
 {
+    int to_be_removed;
+
     void set_name(const char *src, const unsigned int max_size);
     void set_name_chomp(const char *src, const unsigned int max_size);
     void reset(const arch_fnct_t *arch);

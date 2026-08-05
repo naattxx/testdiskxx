@@ -48,17 +48,15 @@ extern const arch_fnct_t arch_none;
 
 void interface_list(disk_t &disk, const int verbose, const int saveheader, const int backup)
 {
-    list_part_t *list_part;
-    list_part_t *parts;
+    list_part_t list_part;
     log_info("\nAnalyse {}\n", disk.description(disk));
     printf("%s\n", disk.description(disk));
     printf(msg_PART_HEADER_LONG);
     list_part = disk.arch->read_part(disk, verbose, saveheader);
     /*@ assert valid_list_part(list_part); */
-    for (parts = list_part; parts != NULL; parts = parts->next)
+    for (const partition_t *partition : list_part)
     {
         const char *msg;
-        const partition_t *partition = parts->part;
         msg = aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
         printf("%s\n", msg);
         if (partition->info[0] != '\0')
@@ -71,15 +69,13 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     part_free_list(list_part);
 }
 
-static list_part_t *ask_structure_cli(disk_t &disk_car, list_part_t *list_part, const int verbose, char **current_cmd)
+static void ask_structure_cli(disk_t &disk_car, const partition_t *partition, const int verbose, char **current_cmd)
 {
-    const list_part_t *pos = list_part;
     skip_comma_in_command(current_cmd);
     if (check_command(current_cmd, "list", 4) == 0)
     {
-        if (pos != NULL)
+        if (partition != NULL)
         {
-            const partition_t *partition = pos->part;
             if (partition->sb_offset == 0 || partition->sb_size == 0)
                 dir_partition(disk_car, partition, verbose, 0, current_cmd);
             else
@@ -91,7 +87,6 @@ static list_part_t *ask_structure_cli(disk_t &disk_car, list_part_t *list_part, 
             }
         }
     }
-    return list_part;
 }
 
 #ifdef HAVE_NCURSES
@@ -403,13 +398,12 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
 }
 #endif
 
-list_part_t *ask_structure(disk_t &disk_car, list_part_t *list_part, const int verbose, char **current_cmd)
+void ask_structure(disk_t &disk_car, const partition_t *partition, const int verbose, char **current_cmd)
 {
     if (*current_cmd != NULL)
-        return ask_structure_cli(disk_car, list_part, verbose, current_cmd);
+        ask_structure_cli(disk_car, partition, verbose, current_cmd);
 #ifdef HAVE_NCURSES
-    return ask_structure_ncurses(disk_car, list_part, verbose);
+    ask_structure_ncurses(disk_car, partition, verbose);
 #else
-    return list_part;
 #endif
 }

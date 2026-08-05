@@ -20,6 +20,7 @@
 
  */
 
+#include <iterator>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
 #include <config.h>
 
@@ -65,7 +66,7 @@ static int is_extended(const unsigned int part_type);
 /*@
   @ requires list_part == \null || \valid_read(list_part);
   @*/
-static int test_structure_i386(const list_part_t *list_part);
+static int test_structure_i386(const list_part_t &list_part);
 
 #define pt_offset_const(b, n) ((const struct partition_dos *)((b) + 0x1be + (n) * sizeof(struct partition_dos)))
 #define pt_offset(b, n) ((struct partition_dos *)((b) + 0x1be + (n) * sizeof(struct partition_dos)))
@@ -106,33 +107,33 @@ static int get_geometry_from_i386mbr(const unsigned char *buffer, const int verb
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static list_part_t *get_ext_data_i386(disk_t &disk_car, list_part_t *list_part, const int verbose,
+static list_part_t get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose,
                                       const int saveheader);
 
 /*@
   @ requires list_part == \null || \valid(list_part);
   @*/
-static void test_MBR_data(const list_part_t *list_part);
+static void test_MBR_data(const list_part_t &list_part);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static int test_MBR_over(const disk_t &disk_car, const list_part_t *list_part);
-
-/*@
-  @ requires \valid(disk_car);
-  @ requires list_part == \null || \valid(list_part);
-  @ requires separation: \separated(disk_car, list_part);
-  @*/
-static int write_mbr_i386(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose);
+static int test_MBR_over(const disk_t &disk_car, const list_part_t &list_part);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose);
+static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
+
+/*@
+  @ requires \valid(disk_car);
+  @ requires list_part == \null || \valid(list_part);
+  @ requires separation: \separated(disk_car, list_part);
+  @*/
+static int write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
 
 static int diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned char buffer_org[DEFAULT_SECTOR_SIZE]);
 
@@ -141,21 +142,21 @@ static int diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned 
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t *read_part_i386(disk_t &disk_car, const int verbose, const int saveheader);
+static list_part_t read_part_i386(disk_t &disk_car, const int verbose, const int saveheader);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_part_i386(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose);
+static int write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static list_part_t *init_part_order_i386(const disk_t &disk_car, list_part_t *list_part);
+static void init_part_order_i386(const disk_t &disk_car, list_part_t &list_part);
 
 /*@
   @ requires \valid(disk_car);
@@ -197,7 +198,7 @@ static int is_part_known_i386(const partition_t *partition);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static void init_structure_i386(const disk_t &disk_car, list_part_t *list_part, const int verbose);
+static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part, const int verbose);
 
 /*@
   @ requires \valid(disk_car);
@@ -490,36 +491,34 @@ static int get_geometry_from_i386mbr(const unsigned char *buffer, const int verb
     return 0;
 }
 
-static list_part_t *init_part_order_i386(const disk_t &disk_car, list_part_t *list_part)
+static void init_part_order_i386(const disk_t &disk_car, list_part_t &list_part)
 {
     int nbr_log = 0;
     int nbr_prim = 0;
-    list_part_t *element;
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
     {
-        switch (element->part->status)
+        switch (element->status)
         {
         case STATUS_PRIM:
         case STATUS_PRIM_BOOT:
         case STATUS_EXT:
-            element->part->order = ++nbr_prim;
+            element->order = ++nbr_prim;
             break;
         case STATUS_LOG:
-            element->part->order = (++nbr_log) + 4;
+            element->order = (++nbr_log) + 4;
             break;
         default:
             log_critical("init_part_order_i386: severe error\n");
             break;
         }
     }
-    return list_part;
 }
 
-static list_part_t *read_part_i386(disk_t &disk_car, const int verbose, const int saveheader)
+static list_part_t read_part_i386(disk_t &disk_car, const int verbose, const int saveheader)
 {
     unsigned int i;
     CHSgeometry_t geometry;
-    list_part_t *new_list_part = NULL;
+    list_part_t new_list_part;
     unsigned char *buffer = new unsigned char[disk_car.sector_size];
     /*@ assert valid_list_part(new_list_part); */
     screen_buffer_reset();
@@ -527,7 +526,7 @@ static list_part_t *read_part_i386(disk_t &disk_car, const int verbose, const in
     {
         screen_buffer_add(msg_PART_RD_ERR);
         delete[] (buffer);
-        return NULL;
+        return new_list_part;
     }
     geometry.cylinders = 0;
     geometry.heads_per_cylinder = 0;
@@ -536,8 +535,9 @@ static list_part_t *read_part_i386(disk_t &disk_car, const int verbose, const in
     {
         screen_buffer_add(msg_TBL_NMARK);
         delete[] (buffer);
-        return NULL;
+        return new_list_part;
     }
+
     /*@
       @ loop invariant valid_list_part(new_list_part);
       @*/
@@ -568,9 +568,9 @@ static list_part_t *read_part_i386(disk_t &disk_car, const int verbose, const in
             {
                 screen_buffer_add("%s\n", errmsg_i386_entry2partition(new_partition->errcode));
             }
-            new_list_part = insert_new_partition(new_list_part, new_partition, 0, &insert_error);
+            insert_new_partition(new_list_part, new_partition, 0, &insert_error);
             if (insert_error > 0)
-                free(new_partition);
+                delete (new_partition);
         }
     }
     test_MBR_data(new_list_part);
@@ -581,13 +581,11 @@ static list_part_t *read_part_i386(disk_t &disk_car, const int verbose, const in
     return new_list_part;
 }
 
-static void test_MBR_data(const list_part_t *list_part)
+static void test_MBR_data(const list_part_t &list_part)
 {
-    const list_part_t *element;
     unsigned int nb_dos = 0, nb_hidden = 0, nb_mb = 0, nb_ext = 0, nb_boot = 0;
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *partition : list_part)
     {
-        const partition_t *partition = element->part;
         switch (partition->status)
         {
         case STATUS_PRIM:
@@ -635,18 +633,17 @@ static void test_MBR_data(const list_part_t *list_part)
         screen_buffer_add(msg_ONLY1MUSTBOOT);
 }
 
-static partition_t *get_ext_partition_i386(const list_part_t *list_part)
+static partition_t *get_ext_partition_i386(const list_part_t &list_part)
 {
-    const list_part_t *element;
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
     {
-        if (element->part->status == STATUS_EXT)
-            return element->part;
+        if (element->status == STATUS_EXT)
+            return element;
     }
     return NULL;
 }
 
-static list_part_t *get_ext_data_i386(disk_t &disk_car, list_part_t *list_part, const int verbose, const int saveheader)
+static list_part_t get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose, const int saveheader)
 {
     partition_t *partition_main_ext;
     partition_t *partition_ext;
@@ -736,10 +733,8 @@ static list_part_t *get_ext_data_i386(disk_t &disk_car, list_part_t *list_part, 
                         }
                         else
                         {
-                            list_part_t *element;
-                            for (element = list_part; element != NULL; element = element->next)
+                            for (partition_t *partition : list_part)
                             {
-                                partition_t *partition = element->part;
                                 if (partition->status == STATUS_EXT_IN_EXT)
                                 {
                                     if (((partition->part_offset >= new_partition->part_offset) &&
@@ -782,7 +777,7 @@ static list_part_t *get_ext_data_i386(disk_t &disk_car, list_part_t *list_part, 
                         }
                     }
                 }
-                list_part = insert_new_partition(list_part, new_partition, 0, &insert_error);
+                insert_new_partition(list_part, new_partition, 0, &insert_error);
                 if (insert_error > 0)
                     delete (new_partition);
                 else
@@ -824,23 +819,22 @@ int recover_i386_logical(disk_t &disk, const unsigned char *buffer, partition_t 
     return 0;
 }
 
-static int test_MBR_over(const disk_t &disk_car, const list_part_t *list_part)
+static int test_MBR_over(const disk_t &disk_car, const list_part_t &list_part)
 { /* Test if partitions overlap */
     int res = 0;
-    const list_part_t *element;
-    for (element = list_part; element != NULL; element = element->next)
-        if (element->next != NULL &&
-            element->part->part_offset + element->part->part_size - 1 >= element->next->part->part_offset)
+    for (auto element = list_part.cbegin(); element != list_part.cend(); element = std::next(element))
+        if (std::next(element) != list_part.cend() &&
+            (*element)->part_offset + (*element)->part_size - 1 >= (*std::next(element))->part_offset)
         {
             res = 1;
             screen_buffer_add(msg_SAME_SPACE);
-            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, element->part);
-            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, element->next->part);
+            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *element);
+            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *std::next(element));
         }
     return res;
 }
 
-static int write_part_i386(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose)
+static int write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
 {
     int res = 0;
     res += write_mbr_i386(disk_car, list_part, ro, verbose);
@@ -849,9 +843,8 @@ static int write_part_i386(disk_t &disk_car, const list_part_t *list_part, const
     return res;
 }
 
-static int write_mbr_i386(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose)
+static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
 {
-    const list_part_t *element;
     unsigned char *buffer;
     unsigned char *buffer_org;
     if (disk_car.sector_size < DEFAULT_SECTOR_SIZE)
@@ -886,17 +879,17 @@ static int write_mbr_i386(disk_t &disk_car, const list_part_t *list_part, const 
     /* Remove Sun signature */
     if (buffer[0x1fc] == 0xda && buffer[0x1fd] == 0xbe)
         buffer[0x1fc] = 0;
-    for (element = list_part; element != NULL; element = element->next)
+    for (const partition_t *element : list_part)
     {
-        switch (element->part->status)
+        switch (element->status)
         {
         case STATUS_PRIM:
         case STATUS_PRIM_BOOT:
         case STATUS_EXT:
-            if ((element->part->order >= 1) && (element->part->order <= 4))
+            if ((element->order >= 1) && (element->order <= 4))
             {
-                partition2_i386_entry(disk_car, (uint64_t)0, element->part,
-                                      pt_offset(buffer, element->part->order - 1));
+                partition2_i386_entry(disk_car, (uint64_t)0, element,
+                                      pt_offset(buffer, element->order - 1));
             }
             break;
         case STATUS_LOG:
@@ -930,22 +923,22 @@ static int write_mbr_i386(disk_t &disk_car, const list_part_t *list_part, const 
     return 0;
 }
 
-static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, const int ro, const int verbose)
+static int write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
 {
-    const list_part_t *element;
-    const list_part_t *pos_ext = NULL;
+    auto element = list_part.cbegin();
+    auto pos_ext = list_part.cend();
     uint64_t current_pos;
     partition_t *bloc_nextext;
     int res = 0;
     if (verbose > 0)
         ; // log_trace("write_all_log_i386: starting...\n");
-    for (element = list_part; element != NULL; element = element->next)
+    for (; element != list_part.cend(); element = std::next(element))
     {
-        if (element->part->status == STATUS_EXT)
+        if ((*element)->status == STATUS_EXT)
         {
-            if (is_extended(element->part->part_type_i386))
+            if (is_extended((*element)->part_type_i386))
             {
-                if (pos_ext != NULL)
+                if (pos_ext != list_part.cend())
                     log_critical("write_all_log_i386: pos_ext already defined\n");
                 pos_ext = element;
             }
@@ -955,15 +948,15 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, co
             }
         }
     }
-    if (pos_ext == NULL)
+    if (pos_ext == list_part.cend())
     {
         log_info(msg_NO_EXT_PART);
         return 0;
     }
-    current_pos = pos_ext->part->part_offset;
+    current_pos = (*pos_ext)->part_offset;
     bloc_nextext = new partition_t;
     bloc_nextext->part_type_i386 = P_EXTENDED; /* Never P_EXTENDX */
-    if (pos_ext->next == NULL || (pos_ext->next->part->status != STATUS_LOG))
+    if (std::next(pos_ext) == list_part.cend() || ((*std::next(pos_ext))->status != STATUS_LOG))
     {
         unsigned char buffer[DEFAULT_SECTOR_SIZE];
         unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
@@ -996,8 +989,8 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, co
     }
     else
     {
-        for (element = pos_ext->next; (element != NULL) && (element->part->status == STATUS_LOG);
-             element = element->next)
+        for (element = std::next(pos_ext); (element != list_part.cend()) && ((*element)->status == STATUS_LOG);
+             element = std::next(element))
         {
             unsigned char buffer[DEFAULT_SECTOR_SIZE];
             unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
@@ -1015,11 +1008,11 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, co
             memcpy(buffer, buffer_org, TAB_PART);
             buffer[0x1FE] = 0x55;
             buffer[0x1FF] = 0xAA;
-            partition2_i386_entry(disk_car, current_pos, element->part, pt_offset(buffer, 0));
-            if (element->next != NULL && (element->next->part->status == STATUS_LOG))
+            partition2_i386_entry(disk_car, current_pos, *element, pt_offset(buffer, 0));
+            if (std::next(element) != list_part.cend() && ((*std::next(element))->status == STATUS_LOG))
             { /* Construit le pointeur vers la prochaine partition logique */
                 CHS_t nextext_start;
-                bloc_nextext->part_offset = element->next->part->part_offset - disk_car.sector_size;
+                bloc_nextext->part_offset = (*std::next(element))->part_offset - disk_car.sector_size;
                 offset2CHS(disk_car, bloc_nextext->part_offset, &nextext_start);
                 if (nextext_start.sector != disk_car.geom.sectors_per_head)
                 {
@@ -1037,7 +1030,7 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, co
                       // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
                       //     (long unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
                 //     (long unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
-                if (CHS2offset(disk_car, &nextext_start) <= element->part->part_offset + element->part->part_size - 1)
+                if (CHS2offset(disk_car, &nextext_start) <= (*element)->part_offset + (*element)->part_size - 1)
                 {
                     offset2CHS(disk_car, bloc_nextext->part_offset, &nextext_start);
                     nextext_start.sector = 1;
@@ -1048,7 +1041,7 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, co
                           //     (long
                     //     unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
                     if (CHS2offset(disk_car, &nextext_start) <=
-                        element->part->part_offset + element->part->part_size - 1)
+                        (*element)->part_offset + (*element)->part_size - 1)
                     {
                         offset2CHS(disk_car, bloc_nextext->part_offset, &nextext_start);
                     }
@@ -1060,9 +1053,9 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t *list_part, co
                 //     (long unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
                 bloc_nextext->part_offset = CHS2offset(disk_car, &nextext_start);
                 /*      log_debug("table[i]->next=%p table[i+1]=%p\n",table[i]->next,table[i+1]); */
-                bloc_nextext->part_size = (uint64_t)element->next->part->part_offset + element->next->part->part_size -
+                bloc_nextext->part_size = (uint64_t)(*std::next(element))->part_offset + (*std::next(element))->part_size -
                                           bloc_nextext->part_offset;
-                partition2_i386_entry(disk_car, pos_ext->part->part_offset, bloc_nextext, pt_offset(buffer, 1));
+                partition2_i386_entry(disk_car, (*pos_ext)->part_offset, bloc_nextext, pt_offset(buffer, 1));
             }
             if (ro)
             {
@@ -1368,16 +1361,15 @@ int parti386_can_be_ext(const disk_t &disk_car, const partition_t *partition)
              offset2sector(disk_car, partition->part_offset) != 1));
 }
 
-static int test_structure_i386(const list_part_t *list_part)
+static int test_structure_i386(const list_part_t &list_part)
 { /* Return 1 if bad*/
     int nbr_prim = 0, nbr_prim_boot = 0, nbr_log_block = 0;
-    const list_part_t *first_log = NULL;
-    list_part_t *new_list_part = NULL;
-    const list_part_t *element;
+    const partition_t *first_log = NULL;
+    list_part_t new_list_part;
     int res;
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
     {
-        switch (element->part->status)
+        switch (element->status)
         {
         case STATUS_LOG:
             if (first_log == NULL)
@@ -1385,7 +1377,7 @@ static int test_structure_i386(const list_part_t *list_part)
                 first_log = element;
                 nbr_log_block++;
             }
-            if (is_extended(element->part->part_type_i386))
+            if (is_extended(element->part_type_i386))
             {
                 return 1;
             }
@@ -1411,7 +1403,6 @@ static int test_structure_i386(const list_part_t *list_part)
         return 1;
     new_list_part = gen_sorted_partition_list(list_part);
     res = is_part_overlapping(new_list_part);
-    part_free_list_only(new_list_part);
     return res;
 }
 
@@ -1421,7 +1412,7 @@ static int is_extended(const unsigned int part_type)
             part_type == (const unsigned char)P_LINUXEXTENDX);
 }
 
-list_part_t *add_partition_i386_cli(disk_t &disk_car, list_part_t *list_part, char **current_cmd)
+void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd)
 {
     CHS_t start, end;
     partition_t *new_partition = new partition_t(&arch_i386);
@@ -1477,53 +1468,52 @@ list_part_t *add_partition_i386_cli(disk_t &disk_car, list_part_t *list_part, ch
                  new_partition->part_type_i386 != P_NO_OS)
         {
             int insert_error = 0;
-            list_part_t *new_list_part = insert_new_partition(list_part, new_partition, 0, &insert_error);
-            /*@ assert valid_list_part(new_list_part); */
+            insert_new_partition(list_part, new_partition, 0, &insert_error);
+            /*@ assert valid_list_part(list_part); */
             if (insert_error > 0)
             {
-                free(new_partition);
+                delete new_partition;
                 /*@ assert valid_read_string(*current_cmd); */
-                /*@ assert valid_list_part(new_list_part); */
-                return new_list_part;
+                /*@ assert valid_list_part(list_part); */
+                return;
             }
             if (test_structure_i386(list_part) == 0)
             { /* Check if the partition can be Logical, Bootable or Primary */
                 if (parti386_can_be_ext(disk_car, new_partition) != 0)
                 {
                     new_partition->status = STATUS_LOG;
-                    if (test_structure_i386(new_list_part) == 0)
+                    if (test_structure_i386(list_part) == 0)
                     {
                         /*@ assert valid_read_string(*current_cmd); */
-                        /*@ assert valid_list_part(new_list_part); */
-                        return new_list_part;
+                        /*@ assert valid_list_part(list_part); */
+                        return;
                     }
                 }
                 new_partition->status = STATUS_PRIM_BOOT;
-                if (test_structure_i386(new_list_part) == 0)
+                if (test_structure_i386(list_part) == 0)
                 {
                     /*@ assert valid_read_string(*current_cmd); */
-                    /*@ assert valid_list_part(new_list_part); */
-                    return new_list_part;
+                    /*@ assert valid_list_part(list_part); */
+                    return;
                 }
                 new_partition->status = STATUS_PRIM;
-                if (test_structure_i386(new_list_part) == 0)
+                if (test_structure_i386(list_part) == 0)
                 {
                     /*@ assert valid_read_string(*current_cmd); */
-                    /*@ assert valid_list_part(new_list_part); */
-                    return new_list_part;
+                    /*@ assert valid_list_part(list_part); */
+                    return;
                 }
             }
             new_partition->status = STATUS_DELETED;
             /*@ assert valid_read_string(*current_cmd); */
-            /*@ assert valid_list_part(new_list_part); */
-            return new_list_part;
+            /*@ assert valid_list_part(list_part); */
+            return;
         }
         else
         {
             delete (new_partition);
             /*@ assert valid_read_string(*current_cmd); */
             /*@ assert valid_list_part(list_part); */
-            return list_part;
         }
     }
 }
@@ -1588,36 +1578,34 @@ static int is_part_known_i386(const partition_t *partition)
     return (partition->part_type_i386 != P_NO_OS && partition->part_type_i386 != P_UNK);
 }
 
-static void init_structure_i386(const disk_t &disk_car, list_part_t *list_part, const int verbose)
+static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part, const int verbose)
 {
     unsigned int vista_partition = 0;
-    list_part_t *element;
-    list_part_t *new_list_part = NULL;
+    list_part_t new_list_part;
     /* Create new list */
-    for (element = list_part; element != NULL; element = element->next)
+    for (partition_t *element : list_part)
         element->to_be_removed = 0;
-    for (element = list_part; element != NULL; element = element->next)
+    for (auto element = list_part.begin(); element != list_part.end(); element = std::next(element))
     {
-        list_part_t *element2;
-        if (element->part->arch != NULL && element->part->arch != disk_car.arch)
+        if ((*element)->arch != NULL && (*element)->arch != disk_car.arch)
         {
-            element->to_be_removed = 1;
+            (*element)->to_be_removed = 1;
         }
         else
         {
-            if (element->part->part_offset % (2048 * 512) == 0 && element->part->part_size % (2048 * 512) == 0)
+            if ((*element)->part_offset % (2048 * 512) == 0 && (*element)->part_size % (2048 * 512) == 0)
                 vista_partition = 1;
-            for (element2 = element->next; element2 != NULL; element2 = element2->next)
-                if (element->part->part_offset + element->part->part_size - 1 >= element2->part->part_offset)
+            for (auto element2 = std::next(element); element2 != list_part.end(); element2 = std::next(element2))
+                if ((*element)->part_offset + (*element)->part_size - 1 >= (*element2)->part_offset)
                 {
-                    element->to_be_removed = 1;
-                    element2->to_be_removed = 1;
+                    (*element)->to_be_removed = 1;
+                    (*element2)->to_be_removed = 1;
                 }
         }
-        if (element->to_be_removed == 0)
+        if ((*element)->to_be_removed == 0)
         {
             int insert_error = 0;
-            new_list_part = insert_new_partition(new_list_part, element->part, 0, &insert_error);
+            insert_new_partition(new_list_part, (*element), 0, &insert_error);
         }
     }
 
@@ -1629,15 +1617,15 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t *list_part, 
         unsigned int nbr_log_block = 0;
         unsigned int biggest_log_block_size = 0;
         unsigned int nbr_prim = 0;
-        list_part_t *end_log_block = NULL;
-        list_part_t *end_biggest_log_block = NULL;
+        auto end_log_block = new_list_part.end();
+        auto end_biggest_log_block = new_list_part.end();
         /* Verify */
-        for (element = new_list_part; element != NULL; element = element->next)
+        for (auto element = new_list_part.begin(); element != new_list_part.end(); element = std::next(element))
         {
-            if (parti386_can_be_ext(disk_car, element->part) == 0)
+            if (parti386_can_be_ext(disk_car, (*element)) == 0)
             {
                 nbr_prim++;
-                if ((end_log_block != NULL) && (end_log_block->next == element))
+                if ((end_log_block != new_list_part.end()) && (std::next(end_log_block) == element))
                 {
                     if (log_block_size > biggest_log_block_size)
                     {
@@ -1645,7 +1633,7 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t *list_part, 
                         end_biggest_log_block = end_log_block;
                     }
                     nbr_log_block++;
-                    end_log_block = NULL;
+                    end_log_block = new_list_part.end();
                 }
             }
             else
@@ -1655,7 +1643,7 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t *list_part, 
             }
         }
         /* Verification */
-        if ((end_log_block != NULL) && (end_log_block->next == NULL))
+        if ((end_log_block != new_list_part.end()) && (std::next(end_log_block) == new_list_part.end()))
         {
             if (log_block_size > biggest_log_block_size)
             {
@@ -1669,56 +1657,56 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t *list_part, 
         if (nbr_prim + nbr_log_block <= 4)
         {
             int set_prim_bootable_done = 0;
-            for (element = end_biggest_log_block; element != NULL && parti386_can_be_ext(disk_car, element->part);
-                 element = element->prev)
+            for (auto element = end_biggest_log_block; element != new_list_part.begin() && parti386_can_be_ext(disk_car, *element);
+                 element = std::prev(element))
             {
-                element->part->status = STATUS_LOG;
+                (*element)->status = STATUS_LOG;
             }
-            for (element = new_list_part; element != NULL; element = element->next)
+            for (partition_t *element : new_list_part)
             {
-                if (element->part->status != STATUS_LOG)
+                if (element->status != STATUS_LOG)
                 {
                     /* The first primary partition is bootable unless it's a swap */
-                    if (set_prim_bootable_done == 0 && element->part->upart_type != UP_LINSWAP &&
-                        element->part->upart_type != UP_LVM && element->part->upart_type != UP_LVM2)
+                    if (set_prim_bootable_done == 0 && element->upart_type != UP_LINSWAP &&
+                        element->upart_type != UP_LVM && element->upart_type != UP_LVM2)
                     {
-                        element->part->status = STATUS_PRIM_BOOT;
+                        element->status = STATUS_PRIM_BOOT;
                         set_prim_bootable_done = 1;
                     }
                     else
-                        element->part->status = STATUS_PRIM;
+                        element->status = STATUS_PRIM;
                 }
             }
         }
     }
     if (vista_partition > 0 || test_structure_i386(new_list_part))
     { /* Handle Vista partition */
-        unsigned int i;
+        unsigned int i{0};
         int set_prim_bootable_done = 0;
-        for (element = new_list_part, i = 0; element != NULL; element = element->next, i++)
+        for (partition_t *element : new_list_part)
         {
             if (i < 3)
             {
                 /* The first primary partition is bootable unless it's a swap */
-                if (set_prim_bootable_done == 0 && element->part->upart_type != UP_LINSWAP &&
-                    element->part->upart_type != UP_LVM && element->part->upart_type != UP_LVM2)
+                if (set_prim_bootable_done == 0 && element->upart_type != UP_LINSWAP &&
+                    element->upart_type != UP_LVM && element->upart_type != UP_LVM2)
                 {
-                    element->part->status = STATUS_PRIM_BOOT;
+                    element->status = STATUS_PRIM_BOOT;
                     set_prim_bootable_done = 1;
                 }
                 else
-                    element->part->status = STATUS_PRIM;
+                    element->status = STATUS_PRIM;
             }
             else
-                element->part->status = STATUS_LOG;
+                element->status = STATUS_LOG;
+            i++;
         }
     }
     if (test_structure_i386(new_list_part))
     {
-        for (element = new_list_part; element != NULL; element = element->next)
-            element->part->status = STATUS_DELETED;
+        for (partition_t *element : new_list_part)
+            element->status = STATUS_DELETED;
     }
-    part_free_list_only(new_list_part);
 }
 
 static int erase_list_part_i386(disk_t &disk)

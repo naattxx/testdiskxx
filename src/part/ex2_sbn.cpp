@@ -71,12 +71,12 @@ static uint64_t next_sb(const uint64_t hd_offset_old)
     return hd_offset;
 }
 
-list_part_t *search_superblock(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind)
+list_part_t search_superblock(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind)
 {
     unsigned char *buffer = new unsigned char[2 * 0x200];
     uint64_t hd_offset;
     int nbr_sb = 0;
-    list_part_t *list_part = NULL;
+    list_part_t list_part;
     int ind_stop = 0;
 #ifdef HAVE_NCURSES
     unsigned long int old_percent = 0;
@@ -143,7 +143,7 @@ list_part_t *search_superblock(disk_t &disk_car, partition_t *partition, const i
                             (long long unsigned)hd_offset >> (EXT2_MIN_BLOCK_LOG_SIZE + le32(sb->s_log_block_size)),
                             EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
 #endif
-                    list_part = insert_new_partition(list_part, new_partition, 1, &insert_error);
+                    insert_new_partition(list_part, new_partition, 1, &insert_error);
                     new_partition = new partition_t(disk_car.arch);
                     nbr_sb++;
                 }
