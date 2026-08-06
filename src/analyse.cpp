@@ -63,10 +63,10 @@
 #include "log.hpp"
 #include "part/parti386.hpp"
 
-int search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose,
+int search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
                        const int dump_ind)
 {
-    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
     {
         const struct ntfs_boot_sector *ntfs_header = (const struct ntfs_boot_sector *)buffer;
@@ -80,10 +80,10 @@ int search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t *partiti
     return 0;
 }
 
-int search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose,
+int search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
                       const int dump_ind)
 {
-    if (disk.pread(disk, buffer, 0x400, partition->part_offset) != 0x400)
+    if (disk.pread(disk, buffer, 0x400, partition.part_offset) != 0x400)
         return -1;
 #if !defined(DISABLED_FOR_FRAMAC)
     {
@@ -93,13 +93,13 @@ int search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t *partitio
         if (hfs_mdb->drSigWord == be16(HFS_SUPER_MAGIC) &&
             recover_HFS(disk, hfs_mdb, partition, verbose, dump_ind, 1) == 0)
         {
-            strncpy(partition->info, "HFS found using backup sector!", sizeof(partition->info));
+            strncpy(partition.info, "HFS found using backup sector!", sizeof(partition.info));
             return 1;
         }
         if ((be16(vh->version) == 4 || be16(vh->version) == 5) &&
             recover_HFSP(disk, vh, partition, verbose, dump_ind, 1) == 0)
         {
-            strncpy(partition->info, "HFS+ found using backup sector!", sizeof(partition->info));
+            strncpy(partition.info, "HFS+ found using backup sector!", sizeof(partition.info));
             return 1;
         }
     }
@@ -107,9 +107,9 @@ int search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t *partitio
     return 0;
 }
 
-int search_exFAT_backup(unsigned char *buffer, disk_t &disk, partition_t *partition)
+int search_exFAT_backup(unsigned char *buffer, disk_t &disk, partition_t &partition)
 {
-    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
     {
         const struct exfat_super_block *exfat_header = (const struct exfat_super_block *)buffer;
@@ -123,10 +123,10 @@ int search_exFAT_backup(unsigned char *buffer, disk_t &disk, partition_t *partit
     return 0;
 }
 
-int search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose,
+int search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
                       const int dump_ind)
 {
-    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
     {
         const struct fat_boot_sector *fat_header = (const struct fat_boot_sector *)buffer;
@@ -137,7 +137,7 @@ int search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t *partitio
     return 0;
 }
 
-int search_type_0(const unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose,
+int search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
                   const int dump_ind)
 {
 #if !defined(DISABLED_FOR_FRAMAC)
@@ -167,7 +167,7 @@ int search_type_0(const unsigned char *buffer, disk_t &disk, partition_t *partit
     if (verbose > 2)
     {
         //    log_trace("search_type_0 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk->sector_size));
+        // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (le32(apfs->nx_magic) == 0x4253584e && recover_APFS(disk, apfs, partition, verbose, dump_ind) == 0)
         return 1;
@@ -202,7 +202,7 @@ int search_type_0(const unsigned char *buffer, disk_t &disk, partition_t *partit
     if (le32(sb1->major_version) == 1 &&
         recover_MD(disk, (const struct mdp_superblock_s *)buffer, partition, verbose, dump_ind) == 0)
     {
-        partition->part_offset -= le64(sb1->super_offset) * 512;
+        partition.part_offset -= le64(sb1->super_offset) * 512;
         return 1;
     }
     if (memcmp(&wbfs->magic, "WBFS", 4) == 0 && recover_WBFS(disk, wbfs, partition, verbose, dump_ind) == 0)
@@ -213,13 +213,13 @@ int search_type_0(const unsigned char *buffer, disk_t &disk, partition_t *partit
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
     /* Try to locate logical partition that may host truecrypt encrypted filesystem */
     if (buffer[0x1fe] == 0x55 && buffer[0x1ff] == 0xAA && recover_i386_logical(disk, buffer, partition) == 0 &&
-        partition->upart_type == UP_UNK)
+        partition.upart_type == UP_UNK)
         return 1;
 #endif
     return 0;
 }
 
-int search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t *partition, const int verbose,
+int search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t &partition, const int verbose,
                   const int dump_ind)
 {
 #if !defined(DISABLED_FOR_FRAMAC)
@@ -237,7 +237,7 @@ int search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t *
     if (verbose > 2)
     {
         //    log_trace("search_type_1 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk->sector_size));
+        // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (le32(bsd_header->d_magic) == DISKMAGIC && le32(bsd_header->d_magic2) == DISKMAGIC &&
         recover_BSD(disk, bsd_header, partition, verbose, dump_ind) == 0)
@@ -259,7 +259,7 @@ int search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t *
     return 0;
 }
 
-int search_type_2(const unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose,
+int search_type_2(const unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
                   const int dump_ind)
 {
 #if !defined(DISABLED_FOR_FRAMAC)
@@ -274,7 +274,7 @@ int search_type_2(const unsigned char *buffer, disk_t &disk, partition_t *partit
     if (verbose > 2)
     {
         //    log_trace("search_type_2 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk->sector_size));
+        // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (le16(sb->s_magic) == EXT2_SUPER_MAGIC && recover_EXT2(disk, sb, partition, verbose, dump_ind) == 0)
         return 1;
@@ -289,14 +289,14 @@ int search_type_2(const unsigned char *buffer, disk_t &disk, partition_t *partit
     return 0;
 }
 
-int search_type_8(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose, const int dump_ind)
+int search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind)
 {
     if (verbose > 2)
     {
         //    log_trace("search_type_8 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk->sector_size));
+        // (long unsigned)(partition.part_offset/disk->sector_size));
     }
-    if (disk.pread(disk, buffer, 4096, partition->part_offset + 4096) != 4096)
+    if (disk.pread(disk, buffer, 4096, partition.part_offset + 4096) != 4096)
         return -1;
 #if !defined(DISABLED_FOR_FRAMAC)
     { /* MD 1.2 */
@@ -304,7 +304,7 @@ int search_type_8(unsigned char *buffer, disk_t &disk, partition_t *partition, c
         if (le32(sb1->major_version) == 1 &&
             recover_MD(disk, (const struct mdp_superblock_s *)buffer, partition, verbose, dump_ind) == 0)
         {
-            partition->part_offset -= (uint64_t)le64(sb1->super_offset) * 512 - 4096;
+            partition.part_offset -= (uint64_t)le64(sb1->super_offset) * 512 - 4096;
             return 1;
         }
     }
@@ -312,15 +312,15 @@ int search_type_8(unsigned char *buffer, disk_t &disk, partition_t *partition, c
     return 0;
 }
 
-int search_type_16(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose, const int dump_ind)
+int search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind)
 {
     if (verbose > 2)
     {
         //    log_trace("search_type_16 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk->sector_size));
+        // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     /* 8k offset */
-    if (disk.pread(disk, buffer, 3 * DEFAULT_SECTOR_SIZE, partition->part_offset + 16 * 512) !=
+    if (disk.pread(disk, buffer, 3 * DEFAULT_SECTOR_SIZE, partition.part_offset + 16 * 512) !=
         3 * DEFAULT_SECTOR_SIZE)
         return -1;
 #if !defined(DISABLED_FOR_FRAMAC)
@@ -339,15 +339,15 @@ int search_type_16(unsigned char *buffer, disk_t &disk, partition_t *partition, 
     return 0;
 }
 
-int search_type_64(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose, const int dump_ind)
+int search_type_64(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind)
 {
     if (verbose > 2)
     {
         //    log_trace("search_type_64 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk->sector_size));
+        // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     /* 32k offset */
-    if (disk.pread(disk, buffer, 3 * DEFAULT_SECTOR_SIZE, partition->part_offset + 63 * 512) !=
+    if (disk.pread(disk, buffer, 3 * DEFAULT_SECTOR_SIZE, partition.part_offset + 63 * 512) !=
         3 * DEFAULT_SECTOR_SIZE)
         return -1;
 #if !defined(DISABLED_FOR_FRAMAC)
@@ -361,14 +361,14 @@ int search_type_64(unsigned char *buffer, disk_t &disk, partition_t *partition, 
     return 0;
 }
 
-int search_type_128(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose, const int dump_ind)
+int search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind)
 {
     if (verbose > 2)
     {
         //    log_trace("search_type_128 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk->sector_size));
+        // (long unsigned)(partition.part_offset/disk->sector_size));
     }
-    if (disk.pread(disk, buffer, 11 * DEFAULT_SECTOR_SIZE, partition->part_offset + 126 * 512) !=
+    if (disk.pread(disk, buffer, 11 * DEFAULT_SECTOR_SIZE, partition.part_offset + 126 * 512) !=
         11 * DEFAULT_SECTOR_SIZE)
         return -1;
 #if !defined(DISABLED_FOR_FRAMAC)
@@ -399,14 +399,14 @@ int search_type_128(unsigned char *buffer, disk_t &disk, partition_t *partition,
     return 0;
 }
 
-int search_type_2048(unsigned char *buffer, disk_t &disk, partition_t *partition, const int verbose, const int dump_ind)
+int search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind)
 {
     if (verbose > 2)
     {
         //    log_trace("search_type_2048 lba=%lu\n",
-        // (long unsigned)(partition->part_offset/disk.sector_size));
+        // (long unsigned)(partition.part_offset/disk.sector_size));
     }
-    if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition->part_offset + 2048 * 512) !=
+    if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition.part_offset + 2048 * 512) !=
         2 * DEFAULT_SECTOR_SIZE)
         return -1;
 #if !defined(DISABLED_FOR_FRAMAC)
@@ -419,7 +419,7 @@ int search_type_2048(unsigned char *buffer, disk_t &disk, partition_t *partition
     return 0;
 }
 
-int check_linux(disk_t &disk, partition_t *partition, const int verbose)
+int check_linux(disk_t &disk, partition_t &partition, const int verbose)
 {
 #if !defined(DISABLED_FOR_FRAMAC)
     if (check_JFS(disk, partition) == 0 || check_rfs(disk, partition, verbose) == 0 ||

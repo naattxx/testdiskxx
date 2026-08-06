@@ -103,7 +103,7 @@ static s64 ntfs_device_testdisk_io_seek(struct ntfs_device *dev, s64 offset,
       my_data->offset+=offset;
       break;
     case SEEK_END:
-      my_data->offset=my_data->partition->part_size+offset;
+      my_data->offset=my_data->partition.part_size+offset;
       break;
   }
   return my_data->offset;
@@ -113,7 +113,7 @@ static s64 ntfs_device_testdisk_io_read(struct ntfs_device *dev, void *buf,
 		s64 count)
 {
   my_data_t *my_data=(my_data_t*)dev->d_private;
-  if(my_data->disk_car->pread(*my_data->disk_car, buf, count, my_data->partition->part_offset + my_data->offset) != count)
+  if(my_data->disk_car->pread(*my_data->disk_car, buf, count, my_data->partition.part_offset + my_data->offset) != count)
     return 0;
   my_data->offset+=count;
   return count;
@@ -123,7 +123,7 @@ static s64 ntfs_device_testdisk_io_write(struct ntfs_device *dev, const void *bu
 		s64 count)
 {
   my_data_t *my_data=(my_data_t*)dev->d_private;
-  if(my_data->disk_car->pwrite(*my_data->disk_car, buf, count, my_data->partition->part_offset + my_data->offset) != count)
+  if(my_data->disk_car->pwrite(*my_data->disk_car, buf, count, my_data->partition.part_offset + my_data->offset) != count)
     return 0;
   my_data->offset+=count;
   return count;
@@ -134,7 +134,7 @@ static s64 ntfs_device_testdisk_io_pread(struct ntfs_device *dev, void *buf,
 {
   my_data_t *my_data=(my_data_t*)dev->d_private;
   return my_data->disk_car->pread(*my_data->disk_car, buf, count,
-      my_data->partition->part_offset + offset);
+      my_data->partition.part_offset + offset);
 }
 
 static s64 ntfs_device_testdisk_io_pwrite(struct ntfs_device *dev, const void *buf,
@@ -142,7 +142,7 @@ static s64 ntfs_device_testdisk_io_pwrite(struct ntfs_device *dev, const void *b
 {
   my_data_t *my_data=(my_data_t*)dev->d_private;
   return my_data->disk_car->pwrite(*my_data->disk_car, buf, count,
-      my_data->partition->part_offset + offset);
+      my_data->partition.part_offset + offset);
 }
 
 static int ntfs_device_testdisk_io_sync(struct ntfs_device *dev)

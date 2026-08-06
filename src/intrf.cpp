@@ -119,9 +119,9 @@ void screen_buffer_to_log(void)
         log_info("{}\n", intr_buffer_screen[i]);
 }
 
-char get_partition_status(const partition_t *partition)
+char get_partition_status(const partition_t &partition)
 {
-    switch (partition->status)
+    switch (partition.status)
     {
     case STATUS_PRIM:
         return 'P';
@@ -140,12 +140,12 @@ char get_partition_status(const partition_t *partition)
     }
 }
 
-const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t *partition)
+const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition)
 {
     char status = ' ';
     static char msg[200];
     unsigned int pos = 0;
-    const arch_fnct_t *arch = partition->arch;
+    const arch_fnct_t *arch = partition.arch;
     if (arch == NULL)
     {
 #ifndef DISABLED_FOR_FRAMAC
@@ -161,8 +161,8 @@ const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, con
 #else
     if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER)
     {
-        if (partition->status != STATUS_EXT_IN_EXT && partition->order != NO_ORDER)
-            pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%2u ", partition->order);
+        if (partition.status != STATUS_EXT_IN_EXT && partition.order != NO_ORDER)
+            pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%2u ", partition.order);
         else
             pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "   ");
     }
@@ -170,8 +170,8 @@ const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, con
     {
         status = get_partition_status(partition);
         /* Don't marked as D(eleted) an entry that is not a partition */
-        if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER && partition->order == NO_ORDER &&
-            partition->status == STATUS_DELETED)
+        if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER && partition.order == NO_ORDER &&
+            partition.status == STATUS_DELETED)
             status = ' ';
     }
     pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%c", status);
@@ -185,24 +185,24 @@ const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, con
     {
         pos +=
             snprintf(&msg[pos], sizeof(msg) - pos - 1, " %10llu %10llu ",
-                     (long long unsigned)(partition->part_offset / disk_car.sector_size),
-                     (long long unsigned)((partition->part_offset + partition->part_size - 1) / disk_car.sector_size));
+                     (long long unsigned)(partition.part_offset / disk_car.sector_size),
+                     (long long unsigned)((partition.part_offset + partition.part_size - 1) / disk_car.sector_size));
     }
     else
     {
         pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%5u %3u %2u %5u %3u %2u ",
-                        offset2cylinder(disk_car, partition->part_offset),
-                        offset2head(disk_car, partition->part_offset), offset2sector(disk_car, partition->part_offset),
-                        offset2cylinder(disk_car, partition->part_offset + partition->part_size - 1),
-                        offset2head(disk_car, partition->part_offset + partition->part_size - 1),
-                        offset2sector(disk_car, partition->part_offset + partition->part_size - 1));
+                        offset2cylinder(disk_car, partition.part_offset),
+                        offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset),
+                        offset2cylinder(disk_car, partition.part_offset + partition.part_size - 1),
+                        offset2head(disk_car, partition.part_offset + partition.part_size - 1),
+                        offset2sector(disk_car, partition.part_offset + partition.part_size - 1));
     }
     pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%10llu",
-                    (long long unsigned)(partition->part_size / disk_car.sector_size));
-    if (partition->partname[0] != '\0')
-        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition->partname);
-    if (partition->fsname[0] != '\0')
-        snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition->fsname);
+                    (long long unsigned)(partition.part_size / disk_car.sector_size));
+    if (partition.partname[0] != '\0')
+        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.partname);
+    if (partition.fsname[0] != '\0')
+        snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.fsname);
 #endif
     return msg;
 }
@@ -260,7 +260,7 @@ uint64_t ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64
     return val_cur;
 }
 
-void aff_part_buffer(const unsigned int newline, const disk_t &disk_car, const partition_t *partition)
+void aff_part_buffer(const unsigned int newline, const disk_t &disk_car, const partition_t &partition)
 {
     const char *msg;
     msg = aff_part_aux(newline, disk_car, partition);

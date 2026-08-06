@@ -42,7 +42,7 @@
 #include "part/ntfs_dir.hpp"
 #include "part/rfs_dir.hpp"
 
-static dir_partition_t dir_partition_init(disk_t &disk, const partition_t *partition, const int verbose,
+static dir_partition_t dir_partition_init(disk_t &disk, const partition_t &partition, const int verbose,
                                           const int expert, dir_data_t *dir_data)
 {
     if (is_part_fat(partition))
@@ -64,7 +64,7 @@ static dir_partition_t dir_partition_init(disk_t &disk, const partition_t *parti
         if (dir_partition_reiser_init(disk, partition, dir_data, verbose) == DIR_PART_OK)
             return DIR_PART_OK;
     }
-    switch (partition->upart_type)
+    switch (partition.upart_type)
     {
     case UP_FAT12:
     case UP_FAT16:
@@ -87,7 +87,7 @@ static dir_partition_t dir_partition_init(disk_t &disk, const partition_t *parti
     }
 }
 
-dir_partition_t dir_partition(disk_t &disk, const partition_t *partition, const int verbose, const int expert,
+dir_partition_t dir_partition(disk_t &disk, const partition_t &partition, const int verbose, const int expert,
                               char **current_cmd)
 {
     dir_data_t dir_data;

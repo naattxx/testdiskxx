@@ -36,6 +36,6 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-int is_part_linux(const partition_t *partition);
+int is_part_linux(const partition_t &partition);
 
 #endif

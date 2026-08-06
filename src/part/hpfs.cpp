@@ -35,12 +35,12 @@
 #include "src/log.hpp"
 #include "src/log_part.hpp"
 
-static void set_HPFS_info(partition_t *partition)
+static void set_HPFS_info(partition_t &partition)
 {
-    partition->upart_type = UP_HPFS;
+    partition.upart_type = UP_HPFS;
 }
 
-static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, const partition_t *partition,
+static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, const partition_t &partition,
                      const int verbose, const int dump_ind)
 {
     const char *buffer = (const char *)hpfs_header;
@@ -52,9 +52,9 @@ static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_
            */
             if (verbose || dump_ind)
             {
-                log_info("\nHPFS maybe at %u/%u/%u\n", offset2cylinder(disk_car, partition->part_offset),
-                         offset2head(disk_car, partition->part_offset),
-                         offset2sector(disk_car, partition->part_offset));
+                log_info("\nHPFS maybe at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                         offset2head(disk_car, partition.part_offset),
+                         offset2sector(disk_car, partition.part_offset));
             }
             if (dump_ind != 0)
                 ; // dump_log(buffer, DEFAULT_SECTOR_SIZE);
@@ -64,26 +64,26 @@ static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_
     return 1;
 }
 
-int recover_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, partition_t *partition,
+int recover_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, partition_t &partition,
                  const int verbose)
 {
     if (test_HPFS(disk_car, hpfs_header, partition, verbose, 0) != 0)
         return 1;
     set_HPFS_info(partition);
-    partition->part_type_i386 = P_HPFS;
-    partition->part_type_gpt = GPT_ENT_TYPE_MAC_HFS;
-    partition->fsname[0] = '\0';
-    partition->info[0] = '\0';
-    partition->part_size =
+    partition.part_type_i386 = P_HPFS;
+    partition.part_type_gpt = GPT_ENT_TYPE_MAC_HFS;
+    partition.fsname[0] = '\0';
+    partition.info[0] = '\0';
+    partition.part_size =
         (uint64_t)(fat_sectors(hpfs_header) > 0 ? fat_sectors(hpfs_header) : le32(hpfs_header->total_sect)) *
         fat_sector_size(hpfs_header);
     return 0;
 }
 
-int check_HPFS(disk_t &disk_car, partition_t *partition, const int verbose)
+int check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[disk_car.sector_size];
-    if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, partition->part_offset) !=
+    if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, partition.part_offset) !=
         disk_car.sector_size)
     {
         screen_buffer_add("check_HPFS: Read error\n");

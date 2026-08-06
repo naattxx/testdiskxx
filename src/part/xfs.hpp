@@ -42,7 +42,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_xfs(disk_t &disk_car, partition_t *partition, const int verbose);
+    int check_xfs(disk_t &disk_car, partition_t &partition, const int verbose);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -50,7 +50,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires separation: \separated(disk_car, sb, partition);
       @*/
-    int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t *partition, const int verbose,
+    int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t &partition, const int verbose,
                     const int dump_ind);
 
 #ifdef __cplusplus

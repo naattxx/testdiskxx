@@ -31,15 +31,15 @@
 #include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
-static void set_LVM_info(partition_t *partition)
+static void set_LVM_info(partition_t &partition)
 {
-    partition->upart_type = UP_LVM;
-    partition->fsname[0] = '\0';
-    partition->info[0] = '\0';
-    snprintf(partition->info, sizeof(partition->info), "LVM");
+    partition.upart_type = UP_LVM;
+    partition.fsname[0] = '\0';
+    partition.info[0] = '\0';
+    snprintf(partition.info, sizeof(partition.info), "LVM");
 }
 
-static int test_LVM(const disk_t &disk_car, const pv_disk_t *pv, const partition_t *partition, const int verbose,
+static int test_LVM(const disk_t &disk_car, const pv_disk_t *pv, const partition_t &partition, const int verbose,
                     const int dump_ind)
 {
     if ((memcmp((const char *)pv->id, LVM_ID, sizeof(pv->id)) == 0) &&
@@ -48,8 +48,8 @@ static int test_LVM(const disk_t &disk_car, const pv_disk_t *pv, const partition
         uint32_t size;
         if (verbose > 0 || dump_ind != 0)
         {
-            log_info("\nLVM magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition->part_offset),
-                     offset2head(disk_car, partition->part_offset), offset2sector(disk_car, partition->part_offset));
+            log_info("\nLVM magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                     offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         }
         if (dump_ind != 0)
         {
@@ -80,10 +80,10 @@ static int test_LVM(const disk_t &disk_car, const pv_disk_t *pv, const partition
     return 1;
 }
 
-int check_LVM(disk_t &disk_car, partition_t *partition, const int verbose)
+int check_LVM(disk_t &disk_car, partition_t &partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[LVM_PV_DISK_SIZE];
-    if (disk_car.pread(disk_car, buffer, LVM_PV_DISK_SIZE, partition->part_offset) != LVM_PV_DISK_SIZE)
+    if (disk_car.pread(disk_car, buffer, LVM_PV_DISK_SIZE, partition.part_offset) != LVM_PV_DISK_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -98,42 +98,42 @@ int check_LVM(disk_t &disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-int recover_LVM(const disk_t &disk_car, const pv_disk_t *pv, partition_t *partition, const int verbose,
+int recover_LVM(const disk_t &disk_car, const pv_disk_t *pv, partition_t &partition, const int verbose,
                 const int dump_ind)
 {
     if (test_LVM(disk_car, pv, partition, verbose, dump_ind) != 0)
         return 1;
     set_LVM_info(partition);
-    partition->part_type_i386 = P_LVM;
-    partition->part_type_sun = PSUN_LVM;
-    partition->part_type_gpt = GPT_ENT_TYPE_LINUX_LVM;
-    partition->part_size = (uint64_t)le32(pv->pv_size) * disk_car.sector_size;
+    partition.part_type_i386 = P_LVM;
+    partition.part_type_sun = PSUN_LVM;
+    partition.part_type_gpt = GPT_ENT_TYPE_LINUX_LVM;
+    partition.part_size = (uint64_t)le32(pv->pv_size) * disk_car.sector_size;
     /* pv_uuid is bigger than part_uuid */
-    guid_cpy(&partition->part_uuid, (const efi_guid_t *)&pv->pv_uuid);
+    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&pv->pv_uuid);
     if (verbose > 0)
     {
-        log_info("part_size %lu\n", (long unsigned)(partition->part_size / disk_car.sector_size));
+        log_info("part_size %lu\n", (long unsigned)(partition.part_size / disk_car.sector_size));
     }
     return 0;
 }
 
-static void set_LVM2_info(partition_t *partition)
+static void set_LVM2_info(partition_t &partition)
 {
-    partition->upart_type = UP_LVM2;
-    partition->fsname[0] = '\0';
-    partition->info[0] = '\0';
-    snprintf(partition->info, sizeof(partition->info), "LVM2");
+    partition.upart_type = UP_LVM2;
+    partition.fsname[0] = '\0';
+    partition.info[0] = '\0';
+    snprintf(partition.info, sizeof(partition.info), "LVM2");
 }
 
-static int test_LVM2(const disk_t &disk_car, const struct lvm2_label_header *lh, const partition_t *partition,
+static int test_LVM2(const disk_t &disk_car, const struct lvm2_label_header *lh, const partition_t &partition,
                      const int verbose, const int dump_ind)
 {
     if (memcmp((const char *)lh->type, LVM2_LABEL, sizeof(lh->type)) == 0)
     {
         if (verbose > 0 || dump_ind != 0)
         {
-            log_info("\nLVM2 magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition->part_offset),
-                     offset2head(disk_car, partition->part_offset), offset2sector(disk_car, partition->part_offset));
+            log_info("\nLVM2 magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                     offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         }
         if (le32(lh->offset_xl) > 400)
             return 1;
@@ -147,10 +147,10 @@ static int test_LVM2(const disk_t &disk_car, const struct lvm2_label_header *lh,
     return 1;
 }
 
-int check_LVM2(disk_t &disk_car, partition_t *partition, const int verbose)
+int check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset + 0x200) != DEFAULT_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset + 0x200) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -165,24 +165,24 @@ int check_LVM2(disk_t &disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-int recover_LVM2(const disk_t &disk_car, const unsigned char *buf, partition_t *partition, const int verbose,
+int recover_LVM2(const disk_t &disk_car, const unsigned char *buf, partition_t &partition, const int verbose,
                  const int dump_ind)
 {
     const struct lvm2_label_header *lh = (const struct lvm2_label_header *)buf;
     if (test_LVM2(disk_car, lh, partition, verbose, dump_ind) != 0)
         return 1;
     set_LVM2_info(partition);
-    partition->part_type_i386 = P_LVM;
-    partition->part_type_sun = PSUN_LVM;
-    partition->part_type_gpt = GPT_ENT_TYPE_LINUX_LVM;
+    partition.part_type_i386 = P_LVM;
+    partition.part_type_sun = PSUN_LVM;
+    partition.part_type_gpt = GPT_ENT_TYPE_LINUX_LVM;
     {
         const struct lvm2_pv_header *pvhdr;
         pvhdr = (const struct lvm2_pv_header *)(buf + le32(lh->offset_xl));
-        partition->part_size = le64(pvhdr->device_size_xl);
+        partition.part_size = le64(pvhdr->device_size_xl);
     }
     if (verbose > 0)
     {
-        log_info("part_size %lu\n", (long unsigned)(partition->part_size / disk_car.sector_size));
+        log_info("part_size %lu\n", (long unsigned)(partition.part_size / disk_car.sector_size));
     }
     return 0;
 }

@@ -33,23 +33,23 @@
 
 static int test_btrfs(const struct btrfs_super_block *sb);
 
-static void set_btrfs_info(const struct btrfs_super_block *sb, partition_t *partition)
+static void set_btrfs_info(const struct btrfs_super_block *sb, partition_t &partition)
 {
-    partition->upart_type = UP_BTRFS;
-    partition->blocksize = le32(sb->dev_item.sector_size);
-    partition->set_name(sb->label, sizeof(sb->label));
-    snprintf(partition->info, sizeof(partition->info), "btrfs blocksize=%u", partition->blocksize);
-    if (le64(sb->bytenr) != partition->part_offset + BTRFS_SUPER_INFO_OFFSET)
+    partition.upart_type = UP_BTRFS;
+    partition.blocksize = le32(sb->dev_item.sector_size);
+    partition.set_name(sb->label, sizeof(sb->label));
+    snprintf(partition.info, sizeof(partition.info), "btrfs blocksize=%u", partition.blocksize);
+    if (le64(sb->bytenr) != partition.part_offset + BTRFS_SUPER_INFO_OFFSET)
     {
-        strcat(partition->info, " Backup superblock");
+        strcat(partition.info, " Backup superblock");
     }
     /* last mounted => date */
 }
 
-int check_btrfs(disk_t &disk_car, partition_t *partition)
+int check_btrfs(disk_t &disk_car, partition_t &partition)
 {
     unsigned char *buffer = new unsigned char[BTRFS_SUPER_INFO_SIZE];
-    if (disk_car.pread(disk_car, buffer, BTRFS_SUPER_INFO_SIZE, partition->part_offset + BTRFS_SUPER_INFO_OFFSET) !=
+    if (disk_car.pread(disk_car, buffer, BTRFS_SUPER_INFO_SIZE, partition.part_offset + BTRFS_SUPER_INFO_OFFSET) !=
         BTRFS_SUPER_INFO_SIZE)
     {
         delete[] (buffer);
@@ -69,40 +69,37 @@ int check_btrfs(disk_t &disk_car, partition_t *partition)
 Primary superblock is at 1024 (SUPERBLOCK_OFFSET)
 Group 0 begin at s_first_data_block
 */
-int recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb, partition_t *partition, const int verbose,
+int recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb, partition_t &partition, const int verbose,
                   const int dump_ind)
 {
     if (test_btrfs(sb) != 0)
         return 1;
     if (dump_ind != 0)
     {
-        if (partition != NULL /*&& disk != NULL*/)
-            log_info("\nbtrfs magic value at %u/%u/%u\n", offset2cylinder(disk, partition->part_offset),
-                     offset2head(disk, partition->part_offset), offset2sector(disk, partition->part_offset));
+        log_info("\nbtrfs magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+                    offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         ; // dump_log(sb, BTRFS_SUPER_INFO_SIZE);
     }
-    if (partition == NULL)
-        return 0;
     set_btrfs_info(sb, partition);
-    partition->part_type_i386 = P_LINUX;
-    partition->part_type_mac = PMAC_LINUX;
-    partition->part_type_sun = PSUN_LINUX;
-    partition->part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
-    partition->part_size = (uint64_t)le64(sb->dev_item.total_bytes);
-    guid_cpy(&partition->part_uuid, (const efi_guid_t *)&sb->fsid);
+    partition.part_type_i386 = P_LINUX;
+    partition.part_type_mac = PMAC_LINUX;
+    partition.part_type_sun = PSUN_LINUX;
+    partition.part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
+    partition.part_size = (uint64_t)le64(sb->dev_item.total_bytes);
+    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&sb->fsid);
     if (verbose > 0)
     {
         log_info("\n");
     }
-    partition->sborg_offset = BTRFS_SUPER_INFO_OFFSET;
-    partition->sb_size = BTRFS_SUPER_INFO_SIZE;
+    partition.sborg_offset = BTRFS_SUPER_INFO_OFFSET;
+    partition.sb_size = BTRFS_SUPER_INFO_SIZE;
     if (verbose > 0)
     {
         // if (disk == NULL)
         //     log_info("recover_btrfs: part_size %lu\n",
-        //              (long unsigned)(partition->part_size / le32(sb->dev_item.sector_size)));
+        //              (long unsigned)(partition.part_size / le32(sb->dev_item.sector_size)));
         // else
-            log_info("recover_btrfs: part_size %lu\n", (long unsigned)(partition->part_size / disk.sector_size));
+            log_info("recover_btrfs: part_size %lu\n", (long unsigned)(partition.part_size / disk.sector_size));
     }
     return 0;
 }

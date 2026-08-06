@@ -36,10 +36,10 @@ static int test_netware(const struct disk_netware *netware_block)
     return 1;
 }
 
-int check_netware(disk_t &disk_car, partition_t *partition)
+int check_netware(disk_t &disk_car, partition_t &partition)
 {
     unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -49,19 +49,19 @@ int check_netware(disk_t &disk_car, partition_t *partition)
         delete[] (buffer);
         return 1;
     }
-    partition->upart_type = UP_NETWARE;
+    partition.upart_type = UP_NETWARE;
     delete[] (buffer);
     return 0;
 }
 
-int recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t *partition)
+int recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t &partition)
 {
     if (test_netware(netware_block) != 0)
         return 1;
-    partition->upart_type = UP_NETWARE;
-    partition->part_type_i386 = P_NETWARE;
-    partition->part_size = (uint64_t)le32(netware_block->nbr_sectors) * disk_car.sector_size;
-    partition->fsname[0] = '\0';
-    partition->info[0] = '\0';
+    partition.upart_type = UP_NETWARE;
+    partition.part_type_i386 = P_NETWARE;
+    partition.part_size = (uint64_t)le32(netware_block->nbr_sectors) * disk_car.sector_size;
+    partition.fsname[0] = '\0';
+    partition.info[0] = '\0';
     return 0;
 }

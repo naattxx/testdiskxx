@@ -456,7 +456,7 @@ enum class UNIT
 typedef struct param_disk_struct disk_t;
 typedef struct partition_struct partition_t;
 /*@
-    predicate valid_partition(partition_t *part) = (\valid_read(part));
+    predicate valid_partition(partition_t &part) = (\valid_read(part));
   @*/
 
 typedef struct CHS_struct CHS_t;
@@ -475,7 +475,7 @@ struct CHS_struct
     unsigned int sector;
 };
 
-typedef std::list<partition_t *> list_part_t;
+typedef std::list<partition_t> list_part_t;
 
 /*@
 inductive valid_list_part{L} (list_part_t *list)
@@ -517,17 +517,17 @@ struct arch_fnct_struct
     void (*init_part_order)(const disk_t &disk, list_part_t &list_part);
     /* geometry must be initialized to 0,0,0 in get_geometry_from_mbr()*/
     int (*get_geometry_from_mbr)(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry);
-    int (*check_part)(disk_t &disk, const int verbose, partition_t *partition, const int saveheader);
+    int (*check_part)(disk_t &disk, const int verbose, partition_t &partition, const int saveheader);
     int (*write_MBR_code)(disk_t &disk);
-    void (*set_prev_status)(const disk_t &disk, partition_t *partition);
-    void (*set_next_status)(const disk_t &disk, partition_t *partition);
+    void (*set_prev_status)(const disk_t &disk, partition_t &partition);
+    void (*set_next_status)(const disk_t &disk, partition_t &partition);
     int (*test_structure)(const list_part_t &list_part);
-    unsigned int (*get_part_type)(const partition_t *partition);
-    int (*set_part_type)(partition_t *partition, unsigned int part_type);
+    unsigned int (*get_part_type)(const partition_t &partition);
+    int (*set_part_type)(partition_t &partition, unsigned int part_type);
     void (*init_structure)(const disk_t &disk, list_part_t &list_part, const int verbose);
     int (*erase_list_part)(disk_t &disk);
-    const char *(*get_partition_typename)(const partition_t *partition);
-    int (*is_part_known)(const partition_t *partition);
+    const char *(*get_partition_typename)(const partition_t &partition);
+    int (*is_part_known)(const partition_t &partition);
 };
 
 typedef struct arch_fnct_struct arch_fnct_t;
@@ -639,7 +639,7 @@ struct partition_struct
     /* NTFS => utils_cluster_in_use */
     /* ext2/ext3/ext4 */
 #if 0
-  int (*is_allocated)(disk_t &disk, const partition_t *partition, const uint64_t offset);
+  int (*is_allocated)(disk_t &disk, const partition_t &partition, const uint64_t offset);
   void *free_is_allocated(void);
 #endif
 };
@@ -648,7 +648,7 @@ typedef struct my_data_struct my_data_t;
 struct my_data_struct
 {
     disk_t *disk_car;
-    const partition_t *partition;
+    partition_t partition;
     uint64_t offset;
 };
 

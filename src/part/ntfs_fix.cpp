@@ -45,7 +45,7 @@
 #define INTER_MFT_X 0
 #define INTER_MFT_Y 18
 
-int repair_MFT(disk_t &disk_car, partition_t *partition, const int verbose, const unsigned int expert,
+int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int expert,
                char **current_cmd)
 {
     struct ntfs_boot_sector *ntfs_header;
@@ -67,17 +67,17 @@ int repair_MFT(disk_t &disk_car, partition_t *partition, const int verbose, cons
         return -1;
     }
     ntfs_header = (struct ntfs_boot_sector *)new unsigned char[DEFAULT_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, ntfs_header, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, ntfs_header, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (ntfs_header);
         ; // display_message("Can't read NTFS boot sector.\n");
         return -1;
     }
-    mft_pos = partition->part_offset +
+    mft_pos = partition.part_offset +
               (uint64_t)(le16(ntfs_header->reserved) + le64(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
                   ntfs_sector_size(ntfs_header);
     mftmirr_pos =
-        partition->part_offset +
+        partition.part_offset +
         (uint64_t)(le16(ntfs_header->reserved) + le64(ntfs_header->mftmirr_lcn) * ntfs_header->sectors_per_cluster) *
             ntfs_sector_size(ntfs_header);
     if (ntfs_header->clusters_per_mft_record > 0)
@@ -142,7 +142,7 @@ int repair_MFT(disk_t &disk_car, partition_t *partition, const int verbose, cons
         delete[] (ntfs_header);
         return 0;
     }
-    if (partition->sb_offset != 0)
+    if (partition.sb_offset != 0)
     {
         log_info("Please quit TestDisk and reboot your computer before trying to fix the MFT.\n");
         ; // display_message("Please quit TestDisk and reboot your computer before trying to fix the MFT.\n");

@@ -35,7 +35,7 @@
 
 /* Using a couple of inodes of "." directory entries, get the cluster size and where the first cluster begins.
  * */
-int find_sectors_per_cluster(disk_t &disk_car, const partition_t *partition, const int verbose, const int dump_ind,
+int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, const int verbose, const int dump_ind,
                              unsigned int *sectors_per_cluster, uint64_t *offset_org, const upart_type_t upart_type)
 {
     unsigned int nbr_subdir = 0;
@@ -51,7 +51,7 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t *partition, con
     wattroff(stdscr, A_REVERSE);
 #endif
     /* 2 fats, maximum cluster size=128 */
-    skip_offset = (uint64_t)((partition->part_size - 32 * disk_car.sector_size) / disk_car.sector_size / 128 * 3 / 2 /
+    skip_offset = (uint64_t)((partition.part_size - 32 * disk_car.sector_size) / disk_car.sector_size / 128 * 3 / 2 /
                              disk_car.sector_size * 2) *
                   disk_car.sector_size;
     if (verbose > 0)
@@ -60,7 +60,7 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t *partition, con
         // (unsigned long)(skip_offset/disk_car.sector_size),
         // (unsigned long)skip_offset);
     }
-    for (offset = skip_offset; offset < partition->part_size && !ind_stop && nbr_subdir < 10;
+    for (offset = skip_offset; offset < partition.part_size && !ind_stop && nbr_subdir < 10;
          offset += disk_car.sector_size)
     {
 #ifdef HAVE_NCURSES
@@ -69,12 +69,12 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t *partition, con
             wmove(stdscr, 9, 0);
             wclrtoeol(stdscr);
             wprintw(stdscr, "Search subdirectory %10lu/%lu %u", (unsigned long)(offset / disk_car.sector_size),
-                    (unsigned long)(partition->part_size / disk_car.sector_size), nbr_subdir);
+                    (unsigned long)(partition.part_size / disk_car.sector_size), nbr_subdir);
             wrefresh(stdscr);
             ind_stop |= check_enter_key_or_s(stdscr);
         }
 #endif
-        if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, partition->part_offset + offset) ==
+        if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, partition.part_offset + offset) ==
             disk_car.sector_size)
         {
             if (buffer[0] == '.' && is_fat_directory(buffer))
@@ -93,7 +93,7 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t *partition, con
     }
     delete[] (buffer);
     return find_sectors_per_cluster_aux(sector_cluster, nbr_subdir, sectors_per_cluster, offset_org, verbose,
-                                        partition->part_size / disk_car.sector_size, upart_type);
+                                        partition.part_size / disk_car.sector_size, upart_type);
 }
 
 int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const unsigned int nbr_sector_cluster,

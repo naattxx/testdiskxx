@@ -7,7 +7,7 @@
   @ requires valid_disk(disk);
   @ requires \valid_read(partition);
   @*/
-void log_partition(const disk_t &disk, const partition_t *partition);
+void log_partition(const disk_t &disk, const partition_t &partition);
 
 /*@
   @ requires \valid_read(disk);

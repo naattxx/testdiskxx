@@ -49,7 +49,7 @@ extern const arch_fnct_t arch_i386;
   @ requires valid_partition(partition);
   @ requires \separated(disk_car, ntfs_header, partition);
   @*/
-static void set_NTFS_info(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, partition_t *partition);
+static void set_NTFS_info(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, partition_t &partition);
 
 /*@
   @ requires \valid(disk_car);
@@ -60,18 +60,18 @@ static void set_NTFS_info(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_
   @ requires \separated(disk_car, partition, ntfs_header);
   @ decreases 0;
   @*/
-static void ntfs_get_volume_name(disk_t &disk_car, partition_t *partition, const struct ntfs_boot_sector *ntfs_header);
+static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition, const struct ntfs_boot_sector *ntfs_header);
 
 unsigned int ntfs_sector_size(const struct ntfs_boot_sector *ntfs_header)
 {
     return (ntfs_header->sector_size[1] << 8) + ntfs_header->sector_size[0];
 }
 
-int check_NTFS(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind)
+int check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind)
 {
     unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-    /*  log_trace("check_NTFS part_offset=%llu\n",(long long unsigned)partition->part_offset); */
-    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition->part_offset) != DEFAULT_SECTOR_SIZE)
+    /*  log_trace("check_NTFS part_offset=%llu\n",(long long unsigned)partition.part_offset); */
+    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -86,7 +86,7 @@ int check_NTFS(disk_t &disk_car, partition_t *partition, const int verbose, cons
     return 0;
 }
 
-int recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, partition_t *partition,
+int recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, partition_t &partition,
                  const int verbose, const int dump_ind, const int backup)
 {
     uint64_t part_size;
@@ -97,47 +97,47 @@ int recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, p
         log_ntfs_info(ntfs_header);
     }
     part_size = (uint64_t)(le64(ntfs_header->sectors_nbr) + 1) * ntfs_sector_size(ntfs_header);
-    partition->sborg_offset = 0;
-    partition->sb_size = 512;
+    partition.sborg_offset = 0;
+    partition.sb_size = 512;
     if (backup > 0)
     {
-        if (partition->part_offset + disk_car.sector_size < part_size)
+        if (partition.part_offset + disk_car.sector_size < part_size)
         {
             log_warning("NTFS part_offset=%llu, part_size=%llu, sector_size=%u\n",
-                        (long long unsigned)partition->part_offset, (long long unsigned)part_size,
+                        (long long unsigned)partition.part_offset, (long long unsigned)part_size,
                         disk_car.sector_size);
             log_warning("NTFS partition cannot be added (part_offset<part_size).\n");
             return 1;
         }
         if (verbose > 1)
             log_info("NTFS part_offset=%llu, part_size=%llu, sector_size=%u\n",
-                     (long long unsigned)partition->part_offset, (long long unsigned)part_size, disk_car.sector_size);
-        partition->sb_offset = part_size - disk_car.sector_size;
-        partition->part_offset -= partition->sb_offset;
+                     (long long unsigned)partition.part_offset, (long long unsigned)part_size, disk_car.sector_size);
+        partition.sb_offset = part_size - disk_car.sector_size;
+        partition.part_offset -= partition.sb_offset;
         if (verbose > 1)
-            log_info("part_offset=%llu\n", (long long unsigned)partition->part_offset);
+            log_info("part_offset=%llu\n", (long long unsigned)partition.part_offset);
     }
-    partition->part_size = part_size;
-    partition->part_type_i386 = P_NTFS;
-    partition->part_type_gpt = GPT_ENT_TYPE_MS_BASIC_DATA;
+    partition.part_size = part_size;
+    partition.part_type_i386 = P_NTFS;
+    partition.part_type_gpt = GPT_ENT_TYPE_MS_BASIC_DATA;
     set_NTFS_info(disk_car, ntfs_header, partition);
     return 0;
 }
 
-static void set_NTFS_info(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, partition_t *partition)
+static void set_NTFS_info(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, partition_t &partition)
 {
-    partition->upart_type = UP_NTFS;
-    partition->fsname[0] = '\0';
-    partition->blocksize = ntfs_header->sectors_per_cluster * ntfs_sector_size(ntfs_header);
-    if (partition->sb_offset == 0)
-        snprintf(partition->info, sizeof(partition->info), "NTFS, blocksize=%u", partition->blocksize);
+    partition.upart_type = UP_NTFS;
+    partition.fsname[0] = '\0';
+    partition.blocksize = ntfs_header->sectors_per_cluster * ntfs_sector_size(ntfs_header);
+    if (partition.sb_offset == 0)
+        snprintf(partition.info, sizeof(partition.info), "NTFS, blocksize=%u", partition.blocksize);
     else
-        snprintf(partition->info, sizeof(partition->info), "NTFS found using backup sector, blocksize=%u",
-                 partition->blocksize);
+        snprintf(partition.info, sizeof(partition.info), "NTFS found using backup sector, blocksize=%u",
+                 partition.blocksize);
     ntfs_get_volume_name(disk_car, partition, ntfs_header);
 }
 
-int test_NTFS(const disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, const partition_t *partition,
+int test_NTFS(const disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, const partition_t &partition,
               const int verbose, const int dump_ind)
 {
     if (le16(ntfs_header->marker) != 0xAA55 || le16(ntfs_header->reserved) > 0 || ntfs_header->fats > 0 ||
@@ -161,8 +161,8 @@ int test_NTFS(const disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header
     }
     if (verbose > 0 || dump_ind != 0)
     {
-        log_info("NTFS at %u/%u/%u\n", offset2cylinder(disk_car, partition->part_offset),
-                 offset2head(disk_car, partition->part_offset), offset2sector(disk_car, partition->part_offset));
+        log_info("NTFS at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                 offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     }
     if (le16(ntfs_header->heads) != disk_car.geom.heads_per_cylinder)
     {
@@ -186,23 +186,23 @@ int test_NTFS(const disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header
                     ntfs_sector_size(ntfs_header), disk_car.sector_size);
     }
 
-    if (partition->part_size > 0)
+    if (partition.part_size > 0)
     {
         uint64_t part_size;
         part_size = le64(ntfs_header->sectors_nbr) + 1;
 
-        if (part_size * ntfs_sector_size(ntfs_header) > partition->part_size)
+        if (part_size * ntfs_sector_size(ntfs_header) > partition.part_size)
         {
             screen_buffer_add("Error: size boot_sector %lu > partition %lu\n", (long unsigned)part_size,
-                              (long unsigned)(partition->part_size / disk_car.sector_size));
+                              (long unsigned)(partition.part_size / disk_car.sector_size));
             log_error("Error: size boot_sector %lu > partition %lu\n", (long unsigned)part_size,
-                      (long unsigned)(partition->part_size / disk_car.sector_size));
+                      (long unsigned)(partition.part_size / disk_car.sector_size));
             return 1;
         }
-        if (verbose > 0 && (part_size != partition->part_size / disk_car.sector_size))
+        if (verbose > 0 && (part_size != partition.part_size / disk_car.sector_size))
         {
             log_info("Info: size boot_sector %lu, partition %lu\n", (long unsigned)part_size,
-                     (long unsigned)(partition->part_size / disk_car.sector_size));
+                     (long unsigned)(partition.part_size / disk_car.sector_size));
         }
     }
     return 0;
@@ -330,18 +330,18 @@ long int ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr, const c
     }
 }
 
-static void ntfs_get_volume_name(disk_t &disk_car, partition_t *partition, const struct ntfs_boot_sector *ntfs_header)
+static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition, const struct ntfs_boot_sector *ntfs_header)
 {
     unsigned char *buffer;
     uint64_t mft_pos;
     unsigned int mft_record_size;
-    partition->fsname[0] = '\0';
+    partition.fsname[0] = '\0';
     if (ntfs_header->clusters_per_mft_record > 0)
         mft_record_size =
             ntfs_header->clusters_per_mft_record * ntfs_header->sectors_per_cluster * ntfs_sector_size(ntfs_header);
     else
         mft_record_size = 1 << (-ntfs_header->clusters_per_mft_record);
-    mft_pos = partition->part_offset +
+    mft_pos = partition.part_offset +
               (uint64_t)(le16(ntfs_header->reserved) + le64(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
                   ntfs_sector_size(ntfs_header);
     /* Record 3 = $Volume */
@@ -373,15 +373,15 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t *partition, const
             const char *name_it;
             unsigned int volume_name_length = le32(attrib->cbAttribData);
             volume_name_length /= 2; /* Unicode */
-            if (volume_name_length > sizeof(partition->fsname) - 1)
-                volume_name_length = sizeof(partition->fsname) - 1;
+            if (volume_name_length > sizeof(partition.fsname) - 1)
+                volume_name_length = sizeof(partition.fsname) - 1;
             name_it = ntfs_getattributedata(attrib, (char *)(buffer + mft_record_size));
             if (name_it == NULL)
             {
                 delete[] (buffer);
                 return;
             }
-            for (dest = partition->fsname; volume_name_length > 0 && *name_it != '\0' && name_it[1] == '\0';
+            for (dest = partition.fsname; volume_name_length > 0 && *name_it != '\0' && name_it[1] == '\0';
                  name_it += 2, volume_name_length--)
                 *dest++ = *name_it;
             *dest = '\0'; /* 27 january 2003: Correct a bug found by Andreas du Plessis-Denz */
@@ -391,12 +391,12 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t *partition, const
     return;
 }
 
-int is_part_ntfs(const partition_t *partition)
+int is_part_ntfs(const partition_t &partition)
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
-    if (partition->arch == &arch_i386)
+    if (partition.arch == &arch_i386)
     {
-        switch (partition->part_type_i386)
+        switch (partition.part_type_i386)
         {
         case P_NTFS:
         case P_NTFSH:
@@ -409,9 +409,9 @@ int is_part_ntfs(const partition_t *partition)
     return 0;
 }
 
-int is_ntfs(const partition_t *partition)
+int is_ntfs(const partition_t &partition)
 {
-    return (is_part_ntfs(partition) || partition->upart_type == UP_NTFS);
+    return (is_part_ntfs(partition) || partition.upart_type == UP_NTFS);
 }
 
 int log_ntfs_info(const struct ntfs_boot_sector *ntfs_header)

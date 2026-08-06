@@ -73,7 +73,7 @@ static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int
 static errcode_t my_write_blk64(io_channel channel, unsigned long long block, int count, const void *buf);
 
 static void dir_partition_ext2_close(dir_data_t *dir_data);
-static copy_file_t ext2_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                              const file_info_t *file);
 
 static struct struct_io_manager my_struct_manager = {
@@ -122,7 +122,7 @@ static io_channel alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
     memset(ioch, 0, sizeof(struct struct_io_channel));
     ioch->magic = EXT2_ET_MAGIC_IO_CHANNEL;
     ioch->manager = &my_struct_manager;
-    ioch->name = strdup(my_data->partition->fsname);
+    ioch->name = strdup(my_data->partition.fsname);
     if (ioch->name == NULL)
     {
         delete (ioch);
@@ -176,10 +176,10 @@ static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int
     size = (count < 0) ? -count : count * channel->block_size;
 #ifdef DEBUG_EXT2
     log_info("my_read_blk start size=%lu, offset=%lu name=%s, block=%lu, count=%d, buf=%p\n", (long unsigned)size,
-             (unsigned long)(block * channel->block_size), my_data->partition->fsname, block, count, buf);
+             (unsigned long)(block * channel->block_size), my_data->partition.fsname, block, count, buf);
 #endif
     if (my_data->disk_car->pread(*my_data->disk_car, buf, size,
-                                 my_data->partition->part_offset + (uint64_t)block * channel->block_size) != size)
+                                 my_data->partition.part_offset + (uint64_t)block * channel->block_size) != size)
         return 1;
 #ifdef DEBUG_EXT2
     log_info("my_read_blk done\n");
@@ -199,7 +199,7 @@ static errcode_t my_write_blk64(io_channel channel, unsigned long long block, in
     {
         const my_data_t *my_data = (const my_data_t *)channel;
         if (my_data->disk_car->pwrite(*my_data->disk_car, buf, count * channel->block_size,
-                                      my_data->partition->part_offset + (uint64_t)block * channel->block_size) !=
+                                      my_data->partition.part_offset + (uint64_t)block * channel->block_size) !=
             count * channel->block_size)
             return 1;
         return 0;
@@ -266,7 +266,7 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     return 0;
 }
 
-static int ext2_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+static int ext2_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                     const unsigned long int cluster, dir_list_t &dir_list)
 {
     errcode_t retval;
@@ -288,7 +288,7 @@ static void dir_partition_ext2_close(dir_data_t *dir_data)
     delete (ls);
 }
 
-static copy_file_t ext2_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                              const file_info_t *file)
 {
     copy_file_t error = CP_OK;
@@ -357,7 +357,7 @@ static copy_file_t ext2_copy(disk_t &disk_car, const partition_t *partition, dir
 }
 #endif
 
-dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                                         const int verbose)
 {
 #if defined(HAVE_LIBEXT2FS)

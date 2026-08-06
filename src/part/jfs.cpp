@@ -31,20 +31,20 @@
 #include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
-static void set_JFS_info(const struct jfs_superblock *sb, partition_t *partition)
+static void set_JFS_info(const struct jfs_superblock *sb, partition_t &partition)
 {
-    partition->upart_type = UP_JFS;
-    partition->blocksize = le32(sb->s_bsize);
-    snprintf(partition->info, sizeof(partition->info), "JFS %u, blocksize=%u", (unsigned int)le32(sb->s_version),
-             partition->blocksize);
-    partition->fsname[0] = '\0';
+    partition.upart_type = UP_JFS;
+    partition.blocksize = le32(sb->s_bsize);
+    snprintf(partition.info, sizeof(partition.info), "JFS %u, blocksize=%u", (unsigned int)le32(sb->s_version),
+             partition.blocksize);
+    partition.fsname[0] = '\0';
     if (le32(sb->s_version) == 1)
     {
-        partition->set_name(sb->s_fpack, 11);
+        partition.set_name(sb->s_fpack, 11);
     }
 }
 
-static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, const partition_t *partition,
+static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, const partition_t &partition,
                     const int dump_ind)
 {
     if (memcmp(sb->s_magic, "JFS1", 4) != 0)
@@ -54,8 +54,8 @@ static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, con
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nJFS magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition->part_offset),
-                 offset2head(disk_car, partition->part_offset), offset2sector(disk_car, partition->part_offset));
+        log_info("\nJFS magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                 offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         /* There is a little offset ... */
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }
@@ -63,16 +63,16 @@ static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, con
     if( le32(sb->s_agsize) >= (1 << L2BPERDMAP) ) {
       return 2;
     }
-    if(partition->part_size!=0 && (partition->part_size<le64(sb->s_size)))
+    if(partition.part_size!=0 && (partition.part_size<le64(sb->s_size)))
       return 8;
       */
     return 0;
 }
 
-int check_JFS(disk_t &disk_car, partition_t *partition)
+int check_JFS(disk_t &disk_car, partition_t &partition)
 {
     unsigned char *buffer = new unsigned char[JFS_SUPERBLOCK_SIZE];
-    if (disk_car.pread(disk_car, buffer, JFS_SUPERBLOCK_SIZE, partition->part_offset + 64 * 512) !=
+    if (disk_car.pread(disk_car, buffer, JFS_SUPERBLOCK_SIZE, partition.part_offset + 64 * 512) !=
         JFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
@@ -91,30 +91,30 @@ int check_JFS(disk_t &disk_car, partition_t *partition)
 /*
 Primary superblock is at 0x8000
 */
-int recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partition_t *partition, const int verbose,
+int recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partition_t &partition, const int verbose,
                 const int dump_ind)
 {
     if (test_JFS(disk_car, sb, partition, dump_ind) != 0)
         return 1;
     set_JFS_info(sb, partition);
-    partition->part_type_i386 = P_LINUX;
-    partition->part_type_sun = PSUN_LINUX;
-    partition->part_type_mac = PMAC_LINUX;
-    partition->part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
-    partition->part_size = (uint64_t)le32(sb->s_pbsize) * le64(sb->s_size) +
+    partition.part_type_i386 = P_LINUX;
+    partition.part_type_sun = PSUN_LINUX;
+    partition.part_type_mac = PMAC_LINUX;
+    partition.part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
+    partition.part_size = (uint64_t)le32(sb->s_pbsize) * le64(sb->s_size) +
                            (uint64_t)le32(sb->s_bsize) * (le24(sb->s_fsckpxd.len) + le24(sb->s_logpxd.len));
-    partition->sborg_offset = 64 * 512;
-    partition->sb_size = JFS_SUPERBLOCK_SIZE;
-    partition->sb_offset = 0;
-    guid_cpy(&partition->part_uuid, (const efi_guid_t *)&sb->s_uuid);
+    partition.sborg_offset = 64 * 512;
+    partition.sb_size = JFS_SUPERBLOCK_SIZE;
+    partition.sb_offset = 0;
+    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&sb->s_uuid);
     if (verbose > 0)
     {
         log_info("\n");
-        log_info("recover_JFS: s_blocksize=%u\n", partition->blocksize);
+        log_info("recover_JFS: s_blocksize=%u\n", partition.blocksize);
         log_info("recover_JFS: s_size %lu\n", (long unsigned int)le64(sb->s_size));
         log_info("recover_JFS: s_fsckpxd.len:%d\n", (int)le24(sb->s_fsckpxd.len));
         log_info("recover_JFS: s_logpxd.len:%d\n", (int)le24(sb->s_logpxd.len));
-        log_info("recover_JFS: part_size %lu\n", (long unsigned)(partition->part_size / disk_car.sector_size));
+        log_info("recover_JFS: part_size %lu\n", (long unsigned)(partition.part_size / disk_car.sector_size));
     }
     return 0;
 }

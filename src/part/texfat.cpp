@@ -36,7 +36,7 @@
 #include "texfat.hpp"
 
 #ifdef HAVE_NCURSES
-static void exFAT_dump_ncurses(disk_t &disk, const partition_t *partition, const unsigned char *buffer_bs,
+static void exFAT_dump_ncurses(disk_t &disk, const partition_t &partition, const unsigned char *buffer_bs,
                                const unsigned char *buffer_backup_bs)
 {
     WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
@@ -56,7 +56,7 @@ static void exFAT_dump_ncurses(disk_t &disk, const partition_t *partition, const
 }
 #endif
 
-static void exFAT_dump(disk_t &disk, const partition_t *partition, const unsigned char *buffer_bs,
+static void exFAT_dump(disk_t &disk, const partition_t &partition, const unsigned char *buffer_bs,
                        const unsigned char *buffer_backup_bs, char **current_cmd)
 {
     log_info("Superblock                        Backup superblock\n");
@@ -89,7 +89,7 @@ static int exFAT_boot_sector_command(char **current_cmd, const char *options)
     return 0;
 }
 
-static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t *partition, unsigned char *buffer_bs,
+static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t &partition, unsigned char *buffer_bs,
                                             unsigned char *buffer_backup_bs)
 {
     const int size_bs = 12 * disk.sector_size;
@@ -106,7 +106,7 @@ static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t *par
     log_info("\nexFAT_boot_sector\n");
     log_partition(disk, partition);
     screen_buffer_add("Boot sector\n");
-    if (disk.pread(disk, buffer_bs, size_bs, partition->part_offset) != size_bs)
+    if (disk.pread(disk, buffer_bs, size_bs, partition.part_offset) != size_bs)
     {
         screen_buffer_add("Bad: can't read exFAT boot record.\n");
         memset(buffer_bs, 0, size_bs);
@@ -119,7 +119,7 @@ static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t *par
     else
         screen_buffer_add("Bad\n");
     screen_buffer_add("\nBackup boot record\n");
-    if (disk.pread(disk, buffer_backup_bs, size_bs, partition->part_offset + size_bs) != size_bs)
+    if (disk.pread(disk, buffer_backup_bs, size_bs, partition.part_offset + size_bs) != size_bs)
     {
         screen_buffer_add("Bad: can't read exFAT backup boot record.\n");
         memset(buffer_backup_bs, 0, size_bs);
@@ -150,7 +150,7 @@ static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t *par
     return "D";
 }
 
-int exFAT_boot_sector(disk_t &disk, partition_t *partition, char **current_cmd)
+int exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd)
 {
     unsigned char *buffer_bs;
     unsigned char *buffer_backup_bs;
@@ -206,7 +206,7 @@ int exFAT_boot_sector(disk_t &disk, partition_t *partition, char **current_cmd)
 #endif
             {
                 log_info("copy original superblock over backup boot\n");
-                if (disk.pwrite(disk, buffer_bs, size_bs, partition->part_offset + size_bs) != size_bs)
+                if (disk.pwrite(disk, buffer_bs, size_bs, partition.part_offset + size_bs) != size_bs)
                 {
                     ; // display_message("Write error: Can't overwrite exFAT backup boot record\n");
                 }
@@ -221,8 +221,8 @@ int exFAT_boot_sector(disk_t &disk, partition_t *partition, char **current_cmd)
             {
                 log_info("copy backup superblock over main superblock\n");
                 /* Reset information about backup boot record */
-                partition->sb_offset = 0;
-                if (disk.pwrite(disk, buffer_backup_bs, size_bs, partition->part_offset) != size_bs)
+                partition.sb_offset = 0;
+                if (disk.pwrite(disk, buffer_backup_bs, size_bs, partition.part_offset) != size_bs)
                 {
                     ; // display_message("Write error: Can't overwrite exFAT main boot record\n");
                 }

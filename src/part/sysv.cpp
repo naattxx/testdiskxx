@@ -50,14 +50,14 @@
 #define SYSV4_MAGIC_4GB 0x05231994 /* fs > 4 GB && fs_featurebits */
 #define SYSV4_CIGAM_4GB 0x94192305
 
-static void set_sysv4_info(const struct sysv4_super_block *sbd, partition_t *partition);
-static int test_sysv4(const disk_t &disk_car, const struct sysv4_super_block *sbd, const partition_t *partition,
+static void set_sysv4_info(const struct sysv4_super_block *sbd, partition_t &partition);
+static int test_sysv4(const disk_t &disk_car, const struct sysv4_super_block *sbd, const partition_t &partition,
                       const int verbose);
 
-int check_sysv(disk_t &disk_car, partition_t *partition, const int verbose)
+int check_sysv(disk_t &disk_car, partition_t &partition, const int verbose)
 {
     unsigned char *buffer = new unsigned char[SYSV4_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, buffer, SYSV4_SECTOR_SIZE, partition->part_offset + 0x200) != SYSV4_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, buffer, SYSV4_SECTOR_SIZE, partition.part_offset + 0x200) != SYSV4_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -72,18 +72,18 @@ int check_sysv(disk_t &disk_car, partition_t *partition, const int verbose)
     return 1;
 }
 
-static int test_sysv4(const disk_t &disk_car, const struct sysv4_super_block *sbd, const partition_t *partition,
+static int test_sysv4(const disk_t &disk_car, const struct sysv4_super_block *sbd, const partition_t &partition,
                       const int verbose)
 {
     if ((unsigned)sbd->s_magic != le32(0xfd187e20) && (unsigned)sbd->s_magic != be32(0xfd187e20))
         return 1;
     if (verbose > 0)
-        log_info("\nSYSV4 Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition->part_offset),
-                 offset2head(disk_car, partition->part_offset), offset2sector(disk_car, partition->part_offset));
+        log_info("\nSYSV4 Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                 offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     return 0;
 }
 
-int recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd, partition_t *partition, const int verbose,
+int recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd, partition_t &partition, const int verbose,
                  const int dump_ind)
 {
     if (test_sysv4(disk_car, sbd, partition, verbose) != 0)
@@ -99,20 +99,20 @@ int recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd, pa
     switch ((unsigned)sbd->s_magic)
     {
     case le32(0xfd187e20):
-        partition->part_size = (uint64_t)le32(sbd->s_fsize) * (512 << (le32(sbd->s_type) - 1));
+        partition.part_size = (uint64_t)le32(sbd->s_fsize) * (512 << (le32(sbd->s_type) - 1));
         break;
     case be32(0xfd187e20):
-        partition->part_size = (uint64_t)be32(sbd->s_fsize) * (512 << (be32(sbd->s_type) - 1));
+        partition.part_size = (uint64_t)be32(sbd->s_fsize) * (512 << (be32(sbd->s_type) - 1));
         break;
     }
     set_sysv4_info(sbd, partition);
-    partition->part_type_i386 = P_SYSV;
+    partition.part_type_i386 = P_SYSV;
     return 0;
 }
 
-static void set_sysv4_info(const struct sysv4_super_block *sbd, partition_t *partition)
+static void set_sysv4_info(const struct sysv4_super_block *sbd, partition_t &partition)
 {
-    partition->upart_type = UP_SYSV4;
-    strncpy(partition->info, "SysV4", sizeof(partition->info));
-    partition->set_name(sbd->s_fname, sizeof(sbd->s_fname));
+    partition.upart_type = UP_SYSV4;
+    strncpy(partition.info, "SysV4", sizeof(partition.info));
+    partition.set_name(sbd->s_fname, sizeof(sbd->s_fname));
 }

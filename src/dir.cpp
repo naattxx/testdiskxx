@@ -212,7 +212,7 @@ int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
     return test_date;
 }
 
-void log_list_file(const disk_t &disk, const partition_t *partition, const dir_data_t *dir_data,
+void log_list_file(const disk_t &disk, const partition_t &partition, const dir_data_t *dir_data,
                    const dir_list_t &list)
 {
 #ifndef DISABLED_FOR_FRAMAC
@@ -286,7 +286,7 @@ static int is_inode_valid(const file_info_t *current_file, const unsigned int di
   @ requires \separated(disk, partition, dir_data);
   @ decreases 0;
   @*/
-static int dir_whole_partition_log_aux(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
+static int dir_whole_partition_log_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
                                        const unsigned long int inode)
 {
     static unsigned int dir_nbr = 0;
@@ -320,7 +320,7 @@ static int dir_whole_partition_log_aux(disk_t &disk, const partition_t *partitio
     return 0;
 }
 
-int dir_whole_partition_log(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
+int dir_whole_partition_log(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
                             const unsigned long int inode)
 {
     log_partition(disk, partition);
@@ -338,7 +338,7 @@ int dir_whole_partition_log(disk_t &disk, const partition_t *partition, dir_data
   @ requires \separated(disk, partition, dir_data, copy_ok, copy_bad);
   @ decreases 0;
   @*/
-static int dir_whole_partition_copy_aux(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
+static int dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
                                         const unsigned long int inode, unsigned int *copy_ok, unsigned int *copy_bad)
 {
     static unsigned int dir_nbr = 0;
@@ -381,7 +381,7 @@ static int dir_whole_partition_copy_aux(disk_t &disk, const partition_t *partiti
     return 0;
 }
 
-void dir_whole_partition_copy(disk_t &disk, const partition_t *partition, dir_data_t *dir_data,
+void dir_whole_partition_copy(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
                               const unsigned long int inode)
 {
     unsigned int copy_ok = 0;

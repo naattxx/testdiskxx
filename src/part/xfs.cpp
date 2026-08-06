@@ -32,44 +32,44 @@
 #include "src/log.hpp"
 #include "xfs.hpp"
 
-static void set_xfs_info(const struct xfs_sb *sb, partition_t *partition)
+static void set_xfs_info(const struct xfs_sb *sb, partition_t &partition)
 {
     const unsigned int version = be16(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS;
-    partition->blocksize = be32(sb->sb_blocksize);
-    partition->fsname[0] = '\0';
-    partition->info[0] = '\0';
+    partition.blocksize = be32(sb->sb_blocksize);
+    partition.fsname[0] = '\0';
+    partition.info[0] = '\0';
     switch (version)
     {
     case XFS_SB_VERSION_1:
-        partition->upart_type = UP_XFS;
-        snprintf(partition->info, sizeof(partition->info), "XFS <=6.1, blocksize=%u", partition->blocksize);
+        partition.upart_type = UP_XFS;
+        snprintf(partition.info, sizeof(partition.info), "XFS <=6.1, blocksize=%u", partition.blocksize);
         break;
     case XFS_SB_VERSION_2:
-        partition->upart_type = UP_XFS2;
-        snprintf(partition->info, sizeof(partition->info), "XFS 6.2 - attributes, blocksize=%u", partition->blocksize);
+        partition.upart_type = UP_XFS2;
+        snprintf(partition.info, sizeof(partition.info), "XFS 6.2 - attributes, blocksize=%u", partition.blocksize);
         break;
     case XFS_SB_VERSION_3:
-        partition->upart_type = UP_XFS3;
-        snprintf(partition->info, sizeof(partition->info), "XFS 6.2 - new inode version, blocksize=%u",
-                 partition->blocksize);
+        partition.upart_type = UP_XFS3;
+        snprintf(partition.info, sizeof(partition.info), "XFS 6.2 - new inode version, blocksize=%u",
+                 partition.blocksize);
         break;
     case XFS_SB_VERSION_4:
-        partition->upart_type = UP_XFS4;
-        snprintf(partition->info, sizeof(partition->info), "XFS 6.2+ - bitmap version, blocksize=%u",
-                 partition->blocksize);
+        partition.upart_type = UP_XFS4;
+        snprintf(partition.info, sizeof(partition.info), "XFS 6.2+ - bitmap version, blocksize=%u",
+                 partition.blocksize);
         break;
     case XFS_SB_VERSION_5:
-        partition->upart_type = UP_XFS5;
-        snprintf(partition->info, sizeof(partition->info), "XFS CRC enabled, blocksize=%u", partition->blocksize);
+        partition.upart_type = UP_XFS5;
+        snprintf(partition.info, sizeof(partition.info), "XFS CRC enabled, blocksize=%u", partition.blocksize);
         break;
     default:
-        snprintf(partition->info, sizeof(partition->info), "XFS unknown version %u\n", version);
+        snprintf(partition.info, sizeof(partition.info), "XFS unknown version %u\n", version);
         break;
     }
-    partition->set_name(sb->sb_fname, 12);
+    partition.set_name(sb->sb_fname, 12);
 }
 
-static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const partition_t *partition, const int verbose)
+static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const partition_t &partition, const int verbose)
 {
     if (sb->sb_magicnum != be32(XFS_SB_MAGIC) || (uint16_t)be16(sb->sb_sectsize) != (1U << sb->sb_sectlog) ||
         (uint32_t)be32(sb->sb_blocksize) != (1U << sb->sb_blocklog) ||
@@ -88,15 +88,15 @@ static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const parti
         break;
     }
     if (verbose > 0)
-        log_info("\nXFS Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition->part_offset),
-                 offset2head(disk_car, partition->part_offset), offset2sector(disk_car, partition->part_offset));
+        log_info("\nXFS Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                 offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     return 0;
 }
 
-int check_xfs(disk_t &disk_car, partition_t *partition, const int verbose)
+int check_xfs(disk_t &disk_car, partition_t &partition, const int verbose)
 {
     unsigned char *buffer = (unsigned char *)new unsigned char[XFS_SUPERBLOCK_SIZE];
-    if (disk_car.pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE, partition->part_offset) != XFS_SUPERBLOCK_SIZE)
+    if (disk_car.pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE, partition.part_offset) != XFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -111,7 +111,7 @@ int check_xfs(disk_t &disk_car, partition_t *partition, const int verbose)
     return 0;
 }
 
-int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t *partition, const int verbose,
+int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t &partition, const int verbose,
                 const int dump_ind)
 {
     if (test_xfs(disk_car, sb, partition, verbose) != 0)
@@ -125,11 +125,11 @@ int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t *pa
         }
     }
     set_xfs_info(sb, partition);
-    partition->part_size = (uint64_t)be64(sb->sb_dblocks) * be32(sb->sb_blocksize);
-    partition->part_type_i386 = P_LINUX;
-    partition->part_type_mac = PMAC_LINUX;
-    partition->part_type_sun = PSUN_LINUX;
-    partition->part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
-    guid_cpy(&partition->part_uuid, (const efi_guid_t *)&sb->sb_uuid);
+    partition.part_size = (uint64_t)be64(sb->sb_dblocks) * be32(sb->sb_blocksize);
+    partition.part_type_i386 = P_LINUX;
+    partition.part_type_mac = PMAC_LINUX;
+    partition.part_type_sun = PSUN_LINUX;
+    partition.part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
+    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&sb->sb_uuid);
     return 0;
 }

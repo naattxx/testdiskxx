@@ -229,7 +229,7 @@ extern "C"
       @ ensures  \result == 7 ==> le32(sb->s_log_block_size) > 6;
       @ ensures  \result == 0 ==> le32(sb->s_log_block_size) <= 6;
       @ */
-    int test_EXT2(const struct ext2_super_block *sb, const partition_t *partition);
+    int test_EXT2(const struct ext2_super_block *sb, const partition_t &partition);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

@@ -71,7 +71,7 @@ static uint64_t next_sb(const uint64_t hd_offset_old)
     return hd_offset;
 }
 
-list_part_t search_superblock(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind)
+list_part_t search_superblock(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind)
 {
     unsigned char *buffer = new unsigned char[2 * 0x200];
     uint64_t hd_offset;
@@ -82,7 +82,7 @@ list_part_t search_superblock(disk_t &disk_car, partition_t *partition, const in
     unsigned long int old_percent = 0;
 #endif
     struct ext2_super_block *sb = (struct ext2_super_block *)buffer;
-    partition_t *new_partition = new partition_t(disk_car.arch);
+    partition_t new_partition(disk_car.arch);
     // log_trace("search_superblock\n");
 #ifdef HAVE_NCURSES
     aff_copy(stdscr);
@@ -96,41 +96,41 @@ list_part_t search_superblock(disk_t &disk_car, partition_t *partition, const in
     waddstr(stdscr, "  Stop  ");
     wattroff(stdscr, A_REVERSE);
 #endif
-    for (hd_offset = 0; hd_offset < partition->part_size && nbr_sb < 10 && ind_stop == 0;
+    for (hd_offset = 0; hd_offset < partition.part_size && nbr_sb < 10 && ind_stop == 0;
          hd_offset = next_sb(hd_offset))
     {
 #ifdef HAVE_NCURSES
-        const unsigned long int percent = hd_offset * 100 / partition->part_size;
+        const unsigned long int percent = hd_offset * 100 / partition.part_size;
         if (percent != old_percent)
         {
             wmove(stdscr, 9, 0);
             wclrtoeol(stdscr);
             wprintw(stdscr, "Search ext2/ext3/ext4 superblock %10lu/%lu %lu%%",
                     (long unsigned)(hd_offset / disk_car.sector_size),
-                    (long unsigned)(partition->part_size / disk_car.sector_size), percent);
+                    (long unsigned)(partition.part_size / disk_car.sector_size), percent);
             wrefresh(stdscr);
             ind_stop |= check_enter_key_or_s(stdscr);
             old_percent = percent;
         }
 #endif
-        if (disk_car.pread(disk_car, buffer, 1024, partition->part_offset + hd_offset) == 1024)
+        if (disk_car.pread(disk_car, buffer, 1024, partition.part_offset + hd_offset) == 1024)
         {
             /* ext2/ext3/ext4 */
             if (le16(sb->s_magic) == EXT2_SUPER_MAGIC)
             {
-                dup_partition_t(new_partition, partition);
-                new_partition->part_offset += hd_offset;
+                new_partition = partition;
+                new_partition.part_offset += hd_offset;
                 if (recover_EXT2(disk_car, sb, new_partition, verbose, dump_ind) == 0)
                 {
                     int insert_error = 0;
                     if (hd_offset <= (EXT2_MIN_BLOCK_SIZE << 2))
-                        new_partition->part_offset -= hd_offset;
-                    if (partition->blocksize == 0)
+                        new_partition.part_offset -= hd_offset;
+                    if (partition.blocksize == 0)
                     {
-                        partition->sborg_offset = new_partition->sborg_offset;
-                        partition->sb_offset = new_partition->sb_offset;
-                        partition->sb_size = new_partition->sb_size;
-                        partition->blocksize = new_partition->blocksize;
+                        partition.sborg_offset = new_partition.sborg_offset;
+                        partition.sb_offset = new_partition.sb_offset;
+                        partition.sb_size = new_partition.sb_size;
+                        partition.blocksize = new_partition.blocksize;
                     }
                     log_info("Ext2 superblock found at sector %llu (block=%llu, blocksize=%u)\n",
                              (long long unsigned)hd_offset / DEFAULT_SECTOR_SIZE,
@@ -144,13 +144,12 @@ list_part_t search_superblock(disk_t &disk_car, partition_t *partition, const in
                             EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
 #endif
                     insert_new_partition(list_part, new_partition, 1, &insert_error);
-                    new_partition = new partition_t(disk_car.arch);
+                    new_partition = partition_t(disk_car.arch);
                     nbr_sb++;
                 }
             }
         }
     }
-    delete (new_partition);
     delete[] (buffer);
     return list_part;
 }

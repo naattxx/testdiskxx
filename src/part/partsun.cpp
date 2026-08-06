@@ -46,7 +46,7 @@
 #include "swap.hpp"
 #include "ufs.hpp"
 
-static int check_part_sun(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader);
+static int check_part_sun(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader);
 /*@
   @ requires \valid_read(buffer + (0 .. 0x200-1));
   @ requires \valid(geometry);
@@ -79,9 +79,9 @@ static void init_part_order_sun(const disk_t &disk_car, list_part_t &list_part);
 /*@
   @ requires \valid_read(disk_car);
   @ requires \valid(partition);
-  @ assigns partition->status;
+  @ assigns partition.status;
   @*/
-static void set_next_status_sun(const disk_t &disk_car, partition_t *partition);
+static void set_next_status_sun(const disk_t &disk_car, partition_t &partition);
 
 /*@
   @ requires list_part == \null || \valid_read(list_part);
@@ -90,15 +90,15 @@ static int test_structure_sun(const list_part_t &list_part);
 
 /*@
   @ requires \valid(partition);
-  @ assigns partition->part_type_sun;
+  @ assigns partition.part_type_sun;
   @*/
-static int set_part_type_sun(partition_t *partition, unsigned int part_type_sun);
+static int set_part_type_sun(partition_t &partition, unsigned int part_type_sun);
 
 /*@
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static int is_part_known_sun(const partition_t *partition);
+static int is_part_known_sun(const partition_t &partition);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -110,7 +110,7 @@ static void init_structure_sun(const disk_t &disk_car, list_part_t &list_part, c
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_sun(const partition_t *partition);
+static const char *get_partition_typename_sun(const partition_t &partition);
 
 /*@
   @ assigns \nothing;
@@ -121,7 +121,7 @@ static const char *get_partition_typename_sun_aux(const unsigned int part_type_s
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static unsigned int get_part_type_sun(const partition_t *partition);
+static unsigned int get_part_type_sun(const partition_t &partition);
 
 static const struct systypes sun_sys_types[] = {{0x00, "Empty"},
                                                 {PSUN_BOOT, "Boot"},
@@ -159,9 +159,9 @@ arch_fnct_t arch_sun = {.part_name = "Sun",
                         .get_partition_typename = &get_partition_typename_sun,
                         .is_part_known = &is_part_known_sun};
 
-static unsigned int get_part_type_sun(const partition_t *partition)
+static unsigned int get_part_type_sun(const partition_t &partition)
 {
-    return partition->part_type_sun;
+    return partition.part_type_sun;
 }
 
 static int get_geometry_from_sunmbr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry)
@@ -218,19 +218,17 @@ static list_part_t read_part_sun(disk_t &disk_car, const int verbose, const int 
         if (sunlabel->partitions[i].num_sectors > 0 && sunlabel->infos[i].id > 0 &&
             sunlabel->infos[i].id != PSUN_WHOLE_DISK)
         {
-            int insert_error = 0;
-            partition_t *new_partition = new partition_t(&arch_sun);
-            new_partition->order = i;
-            new_partition->part_type_sun = sunlabel->infos[i].id;
-            new_partition->part_offset = be32(sunlabel->partitions[i].start_cylinder) * be16(sunlabel->ntrks) *
+            int _insert_error = 0;
+            partition_t new_partition(&arch_sun);
+            new_partition.order = i;
+            new_partition.part_type_sun = sunlabel->infos[i].id;
+            new_partition.part_offset = be32(sunlabel->partitions[i].start_cylinder) * be16(sunlabel->ntrks) *
                                          be16(sunlabel->nsect) * disk_car.sector_size;
-            new_partition->part_size = (uint64_t)be32(sunlabel->partitions[i].num_sectors) * disk_car.sector_size;
-            new_partition->status = STATUS_PRIM;
+            new_partition.part_size = (uint64_t)be32(sunlabel->partitions[i].num_sectors) * disk_car.sector_size;
+            new_partition.status = STATUS_PRIM;
             check_part_sun(disk_car, verbose, new_partition, saveheader);
             aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-            insert_new_partition(new_list_part, new_partition, 0, &insert_error);
-            if (insert_error > 0)
-                delete (new_partition);
+            insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
         }
     }
     delete (buffer);
@@ -248,41 +246,37 @@ static int write_part_sun(disk_t &disk_car, const list_part_t &list_part, const 
 
 static void init_part_order_sun(const disk_t &disk_car, list_part_t &list_part)
 {
-    int insert_error = 0;
+    int _insert_error = 0;
     int nbr_prim = 0;
-    partition_t *new_partition;
-    for (partition_t *element : list_part)
+    partition_t new_partition(&arch_sun);
+    for (partition_t &element : list_part)
     {
-        switch (element->status)
+        switch (element.status)
         {
         case STATUS_PRIM:
         case STATUS_PRIM_BOOT:
             if (nbr_prim == 2)
                 nbr_prim++;
-            element->order = nbr_prim++;
+            element.order = nbr_prim++;
             break;
         default:
             log_critical("init_part_order_sun: severe error\n");
             break;
         }
     }
-    new_partition = new partition_t(&arch_sun);
-    new_partition->part_offset = 0;
-    new_partition->part_size = disk_car.disk_size;
-    new_partition->status = STATUS_PRIM;
-    new_partition->part_type_sun = PSUN_WHOLE_DISK;
-    new_partition->order = 2;
-    insert_new_partition(list_part, new_partition, 0, &insert_error);
-    if (insert_error > 0)
-        delete (new_partition);
+    new_partition.part_offset = 0;
+    new_partition.part_size = disk_car.disk_size;
+    new_partition.status = STATUS_PRIM;
+    new_partition.part_type_sun = PSUN_WHOLE_DISK;
+    new_partition.order = 2;
+    insert_new_partition(list_part, new_partition, 0, &_insert_error);
 }
 
 void add_partition_sun_cli(const disk_t &disk_car, list_part_t &list_part, char **current_cmd)
 {
     CHS_t start, end;
-    partition_t *new_partition;
+    partition_t new_partition(&arch_sun);
     assert(current_cmd != NULL);
-    new_partition = new partition_t(&arch_sun);
     start.cylinder = 0;
     start.head = 0;
     start.sector = 1;
@@ -310,37 +304,32 @@ void add_partition_sun_cli(const disk_t &disk_car, list_part_t &list_part, char 
         {
             change_part_type_cli(disk_car, new_partition, current_cmd);
         }
-        else if ((CHS2offset(disk_car, &end) > new_partition->part_offset) && new_partition->part_type_sun > 0)
+        else if ((CHS2offset(disk_car, &end) > new_partition.part_offset) && new_partition.part_type_sun > 0)
         {
             int insert_error = 0;
             insert_new_partition(list_part, new_partition, 0, &insert_error);
             /*@ assert valid_list_part(list_part); */
             if (insert_error > 0)
             {
-                delete (new_partition);
                 /*@ assert valid_list_part(list_part); */
                 return;
             }
-            new_partition->status = STATUS_PRIM;
+            new_partition.status = STATUS_PRIM;
             if (test_structure_sun(list_part) != 0)
-                new_partition->status = STATUS_DELETED;
+                new_partition.status = STATUS_DELETED;
             /*@ assert valid_list_part(list_part); */
             return;
         }
-        else
-        {
-            delete (new_partition);
-            /*@ assert valid_list_part(list_part); */
-        }
+        /*@ assert valid_list_part(list_part); */
     }
 }
 
-static void set_next_status_sun(const disk_t &disk_car, partition_t *partition)
+static void set_next_status_sun(const disk_t &disk_car, partition_t &partition)
 {
-    if (partition->status == STATUS_DELETED)
-        partition->status = STATUS_PRIM;
+    if (partition.status == STATUS_DELETED)
+        partition.status = STATUS_PRIM;
     else
-        partition->status = STATUS_DELETED;
+        partition.status = STATUS_DELETED;
 }
 
 static int test_structure_sun(const list_part_t &list_part)
@@ -351,55 +340,55 @@ static int test_structure_sun(const list_part_t &list_part)
     return res;
 }
 
-static int set_part_type_sun(partition_t *partition, unsigned int part_type_sun)
+static int set_part_type_sun(partition_t &partition, unsigned int part_type_sun)
 {
     if (part_type_sun > 0 && part_type_sun <= 255)
     {
-        partition->part_type_sun = part_type_sun;
+        partition.part_type_sun = part_type_sun;
         return 0;
     }
     return 1;
 }
 
-static int is_part_known_sun(const partition_t *partition)
+static int is_part_known_sun(const partition_t &partition)
 {
-    return (partition->part_type_sun != PSUN_UNK);
+    return (partition.part_type_sun != PSUN_UNK);
 }
 
 static void init_structure_sun(const disk_t &disk_car, list_part_t &list_part, const int verbose)
 {
     list_part_t new_list_part;
     /* Create new list */
-    for (partition_t *element : list_part)
-        element->to_be_removed = 0;
+    for (partition_t &element : list_part)
+        element.to_be_removed = 0;
     for (auto element = list_part.begin(); element != list_part.end(); element = std::next(element))
     {
-        int insert_error = 0;
+        int _insert_error = 0;
         for (auto element2 = std::next(element); element2 != list_part.end(); element2 = std::next(element2))
         {
-            if ((*element)->part_offset + (*element)->part_size - 1 >= (*element2)->part_offset)
+            if (element->part_offset + element->part_size - 1 >= element2->part_offset)
             {
-                (*element)->to_be_removed = 1;
-                (*element2)->to_be_removed = 1;
+                element->to_be_removed = 1;
+                element2->to_be_removed = 1;
             }
         }
-        if ((*element)->to_be_removed == 0)
-            insert_new_partition(new_list_part, *element, 0, &insert_error);
+        if (element->to_be_removed == 0)
+            insert_new_partition(new_list_part, *element, 0, &_insert_error);
     }
-    for (partition_t *element : new_list_part)
-        element->status = STATUS_PRIM;
+    for (partition_t &element : new_list_part)
+        element.status = STATUS_PRIM;
     if (test_structure_sun(new_list_part))
     {
-        for (partition_t *element : new_list_part)
-            element->status = STATUS_DELETED;
+        for (partition_t &element : new_list_part)
+            element.status = STATUS_DELETED;
     }
     list_part = new_list_part;
 }
 
-static int check_part_sun(disk_t &disk_car, const int verbose, partition_t *partition, const int saveheader)
+static int check_part_sun(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader)
 {
     int ret = 0;
-    switch (partition->part_type_sun)
+    switch (partition.part_type_sun)
     {
     case PSUN_BOOT:
     case PSUN_ROOT:
@@ -429,13 +418,13 @@ static int check_part_sun(disk_t &disk_car, const int verbose, partition_t *part
     default:
         if (verbose > 0)
         {
-            log_info("check_part_sun %u type %02X: no test\n", partition->order, partition->part_type_sun);
+            log_info("check_part_sun %u type %02X: no test\n", partition.order, partition.part_type_sun);
         }
         break;
     }
     if (ret != 0)
     {
-        log_error("check_part_sun failed for partition type %02X\n", partition->part_type_sun);
+        log_error("check_part_sun failed for partition type %02X\n", partition.part_type_sun);
         aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
         if (saveheader > 0)
         {
@@ -455,8 +444,8 @@ static const char *get_partition_typename_sun_aux(const unsigned int part_type_s
     return NULL;
 }
 
-static const char *get_partition_typename_sun(const partition_t *partition)
+static const char *get_partition_typename_sun(const partition_t &partition)
 {
-    return get_partition_typename_sun_aux(partition->part_type_sun);
+    return get_partition_typename_sun_aux(partition.part_type_sun);
 }
 #endif

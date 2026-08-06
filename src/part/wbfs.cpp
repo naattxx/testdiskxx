@@ -29,30 +29,29 @@
 #include "src/log.hpp"
 #include "wbfs.hpp"
 
-static int test_WBFS(const disk_t &disk, const struct wbfs_head *sb, const partition_t *partition, const int dump_ind)
+static int test_WBFS(const disk_t &disk, const struct wbfs_head *sb, const partition_t &partition, const int dump_ind)
 {
     if (be32(sb->magic) != WBFS_MAGIC)
         return 1;
     if (dump_ind != 0)
     {
-        if (partition != NULL /*&& disk != NULL*/)
-            log_info("\nWBFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition->part_offset),
-                     offset2head(disk, partition->part_offset), offset2sector(disk, partition->part_offset));
+        log_info("\nWBFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+                offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }
     return 0;
 }
 
-static void set_WBFS_info(partition_t *partition)
+static void set_WBFS_info(partition_t &partition)
 {
-    partition->upart_type = UP_WBFS;
-    memcpy(partition->info, "WBFS", 5);
+    partition.upart_type = UP_WBFS;
+    memcpy(partition.info, "WBFS", 5);
 }
 
-int check_WBFS(disk_t &disk, partition_t *partition)
+int check_WBFS(disk_t &disk, partition_t &partition)
 {
     unsigned char *buffer = (unsigned char *)new unsigned char[2 * DEFAULT_SECTOR_SIZE];
-    if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition->part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition.part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
@@ -67,19 +66,17 @@ int check_WBFS(disk_t &disk, partition_t *partition)
     return 0;
 }
 
-int recover_WBFS(const disk_t &disk, const struct wbfs_head *sb, partition_t *partition, const int verbose,
+int recover_WBFS(const disk_t &disk, const struct wbfs_head *sb, partition_t &partition, const int verbose,
                  const int dump_ind)
 {
     if (test_WBFS(disk, sb, partition, dump_ind) != 0)
         return 1;
-    if (partition == NULL)
-        return 0;
     set_WBFS_info(partition);
-    partition->part_type_i386 = P_NTFS;
-    partition->part_size = (uint64_t)be32(sb->n_hd_sec) << (sb->hd_sec_sz_s);
-    partition->blocksize = 0;
-    partition->sborg_offset = 0;
-    partition->sb_offset = 0;
+    partition.part_type_i386 = P_NTFS;
+    partition.part_size = (uint64_t)be32(sb->n_hd_sec) << (sb->hd_sec_sz_s);
+    partition.blocksize = 0;
+    partition.sborg_offset = 0;
+    partition.sb_offset = 0;
     if (verbose > 0)
     {
         log_info("\n");

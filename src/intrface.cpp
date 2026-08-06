@@ -54,37 +54,33 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     printf(msg_PART_HEADER_LONG);
     list_part = disk.arch->read_part(disk, verbose, saveheader);
     /*@ assert valid_list_part(list_part); */
-    for (const partition_t *partition : list_part)
+    for (const partition_t &partition : list_part)
     {
         const char *msg;
         msg = aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
         printf("%s\n", msg);
-        if (partition->info[0] != '\0')
-            printf("     %s\n", partition->info);
+        if (partition.info[0] != '\0')
+            printf("     %s\n", partition.info);
     }
     if (backup > 0)
     {
         partition_save(disk, list_part, verbose);
     }
-    part_free_list(list_part);
 }
 
-static void ask_structure_cli(disk_t &disk_car, const partition_t *partition, const int verbose, char **current_cmd)
+static void ask_structure_cli(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd)
 {
     skip_comma_in_command(current_cmd);
     if (check_command(current_cmd, "list", 4) == 0)
     {
-        if (partition != NULL)
+        if (partition.sb_offset == 0 || partition.sb_size == 0)
+            dir_partition(disk_car, partition, verbose, 0, current_cmd);
+        else
         {
-            if (partition->sb_offset == 0 || partition->sb_size == 0)
-                dir_partition(disk_car, partition, verbose, 0, current_cmd);
-            else
-            {
-                io_redir_add_redir(disk_car, partition->part_offset + partition->sborg_offset, partition->sb_size,
-                                   partition->part_offset + partition->sb_offset, NULL);
-                dir_partition(disk_car, partition, verbose, 0, current_cmd);
-                io_redir_del_redir(disk_car, partition->part_offset + partition->sborg_offset);
-            }
+            io_redir_add_redir(disk_car, partition.part_offset + partition.sborg_offset, partition.sb_size,
+                                partition.part_offset + partition.sb_offset, NULL);
+            dir_partition(disk_car, partition, verbose, 0, current_cmd);
+            io_redir_del_redir(disk_car, partition.part_offset + partition.sborg_offset);
         }
     }
 }
@@ -344,16 +340,16 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
         case 'P':
             if (list_part != NULL)
             {
-                const partition_t *partition = pos->part;
+                const partition_t &partition = pos->part;
                 char *current_cmd = NULL;
-                if (partition->sb_offset == 0 || partition->sb_size == 0)
+                if (partition.sb_offset == 0 || partition.sb_size == 0)
                     dir_partition(disk_car, partition, verbose, 0, &current_cmd);
                 else
                 {
-                    io_redir_add_redir(disk_car, partition->part_offset + partition->sborg_offset, partition->sb_size,
-                                       partition->part_offset + partition->sb_offset, NULL);
+                    io_redir_add_redir(disk_car, partition.part_offset + partition.sborg_offset, partition.sb_size,
+                                       partition.part_offset + partition.sb_offset, NULL);
                     dir_partition(disk_car, partition, verbose, 0, &current_cmd);
-                    io_redir_del_redir(disk_car, partition->part_offset + partition->sborg_offset);
+                    io_redir_del_redir(disk_car, partition.part_offset + partition.sborg_offset);
                 }
                 rewrite = 1;
             }
@@ -398,7 +394,7 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
 }
 #endif
 
-void ask_structure(disk_t &disk_car, const partition_t *partition, const int verbose, char **current_cmd)
+void ask_structure(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd)
 {
     if (*current_cmd != NULL)
         ask_structure_cli(disk_car, partition, verbose, current_cmd);

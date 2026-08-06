@@ -94,14 +94,14 @@ static void disk_image_backward(int disk_dst, disk_t &disk, const uint64_t src_o
     delete[] (buffer);
 }
 
-int disk_image(disk_t &disk, const partition_t *partition, const char *image_dd)
+int disk_image(disk_t &disk, const partition_t &partition, const char *image_dd)
 {
     int ind_stop = 0;
     uint64_t nbr_read_error = 0;
-    uint64_t src_offset = partition->part_offset;
+    uint64_t src_offset = partition.part_offset;
     uint64_t src_offset_old;
     uint64_t dst_offset = 0;
-    const uint64_t src_offset_end = partition->part_offset + partition->part_size;
+    const uint64_t src_offset_end = partition.part_offset + partition.part_size;
     const uint64_t offset_inc = (src_offset_end - src_offset) / 10000;
     uint64_t src_offset_next = src_offset;
     struct stat stat_buf;
@@ -228,7 +228,7 @@ int disk_image(disk_t &disk, const partition_t *partition, const char *image_dd)
         {
 #ifdef HAVE_NCURSES
             unsigned int i;
-            const float percent = (src_offset - partition->part_offset) * 100.00 / partition->part_size;
+            const float percent = (src_offset - partition.part_offset) * 100.00 / partition.part_size;
             wmove(window, 7, 0);
             wprintw(window, "%3.2f %% ", percent);
             for (i = 0; i < percent * 3 / 5; i++)

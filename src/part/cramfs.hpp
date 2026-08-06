@@ -95,7 +95,7 @@ extern "C"
       @ requires \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_cramfs(disk_t &disk_car, partition_t *partition, const int verbose);
+    int check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose);
 
     /*@
       @ requires \valid(disk_car);
@@ -104,7 +104,7 @@ extern "C"
       @ requires \separated(disk_car, partition, sb);
       @ requires \valid_read(sb);
       @*/
-    int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partition_t *partition, const int verbose,
+    int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partition_t &partition, const int verbose,
                        const int dump_ind);
 
 #ifdef __cplusplus

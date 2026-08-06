@@ -75,59 +75,59 @@ extern const arch_fnct_t arch_xbox;
 
 #define DEFAULT_IMAGE_NAME "image.dd"
 
-static int is_part_hfs(const partition_t *partition)
+static int is_part_hfs(const partition_t &partition)
 {
-    if (partition->part_type_i386 == P_HFS || partition->part_type_mac == PMAC_HFS)
+    if (partition.part_type_i386 == P_HFS || partition.part_type_mac == PMAC_HFS)
         return 1;
-    if (guid_cmp(partition->part_type_gpt, GPT_ENT_TYPE_MAC_HFS) == 0)
+    if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MAC_HFS) == 0)
         return 1;
     return 0;
 }
 
-static int is_part_hfsp(const partition_t *partition)
+static int is_part_hfsp(const partition_t &partition)
 {
-    if (partition->part_type_i386 == P_HFSP || partition->part_type_mac == PMAC_HFS)
+    if (partition.part_type_i386 == P_HFSP || partition.part_type_mac == PMAC_HFS)
         return 1;
-    if (guid_cmp(partition->part_type_gpt, GPT_ENT_TYPE_MAC_HFS) == 0)
+    if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MAC_HFS) == 0)
         return 1;
     return 0;
 }
 
-int is_part_linux(const partition_t *partition)
+int is_part_linux(const partition_t &partition)
 {
-    if (partition->arch == &arch_i386 && partition->part_type_i386 == P_LINUX)
+    if (partition.arch == &arch_i386 && partition.part_type_i386 == P_LINUX)
         return 1;
-    if (partition->arch == &arch_sun && partition->part_type_sun == PSUN_LINUX)
+    if (partition.arch == &arch_sun && partition.part_type_sun == PSUN_LINUX)
         return 1;
-    if (partition->arch == &arch_mac && partition->part_type_mac == PMAC_LINUX)
+    if (partition.arch == &arch_mac && partition.part_type_mac == PMAC_LINUX)
         return 1;
-    if (partition->arch == &arch_gpt && (guid_cmp(partition->part_type_gpt, GPT_ENT_TYPE_LINUX_DATA) == 0 ||
-                                         guid_cmp(partition->part_type_gpt, GPT_ENT_TYPE_LINUX_HOME) == 0 ||
-                                         guid_cmp(partition->part_type_gpt, GPT_ENT_TYPE_LINUX_SRV) == 0))
+    if (partition.arch == &arch_gpt && (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_DATA) == 0 ||
+                                         guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_HOME) == 0 ||
+                                         guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_SRV) == 0))
         return 1;
     return 0;
 }
 
-static int is_exfat(const partition_t *partition)
+static int is_exfat(const partition_t &partition)
 {
-    return (is_part_ntfs(partition) || partition->upart_type == UP_EXFAT);
+    return (is_part_ntfs(partition) || partition.upart_type == UP_EXFAT);
 }
 
-static int is_hfs(const partition_t *partition)
+static int is_hfs(const partition_t &partition)
 {
-    return (is_part_hfs(partition) || partition->upart_type == UP_HFS);
+    return (is_part_hfs(partition) || partition.upart_type == UP_HFS);
 }
 
-static int is_hfsp(const partition_t *partition)
+static int is_hfsp(const partition_t &partition)
 {
-    return (is_part_hfsp(partition) || partition->upart_type == UP_HFSP || partition->upart_type == UP_HFSX);
+    return (is_part_hfsp(partition) || partition.upart_type == UP_HFSP || partition.upart_type == UP_HFSX);
 }
 
-static int is_linux(const partition_t *partition)
+static int is_linux(const partition_t &partition)
 {
     if (is_part_linux(partition))
         return 1;
-    switch (partition->upart_type)
+    switch (partition.upart_type)
     {
     case UP_CRAMFS:
     case UP_EXT2:
@@ -197,7 +197,7 @@ static void interface_adv_ncurses(disk_t &disk, const int rewrite, list_part_t *
 }
 #endif
 
-static int adv_string_to_command(char **current_cmd, std::list<partition_t *>::iterator current_element, list_part_t &list_part)
+static int adv_string_to_command(char **current_cmd, std::list<partition_t>::iterator current_element, list_part_t &list_part)
 {
     int keep_asking;
     int command = 'q';
@@ -237,8 +237,8 @@ static int adv_string_to_command(char **current_cmd, std::list<partition_t *>::i
         else if (isdigit(*current_cmd[0]))
         {
             const unsigned int order = get_int_from_command(current_cmd);
-            current_element = std::find_if(list_part.begin(), list_part.end(), [&](const partition_t *element) {
-                return element->order == order;
+            current_element = std::find_if(list_part.begin(), list_part.end(), [&](const partition_t &element) {
+                return element.order == order;
             });
             if (current_element != list_part.end())
             {
@@ -250,7 +250,7 @@ static int adv_string_to_command(char **current_cmd, std::list<partition_t *>::i
 }
 
 #ifdef HAVE_NCURSES
-static const char *adv_get_boot_description(const partition_t *partition)
+static const char *adv_get_boot_description(const partition_t &partition)
 {
     assert(partition != NULL);
     if (is_part_linux(partition))
@@ -272,7 +272,7 @@ static const char *adv_get_boot_description(const partition_t *partition)
     return "Boot sector recovery";
 }
 
-static const char *adv_get_options_for_partition(const partition_t *partition)
+static const char *adv_get_options_for_partition(const partition_t &partition)
 {
     if (is_part_fat(partition))
     {
@@ -282,7 +282,7 @@ static const char *adv_get_options_for_partition(const partition_t *partition)
         return "tlubcq";
     else if (is_part_linux(partition))
     {
-        if (partition->upart_type == UP_EXT2)
+        if (partition.upart_type == UP_EXT2)
             return "tuscq";
         else
             return "tlscq";
@@ -297,7 +297,7 @@ static const char *adv_get_options_for_partition(const partition_t *partition)
         return "tlubcq";
     else if (is_linux(partition))
     {
-        if (partition->upart_type == UP_EXT2)
+        if (partition.upart_type == UP_EXT2)
             return "tluscq";
         else
             return "tlscq";
@@ -310,7 +310,7 @@ static const char *adv_get_options_for_partition(const partition_t *partition)
 }
 #endif
 
-static int adv_menu_boot_selected(disk_t &disk, partition_t *partition, const int verbose, const int dump_ind,
+static int adv_menu_boot_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
                                   const unsigned int expert, char **current_cmd)
 {
     if (is_part_fat32(partition))
@@ -325,28 +325,28 @@ static int adv_menu_boot_selected(disk_t &disk, partition_t *partition, const in
     }
     else if (is_part_ntfs(partition))
     {
-        if (partition->upart_type == UP_EXFAT)
+        if (partition.upart_type == UP_EXFAT)
             exFAT_boot_sector(disk, partition, current_cmd);
         else
             ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
         return 1;
     }
-    else if (partition->upart_type == UP_FAT32)
+    else if (partition.upart_type == UP_FAT32)
     {
         fat32_boot_sector(disk, partition, verbose, dump_ind, expert, current_cmd);
         return 1;
     }
-    else if (partition->upart_type == UP_FAT12 || partition->upart_type == UP_FAT16)
+    else if (partition.upart_type == UP_FAT12 || partition.upart_type == UP_FAT16)
     {
         fat1x_boot_sector(disk, partition, verbose, dump_ind, expert, current_cmd);
         return 1;
     }
-    else if (partition->upart_type == UP_NTFS)
+    else if (partition.upart_type == UP_NTFS)
     {
         ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
         return 1;
     }
-    else if (partition->upart_type == UP_EXFAT)
+    else if (partition.upart_type == UP_EXFAT)
     {
         exFAT_boot_sector(disk, partition, current_cmd);
         return 1;
@@ -354,7 +354,7 @@ static int adv_menu_boot_selected(disk_t &disk, partition_t *partition, const in
     return 0;
 }
 
-static void adv_menu_image_selected(disk_t &disk, const partition_t *partition, char **current_cmd)
+static void adv_menu_image_selected(disk_t &disk, const partition_t &partition, char **current_cmd)
 {
     char dst_path[4096];
     dst_path[0] = '\0';
@@ -365,7 +365,7 @@ static void adv_menu_image_selected(disk_t &disk, const partition_t *partition, 
     {
         char msg[256];
         snprintf(msg, sizeof(msg), "Please select where to store the file image.dd (%u MB), an image of the partition",
-                 (unsigned int)(partition->part_size / 1000 / 1000));
+                 (unsigned int)(partition.part_size / 1000 / 1000));
         ask_location(dst_path, sizeof(dst_path), msg, "");
     }
 #else
@@ -382,50 +382,49 @@ static void adv_menu_image_selected(disk_t &disk, const partition_t *partition, 
     }
 }
 
-static void adv_menu_undelete_selected(disk_t &disk, const partition_t *partition, const int verbose,
+static void adv_menu_undelete_selected(disk_t &disk, const partition_t &partition, const int verbose,
                                        char **current_cmd)
 {
-    if (partition->sb_offset != 0 && partition->sb_size > 0)
+    if (partition.sb_offset != 0 && partition.sb_size > 0)
     {
-        io_redir_add_redir(disk, partition->part_offset + partition->sborg_offset, partition->sb_size,
-                           partition->part_offset + partition->sb_offset, NULL);
-        if (partition->upart_type == UP_NTFS || (is_part_ntfs(partition) && partition->upart_type != UP_EXFAT))
+        io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset, partition.sb_size,
+                           partition.part_offset + partition.sb_offset, NULL);
+        if (partition.upart_type == UP_NTFS || (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
             ntfs_undelete_part(disk, partition, verbose, current_cmd);
         else
             dir_partition(disk, partition, 0, 0, current_cmd);
-        io_redir_del_redir(disk, partition->part_offset + partition->sborg_offset);
+        io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
     }
     else
     {
-        if (partition->upart_type == UP_NTFS || (is_part_ntfs(partition) && partition->upart_type != UP_EXFAT))
+        if (partition.upart_type == UP_NTFS || (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
             ntfs_undelete_part(disk, partition, verbose, current_cmd);
         else
             dir_partition(disk, partition, 0, 0, current_cmd);
     }
 }
 
-static void adv_menu_list_selected(disk_t &disk, const partition_t *partition, const int verbose, const int expert,
+static void adv_menu_list_selected(disk_t &disk, const partition_t &partition, const int verbose, const int expert,
                                    char **current_cmd)
 {
-    if (partition->sb_offset != 0 && partition->sb_size > 0)
+    if (partition.sb_offset != 0 && partition.sb_size > 0)
     {
-        io_redir_add_redir(disk, partition->part_offset + partition->sborg_offset, partition->sb_size,
-                           partition->part_offset + partition->sb_offset, NULL);
+        io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset, partition.sb_size,
+                           partition.part_offset + partition.sb_offset, NULL);
         dir_partition(disk, partition, verbose, expert, current_cmd);
-        io_redir_del_redir(disk, partition->part_offset + partition->sborg_offset);
+        io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
     }
     else
         dir_partition(disk, partition, verbose, expert, current_cmd);
 }
 
-static void adv_menu_superblock_selected(disk_t &disk, partition_t *partition, const int verbose, const int dump_ind,
+static void adv_menu_superblock_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
                                          char **current_cmd)
 {
     if (is_linux(partition))
     {
         list_part_t list_sb = search_superblock(disk, partition, verbose, dump_ind);
         interface_superblock(disk, list_sb, current_cmd);
-        part_free_list(list_sb);
     }
     if (is_hfs(partition) || is_hfsp(partition))
     {
@@ -443,7 +442,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
     int rewrite = 1;
     unsigned int menu = 0;
     list_part_t list_part;
-    std::list<partition_t *>::iterator current_element;
+    std::list<partition_t>::iterator current_element;
     assert(current_cmd != NULL);
     log_info("\nInterface Advanced\n");
     list_part = disk_car.arch->read_part(disk_car, verbose, 0);
@@ -476,7 +475,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
         }
         else
         {
-            if (menu == 0 && (disk_car.arch != &arch_none || (*current_element)->upart_type != UP_UNK))
+            if (menu == 0 && (disk_car.arch != &arch_none || current_element->upart_type != UP_UNK))
                 menu = 1;
 #ifdef HAVE_NCURSES
             options = adv_get_options_for_partition(*current_element);
@@ -500,7 +499,6 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
         {
         case 'q':
         case 'Q':
-            part_free_list(list_part);
             return;
         case 'a':
         case 'A':
@@ -526,7 +524,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
 #ifdef KEY_UP
             case KEY_UP:
 #endif
-                if (*std::prev(current_element) != NULL)
+                if (current_element != list_part.begin())
                 {
                     current_element = std::prev(current_element);
                     current_element_num--;
@@ -537,7 +535,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
 #ifdef KEY_DOWN
             case KEY_DOWN:
 #endif
-                if (*std::next(current_element) != NULL)
+                if (std::next(current_element) != list_part.end())
                 {
                     current_element = std::next(current_element);
                     current_element_num++;

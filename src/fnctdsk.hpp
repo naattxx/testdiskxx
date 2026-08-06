@@ -118,7 +118,7 @@
       @ requires (list_part==\null && part==\null) || \separated(list_part, part, insert_error);
       @ ensures  valid_list_part(\result);
       @*/
-    void insert_new_partition(list_part_t &list_part, partition_t *part, const int force_insert,
+    void insert_new_partition(list_part_t &list_part, partition_t &part, const int force_insert,
                                       int *insert_error);
 
     /*@
@@ -134,12 +134,6 @@
       @ ensures  valid_list_part(\result);
       @*/
     list_part_t gen_sorted_partition_list(const list_part_t &list_part);
-
-    /*@
-      @ requires \valid(list_part);
-      @ requires valid_list_part(list_part);
-      @*/
-    void part_free_list(list_part_t &list_part);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -178,15 +172,6 @@
       @ assigns \nothing;
       @*/
     int is_part_overlapping(const list_part_t &list_part);
-
-    /*@
-      @ requires \valid(dest);
-      @ requires \valid_read(src);
-      @ requires \separated(src, dest);
-      @ requires valid_partition(src);
-      @ ensures  valid_partition(dest);
-      @*/
-    void dup_partition_t(partition_t *dest, const partition_t *src);
 
     /*@
       @ requires valid_list_disk(list_disk);

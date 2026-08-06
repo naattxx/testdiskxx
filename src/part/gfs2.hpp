@@ -92,7 +92,7 @@ extern "C"
       @ requires \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_gfs2(disk_t &disk_car, partition_t *partition);
+    int check_gfs2(disk_t &disk_car, partition_t &partition);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -101,7 +101,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires \separated(disk_car, sb, partition);
       @*/
-    int recover_gfs2(const disk_t &disk_car, const struct gfs2_sb *sb, partition_t *partition, const int dump_ind);
+    int recover_gfs2(const disk_t &disk_car, const struct gfs2_sb *sb, partition_t &partition, const int dump_ind);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

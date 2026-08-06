@@ -37,7 +37,7 @@ typedef std::list<backup_disk_t *> backup_disk_list_t;
   @ requires valid_partition(partition);
   @ decreases 0;
   @*/
-int save_header(disk_t &disk_car, const partition_t *partition, const int verbose);
+int save_header(disk_t &disk_car, const partition_t &partition, const int verbose);
 
 /*@
   @ requires valid_disk(disk_car);

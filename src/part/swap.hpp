@@ -60,14 +60,14 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_Linux_SWAP(disk_t &disk_car, partition_t *partition);
+    int check_Linux_SWAP(disk_t &disk_car, partition_t &partition);
 
     /*@
       @ requires \valid_read(swap_header);
       @ requires \valid(partition);
       @ requires separation: \separated(swap_header, partition);
       @*/
-    int recover_Linux_SWAP(const union swap_header *swap_header, partition_t *partition);
+    int recover_Linux_SWAP(const union swap_header *swap_header, partition_t &partition);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

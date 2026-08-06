@@ -111,9 +111,9 @@ extern "C"
 }
 static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const int name_len, const int name_type,
                               const s64 pos, const MFT_REF mref, const unsigned dt_type);
-static int ntfs_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+static int ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                     const unsigned long int cluster, file_info_t *dir_list);
-static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                              const file_info_t *file);
 static void dir_partition_ntfs_close(dir_data_t *dir_data);
 
@@ -303,7 +303,7 @@ freefn:
     return result;
 }
 
-static int ntfs_dir(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+static int ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                     const unsigned long int cluster, dir_list_t &dir_list)
 {
     ntfs_inode *inode;
@@ -343,7 +343,7 @@ enum
     bufsize = 4096
 };
 
-static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                              const file_info_t *file)
 {
     const unsigned long int first_inode = file->st_ino;
@@ -483,7 +483,7 @@ static void dir_partition_ntfs_close(dir_data_t *dir_data)
 #endif
 
 extern "C"{
-dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                                         const int verbose, const int expert)
 {
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)

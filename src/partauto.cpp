@@ -62,9 +62,8 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
         disk.arch = &arch_none;
         list_part = arch_none.read_part(disk, verbose, 0);
         /*@ assert valid_list_part(list_part); */
-        if (!list_part.empty() && list_part.front() != NULL && list_part.front()->upart_type == UP_UNK)
+        if (!list_part.empty() && list_part.front().upart_type == UP_UNK)
         {
-            part_free_list(list_part);
             list_part.clear();
         }
     }
@@ -123,7 +122,6 @@ void autodetect_arch(disk_t &disk, const arch_fnct_t *arch)
     {
         disk.arch_autodetected = disk.arch;
         log_info("Partition table type (auto): {}\n", disk.arch->part_name);
-        part_free_list(list_part);
         return;
     }
     disk.arch_autodetected = NULL;

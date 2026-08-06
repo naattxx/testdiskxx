@@ -36,7 +36,7 @@ extern "C"
       @ requires \separated(disk_car, partition, current_cmd);
       @ decreases 0;
       @*/
-    void change_part_type_cli(const disk_t &disk_car, partition_t *partition, char **current_cmd);
+    void change_part_type_cli(const disk_t &disk_car, partition_t &partition, char **current_cmd);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

@@ -30,7 +30,7 @@ extern "C" {
   @ requires \valid_read(partition);
   @ requires \separated(disk_car, partition);
   @*/
-dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t *partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                                         const int verbose, const int expert);
 }
 

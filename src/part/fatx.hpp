@@ -44,14 +44,14 @@ extern "C"
       @ requires \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_FATX(disk_t &disk_car, partition_t *partition);
+    int check_FATX(disk_t &disk_car, partition_t &partition);
 
     /*@
       @ requires \valid_read(fatx_block);
       @ requires \valid(partition);
       @ requires \separated(fatx_block, partition);
       @*/
-    int recover_FATX(const struct disk_fatx *fatx_block, partition_t *partition);
+    int recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

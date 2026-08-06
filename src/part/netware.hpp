@@ -44,7 +44,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_netware(disk_t &disk_car, partition_t *partition);
+    int check_netware(disk_t &disk_car, partition_t &partition);
 
     /*@
       @ requires \valid_read(disk_car);
@@ -53,7 +53,7 @@ extern "C"
       @ requires \valid(partition);
       @ requires separation: \separated(disk_car, netware_block, partition);
       @*/
-    int recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t *partition);
+    int recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t &partition);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

@@ -70,32 +70,6 @@ void offset2CHS(const disk_t &disk_car, const uint64_t offset, CHS_t *CHS)
     CHS->cylinder = pos / disk_car.geom.heads_per_cylinder;
 }
 
-void dup_partition_t(partition_t *dst, const partition_t *src)
-{
-#if 0
-  dst->part_offset=src->part_offset;
-  dst->part_size=src->part_size;
-  dst->boot_sector=src->boot_sector;
-  dst->boot_sector_size=src->boot_sector_size;
-  dst->blocksize=src->blocksize;
-  dst->part_type_i386=src->part_type_i386;
-  dst->part_type_sun=src->part_type_sun;
-  dst->part_type_mac=src->part_type_mac;
-  dst->part_type_xbox=src->part_type_xbox;
-  dst->part_type_gpt=src->part_type_gpt;
-  dst->upart_type=src->upart_type;
-  dst->status=src->status;
-  dst->order=src->order;
-  dst->errcode=src->errcode;
-  strncpy(dst->info,src->info,sizeof(dst->info));
-  strncpy(dst->fsname,src->name,sizeof(dst->fsname));
-  strncpy(dst->partname,src->name,sizeof(dst->partname));
-  dst->arch=src->arch;
-#else
-    memcpy(dst, src, sizeof(*src));
-#endif
-}
-
 /*@
   @ requires valid_list_disk(list_disk);
   @ requires disk!=\null;
@@ -161,14 +135,8 @@ void insert_new_disk(list_disk_t &list_disk, disk_t &disk)
     insert_new_disk_aux(list_disk, disk, nullptr);
 }
 
-void insert_new_partition(list_part_t &list_part, partition_t *new_partition, const int force_insert, int *insert_error)
+void insert_new_partition(list_part_t &list_part, partition_t &new_partition, const int force_insert, int *insert_error)
 {
-    if (new_partition == nullptr)
-    {
-        *insert_error = 1;
-        return;
-    }
-
     *insert_error = 0;
     if (list_part.empty())
     {
@@ -180,25 +148,25 @@ void insert_new_partition(list_part_t &list_part, partition_t *new_partition, co
       @ loop invariant valid_partition(part);
       @ loop invariant \valid(insert_error);
       @*/
-    for (partition_t *partition : list_part)
+    for (partition_t partition : list_part)
     { /* prev new next */
         /*@ assert partition != \null || valid_partition(partition); */
-        if ((new_partition->part_offset < partition->part_offset) ||
-            (new_partition->part_offset == partition->part_offset &&
-             ((new_partition->part_size < partition->part_size) ||
-              (new_partition->part_size == partition->part_size &&
-               (force_insert == 0 || new_partition->sb_offset < partition->sb_offset)))))
+        if ((new_partition.part_offset < partition.part_offset) ||
+            (new_partition.part_offset == partition.part_offset &&
+             ((new_partition.part_size < partition.part_size) ||
+              (new_partition.part_size == partition.part_size &&
+               (force_insert == 0 || new_partition.sb_offset < partition.sb_offset)))))
         {
-            if (force_insert == 0 && (partition->part_offset == new_partition->part_offset) &&
-                (partition->part_size == new_partition->part_size) && (partition->part_type_i386 == new_partition->part_type_i386) &&
-                (partition->part_type_mac == new_partition->part_type_mac) &&
-                (partition->part_type_sun == new_partition->part_type_sun) &&
-                (partition->part_type_xbox == new_partition->part_type_xbox) &&
-                (partition->upart_type == new_partition->upart_type || new_partition->upart_type == UP_UNK))
+            if (force_insert == 0 && (partition.part_offset == new_partition.part_offset) &&
+                (partition.part_size == new_partition.part_size) && (partition.part_type_i386 == new_partition.part_type_i386) &&
+                (partition.part_type_mac == new_partition.part_type_mac) &&
+                (partition.part_type_sun == new_partition.part_type_sun) &&
+                (partition.part_type_xbox == new_partition.part_type_xbox) &&
+                (partition.upart_type == new_partition.upart_type || new_partition.upart_type == UP_UNK))
             { /*CGR 2004/05/31*/
-                if (partition->status == STATUS_DELETED)
+                if (partition.status == STATUS_DELETED)
                 {
-                    partition->status = new_partition->status;
+                    partition.status = new_partition.status;
                 }
                 *insert_error = 1;
                 /*@ assert valid_list_part(list_part); */
@@ -237,7 +205,7 @@ void sort_partition_list(list_part_t &list_part)
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_list_part(new_list_part);
       @*/
-    for (partition_t * element : list_part)
+    for (partition_t &element : list_part)
     {
         int insert_error = 0;
         /*@ assert \valid(element); */
@@ -255,25 +223,17 @@ list_part_t gen_sorted_partition_list(const list_part_t &list_part)
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_list_part(new_list_part);
       @*/
-    for (partition_t *element : list_part)
+    for (partition_t element : list_part)
     {
         /*@ assert \valid_read(element); */
         int _insert_error = 0;
 
-        if (element->status != STATUS_DELETED)
+        if (element.status != STATUS_DELETED)
             insert_new_partition(new_list_part, element, 1, &_insert_error);
         /*@ assert \valid_read(element); */
     }
     /*@ assert valid_list_part(new_list_part); */
     return new_list_part;
-}
-
-/* Delete the list content */
-void part_free_list(list_part_t &list_part)
-{
-    /*@ loop invariant valid_list_part(element); */
-    for (partition_t *element : list_part)
-        delete element;
 }
 
 int is_part_overlapping(const list_part_t &list_part)
@@ -292,17 +252,17 @@ int is_part_overlapping(const list_part_t &list_part)
     while (1)
     {
         auto next = std::next(element);
-        const partition_t *partition = *element;
-        const partition_t *next_part = *next;
+        const partition_t &partition = *element;
+        const partition_t &next_part = *next;
         if (next == list_part.cend())
             return 0;
         /*@ assert \valid_read(partition); */
-        /*@ assert \valid_read(next->part); */
-        if ((partition->part_offset + partition->part_size - 1 >= next_part->part_offset) ||
-            ((partition->status == STATUS_PRIM || partition->status == STATUS_PRIM_BOOT ||
-              partition->status == STATUS_LOG) &&
-             next_part->status == STATUS_LOG &&
-             partition->part_offset + partition->part_size - 1 + 1 >= next_part->part_offset))
+        /*@ assert \valid_read(next_part); */
+        if ((partition.part_offset + partition.part_size - 1 >= next_part.part_offset) ||
+            ((partition.status == STATUS_PRIM || partition.status == STATUS_PRIM_BOOT ||
+              partition.status == STATUS_LOG) &&
+             next_part.status == STATUS_LOG &&
+             partition.part_offset + partition.part_size - 1 + 1 >= next_part.part_offset))
             return 1;
         element = next;
     }
@@ -313,42 +273,42 @@ int is_part_overlapping(const list_part_t &list_part)
   @ requires valid_partition(partition);
   @ requires \valid_read(arch);
   @ requires \separated(partition, arch);
-  @ ensures partition->part_size == 0;
-  @ ensures partition->sborg_offset == 0;
-  @ ensures partition->sb_offset == 0;
-  @ ensures partition->sb_size == 0;
-  @ ensures partition->blocksize == 0;
-  @ ensures partition->part_type_i386 == P_NO_OS;
-  @ ensures partition->part_type_sun == PSUN_UNK;
-  @ ensures partition->part_type_mac == PMAC_UNK;
-  @ ensures partition->part_type_xbox == PXBOX_UNK;
-  @ ensures partition->upart_type == UP_UNK;
-  @ ensures partition->status == STATUS_DELETED;
-  @ ensures partition->order == NO_ORDER;
-  @ ensures partition->errcode == BAD_NOERR;
-  @ ensures partition->fsname[0] == '\0';
-  @ ensures partition->partname[0] == '\0';
-  @ ensures partition->info[0] == '\0';
-  @ ensures partition->arch == arch;
+  @ ensures partition.part_size == 0;
+  @ ensures partition.sborg_offset == 0;
+  @ ensures partition.sb_offset == 0;
+  @ ensures partition.sb_size == 0;
+  @ ensures partition.blocksize == 0;
+  @ ensures partition.part_type_i386 == P_NO_OS;
+  @ ensures partition.part_type_sun == PSUN_UNK;
+  @ ensures partition.part_type_mac == PMAC_UNK;
+  @ ensures partition.part_type_xbox == PXBOX_UNK;
+  @ ensures partition.upart_type == UP_UNK;
+  @ ensures partition.status == STATUS_DELETED;
+  @ ensures partition.order == NO_ORDER;
+  @ ensures partition.errcode == BAD_NOERR;
+  @ ensures partition.fsname[0] == '\0';
+  @ ensures partition.partname[0] == '\0';
+  @ ensures partition.info[0] == '\0';
+  @ ensures partition.arch == arch;
   @*/
-// assigns partition->part_size;
-// assigns partition->sborg_offset;
-// assigns partition->sb_offset;
-// assigns partition->sb_size;
-// assigns partition->blocksize;
-// assigns partition->part_type_i386;
-// assigns partition->part_type_sun;
-// assigns partition->part_type_mac;
-// assigns partition->part_type_xbox;
-// assigns partition->part_type_gpt;
-// assigns partition->part_uuid;
-// assigns partition->upart_type;
-// assigns partition->status;
-// assigns partition->order;
-// assigns partition->errcode;
-// assigns partition->fsname[0];
-// assigns partition->partname[0];
-// assigns partition->info[0];
+// assigns partition.part_size;
+// assigns partition.sborg_offset;
+// assigns partition.sb_offset;
+// assigns partition.sb_size;
+// assigns partition.blocksize;
+// assigns partition.part_type_i386;
+// assigns partition.part_type_sun;
+// assigns partition.part_type_mac;
+// assigns partition.part_type_xbox;
+// assigns partition.part_type_gpt;
+// assigns partition.part_uuid;
+// assigns partition.upart_type;
+// assigns partition.status;
+// assigns partition.order;
+// assigns partition.errcode;
+// assigns partition.fsname[0];
+// assigns partition.partname[0];
+// assigns partition.info[0];
 void partition_t::reset(const arch_fnct_t *arch)
 {
     /* lba=0; Don't reset lba, used by search_part */
@@ -399,13 +359,13 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, cons
       @ loop assigns element, nbr;
       @ loop invariant valid_list_part(element);
       @*/
-    for (const partition_t *element : list_part)
+    for (const partition_t &element : list_part)
     {
         CHS_t start;
         CHS_t end;
         /*@ assert \valid_read(element); */
-        offset2CHS(disk_car, element->part_offset, &start);
-        offset2CHS(disk_car, element->part_offset + element->part_size - 1, &end);
+        offset2CHS(disk_car, element.part_offset, &start);
+        offset2CHS(disk_car, element.part_offset + element.part_size - 1, &end);
         if (start.sector == 1 && start.head <= 1)
         {
             nbr++;
@@ -422,12 +382,12 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, cons
         log_info("get_geometry_from_list_part_aux head={} nbr={}", disk_car.geom.heads_per_cylinder, nbr);
         if (verbose > 1)
         {
-            for (const partition_t *element : list_part)
+            for (const partition_t &element : list_part)
             {
                 CHS_t start;
                 CHS_t end;
-                offset2CHS(disk_car, element->part_offset, &start);
-                offset2CHS(disk_car, element->part_offset + element->part_size - 1, &end);
+                offset2CHS(disk_car, element.part_offset, &start);
+                offset2CHS(disk_car, element.part_offset + element.part_size - 1, &end);
                 if (start.sector == 1 && start.head <= 1 && end.head == disk_car.geom.heads_per_cylinder - 1)
                 {
                     log_partition(disk_car, element);

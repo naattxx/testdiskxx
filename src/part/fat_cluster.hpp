@@ -54,7 +54,7 @@ extern "C"
       @ requires \separated(disk_car, partition, sectors_per_cluster, offset);
       @ decreases 0;
       @*/
-    int find_sectors_per_cluster(disk_t &disk_car, const partition_t *partition, const int verbose, const int dump_ind,
+    int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, const int verbose, const int dump_ind,
                                  unsigned int *sectors_per_cluster, uint64_t *offset, const upart_type_t upart_type);
 
     /*@

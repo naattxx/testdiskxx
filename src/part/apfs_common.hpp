@@ -103,7 +103,7 @@ extern "C"
       @ requires \separated(sb, partition);
       @ assigns  \nothing;
       @ */
-    int test_APFS(const nx_superblock_t *sb, const partition_t *partition);
+    int test_APFS(const nx_superblock_t *sb, const partition_t &partition);
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

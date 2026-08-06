@@ -39,7 +39,7 @@
 #include "src/log_part.hpp"
 
 #ifdef HAVE_NCURSES
-static void dump_fat32_ncurses(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void dump_fat32_ncurses(disk_t &disk_car, const partition_t &partition, const unsigned char *buffer_bs,
                                const unsigned char *buffer_backup_bs)
 {
     WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
@@ -59,7 +59,7 @@ static void dump_fat32_ncurses(disk_t &disk_car, const partition_t *partition, c
 }
 #endif
 
-static void dump_fat32(disk_t &disk_car, const partition_t *partition, const unsigned char *buffer_bs,
+static void dump_fat32(disk_t &disk_car, const partition_t &partition, const unsigned char *buffer_bs,
                        const unsigned char *buffer_backup_bs, char **current_cmd)
 {
     // log_info("Boot sector                        Backup boot sector\n");
@@ -74,7 +74,7 @@ static void dump_fat32(disk_t &disk_car, const partition_t *partition, const uns
     }
 }
 
-int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbose, const int dump_ind,
+int fat32_boot_sector(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind,
                       const unsigned int expert, char **current_cmd)
 {
     unsigned char *buffer_bs;
@@ -114,7 +114,7 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
             log_info("\nfat32_boot_sector\n");
             log_partition(disk_car, partition);
             screen_buffer_add("Boot sector\n");
-            if ((unsigned)disk_car.pread(disk_car, buffer_bs, 3 * disk_car.sector_size, partition->part_offset) !=
+            if ((unsigned)disk_car.pread(disk_car, buffer_bs, 3 * disk_car.sector_size, partition.part_offset) !=
                 3 * disk_car.sector_size)
             {
                 screen_buffer_add("fat32_boot_sector: Can't read boot sector.\n");
@@ -123,7 +123,7 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
             if (test_FAT(disk_car, (struct fat_boot_sector *)buffer_bs, partition, verbose, 0) == 0)
             {
                 screen_buffer_add("OK\n");
-                if (partition->upart_type == UP_FAT32)
+                if (partition.upart_type == UP_FAT32)
                 {
                     opt_O = 1;
                     opt_over = 1;
@@ -139,7 +139,7 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
             }
             screen_buffer_add("\nBackup boot sector\n");
             if ((unsigned)disk_car.pread(disk_car, buffer_backup_bs, 3 * disk_car.sector_size,
-                                          partition->part_offset + 6 * disk_car.sector_size) !=
+                                          partition.part_offset + 6 * disk_car.sector_size) !=
                 3 * disk_car.sector_size)
             {
                 screen_buffer_add("fat32_boot_sector: Can't read backup boot sector.\n");
@@ -148,7 +148,7 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
             if (test_FAT(disk_car, (struct fat_boot_sector *)buffer_backup_bs, partition, verbose, 0) == 0)
             {
                 screen_buffer_add("OK\n");
-                if (partition->upart_type == UP_FAT32)
+                if (partition.upart_type == UP_FAT32)
                 {
                     opt_B = 1;
                     opt_over = 1;
@@ -191,7 +191,7 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
                     options = "DOBRL";
                 else if (opt_B != 0)
                 {
-                    partition->sb_offset = 6 * disk_car.sector_size;
+                    partition.sb_offset = 6 * disk_car.sector_size;
                     menu = 5;
                     options = "DBRL";
                 }
@@ -264,7 +264,7 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
             {
                 log_info("copy original boot sector over backup boot\n");
                 if ((unsigned)disk_car->pwrite(disk_car, buffer_bs, 3 * disk_car->sector_size,
-                                               partition->part_offset + 6 * disk_car->sector_size) !=
+                                               partition.part_offset + 6 * disk_car->sector_size) !=
                     3 * disk_car->sector_size)
                 {
                     display_message("Write error: Can't overwrite FAT32 backup boot sector\n");
@@ -275,13 +275,13 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
             break;
         case 'B': /* B : copy backup boot sector over boot sector */
             /* Reset information about backup boot sector */
-            partition->sb_offset = 0;
+            partition.sb_offset = 0;
 #ifdef HAVE_NCURSES
             if (ask_confirmation("Copy backup FAT32 boot sector over boot sector, confirm ? (Y/N)") != 0)
             {
                 log_info("copy backup boot sector over boot sector\n");
                 if ((unsigned)disk_car->pwrite(disk_car, buffer_backup_bs, 3 * disk_car->sector_size,
-                                               partition->part_offset) != 3 * disk_car->sector_size)
+                                               partition.part_offset) != 3 * disk_car->sector_size)
                 {
                     display_message("Write error: Can't overwrite FAT32 boot sector\n");
                 }
@@ -298,9 +298,9 @@ int fat32_boot_sector(disk_t &disk_car, partition_t *partition, const int verbos
         case 'L':
             if (strchr(options, 'O') == NULL && strchr(options, 'B') != NULL)
             {
-                io_redir_add_redir(disk_car, partition->part_offset, 3 * disk_car.sector_size, 0, buffer_backup_bs);
+                io_redir_add_redir(disk_car, partition.part_offset, 3 * disk_car.sector_size, 0, buffer_backup_bs);
                 dir_partition(disk_car, partition, 0, 0, current_cmd);
-                io_redir_del_redir(disk_car, partition->part_offset);
+                io_redir_del_redir(disk_car, partition.part_offset);
             }
             else
                 dir_partition(disk_car, partition, 0, 0, current_cmd);

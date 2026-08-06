@@ -54,35 +54,34 @@ static int get_hex_from_command(char **current_cmd)
     return tmp;
 }
 
-void change_part_type_cli(const disk_t &disk_car, partition_t *partition, char **current_cmd)
+void change_part_type_cli(const disk_t &disk_car, partition_t &partition, char **current_cmd)
 {
     assert(current_cmd != NULL);
-    assert(partition != NULL);
-    if (*current_cmd == NULL || partition->arch == NULL)
+    if (*current_cmd == NULL || partition.arch == NULL)
         return;
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
-    if (partition->arch == &arch_gpt)
+    if (partition.arch == &arch_gpt)
     {
-        partition->arch = &arch_none;
+        partition.arch = &arch_none;
         skip_comma_in_command(current_cmd);
         {
             const int tmp_val = get_hex_from_command(current_cmd);
-            partition->arch->set_part_type(partition, tmp_val);
+            partition.arch->set_part_type(partition, tmp_val);
         }
 #ifndef DISABLED_FOR_FRAMAC
         log_info("Change partition type:\n");
         log_partition(disk_car, partition);
 #endif
-        partition->arch = &arch_gpt;
+        partition.arch = &arch_gpt;
         return;
     }
 #endif
-    if (partition->arch->set_part_type == NULL)
+    if (partition.arch->set_part_type == NULL)
         return;
     skip_comma_in_command(current_cmd);
     {
         const int tmp_val = get_hex_from_command(current_cmd);
-        partition->arch->set_part_type(partition, tmp_val);
+        partition.arch->set_part_type(partition, tmp_val);
     }
 #ifndef DISABLED_FOR_FRAMAC
     log_info("Change partition type:\n");

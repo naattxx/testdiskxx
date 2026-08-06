@@ -35,7 +35,7 @@ extern "C"
       @ requires separation: \separated(disk_car, partition);
       @ decreases 0;
       @*/
-    int check_ISO(disk_t &disk_car, partition_t *partition);
+    int check_ISO(disk_t &disk_car, partition_t &partition);
 
     /*@
       @ requires \valid_read(iso);
@@ -43,7 +43,7 @@ extern "C"
       @ requires valid_partition(partition);
       @ requires separation: \separated(iso, partition);
       @*/
-    int recover_ISO(const struct iso_primary_descriptor *iso, partition_t *partition);
+    int recover_ISO(const struct iso_primary_descriptor *iso, partition_t &partition);
 #ifdef __cplusplus
 } /* closing brace for extern "C" */
 #endif

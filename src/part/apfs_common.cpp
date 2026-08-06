@@ -69,7 +69,7 @@ static uint64_t VerifyBlock(const void *block, const size_t size)
     return cs;
 }
 
-int test_APFS(const nx_superblock_t *sb, const partition_t *partition)
+int test_APFS(const nx_superblock_t *sb, const partition_t &partition)
 {
     if (le32(sb->nx_magic) != 0x4253584e)
         return 1;
