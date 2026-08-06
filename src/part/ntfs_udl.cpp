@@ -54,8 +54,7 @@
 #define REG_NOERROR 0
 #endif
 
-#include "src/list.h"
-#include "src/list_sort.h"
+#include <list>
 #include "ntfs_udl.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
@@ -107,7 +106,6 @@ struct options
 
 struct filename
 {
-    struct td_list_head list; /* Previous/Next links */
     ntfschar *uname;          /* Filename in unicode */
     int uname_len;            /* and its length */
     uint64_t size_alloc;      /* Allocated size (multiple of cluster size) */
@@ -122,10 +120,10 @@ struct filename
     uint64_t parent_mref;
     char *parent_name;
 };
+typedef std::list<filename *> filename_list_t;
 
 struct data
 {
-    struct td_list_head list; /* Previous/Next links */
     char *name;               /* Stream name in current locale */
     ntfschar *uname;          /* Unicode stream name */
     int uname_len;            /* and its length */
@@ -140,13 +138,14 @@ struct data
     unsigned int percent;     /* Amount potentially recoverable */
     void *data;               /* If resident, a pointer to the data */
 };
+typedef std::list<data *> data_list_t;
 
 struct ufile
 {
     uint64_t inode;           /* MFT record number */
     time_t date;              /* Last modification date/time */
-    struct td_list_head name; /* A list of filenames */
-    struct td_list_head data; /* A list of data streams */
+    filename_list_t name;     /* A list of filenames */
+    data_list_t data;         /* A list of data streams */
     char *pref_name;          /* Preferred filename */
     char *pref_pname;         /*	     parent filename */
     uint64_t max_size;        /* Largest size we find */
@@ -169,22 +168,18 @@ static struct options opts;
  */
 static void free_file(struct ufile *file)
 {
-    struct td_list_head *item, *tmp;
-
     if (!file)
         return;
 
-    td_list_for_each_safe(item, tmp, &file->name)
+    for (filename *f : file->name)
     { /* List of filenames */
-        struct filename *f = td_list_entry(item, struct filename, list);
         delete (f->name);
         delete (f->parent_name);
         delete (f);
     }
 
-    td_list_for_each_safe(item, tmp, &file->data)
+    for (data *d : file->data)
     { /* List of data streams */
-        struct data *d = td_list_entry(item, struct data, list);
         delete (d->name);
         delete (d->runlist);
         delete (d);
@@ -430,7 +425,7 @@ static int get_filenames(struct ufile *file, ntfs_volume *vol)
         file->max_size = max(file->max_size, name->size_alloc);
         file->max_size = max(file->max_size, name->size_data);
 
-        td_list_add_tail(&name->list, &file->name);
+        file->name.push_back(name);
         count++;
     }
 
@@ -515,7 +510,7 @@ static int get_data(struct ufile *file, const ntfs_volume *vol)
         file->max_size = max(file->max_size, data->size_data);
         file->max_size = max(file->max_size, data->size_init);
 
-        td_list_add_tail(&data->list, &file->data);
+        file->data.push_front(data);
         count++;
     }
 
@@ -551,8 +546,6 @@ static struct ufile *read_record(ntfs_volume *vol, uint64_t record)
         return NULL;
     }
 
-    TD_INIT_LIST_HEAD(&file->name);
-    TD_INIT_LIST_HEAD(&file->data);
     file->inode = record;
 
     file->mft = (MFT_RECORD *)new unsigned char[vol->mft_record_size];
@@ -630,7 +623,6 @@ static struct ufile *read_record(ntfs_volume *vol, uint64_t record)
  */
 static unsigned int calc_percentage(struct ufile *file, ntfs_volume *vol)
 {
-    struct td_list_head *pos;
     unsigned int percent = 0;
 
     if (!file || !vol)
@@ -641,18 +633,16 @@ static unsigned int calc_percentage(struct ufile *file, ntfs_volume *vol)
         return 0;
     }
 
-    if (td_list_empty(&file->data))
+    if (file->data.empty())
     {
         return 0;
     }
 
-    td_list_for_each(pos, &file->data)
+    for (data *data : file->data)
     {
         runlist_element *rl = NULL;
         uint64_t i;
         unsigned int clusters_inuse, clusters_free;
-        struct data *data;
-        data = td_list_entry(pos, struct data, list);
         clusters_inuse = 0;
         clusters_free = 0;
 
@@ -882,7 +872,6 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
     char *buffer = NULL;
     unsigned int bufsize;
     struct ufile *file;
-    struct td_list_head *item;
 
     if (!vol)
         return -2;
@@ -916,18 +905,17 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
         goto free;
     }
 
-    if (td_list_empty(&file->data))
+    if (file->data.empty())
     {
         log_warning("File has no data.  There is nothing to recover.\n");
         goto free;
     }
 
-    td_list_for_each(item, &file->data)
+    for (data *d : file->data)
     {
         char pathname[256];
         char defname[64];
         char *name;
-        struct data *d = td_list_entry(item, struct data, list);
         if (file->pref_name)
         {
             name = file->pref_name;
@@ -1219,10 +1207,8 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
                 percent = calc_percentage(file, vol);
                 if (percent > 0)
                 {
-                    struct td_list_head *item;
-                    td_list_for_each(item, &file->data)
+                    for (const data *d : file->data)
                     {
-                        const struct data *d = td_list_entry_const(item, const struct data, list);
                         file_info_t *new_file;
                         new_file = ufile_to_file_data(file, d);
                         if (new_file != NULL)
