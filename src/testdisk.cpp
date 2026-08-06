@@ -14,8 +14,7 @@
 #include <args.hxx>
 #include <chrono>
 #include <cpptui.hpp>
-#include <fmt/chrono.h>
-#include <fmt/format.h>
+#include <format>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -240,7 +239,7 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    log_info("{}", std::chrono::system_clock::now());
+    log_info(std::format("{}", std::chrono::system_clock::now()));
     {
         std::string cmd("Command line:");
         for (int i{0}; i < argc; i++)
