@@ -27,13 +27,25 @@
 #undef HAVE_SCSI_SG_H
 #endif
 
-#ifdef __linux__
+#if __has_include(<fcntl.h>)
 #include <fcntl.h> /* open */
+#endif
+#if __has_include(<linux/hdreg.h>)
 #include <linux/hdreg.h>
+#endif
+#if __has_include(<linux/types.h>)
 #include <linux/types.h>
+#endif
+#if __has_include(<scsi/sg.h>)
 #include <scsi/sg.h>
+#endif
+#if __has_include(<sys/ioctl.h>)
 #include <sys/ioctl.h>
+#endif
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
+#endif
+#if __has_include(<unistd.h>)
 #include <unistd.h> /* lseek, read, write, close */
 #endif
 #include <stdio.h>

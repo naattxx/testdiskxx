@@ -21,7 +21,7 @@
  */
 #include <string.h>
 #include <time.h>
-#ifdef __linux__
+#if __has_include(<sys/time.h>)
 #include <sys/time.h>
 #endif
 #include <stdio.h>

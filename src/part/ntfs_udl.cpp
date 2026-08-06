@@ -41,9 +41,13 @@
 #endif
 // #include "types.h"
 #include "src/common.hpp"
-#ifdef __linux__
+#if __has_include(<fcntl.h>)
 #include <fcntl.h>
+#endif
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
+#endif
+#if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
 #include <limits.h>

@@ -27,11 +27,19 @@
 #include <string.h>
 #include <time.h>
 
-#ifdef __linux__
+#if __has_include(<libgen.h>)
 #include <libgen.h>
+#endif
+#if __has_include(<sys/select.h>)
 #include <sys/select.h>
+#endif
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
+#endif
+#if __has_include(<sys/time.h>)
 #include <sys/time.h>
+#endif
+#if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
 #if __has_include(<sys/cygwin.h>)

@@ -21,7 +21,7 @@
  */
 #ifndef _DIR_COMMON_H
 #define _DIR_COMMON_H
-#ifdef __linux__
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
 #include "common.hpp"

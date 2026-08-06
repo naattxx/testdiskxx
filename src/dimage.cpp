@@ -24,9 +24,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef __linux__
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
+#endif
+#if __has_include(<sys/types.h>)
 #include <sys/types.h>
+#endif
+#if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
 #include <assert.h>

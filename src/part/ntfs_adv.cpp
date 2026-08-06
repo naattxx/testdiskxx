@@ -24,7 +24,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef __linux__
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
 // #include "types.h"

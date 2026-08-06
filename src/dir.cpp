@@ -27,8 +27,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifdef __linux__
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
+#endif
+#if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
 // #include "types.h"

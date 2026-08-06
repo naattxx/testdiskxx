@@ -40,17 +40,37 @@
 #undef HAVE_SYS_SYSMACROS_H
 #endif
 
-#ifdef __linux__
+#if __has_include(<fcntl.h>)
 #include <fcntl.h> /* open */
+#endif
+#if __has_include(<features.h>)
 #include <features.h>
+#endif
+#if __has_include(<glob.h>)
 #include <glob.h>
+#endif
+#if __has_include(<libgen.h>)
 #include <libgen.h>
+#endif
+#if __has_include(<linux/hdreg.h>)
 #include <linux/hdreg.h>
+#endif
+#if __has_include(<linux/types.h>)
 #include <linux/types.h>
+#endif
+#if __has_include(<sys/ioctl.h>)
 #include <sys/ioctl.h>
+#endif
+#if __has_include(<sys/mount.h>)
 #include <sys/mount.h> /* BLKFLSBUF */
+#endif
+#if __has_include(<sys/param.h>)
 #include <sys/param.h>
+#endif
+#if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
+#endif
+#if __has_include(<unistd.h>)
 #include <unistd.h> /* lseek, read, write, close */
 #endif
 #if __has_include(<sys/sysmacros.h>)
