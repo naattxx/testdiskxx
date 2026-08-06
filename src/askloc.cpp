@@ -43,8 +43,6 @@
 #include "common.hpp"
 #include "intrf.hpp"
 // #include "intrfn.hpp"
-#include "list.h"
-// #include "list_sort.h"
 #include "askloc.hpp"
 #include "dir.hpp"
 #include "log.hpp"

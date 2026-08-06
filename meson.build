@@ -134,7 +134,6 @@ sources = files(
   'src/intrf.cpp',
   'src/intrface.cpp',
   'src/io_redir.cpp',
-  'src/list_sort.cpp',
   'src/log.cpp',
   'src/log_part.cpp',
   'src/part/apfs.cpp',

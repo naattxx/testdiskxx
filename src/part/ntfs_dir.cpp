@@ -83,8 +83,6 @@ extern "C"
 #include "src/common.hpp"
 #include "src/dir.hpp"
 #include "src/intrf.hpp"
-#include "src/list.h"
-#include "src/list_sort.h"
 #include "src/log.hpp"
 #include "src/setdate.hpp"
 

@@ -43,7 +43,6 @@
 // #include "lang.h"
 #include "fnctdsk.hpp"
 #include "intrf.hpp"
-// #include "list.h"
 // #include "dir.h"
 #include "log.hpp"
 

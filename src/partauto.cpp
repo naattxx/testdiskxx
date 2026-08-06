@@ -24,7 +24,6 @@
 #include <string.h>
 // #include "types.h"
 #include "common.hpp"
-// #include "list.h"
 #include "fnctdsk.hpp"
 #include "log.hpp"
 #include "partauto.hpp"
