@@ -31,15 +31,15 @@ extern "C"
 #define HFS_SUPERBLOCK_SIZE 512
 #define HFS_SUPER_MAGIC 0x4244 /* "BD": HFS MDB (super block) */
 
-    struct hfs_extent
+    struct [[gnu::gcc_struct,gnu::packed]] hfs_extent
     {
         uint16_t block;
         uint16_t count;
-    } __attribute__((gcc_struct, __packed__));
+    };
     typedef struct hfs_extent hfs_extent_rec[3];
 
     typedef struct hfs_mdb hfs_mdb_t;
-    struct hfs_mdb
+    struct [[gnu::gcc_struct,gnu::packed]] hfs_mdb
     {
         uint16_t drSigWord;        /* 0x00 Signature word indicating fs type */
         uint32_t drCrDate;         /* 0x02 fs creation date/time */
@@ -79,7 +79,7 @@ extern "C"
         hfs_extent_rec drXTExtRec; /* 0x86 extents B-tree's first 3 extents */
         uint32_t drCTFlSize;       /* 0x92 bytes in the catalog B-tree */
         hfs_extent_rec drCTExtRec; /* 0x96 catalog B-tree's first 3 extents */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ requires \valid(disk_car);

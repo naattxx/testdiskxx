@@ -104,20 +104,20 @@ static const struct systypes humax_sys_types[] = {
 };
 #endif
 
-struct partition_humax
+struct [[gnu::gcc_struct,gnu::packed]] partition_humax
 {
     uint32_t unk1;
     uint32_t num_sectors;
     uint32_t unk2;
     uint32_t start_sector;
-} __attribute__((gcc_struct, __packed__));
+};
 
-struct humaxlabel
+struct [[gnu::gcc_struct,gnu::packed]] humaxlabel
 {
     char unk1[0x1be];
     struct partition_humax partitions[4];
     uint16_t magic;
-} __attribute__((gcc_struct, __packed__));
+};
 
 arch_fnct_t arch_humax = {.part_name = "Humax",
                           .part_name_option = "partition_humax",

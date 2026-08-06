@@ -40,7 +40,7 @@ extern "C"
 /* 8*512 for offset + 512 for format40_super */
 #define REISERFS_SUPER_BLOCK_SIZE 9 * 512
 
-    struct reiserfs_super_block
+    struct [[gnu::gcc_struct,gnu::packed]] reiserfs_super_block
     {
         uint32_t s_block_count;            /* 0x00 blocks count         */
         uint32_t s_free_blocks;            /* 0x04 free blocks count    */
@@ -75,13 +75,13 @@ extern "C"
         /*116 */ char s_unused[88];         /* zero filled by mkreiserfs and reiserfs_convert_objectid_map_v1()
                                              * so any additions must be updated there as well. */
         /*204*/
-    } __attribute__((gcc_struct, __packed__));
+    };
 
 #define SB_SIZE (sizeof(struct reiserfs_super_block))
 
 #define REISERFS4_SUPER_MAGIC "ReIsEr4"
 #define MAGIC_SIZE 16
-    struct reiser4_master_sb
+    struct [[gnu::gcc_struct,gnu::packed]] reiser4_master_sb
     {
         char magic[16];          /* "ReIsEr4" */
         uint16_t disk_plugin_id; /* id of disk layout plugin */
@@ -89,9 +89,9 @@ extern "C"
         char uuid[16];    /* unique id */
         char label[16];   /* filesystem label */
         uint64_t diskmap; /* location of the diskmap. 0 if not present */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct format40_super
+    struct [[gnu::packed]] format40_super
     {
         uint64_t sb_block_count;
         uint64_t sb_free_blocks;
@@ -110,7 +110,7 @@ extern "C"
         uint64_t sb_flags;
 
         char sb_unused[432];
-    } __attribute__((packed));
+    };
 
     /*@
       @ requires \valid(disk_car);

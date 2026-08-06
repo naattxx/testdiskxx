@@ -92,10 +92,12 @@ uint64_t atouint64(const char *nptr);
   @ ensures  valid_read_string(*current_cmd);
   @ assigns  *current_cmd;
   @*/
+[[gnu::format(printf, 5, 6)]]
 uint64_t ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t val_min, const uint64_t val_max,
-                        const char *_format, ...) __attribute__((format(printf, 5, 6)));
+                        const char *_format, ...);
 void screen_buffer_reset(void);
-int screen_buffer_add(const char *_format, ...) __attribute__((format(printf, 1, 2)));
+[[gnu::format(printf, 1, 2)]]
+int screen_buffer_add(const char *_format, ...);
 void screen_buffer_to_log(void);
 
 /*@

@@ -119,7 +119,7 @@
 
 extern const arch_fnct_t arch_none;
 
-struct tdewf_file_header
+struct [[gnu::gcc_struct,gnu::packed]] tdewf_file_header
 {
     /* The EWF file signature (magic header)
      * consists of 8 bytes containing
@@ -140,7 +140,7 @@ struct tdewf_file_header
      * 0x00 0x00
      */
     uint16_t fields_end;
-} __attribute__((gcc_struct, __packed__));
+};
 
 struct info_file_struct
 {
@@ -152,7 +152,7 @@ struct info_file_struct
     int mode;
 };
 
-struct dosemu_image_header
+struct [[gnu::packed]] dosemu_image_header
 {
     char sig[7]; /* always set to "DOSEMU", null-terminated or to "\x0eDEXE" */
     uint32_t heads;
@@ -165,7 +165,7 @@ struct dosemu_image_header
                           * we correct that atleast for the future
                           */
     uint32_t dexeflags;
-} __attribute__((packed));
+};
 
 static int file_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset);
 static int file_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset);
@@ -1013,7 +1013,7 @@ static int read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file)
 #endif
 
 #if defined(__linux__) && defined(INQUIRY) && defined(SG_GET_VERSION_NUM)
-typedef struct _scsi_inquiry_data
+typedef struct [[gnu::gcc_struct,gnu::packed]] _scsi_inquiry_data
 {
     uint8_t peripheral_info;
     uint8_t device_info;
@@ -1028,7 +1028,7 @@ typedef struct _scsi_inquiry_data
     uint8_t product_revision[4];
     uint8_t vendor_specific[20];
     uint8_t _reserved3[40];
-} __attribute__((gcc_struct, __packed__)) scsi_inquiry_data_t;
+} scsi_inquiry_data_t;
 #define INQ_CMD_LEN 6
 #define INQ_REPLY_LEN sizeof(scsi_inquiry_data_t)
 

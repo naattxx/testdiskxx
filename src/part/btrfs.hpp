@@ -54,7 +54,7 @@ extern "C"
      */
 
 #define BTRFS_UUID_SIZE 16
-    struct btrfs_dev_item
+    struct [[gnu::gcc_struct,gnu::packed]] btrfs_dev_item
     {
         /* the internal btrfs device id */
         uint64_t devid;
@@ -100,9 +100,9 @@ extern "C"
 
         /* uuid of FS who owns this device */
         uint8_t fsid[BTRFS_UUID_SIZE];
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct btrfs_super_block
+    struct [[gnu::gcc_struct,gnu::packed]] btrfs_super_block
     {
         uint8_t csum[BTRFS_CSUM_SIZE];
         /* the first 3 fields must match struct btrfs_header */
@@ -143,7 +143,7 @@ extern "C"
         /* future expansion */
         uint64_t reserved[32];
         uint8_t sys_chunk_array[BTRFS_SYSTEM_CHUNK_ARRAY_SIZE];
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ requires \valid(disk_car);

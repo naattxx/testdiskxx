@@ -5,7 +5,7 @@
 #include <list>
 #include <string>
 
-struct efi_guid_s
+struct [[gnu::gcc_struct,gnu::packed]] efi_guid_s
 {
     uint32_t time_low;
     uint16_t time_mid;
@@ -13,7 +13,7 @@ struct efi_guid_s
     uint8_t clock_seq_hi_and_reserved;
     uint8_t clock_seq_low;
     uint8_t node[6];
-} __attribute__((gcc_struct, __packed__));
+};
 typedef struct efi_guid_s efi_guid_t;
 
 #define DEFAULT_SECTOR_SIZE 0x200u

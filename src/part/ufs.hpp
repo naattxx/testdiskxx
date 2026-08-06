@@ -283,21 +283,21 @@ extern "C"
 #define UFS_DIR_ROUND (UFS_DIR_PAD - 1)
 #define UFS_DIR_REC_LEN(name_len) (((name_len) + 1 + 8 + UFS_DIR_ROUND) & ~UFS_DIR_ROUND)
 
-    struct ufs_timeval
+    struct [[gnu::gcc_struct,gnu::packed]] ufs_timeval
     {
         uint32_t tv_sec;
         uint32_t tv_usec;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct ufs_csum
+    struct [[gnu::gcc_struct,gnu::packed]] ufs_csum
     {
         uint32_t cs_ndir;   /* number of directories */
         uint32_t cs_nbfree; /* number of free blocks */
         uint32_t cs_nifree; /* number of free inodes */
         uint32_t cs_nffree; /* number of free frags */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct ufs2_csum_total
+    struct [[gnu::gcc_struct,gnu::packed]] ufs2_csum_total
     {
         uint64_t cs_ndir;        /* number of directories */
         uint64_t cs_nbfree;      /* number of free blocks */
@@ -305,9 +305,9 @@ extern "C"
         uint64_t cs_nffree;      /* number of free frags */
         uint64_t cs_numclusters; /* number of free clusters */
         uint64_t cs_spare[3];    /* future expansion */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct fs_u11_u1_st
+    struct [[gnu::gcc_struct,gnu::packed]] fs_u11_u1_st
     {
         int8_t fs_fsmnt[UFS_MAXMNTLEN]; /* name mounted on */
         uint32_t fs_cgrotor;            /* last cg searched */
@@ -315,9 +315,9 @@ extern "C"
         uint32_t fs_maxcluster;
         uint32_t fs_cpc;            /* cyl per cycle in postbl */
         uint16_t fs_opostbl[16][8]; /* old rotation block list head */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct fs_u11_u2_st
+    struct [[gnu::gcc_struct,gnu::packed]] fs_u11_u2_st
     {
         int8_t fs_fsmnt[UFS2_MAXMNTLEN];    /* name mounted on */
         uint8_t fs_volname[UFS2_MAXVOLLEN]; /* volume name */
@@ -340,12 +340,12 @@ extern "C"
         uint64_t fs_csaddr;                /* blk addr of cyl grp summary area */
         uint64_t fs_pendingblocks;         /* blocks in process of being freed */
         uint32_t fs_pendinginodes;         /*inodes in process of being freed */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*
      * This is the actual superblock, as it is laid out on the disk.
      */
-    struct ufs_super_block
+    struct [[gnu::gcc_struct,gnu::packed]] ufs_super_block
     {
         uint32_t fs_link;      /* UNUSED */
         uint32_t fs_rlink;     /* UNUSED */
@@ -465,7 +465,7 @@ extern "C"
         uint32_t fs_rotbloff;     /* (uint8_t) blocks for each rotation */
         uint32_t fs_magic;        /* magic number */
         uint8_t fs_space[1];      /* list of blocks for each rotation */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
 /*
  * Preference for optimization.

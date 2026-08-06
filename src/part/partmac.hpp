@@ -61,7 +61,7 @@ extern "C"
     typedef struct DDMap mac_DDMap;
 
     // Each partition map entry (blocks 1 through n) has this format
-    struct dpme
+    struct [[gnu::gcc_struct,gnu::packed]] dpme
     {
         uint16_t dpme_signature;
         uint16_t dpme_reserved_1;
@@ -95,7 +95,7 @@ extern "C"
         char dpme_process_id[16];
         uint32_t dpme_boot_args[32];
         uint32_t dpme_reserved_3[62];
-    } __attribute__((gcc_struct, __packed__));
+    };
     typedef struct dpme mac_DPME;
 
     /*@

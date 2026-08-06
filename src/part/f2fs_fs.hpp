@@ -56,13 +56,13 @@
 /*
  * For superblock
  */
-struct f2fs_device
+struct [[gnu::gcc_struct,gnu::packed]] f2fs_device
 {
     uint8_t path[MAX_PATH_LEN];
     uint32_t total_segments;
-} __attribute__((gcc_struct, __packed__));
+};
 
-struct f2fs_super_block
+struct [[gnu::gcc_struct,gnu::packed]] f2fs_super_block
 {
     uint32_t magic;                                                 /* Magic Number */
     uint16_t major_ver;                                             /* Major Version */
@@ -105,6 +105,6 @@ struct f2fs_super_block
     uint32_t qf_ino[F2FS_MAX_QUOTAS];     /* quota inode numbers */
     uint8_t hot_ext_count;                /* # of hot file extension */
     uint8_t reserved[314];                /* valid reserved region */
-} __attribute__((gcc_struct, __packed__));
+};
 
 #endif /* F2FS_FS_H */

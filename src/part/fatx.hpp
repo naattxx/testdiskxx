@@ -28,14 +28,14 @@ extern "C"
 {
 #endif
 
-    struct disk_fatx
+    struct [[gnu::gcc_struct,gnu::packed]] disk_fatx
     {
         char magic[4];
         uint32_t volume_id;
         uint32_t cluster_size_in_sector;
         uint16_t fats;
         uint32_t unknown;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ requires \valid(disk_car);

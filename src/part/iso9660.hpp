@@ -26,7 +26,7 @@
 extern "C"
 {
 #endif
-    struct iso_primary_descriptor
+    struct [[gnu::gcc_struct,gnu::packed]] iso_primary_descriptor
     {
         char type;
         char id[5];
@@ -63,7 +63,7 @@ extern "C"
         char unused4;
         char application_data[512];
         char unused5[653];
-    } __attribute__((gcc_struct, __packed__));
+    };
 #define ISO_PD_SIZE (sizeof(struct iso_primary_descriptor))
 
 #ifdef __cplusplus

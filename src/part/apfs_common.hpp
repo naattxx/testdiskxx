@@ -27,25 +27,25 @@ extern "C"
     typedef uint64_t oid_t;
     typedef uint64_t xid_t;
 
-    struct obj_phys
+    struct [[gnu::gcc_struct,gnu::packed]] obj_phys
     {
         uint8_t o_cksum[MAX_CKSUM_SIZE];
         oid_t o_oid;
         xid_t o_xid;
         uint32_t o_type;
         uint32_t o_subtype;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     typedef struct obj_phys obj_phys_t;
 #if HAVE_PADDR_T == 0
     typedef int64_t paddr_t;
 #endif
 
-    struct prange
+    struct [[gnu::gcc_struct,gnu::packed]] prange
     {
         paddr_t pr_start_paddr;
         uint64_t pr_block_count;
-    } __attribute__((gcc_struct, __packed__));
+    };
     typedef struct prange prange_t;
 
     typedef unsigned char apfs_uuid_t[16];

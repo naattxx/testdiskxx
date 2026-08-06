@@ -29,7 +29,7 @@ extern "C"
 #endif
 #define EXFAT_BS_SIZE 512
 
-    struct exfat_super_block
+    struct [[gnu::gcc_struct,gnu::packed]] exfat_super_block
     {
         unsigned char jmp_boot[3]; /* boot strap short or near jump */
         unsigned char oem_id[8];   /* oem-id */
@@ -53,9 +53,9 @@ extern "C"
         unsigned char allocated_percent; /* 0x70 percentage of allocated space (?) */
         unsigned char xxxx05[397];       /* ??? (0x00...) */
         uint16_t signature;              /* 0xaa55 */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct exfat_file_entry
+    struct [[gnu::gcc_struct,gnu::packed]] exfat_file_entry
     {
         uint8_t type;
         uint8_t sec_count;
@@ -73,9 +73,9 @@ extern "C"
         uint8_t ctz;
         uint8_t mtz;
         uint8_t reserved2[7];
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct exfat_stream_ext_entry
+    struct [[gnu::gcc_struct,gnu::packed]] exfat_stream_ext_entry
     {
         uint8_t type;
         uint8_t sec_flags;
@@ -87,16 +87,16 @@ extern "C"
         uint32_t reserved3;
         uint32_t first_cluster;
         uint64_t data_length;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct exfat_alloc_bitmap_entry
+    struct [[gnu::gcc_struct,gnu::packed]] exfat_alloc_bitmap_entry
     {
         uint8_t type;
         uint8_t bitmap_flags;
         uint8_t reserved[18];
         uint32_t first_cluster;
         uint64_t data_length;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ requires \valid_read(exfat_header);

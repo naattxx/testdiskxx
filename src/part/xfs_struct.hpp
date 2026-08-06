@@ -53,7 +53,7 @@ extern "C"
     typedef uint32_t xfs_agnumber_t; /* allocation group number */
     typedef uint64_t xfs_dfsbno_t;
 
-    struct xfs_sb
+    struct [[gnu::gcc_struct,gnu::packed]] xfs_sb
     {
         uint32_t sb_magicnum;      /* magic number == XFS_SB_MAGIC */
         uint32_t sb_blocksize;     /* logical block size, bytes */
@@ -109,7 +109,7 @@ extern "C"
         uint16_t sb_logsectsize;    /* sector size for the log, bytes */
         uint32_t sb_logsunit;       /* stripe unit size for the log */
         uint32_t sb_features2;      /* additonal feature bits */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

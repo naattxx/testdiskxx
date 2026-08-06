@@ -30,7 +30,7 @@ extern "C"
 
 #define SYSV4_SUPERBLOCK_SIZE 512
 
-#define __packed2__ __attribute__((packed, aligned(2)))
+#define __packed2__ [[gnu::packed, gnu::aligned(2)]]
 
     /* inode numbers are 16 bit */
 
@@ -93,7 +93,7 @@ extern "C"
 #define SYSV_NICFREE 50  /* number of free block list chunk entries */
 
     /* SystemV4 super-block data on disk */
-    struct sysv4_super_block
+    struct [[gnu::gcc_struct,gnu::packed]] sysv4_super_block
     {
         uint16_t s_isize;                 /* 0x00 index of first data zone */
         uint16_t s_pad0;                  /* 0x02 */
@@ -122,7 +122,7 @@ extern "C"
         int32_t s_magic;                  /* 0x1f8 version of file system */
         int32_t s_type;                   /* 0x1fc type of file system: 1 for 512 byte blocks
                                                   2 for 1024 byte blocks */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /* SystemV2 super-block data on disk */
     struct sysv2_super_block
@@ -190,7 +190,7 @@ extern "C"
         uint32_t s_fsize __packed2__; /* total number of zones of this fs */
         /* the start of the free block list: */
         uint16_t s_nfree;                         /* number of free blocks in s_free, <= COH_NICFREE */
-        uint32_t s_free[COH_NICFREE] __packed2__; /* first free block list chunk */
+        __packed2__ uint32_t s_free[COH_NICFREE]; /* first free block list chunk */
         /* the cache of free inodes: */
         uint16_t s_ninode;               /* number of free inodes in s_inode, <= COH_NICINOD */
         sysv_ino_t s_inode[COH_NICINOD]; /* some free inodes */

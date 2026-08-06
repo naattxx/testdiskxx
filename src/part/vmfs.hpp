@@ -33,16 +33,16 @@ extern "C"
 #define VDEV_BOOT_VERSION 1 /* version number       */
 #define VDEV_BOOT_HEADER_SIZE (8 << 10)
 
-    struct vmfs_volume
+    struct [[gnu::gcc_struct,gnu::packed]] vmfs_volume
     {
         uint32_t magic;
         uint32_t version;
-    } __attribute__((gcc_struct, __packed__));
-    struct vmfs_lvm
+    };
+    struct [[gnu::gcc_struct,gnu::packed]] vmfs_lvm
     {
         uint64_t size;
         uint64_t blocks;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ decreases 0;

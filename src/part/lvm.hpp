@@ -117,22 +117,22 @@ extern "C"
 #define LVM2_LABEL "LVM2 001"
 #define LABEL_ID "LABELONE"
 
-    struct lvm2_label_header
+    struct [[gnu::packed]] lvm2_label_header
     {
         uint8_t id[8];      /* 0x00 LABELONE */
         uint64_t sector_xl; /* 0x08 Sector number of this label */
         uint32_t crc_xl;    /* 0x10 From next field to end of sector */
         uint32_t offset_xl; /* 0x14 Offset from start of struct to contents */
         uint8_t type[8];    /* 0x18 LVM2 001 */
-    } __attribute__((packed));
+    };
 
-    struct lvm2_disk_locn
+    struct [[gnu::packed]] lvm2_disk_locn
     {
         uint64_t offset; /* Offset in bytes to start sector */
         uint64_t size;   /* Bytes */
-    } __attribute__((packed));
+    };
 
-    struct lvm2_pv_header
+    struct [[gnu::packed]] lvm2_pv_header
     {
         uint8_t pv_uuid[32];
         uint64_t device_size_xl; /* Bytes */
@@ -141,7 +141,7 @@ extern "C"
 #if !defined(__FRAMAC__)
         struct lvm2_disk_locn disk_areas_xl[0]; /* Two lists */
 #endif
-    } __attribute__((packed));
+    };
 
     /*@
       @ requires \valid(disk_car);

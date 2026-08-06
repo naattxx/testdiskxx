@@ -26,7 +26,7 @@
 
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
 
-    struct gpt_hdr
+    struct [[gnu::gcc_struct,gnu::packed]] gpt_hdr
     {
         char hdr_sig[8]; /* 0x00 */
 #define GPT_HDR_SIG "EFI PART"
@@ -45,7 +45,7 @@
         uint32_t hdr_entsz;     /* 0x54 */
         uint32_t hdr_crc_table; /* 0x58 */
         uint8_t padding[420];   /* 0x5c */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     struct gpt_ent
     {

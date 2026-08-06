@@ -60,7 +60,7 @@ extern "C"
      * kernel sources.
      */
 
-    struct fat_boot_sector
+    struct [[gnu::gcc_struct,gnu::packed]] fat_boot_sector
     {
         uint8_t ignored[3];          /* 0x00 Boot strap short or near jump */
         int8_t system_id[8];         /* 0x03 Name - can be used to special case
@@ -96,9 +96,9 @@ extern "C"
         /* */
         uint8_t nothing[420]; /* 0x5A */
         uint16_t marker;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct fat_fsinfo
+    struct [[gnu::gcc_struct,gnu::packed]] fat_fsinfo
     {
         uint32_t leadsig; /* 0x41615252 */
         uint8_t reserved1[480];
@@ -107,9 +107,9 @@ extern "C"
         uint32_t nextfree; /* next free cluster */
         uint8_t reserved3[12];
         uint32_t magic3; /* 0xAA550000 */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
-    struct msdos_dir_entry
+    struct [[gnu::gcc_struct,gnu::packed]] msdos_dir_entry
     {
         uint8_t name[8]; /* 00 name and extension */
         uint8_t ext[3];
@@ -124,7 +124,7 @@ extern "C"
         uint16_t date;    /* 18 */
         uint16_t start;   /* 1A */
         uint32_t size;    /* 1C file size (in bytes) */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /* Up to 13 characters of the name */
     struct msdos_dir_slot

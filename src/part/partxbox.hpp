@@ -30,12 +30,12 @@ extern "C"
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
 
-    struct xbox_partition
+    struct [[gnu::gcc_struct,gnu::packed]] xbox_partition
     {
         char unk1[0x600];
         char magic[4];
         uint32_t bootnbr;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ requires valid_disk(disk_car);

@@ -29,7 +29,7 @@ extern "C"
 
 #define NTFS_BOOT_SECTOR_SIZE 0x200
 
-    struct ntfs_boot_sector
+    struct [[gnu::gcc_struct,gnu::packed]] ntfs_boot_sector
     {
         uint8_t ignored[3];               /* 0x00 Boot strap short or near jump */
         int8_t system_id[8];              /* 0x03 Name : NTFS */
@@ -59,11 +59,11 @@ extern "C"
         uint32_t checksum;                /* 0x50 Boot sector checksum. */
         uint8_t bootstrap[426];           /* 0x54 Irrelevant (boot up code). */
         uint16_t marker;                  /* 0x1FE */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
 #define NTFS_Magic 0x454c4946 /* FILE */
 
-    struct ntfs_mft_record
+    struct [[gnu::gcc_struct,gnu::packed]] ntfs_mft_record
     {
         uint32_t magic; /* FILE */
         uint16_t usa_ofs;
@@ -79,7 +79,7 @@ extern "C"
         uint16_t next_attr_instance;
         uint16_t reserved;          /* NTFS 3.1+ */
         uint32_t mft_record_number; /* NTFS 3.1+ */
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     typedef struct ntfs_mft_record ntfs_recordheader;
 
@@ -128,7 +128,7 @@ extern "C"
      * relative to the start of the index header structure and not relative to the
      * start of the index root or index allocation structures themselves.
      */
-    typedef struct
+    typedef struct [[gnu::gcc_struct,gnu::packed]]
     {
         /*  0*/ uint32_t entries_offset; /* Byte offset from the INDEX_HEADER to first
                                             INDEX_ENTRY, aligned to 8-byte boundary.  */
@@ -148,7 +148,7 @@ extern "C"
         /* 12*/ uint8_t ih_flags;    /* Bit field of INDEX_HEADER_FLAGS.  */
         /* 13*/ uint8_t reserved[3]; /* Reserved/align to 8-byte boundary.*/
         /* sizeof() == 16 */
-    } __attribute__((gcc_struct, __packed__)) TD_INDEX_HEADER;
+    } TD_INDEX_HEADER;
 
     /**
      * struct FILE_NAME_ATTR - Attribute: Filename (0x30).
@@ -163,7 +163,7 @@ extern "C"
      *	 correct by practical experimentation on Windows NT4 SP6a and is hence
      *	 assumed to be the one and only correct interpretation.
      */
-    typedef struct
+    typedef struct [[gnu::gcc_struct,gnu::packed]]
     {
         /*hex ofs*/
         /*  0*/ uint64_t parent_directory;     /* Directory this filename is
@@ -187,26 +187,26 @@ extern "C"
         /* 30*/ int64_t data_size;             /* Byte size of actual data in data
                                   attribute. */
         /* 38*/ uint32_t file_attributes;      /* Flags describing the file. */
-        /* 3c*/ union {
-            /* 3c*/ struct
+        /* 3c*/ union [[gnu::gcc_struct,gnu::packed]]  {
+            /* 3c*/ struct [[gnu::gcc_struct,gnu::packed]]
             {
                 /* 3c*/ uint16_t packed_ea_size; /* Size of the buffer needed to
                                 pack the extended attributes
                                 (EAs), if such are present.*/
                 /* 3e*/ uint16_t reserved;       /* Reserved for alignment. */
-            } __attribute__((gcc_struct, __packed__));
+            };
             /* 3c*/ uint32_t reparse_point_tag; /* Type of reparse point,
                                present only in reparse
                                points and only if there are
                                no EAs. */
-        } __attribute__((gcc_struct, __packed__));
+        };
         /* 40*/ uint8_t file_name_length; /* Length of file name in
                          (Unicode) characters. */
         /* 41*/ uint8_t file_name_type;   /* Namespace of the file name.*/
 #if !defined(__FRAMAC__)
         /* 42*/ char *file_name[0]; /* File name in Unicode. */
 #endif
-    } __attribute__((gcc_struct, __packed__)) TD_FILE_NAME_ATTR;
+    } TD_FILE_NAME_ATTR;
 
     /**
      * struct INDEX_ROOT - Attribute: Index root (0x90).
@@ -227,7 +227,7 @@ extern "C"
      * NOTE: The root directory (FILE_root) contains an entry for itself. Other
      * directories do not contain entries for themselves, though.
      */
-    typedef struct
+    typedef struct [[gnu::gcc_struct,gnu::packed]]
     {
         /*  0*/ uint32_t type;                   /* Type of the indexed attribute. Is
                                         $FILE_NAME for directories, zero
@@ -246,7 +246,7 @@ extern "C"
         /* 16*/ TD_INDEX_HEADER index;           /* Index header describing the
                                     following index entries. */
         /* sizeof()= 32 bytes */
-    } __attribute__((gcc_struct, __packed__)) TD_INDEX_ROOT;
+    } TD_INDEX_ROOT;
 
 #ifdef __cplusplus
 } /* closing brace for extern "C" */

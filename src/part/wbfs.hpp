@@ -30,7 +30,7 @@ extern "C"
 #endif
 #define WBFS_MAGIC (('W' << 24) | ('B' << 16) | ('F' << 8) | ('S'))
 
-    struct wbfs_head
+    struct [[gnu::gcc_struct,gnu::packed]] wbfs_head
     {
         uint32_t magic;
         // parameters copied in the partition for easy dumping, and bug reports
@@ -41,7 +41,7 @@ extern "C"
 #if !defined(__FRAMAC__)
         uint8_t disc_table[0]; // size depends on hd sector size
 #endif
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ decreases 0;

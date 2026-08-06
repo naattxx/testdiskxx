@@ -32,7 +32,7 @@ extern "C"
 #endif
 
 #define ReFS_BS_SIZE 0x200
-    struct ReFS_boot_sector
+    struct [[gnu::gcc_struct,gnu::packed]] ReFS_boot_sector
     {
         uint8_t ignored[3];
         uint32_t fsname;
@@ -40,7 +40,7 @@ extern "C"
         uint32_t identifier;
         uint16_t length;
         uint16_t checksum;
-    } __attribute__((gcc_struct, __packed__));
+    };
 
     /*@
       @ decreases 0;
