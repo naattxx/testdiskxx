@@ -711,19 +711,6 @@ time_t td_ntfs2utc(int64_t ntfstime);
 #define le32(x) (__swab32(x))
 #define le64(x) (__swab64(x))
 #endif
-#ifndef HAVE_SNPRINTF
-// int snprintf(char *str, size_t size, const char *format, ...);
-#endif
-#ifndef HAVE_VSNPRINTF
-// #include <stdarg.h>
-// int vsnprintf(char *str, size_t size, const char *format, va_list ap);
-#endif
-#ifndef HAVE_STRNCASECMP
-// int strncasecmp(const char * s1, const char * s2, size_t len);
-#endif
-#ifndef HAVE_STRCASESTR
-// char * strcasestr (const char *haystack, const char *needle);
-#endif
 #if !defined(HAVE_LOCALTIME_R) && !defined(__MINGW32__) && !defined(DISABLED_FOR_FRAMAC)
 /*@
   @ requires valid_timer: \valid_read(timep);
@@ -731,6 +718,7 @@ time_t td_ntfs2utc(int64_t ntfstime);
   @*/
 struct tm *localtime_r(const time_t *timep, struct tm *result);
 #endif
+
 /*
  * td_min()/td_max() macros that also do
  * strict type-checking.. See the
