@@ -217,6 +217,17 @@ int main(int argc, char **argv)
         const int res = display_disk_list(list_disk, testdisk_mode, create_backup, safe, save_header, unit, verbose);
         return res;
     }
+    if(!nosetlocale)
+    {
+      const char *locale;
+      locale = setlocale(LC_ALL, "");
+      if (locale==NULL) {
+        locale = setlocale(LC_ALL, NULL);
+        log_error("Failed to set locale, using default '{}'.", locale);
+      } else {
+        log_info("Using locale '{}'.", locale);
+      }
+    }
     if (create_log != TD_LOG::NONE && !log_opened)
         log_opened = log_open(args::get(log_name), create_log);
     App app;
