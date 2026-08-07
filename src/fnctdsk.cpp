@@ -341,7 +341,7 @@ void partition_t::reset(const arch_fnct_t *arch)
   @*/
 // ensures valid_partition(\result);
 // ensures \result->arch == arch;
-partition_t::partition_struct(const arch_fnct_t *arch)
+partition_t::partition_t(const arch_fnct_t *arch)
 {
     reset(arch);
 }

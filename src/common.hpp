@@ -6,7 +6,7 @@
 #include <string>
 #include <config.h>
 
-struct [[gnu::gcc_struct,gnu::packed]] efi_guid_s
+struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
 {
     uint32_t time_low;
     uint16_t time_mid;
@@ -15,7 +15,6 @@ struct [[gnu::gcc_struct,gnu::packed]] efi_guid_s
     uint8_t clock_seq_low;
     uint8_t node[6];
 };
-typedef struct efi_guid_s efi_guid_t;
 
 #define DEFAULT_SECTOR_SIZE 0x200u
 
@@ -358,7 +357,7 @@ typedef struct efi_guid_s efi_guid_t;
 #define TESTDISK_O_READAHEAD_32K 010
 #define TESTDISK_O_ALL 020
 
-enum upart_type
+enum upart_type_t
 {
     UP_UNK = 0,
     UP_APFS,
@@ -417,8 +416,7 @@ enum upart_type
     UP_XFS5,
     UP_ZFS
 };
-typedef enum upart_type upart_type_t;
-enum status_type
+enum status_type_t
 {
     STATUS_DELETED,
     STATUS_PRIM,
@@ -427,8 +425,7 @@ enum status_type
     STATUS_EXT,
     STATUS_EXT_IN_EXT
 };
-typedef enum status_type status_type_t;
-enum errcode_type
+enum errcode_type_t
 {
     BAD_NOERR,
     BAD_SS,
@@ -441,7 +438,6 @@ enum errcode_type
     BAD_EC,
     BAD_SCOUNT
 };
-typedef enum errcode_type errcode_type_t;
 
 #define AFF_PART_BASE 0
 #define AFF_PART_ORDER 1
@@ -454,22 +450,21 @@ enum class UNIT
     CHS
 };
 
-typedef struct param_disk_struct disk_t;
-typedef struct partition_struct partition_t;
+struct disk_t;
+struct partition_t;
 /*@
     predicate valid_partition(partition_t &part) = (\valid_read(part));
   @*/
 
-typedef struct CHS_struct CHS_t;
-typedef struct
+struct CHSgeometry_t
 {
     unsigned long int cylinders;
     unsigned int heads_per_cylinder;
     unsigned int sectors_per_head;
     unsigned int bytes_per_sector; /* WARN: may be uninitialized */
-} CHSgeometry_t;
+};
 
-struct CHS_struct
+struct CHS_t
 {
     unsigned long int cylinder;
     unsigned int head;
@@ -508,7 +503,7 @@ struct systypes
     const char *name;
 };
 
-struct arch_fnct_struct
+struct arch_fnct_t
 {
     const char *part_name;
     const char *part_name_option;
@@ -531,8 +526,6 @@ struct arch_fnct_struct
     int (*is_part_known)(const partition_t &partition);
 };
 
-typedef struct arch_fnct_struct arch_fnct_t;
-
 /*@
     predicate valid_arch(arch_fnct_t *arch) = (
       \valid_read(arch) &&
@@ -540,7 +533,7 @@ typedef struct arch_fnct_struct arch_fnct_t;
     );
   @*/
 
-struct param_disk_struct
+struct disk_t
 {
     char description_txt[DISKDESCRIPTION_MAX];
     char description_short_txt[DISKDESCRIPTION_MAX];
@@ -606,15 +599,15 @@ valid_list_disk(list->next);
 }
   @*/
 
-struct partition_struct
+struct partition_t
 {
     int to_be_removed;
 
     void set_name(const char *src, const unsigned int max_size);
     void set_name_chomp(const char *src, const unsigned int max_size);
     void reset(const arch_fnct_t *arch);
-    partition_struct() = default;
-    partition_struct(const arch_fnct_t *arch);
+    partition_t() = default;
+    partition_t(const arch_fnct_t *arch);
 
     char fsname[128];
     char partname[128];
@@ -645,8 +638,7 @@ struct partition_struct
 #endif
 };
 
-typedef struct my_data_struct my_data_t;
-struct my_data_struct
+struct my_data_t
 {
     disk_t *disk_car;
     partition_t partition;

@@ -52,7 +52,7 @@ static long secwest = 0;
 // }
 // #endif
 
-void partition_struct::set_name(const char *src, const unsigned int max_size)
+void partition_t::set_name(const char *src, const unsigned int max_size)
 {
     unsigned int i;
     /*@
@@ -69,7 +69,7 @@ void partition_struct::set_name(const char *src, const unsigned int max_size)
     /*@ assert valid_string(fsname); */
 }
 
-void partition_struct::set_name_chomp(const char *src, const unsigned int max_size)
+void partition_t::set_name_chomp(const char *src, const unsigned int max_size)
 {
     unsigned int i;
     /*@
