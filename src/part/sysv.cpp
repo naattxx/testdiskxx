@@ -78,7 +78,7 @@ static int test_sysv4(const disk_t &disk_car, const struct sysv4_super_block *sb
     if ((unsigned)sbd->s_magic != le32(0xfd187e20) && (unsigned)sbd->s_magic != be32(0xfd187e20))
         return 1;
     if (verbose > 0)
-        log_info("\nSYSV4 Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nSYSV4 Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     return 0;
 }

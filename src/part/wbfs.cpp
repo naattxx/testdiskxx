@@ -35,7 +35,7 @@ static int test_WBFS(const disk_t &disk, const struct wbfs_head *sb, const parti
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nWBFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+        log_info("\nWBFS magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
                 offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }

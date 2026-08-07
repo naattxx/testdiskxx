@@ -67,7 +67,7 @@ static int test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, co
     if (sb->magic != le32(CRAMFS_MAGIC))
         return 1;
     if (verbose > 0)
-        log_info("\ncramfs Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\ncramfs Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     return 0;
 }

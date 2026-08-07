@@ -73,7 +73,7 @@ int recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb, partition_t &p
     partition.part_type_gpt = GPT_ENT_TYPE_MAC_HFS;
     if (verbose > 0)
     {
-        log_info("part_size %lu\n", (long unsigned)(partition.part_size / disk_car.sector_size));
+        log_info("part_size {}\n", (long unsigned)(partition.part_size / disk_car.sector_size));
     }
     return 0;
 }
@@ -99,7 +99,7 @@ int test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb, const partition_t
         return 1;
     if (verbose > 0 || dump_ind != 0)
     {
-        log_info("\nHFS magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nHFS magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     }
     if (dump_ind != 0)
@@ -109,10 +109,10 @@ int test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb, const partition_t
     }
     if (verbose > 1)
     {
-        log_info("drNmAlBlks %u\n", (unsigned)be16(hfs_mdb->drNmAlBlks));
-        log_info("drAlBlkSiz %u\n", (unsigned)be32(hfs_mdb->drAlBlkSiz));
-        log_info("drAlBlSt %u\n", (unsigned)be16(hfs_mdb->drAlBlSt));
-        log_info("drFreeBks %u\n", (unsigned)be16(hfs_mdb->drFreeBks));
+        log_info("drNmAlBlks {}\n", (unsigned)be16(hfs_mdb->drNmAlBlks));
+        log_info("drAlBlkSiz {}\n", (unsigned)be32(hfs_mdb->drAlBlkSiz));
+        log_info("drAlBlSt {}\n", (unsigned)be16(hfs_mdb->drAlBlSt));
+        log_info("drFreeBks {}\n", (unsigned)be16(hfs_mdb->drFreeBks));
     }
     return 0;
 }

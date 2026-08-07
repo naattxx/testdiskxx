@@ -88,7 +88,7 @@ static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const parti
         break;
     }
     if (verbose > 0)
-        log_info("\nXFS Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nXFS Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     return 0;
 }

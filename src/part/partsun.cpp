@@ -179,7 +179,7 @@ static int get_geometry_from_sunmbr(const unsigned char *buffer, const int verbo
 #ifndef DISABLED_FOR_FRAMAC
     if (geometry->sectors_per_head > 0)
     {
-        log_info("Geometry from SUN MBR: head=%u sector=%u\n", geometry->heads_per_cylinder,
+        log_info("Geometry from SUN MBR: head={} sector={}\n", geometry->heads_per_cylinder,
                  geometry->sectors_per_head);
     }
 #endif
@@ -418,7 +418,7 @@ static int check_part_sun(disk_t &disk_car, const int verbose, partition_t &part
     default:
         if (verbose > 0)
         {
-            log_info("check_part_sun %u type %02X: no test\n", partition.order, partition.part_type_sun);
+            log_info("check_part_sun {} type %02X: no test\n", partition.order, partition.part_type_sun);
         }
         break;
     }

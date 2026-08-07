@@ -332,7 +332,7 @@ static int check_part_xbox(disk_t &disk_car, const int verbose, partition_t &par
     default:
         if (verbose > 0)
         {
-            log_info("check_part_xbox %u type %02X: no test\n", partition.order, partition.part_type_xbox);
+            log_info("check_part_xbox {} type %02X: no test\n", partition.order, partition.part_type_xbox);
         }
         break;
     }

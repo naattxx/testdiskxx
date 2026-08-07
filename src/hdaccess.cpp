@@ -1293,7 +1293,7 @@ static uint64_t compute_device_size(const int hd_h, const char *device, const in
     delete (buffer);
     if (verbose > 1)
     {
-        log_verbose("file_test_availability compute_device_size %s size %llu\n", device,
+        log_verbose("file_test_availability compute_device_size %s size {}\n", device,
                     (long long unsigned)min_offset);
     }
     return min_offset;
@@ -1401,7 +1401,7 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
 #if defined(__CYGWIN__)
     if (lseek(fd, offset, SEEK_SET) < 0)
     {
-        log_error("file_pread(%d,%u,buffer,%lu(%u/%u/%u)) lseek err %s\n", fd, (unsigned)(count / disk.sector_size),
+        log_error("file_pread({},{},buffer,{}({}/{}/{})) lseek err {}", fd, (unsigned)(count / disk.sector_size),
                   (long unsigned int)(offset / disk.sector_size), offset2cylinder(disk, offset),
                   offset2head(disk, offset), offset2sector(disk, offset), strerror(errno));
         return -1;
@@ -1417,7 +1417,7 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
             DWORD dw = GetLastError();
             FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
                           MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-            log_error("file_pread(%d,%u,buffer,%lu(%u/%u/%u)) ReadFile %s\n", fd, (unsigned)(count / disk->sector_size),
+            log_error("file_pread({},{},buffer,{}({}/{}/{})) ReadFile {}", fd, (unsigned)(count / disk->sector_size),
                       (long unsigned int)(offset / disk->sector_size), offset2cylinder(disk, offset),
                       offset2head(disk, offset), offset2sector(disk, offset), (char *)lpMsgBuf);
             LocalFree(lpMsgBuf);
@@ -1428,7 +1428,7 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
 #elif defined(__MINGW32__)
     if (_lseeki64(fd, offset, SEEK_SET) < 0)
     {
-        log_error("file_pread(%d,%u,buffer,%lu(%u/%u/%u)) seek err %s\n", fd, (unsigned)(count / disk->sector_size),
+        log_error("file_pread({},{},buffer,{}({}/{}/{})) seek err {}", fd, (unsigned)(count / disk->sector_size),
                   (long unsigned int)(offset / disk->sector_size), offset2cylinder(disk, offset),
                   offset2head(disk, offset), offset2sector(disk, offset), strerror(errno));
         return -1;
@@ -1521,7 +1521,7 @@ static int file_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned int
 #ifdef __MINGW32__
         if (_lseeki64(fd, offset, SEEK_SET) == -1)
         {
-            log_error("file_pwrite(%d,%u,buffer,%lu(%u/%u/%u)) seek err %s\n", fd,
+            log_error("file_pwrite({},{},buffer,{}({}/{}/{})) seek err {}", fd,
                       (unsigned)(count / disk_car.sector_size), (long unsigned)(offset / disk_car.sector_size),
                       offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset),
                       strerror(errno));

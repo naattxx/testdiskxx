@@ -296,7 +296,7 @@ static int dir_whole_partition_log_aux(disk_t &disk, const partition_t &partitio
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
     if (dir_data->verbose > 0)
-        log_info("\ndir_partition inode=%lu\n", inode);
+        log_info("\ndir_partition inode={}\n", inode);
     dir_data->get_dir(disk, partition, dir_data, inode, dir_list);
     dir_aff_log(dir_data, dir_list);
     /* Not perfect for FAT32 root cluster */
@@ -398,7 +398,7 @@ void dir_whole_partition_copy(disk_t &disk, const partition_t &partition, dir_da
 #endif
     dir_data->local_dir = dst_directory;
     dir_whole_partition_copy_aux(disk, partition, dir_data, inode, &copy_ok, &copy_bad);
-    log_info("Copy done! %u ok, %u failed", copy_ok, copy_bad);
+    log_info("Copy done! {} ok, {} failed", copy_ok, copy_bad);
 }
 
 bool filesort(const struct file_info_t *file_a, const struct file_info_t *file_b)

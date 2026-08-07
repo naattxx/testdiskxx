@@ -48,7 +48,7 @@ static int test_LUKS(const disk_t &disk_car, const struct luks_phdr *sb, const p
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nLUKS magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nLUKS magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                 offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }

@@ -44,7 +44,7 @@ static int test_gfs2(const disk_t &disk, const struct gfs2_sb *sb, const partiti
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\ngfs2 magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+        log_info("\ngfs2 magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
                  offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }

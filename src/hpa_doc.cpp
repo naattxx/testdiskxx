@@ -171,7 +171,7 @@ static uint64_t sg_read_native_max_ext(int fd)
         return 0; /* SG_IO not supported */
     }
 #ifdef DEBUG_HPA_DCO
-    log_info("SG_IO: ATA_%u status=0x%x, host_status=0x%x, driver_status=0x%x\n", io_hdr.cmd_len, io_hdr.status,
+    log_info("SG_IO: ATA_{} status=0x{:x}, host_status=0x{:x}, driver_status=0x{:x}", io_hdr.cmd_len, io_hdr.status,
              io_hdr.host_status, io_hdr.driver_status);
     dump_bytes("SG_IO: sb[]", sb, sizeof(sb));
     dump_bytes("SG_IO: desc[]", desc, (desc[1] < sizeof(sb) - 8 - 2 ? desc[1] : sizeof(sb) - 8 - 2));
@@ -234,7 +234,7 @@ static uint64_t sg_device_configuration_identify(int fd)
     if (ioctl(fd, SG_IO, &io_hdr) == -1)
         return 0; /* SG_IO not supported */
 #ifdef DEBUG_HPA_DCO
-    log_info("SG_IO: ATA_%u status=0x%x, host_status=0x%x, driver_status=0x%x\n", io_hdr.cmd_len, io_hdr.status,
+    log_info("SG_IO: ATA_{} status=0x{:x}, host_status=0x{:x}, driver_status=0x{:x}", io_hdr.cmd_len, io_hdr.status,
              io_hdr.host_status, io_hdr.driver_status);
     dump_bytes("SG_IO: sb[]", sb, sizeof(sb));
     dump_bytes("SG_IO: data[]", data, sizeof(data));

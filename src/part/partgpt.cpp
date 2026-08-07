@@ -225,15 +225,15 @@ static list_part_t read_part_gpt_aux(disk_t &disk_car, const int verbose, const 
     }
     if (verbose > 0)
     {
-        log_info("hdr_size=%llu\n", (long long unsigned)le32(gpt->hdr_size));
-        log_info("hdr_lba_self=%llu\n", (long long unsigned)le64(gpt->hdr_lba_self));
-        log_info("hdr_lba_alt=%llu (expected %llu)\n", (long long unsigned)le64(gpt->hdr_lba_alt),
+        log_info("hdr_size={}\n", (long long unsigned)le32(gpt->hdr_size));
+        log_info("hdr_lba_self={}\n", (long long unsigned)le64(gpt->hdr_lba_self));
+        log_info("hdr_lba_alt={} (expected {})\n", (long long unsigned)le64(gpt->hdr_lba_alt),
                  (hdr_lba == 1 ? (long long unsigned)((disk_car.disk_size - 1) / disk_car.sector_size) : 1));
-        log_info("hdr_lba_start=%llu\n", (long long unsigned)le64(gpt->hdr_lba_start));
-        log_info("hdr_lba_end=%llu\n", (long long unsigned)le64(gpt->hdr_lba_end));
-        log_info("hdr_lba_table=%llu\n", (long long unsigned)le64(gpt->hdr_lba_table));
-        log_info("hdr_entries=%llu\n", (long long unsigned)le32(gpt->hdr_entries));
-        log_info("hdr_entsz=%llu\n", (long long unsigned)le32(gpt->hdr_entsz));
+        log_info("hdr_lba_start={}\n", (long long unsigned)le64(gpt->hdr_lba_start));
+        log_info("hdr_lba_end={}\n", (long long unsigned)le64(gpt->hdr_lba_end));
+        log_info("hdr_lba_table={}\n", (long long unsigned)le64(gpt->hdr_lba_table));
+        log_info("hdr_entries={}\n", (long long unsigned)le32(gpt->hdr_entries));
+        log_info("hdr_entsz={}\n", (long long unsigned)le32(gpt->hdr_entsz));
     }
     /* Check header size */
     if (le32(gpt->hdr_size) < 92 || le32(gpt->hdr_size) > disk_car.sector_size)
@@ -278,7 +278,7 @@ static list_part_t read_part_gpt_aux(disk_t &disk_car, const int verbose, const 
     }
     if (le32(gpt->hdr_entries) == 0 || le32(gpt->hdr_entries) > 4096)
     {
-        screen_buffer_add("GPT: invalid number (%u) of partition entries.\n", (unsigned int)le32(gpt->hdr_entries));
+        screen_buffer_add("GPT: invalid number ({}) of partition entries.\n", (unsigned int)le32(gpt->hdr_entries));
         delete[] (gpt);
         return new_list_part;
     }
@@ -347,7 +347,7 @@ static list_part_t read_part_gpt_aux(disk_t &disk_car, const int verbose, const 
             new_partition.status = STATUS_PRIM;
             UCSle2str(new_partition.partname, (const uint16_t *)&gpt_entry->ent_name, sizeof(gpt_entry->ent_name) / 2);
             check_part_gpt(disk_car, verbose, new_partition, saveheader);
-            /* log_debug("%u ent_attr %08llx\n", new_partition.order, (long long unsigned)le64(gpt_entry->ent_attr));
+            /* log_debug("{} ent_attr %08llx\n", new_partition.order, (long long unsigned)le64(gpt_entry->ent_attr));
              */
             aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
             insert_new_partition(new_list_part, new_partition, 0, &_insert_error);

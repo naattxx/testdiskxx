@@ -48,7 +48,7 @@ static int test_LVM(const disk_t &disk_car, const pv_disk_t *pv, const partition
         uint32_t size;
         if (verbose > 0 || dump_ind != 0)
         {
-            log_info("\nLVM magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+            log_info("\nLVM magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                      offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         }
         if (dump_ind != 0)
@@ -112,7 +112,7 @@ int recover_LVM(const disk_t &disk_car, const pv_disk_t *pv, partition_t &partit
     guid_cpy(&partition.part_uuid, (const efi_guid_t *)&pv->pv_uuid);
     if (verbose > 0)
     {
-        log_info("part_size %lu\n", (long unsigned)(partition.part_size / disk_car.sector_size));
+        log_info("part_size {}\n", (long unsigned)(partition.part_size / disk_car.sector_size));
     }
     return 0;
 }
@@ -132,7 +132,7 @@ static int test_LVM2(const disk_t &disk_car, const struct lvm2_label_header *lh,
     {
         if (verbose > 0 || dump_ind != 0)
         {
-            log_info("\nLVM2 magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+            log_info("\nLVM2 magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                      offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         }
         if (le32(lh->offset_xl) > 400)
@@ -182,7 +182,7 @@ int recover_LVM2(const disk_t &disk_car, const unsigned char *buf, partition_t &
     }
     if (verbose > 0)
     {
-        log_info("part_size %lu\n", (long unsigned)(partition.part_size / disk_car.sector_size));
+        log_info("part_size {}\n", (long unsigned)(partition.part_size / disk_car.sector_size));
     }
     return 0;
 }

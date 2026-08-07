@@ -38,7 +38,7 @@ int is_hpa_or_dco(const disk_t &disk)
     else if (disk.dco > 0 && disk.user_max < disk.dco + 1)
     {
 #ifndef DISABLED_FOR_FRAMAC
-        log_info("user_max=%llu dco=%llu\n", (long long unsigned)disk.user_max, (long long unsigned)disk.dco);
+        log_info("user_max={} dco={}\n", (long long unsigned)disk.user_max, (long long unsigned)disk.dco);
 #endif
         res |= 2;
     }

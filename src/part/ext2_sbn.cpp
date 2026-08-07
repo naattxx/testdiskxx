@@ -132,7 +132,7 @@ list_part_t search_superblock(disk_t &disk_car, partition_t &partition, const in
                         partition.sb_size = new_partition.sb_size;
                         partition.blocksize = new_partition.blocksize;
                     }
-                    log_info("Ext2 superblock found at sector %llu (block=%llu, blocksize=%u)\n",
+                    log_info("Ext2 superblock found at sector {} (block={}, blocksize={})\n",
                              (long long unsigned)hd_offset / DEFAULT_SECTOR_SIZE,
                              (long long unsigned)hd_offset >> (EXT2_MIN_BLOCK_LOG_SIZE + le32(sb->s_log_block_size)),
                              (unsigned int)EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));

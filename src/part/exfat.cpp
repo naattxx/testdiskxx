@@ -99,9 +99,9 @@ int recover_exFAT(const disk_t &disk, const struct exfat_super_block *exfat_head
     partition.part_size = (uint64_t)le64(exfat_header->nr_sectors) * disk.sector_size;
 #ifdef DEBUG_exFAT
     log_info("recover_exFAT:\n");
-    log_info("start_sector=%llu\n", (long long unsigned)le64(exfat_header->start_sector));
-    log_info("blocksize=%u\n", (12 << exfat_header->blocksize_bits));
-    log_info("part_offset=%llu\n", partition.part_offset);
+    log_info("start_sector={}\n", (long long unsigned)le64(exfat_header->start_sector));
+    log_info("blocksize={}\n", (12 << exfat_header->blocksize_bits));
+    log_info("part_offset={}\n", partition.part_offset);
 #endif
     if ((le64(exfat_header->start_sector) * disk.sector_size + (12 << exfat_header->blocksize_bits) ==
          partition.part_offset) ||

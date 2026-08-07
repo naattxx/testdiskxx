@@ -400,20 +400,20 @@ dir_partition_t dir_partition_exfat_init(disk_t &disk, const partition_t &partit
     }
 #endif
 #ifdef DEBUG_EXFAT
-    log_info("start_sector=%llu\n", (long long unsigned)le64(exfat_header->start_sector));
-    log_info("nr_sectors  =%llu\n", (long long unsigned)le64(exfat_header->nr_sectors));
-    log_info("fat_blocknr =%u\n", le32(exfat_header->fat_blocknr));
-    log_info("fat_block_counts=%u\n", le32(exfat_header->fat_block_counts));
-    log_info("clus_blocknr=%u\n", le32(exfat_header->clus_blocknr));
-    log_info("total_clusters=%u\n", le32(exfat_header->total_clusters));
-    log_info("rootdir_clusnr=%u\n", le32(exfat_header->rootdir_clusnr));
+    log_info("start_sector={}\n", (long long unsigned)le64(exfat_header->start_sector));
+    log_info("nr_sectors  ={}\n", (long long unsigned)le64(exfat_header->nr_sectors));
+    log_info("fat_blocknr ={}\n", le32(exfat_header->fat_blocknr));
+    log_info("fat_block_counts={}\n", le32(exfat_header->fat_block_counts));
+    log_info("clus_blocknr={}\n", le32(exfat_header->clus_blocknr));
+    log_info("total_clusters={}\n", le32(exfat_header->total_clusters));
+    log_info("rootdir_clusnr={}\n", le32(exfat_header->rootdir_clusnr));
     log_info("serial_number=0x%08x\n", le32(exfat_header->serial_number));
     log_info("state=0x%x\n", le16(exfat_header->state));
-    log_info("blocksize_bits=%u\n", exfat_header->blocksize_bits);
-    log_info("block_per_clus_bits=%u\n", exfat_header->block_per_clus_bits);
-    log_info("number_of_fats=%u\n", exfat_header->number_of_fats);
+    log_info("blocksize_bits={}\n", exfat_header->blocksize_bits);
+    log_info("block_per_clus_bits={}\n", exfat_header->block_per_clus_bits);
+    log_info("number_of_fats={}\n", exfat_header->number_of_fats);
     log_info("drive_select=0x%x\n", exfat_header->drive_select);
-    log_info("allocated_percent=%u\n", exfat_header->allocated_percent);
+    log_info("allocated_percent={}\n", exfat_header->allocated_percent);
 #endif
     strncpy(dir_data->current_directory, "/", sizeof(dir_data->current_directory));
     dir_data->current_inode = 0;
@@ -465,7 +465,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
     start_exfat1 = (uint64_t)le32(exfat_header->fat_blocknr) << exfat_header->blocksize_bits;
     clus_blocknr = le32(exfat_header->clus_blocknr);
     total_clusters = le32(exfat_header->total_clusters);
-    // log_trace("exfat_copy dst=%s first_cluster=%u (%llu) size=%lu\n", new_file,
+    // log_trace("exfat_copy dst=%s first_cluster={} ({}) size={}\n", new_file,
     //     cluster,
     //     (long long unsigned)(((cluster-2) << exfat_header->block_per_clus_bits) + clus_blocknr),
     //     (long unsigned)file_size);
@@ -477,7 +477,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
             toread = file_size;
         if ((unsigned)exfat_read_cluster(disk, partition, exfat_header, buffer_file, cluster) < toread)
         {
-            log_error("exfat_copy: Can't read cluster %u.\n", cluster);
+            log_error("exfat_copy: Can't read cluster {}.\n", cluster);
         }
         if (fwrite(buffer_file, 1, toread, f_out) != toread)
         {

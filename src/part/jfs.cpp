@@ -54,7 +54,7 @@ static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, con
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nJFS magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nJFS magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         /* There is a little offset ... */
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
@@ -110,11 +110,11 @@ int recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partiti
     if (verbose > 0)
     {
         log_info("\n");
-        log_info("recover_JFS: s_blocksize=%u\n", partition.blocksize);
-        log_info("recover_JFS: s_size %lu\n", (long unsigned int)le64(sb->s_size));
+        log_info("recover_JFS: s_blocksize={}\n", partition.blocksize);
+        log_info("recover_JFS: s_size {}\n", (long unsigned int)le64(sb->s_size));
         log_info("recover_JFS: s_fsckpxd.len:%d\n", (int)le24(sb->s_fsckpxd.len));
         log_info("recover_JFS: s_logpxd.len:%d\n", (int)le24(sb->s_logpxd.len));
-        log_info("recover_JFS: part_size %lu\n", (long unsigned)(partition.part_size / disk_car.sector_size));
+        log_info("recover_JFS: part_size {}\n", (long unsigned)(partition.part_size / disk_car.sector_size));
     }
     return 0;
 }

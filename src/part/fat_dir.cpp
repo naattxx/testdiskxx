@@ -318,7 +318,7 @@ RecEnd:
             new_file->td_atime = new_file->td_ctime = new_file->td_mtime =
                 date_dos2unix(le16(de->time), le16(de->date));
             new_file->status = status;
-            /* log_debug("fat: new file %s de=%p size=%u\n",new_file->name,de,le32(de->size)); */
+            /* log_debug("fat: new file %s de=%p size={}\n",new_file->name,de,le32(de->size)); */
             dir_list.push_front(new_file);
         }
     }
@@ -426,7 +426,7 @@ static int fat_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *d
             //      if(dir_data->verbose>0)
             {
 #ifndef DISABLED_FOR_FRAMAC
-                log_info("FAT: cluster=%u(0x%x), pos=%lu\n", cluster, cluster,
+                log_info("FAT: cluster={}(0x%x), pos={}\n", cluster, cluster,
                          (long unsigned)(start / fat_sector_size(fat_header)));
 #endif
             }
@@ -495,7 +495,7 @@ static int fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const d
 #ifndef DISABLED_FOR_FRAMAC
     if (dir_data->verbose > 1)
     {
-        ; // log_trace("fat1x_rootdir root_size=%u sectors\n",root_size/disk_car.sector_size);
+        ; // log_trace("fat1x_rootdir root_size={} sectors\n",root_size/disk_car.sector_size);
     }
 #endif
     {
@@ -603,7 +603,7 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
                  (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) / disk_car.sector_size;
     no_of_cluster = (part_size - start_data) / sectors_per_cluster;
 #ifndef DISABLED_FOR_FRAMAC
-    ; // log_trace("fat_copy dst=%s first_cluster=%u (%llu) size=%lu\n", new_file,
+    ; // log_trace("fat_copy dst=%s first_cluster={} ({}) size={}\n", new_file,
       //     cluster,
       //     (long long unsigned)start_data+(cluster-2)*sectors_per_cluster,
       //     (long unsigned)file_size);
@@ -622,7 +622,7 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
         if ((unsigned)disk_car.pread(disk_car, buffer_file, toread, start) != toread)
         {
 #ifndef DISABLED_FOR_FRAMAC
-            log_error("fat_copy: Can't read cluster %u.\n", cluster);
+            log_error("fat_copy: Can't read cluster {}.\n", cluster);
 #endif
         }
         if (fwrite(buffer_file, 1, toread, f_out) != toread)

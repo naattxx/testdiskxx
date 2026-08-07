@@ -41,7 +41,7 @@ static int test_VMFS(const disk_t &disk, const struct vmfs_volume *sb, const par
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nVMFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+        log_info("\nVMFS magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
                     offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }

@@ -98,8 +98,8 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
 
     mftmirr_size_bytes = td_max(cluster_size, 4 * mft_record_size);
 #ifdef DEBUG_REPAIR_MFT
-    log_info("mft_pos          %lu\n", (unsigned long)(mft_pos / disk_car.sector_size));
-    log_info("mftmirr_pos      %lu\n", (unsigned long)(mftmirr_pos / disk_car.sector_size));
+    log_info("mft_pos          {}\n", (unsigned long)(mft_pos / disk_car.sector_size));
+    log_info("mftmirr_pos      {}\n", (unsigned long)(mftmirr_pos / disk_car.sector_size));
     log_info("cluster_size     %5u bytes\n", cluster_size);
     log_info("mft_record_size  %5u bytes\n", mft_record_size);
     log_info("ntfs_sector_size %5u bytes\n", ntfs_sector_size(ntfs_header));

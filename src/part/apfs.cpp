@@ -63,7 +63,7 @@ int recover_APFS(const disk_t &disk, const nx_superblock_t *sb, partition_t &par
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nAPFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+        log_info("\nAPFS magic value at {}/{}/{}", offset2cylinder(disk, partition.part_offset),
                     offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         /* There is a little offset ... */
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
@@ -84,12 +84,12 @@ int recover_APFS(const disk_t &disk, const nx_superblock_t *sb, partition_t &par
     partition.sb_offset = 0;
     if (verbose > 0)
     {
-        log_info("recover_APFS: s_blocksize=%u\n", partition.blocksize);
-        log_info("recover_APFS: s_blocks_count %lu\n", (long unsigned int)le64(sb->nx_block_count));
+        log_info("recover_APFS: s_blocksize={}", partition.blocksize);
+        log_info("recover_APFS: s_blocks_count {}", (long unsigned int)le64(sb->nx_block_count));
         // if (disk == NULL)
-        //     log_info("recover_APFS: part_size %lu\n", (long unsigned)(partition.part_size / DEFAULT_SECTOR_SIZE));
+        //     log_info("recover_APFS: part_size {}\n", (long unsigned)(partition.part_size / DEFAULT_SECTOR_SIZE));
         // else
-            log_info("recover_APFS: part_size %lu\n", (long unsigned)(partition.part_size / disk.sector_size));
+            log_info("recover_APFS: part_size {}\n", (long unsigned)(partition.part_size / disk.sector_size));
     }
     return 0;
 }

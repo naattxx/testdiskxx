@@ -102,7 +102,7 @@ static int test_rfs(const disk_t &disk_car, const struct reiserfs_super_block *s
         return (1);
 
     if (verbose > 0)
-        log_info("\nReiserFS Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nReiserFS Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     return 0;
 }
@@ -113,7 +113,7 @@ static int test_rfs4(const disk_t &disk_car, const struct reiser4_master_sb *sb,
     if (memcmp(sb->magic, REISERFS4_SUPER_MAGIC, sizeof(REISERFS4_SUPER_MAGIC)) != 0)
         return 1;
     if (verbose > 0)
-        log_info("\nReiserFS Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nReiserFS Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     /*
      * sanity checks.
@@ -133,8 +133,8 @@ int recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb, p
         if (verbose > 0 || dump_ind != 0)
         {
             log_info("\nrecover_rfs\n");
-            log_info("block_count=%u\n", (unsigned int)le32(sb->s_block_count));
-            log_info("block_size=%u\n", le16(sb->s_blocksize));
+            log_info("block_count={}\n", (unsigned int)le32(sb->s_block_count));
+            log_info("block_size={}\n", le16(sb->s_blocksize));
             if (dump_ind != 0)
             {
                 ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
@@ -156,8 +156,8 @@ int recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb, p
         if (verbose > 0 || dump_ind != 0)
         {
             log_info("\nrecover_rfs\n");
-            log_info("block_count=%lu\n", (unsigned long int)le64(fmt40_super->sb_block_count));
-            log_info("block_size=%u\n", le16(sb4->blocksize));
+            log_info("block_count={}\n", (unsigned long int)le64(fmt40_super->sb_block_count));
+            log_info("block_size={}\n", le16(sb4->blocksize));
             if (dump_ind != 0)
             {
                 ; // dump_log(sb,DEFAULT_SECTOR_SIZE);

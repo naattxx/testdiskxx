@@ -175,7 +175,7 @@ static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int
 
     size = (count < 0) ? -count : count * channel->block_size;
 #ifdef DEBUG_EXT2
-    log_info("my_read_blk start size=%lu, offset=%lu name=%s, block=%lu, count=%d, buf=%p\n", (long unsigned)size,
+    log_info("my_read_blk start size={}, offset={} name=%s, block={}, count=%d, buf=%p\n", (long unsigned)size,
              (unsigned long)(block * channel->block_size), my_data->partition.fsname, block, count, buf);
 #endif
     if (my_data->disk_car->pread(*my_data->disk_car, buf, size,
@@ -234,7 +234,7 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
         return 0;
     if ((retval = ext2fs_read_inode(ls->current_fs, ino, &inode)) != 0)
     {
-        log_error("ext2fs_read_inode(ino=%u) failed with error %ld.\n", (unsigned)ino, (long)retval);
+        log_error("ext2fs_read_inode(ino={}) failed with error %ld.\n", (unsigned)ino, (long)retval);
         return 0;
     }
     if (inode.i_mode == 0)

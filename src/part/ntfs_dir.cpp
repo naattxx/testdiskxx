@@ -327,7 +327,7 @@ static int ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *
     {
         if (ntfs_readdir(inode, &pos, ls, (ntfs_filldir_t)ntfs_td_list_entry) < 0)
         {
-            log_error("ntfs_readdir failed for cluster %lu: %s\n", cluster, strerror(errno));
+            log_error("ntfs_readdir failed for cluster {}: %s\n", cluster, strerror(errno));
         }
     }
     else

@@ -43,7 +43,7 @@ static int test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, const
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nZFS magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+        log_info("\nZFS magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
                 offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }

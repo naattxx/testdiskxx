@@ -38,7 +38,7 @@ static int test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, 
     if (le32(bsd_header->d_magic) != DISKMAGIC || le32(bsd_header->d_magic2) != DISKMAGIC)
         return 0;
     if (verbose)
-        log_info("\nBSD offset %lu, nbr_part %u, CHS=(%u,%u,%u) ",
+        log_info("\nBSD offset {}, nbr_part {}, CHS=({},{},{}) ",
                  (long unsigned)(partition.part_offset / disk_car.sector_size),
                  (unsigned int)le16(bsd_header->d_npartitions), (unsigned int)le32(bsd_header->d_ncylinders),
                  (unsigned int)le32(bsd_header->d_ntracks), (unsigned int)le32(bsd_header->d_nsectors));

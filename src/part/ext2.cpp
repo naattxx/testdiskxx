@@ -92,7 +92,7 @@ static void set_EXT2_info(const struct ext2_super_block *sb, partition_t &partit
         strcat(partition.info, " Backup_SB");
         if (verbose > 0)
         {
-            log_warning("\nblock_group_nr %u\n", le16(sb->s_block_group_nr));
+            log_warning("\nblock_group_nr {}\n", le16(sb->s_block_group_nr));
         }
     }
     /* last mounted => date */
@@ -109,7 +109,7 @@ int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partitio
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nEXT2/EXT3 magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+        log_info("\nEXT2/EXT3 magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
                     offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         /* There is a little offset ... */
         // dump_log(sb,DEFAULT_SECTOR_SIZE);
@@ -138,7 +138,7 @@ int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partitio
         }
         partition.sb_offset = (uint64_t)block_nr * (EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
         partition.part_offset -= partition.sb_offset;
-        log_warning("recover_EXT2: \"e2fsck -b %lu -B %u device\" may be needed\n", block_nr, partition.blocksize);
+        log_warning("recover_EXT2: \"e2fsck -b {} -B {} device\" may be needed\n", block_nr, partition.blocksize);
     }
     else
     {
@@ -147,16 +147,16 @@ int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partitio
     if (verbose > 0)
     {
         log_info(
-            "recover_EXT2: s_block_group_nr=%u/%u, s_mnt_count=%u/%u, s_blocks_per_group=%u, s_inodes_per_group=%u\n",
+            "recover_EXT2: s_block_group_nr={}/{}, s_mnt_count={}/{}, s_blocks_per_group={}, s_inodes_per_group={}\n",
             le16(sb->s_block_group_nr), (unsigned int)(td_ext2fs_blocks_count(sb) / le32(sb->s_blocks_per_group)),
             le16(sb->s_mnt_count), le16(sb->s_max_mnt_count), (unsigned int)le32(sb->s_blocks_per_group),
             (unsigned int)le32(sb->s_inodes_per_group));
-        log_info("recover_EXT2: s_blocksize=%u\n", partition.blocksize);
-        log_info("recover_EXT2: s_blocks_count %lu\n", (long unsigned int)td_ext2fs_blocks_count(sb));
+        log_info("recover_EXT2: s_blocksize={}\n", partition.blocksize);
+        log_info("recover_EXT2: s_blocks_count {}\n", (long unsigned int)td_ext2fs_blocks_count(sb));
         // if (disk == NULL)
-        //     log_info("recover_EXT2: part_size %lu\n", (long unsigned)(partition.part_size / DEFAULT_SECTOR_SIZE));
+        //     log_info("recover_EXT2: part_size {}\n", (long unsigned)(partition.part_size / DEFAULT_SECTOR_SIZE));
         // else
-            log_info("recover_EXT2: part_size %lu\n", (long unsigned)(partition.part_size / disk.sector_size));
+            log_info("recover_EXT2: part_size {}\n", (long unsigned)(partition.part_size / disk.sector_size));
     }
     if (sb->s_mkfs_time > 0)
     {

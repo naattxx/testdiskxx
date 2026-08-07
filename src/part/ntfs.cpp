@@ -70,7 +70,7 @@ unsigned int ntfs_sector_size(const struct ntfs_boot_sector *ntfs_header)
 int check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind)
 {
     unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-    /*  log_trace("check_NTFS part_offset=%llu\n",(long long unsigned)partition.part_offset); */
+    /*  log_trace("check_NTFS part_offset={}\n",(long long unsigned)partition.part_offset); */
     if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
@@ -103,19 +103,19 @@ int recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header, p
     {
         if (partition.part_offset + disk_car.sector_size < part_size)
         {
-            log_warning("NTFS part_offset=%llu, part_size=%llu, sector_size=%u\n",
+            log_warning("NTFS part_offset={}, part_size={}, sector_size={}\n",
                         (long long unsigned)partition.part_offset, (long long unsigned)part_size,
                         disk_car.sector_size);
             log_warning("NTFS partition cannot be added (part_offset<part_size).\n");
             return 1;
         }
         if (verbose > 1)
-            log_info("NTFS part_offset=%llu, part_size=%llu, sector_size=%u\n",
+            log_info("NTFS part_offset={}, part_size={}, sector_size={}\n",
                      (long long unsigned)partition.part_offset, (long long unsigned)part_size, disk_car.sector_size);
         partition.sb_offset = part_size - disk_car.sector_size;
         partition.part_offset -= partition.sb_offset;
         if (verbose > 1)
-            log_info("part_offset=%llu\n", (long long unsigned)partition.part_offset);
+            log_info("part_offset={}\n", (long long unsigned)partition.part_offset);
     }
     partition.part_size = part_size;
     partition.part_type_i386 = P_NTFS;
@@ -161,28 +161,28 @@ int test_NTFS(const disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header
     }
     if (verbose > 0 || dump_ind != 0)
     {
-        log_info("NTFS at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("NTFS at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
     }
     if (le16(ntfs_header->heads) != disk_car.geom.heads_per_cylinder)
     {
-        screen_buffer_add("Warning: number of heads/cylinder mismatches %u (NTFS) != %u (HD)\n",
+        screen_buffer_add("Warning: number of heads/cylinder mismatches {} (NTFS) != {} (HD)\n",
                           le16(ntfs_header->heads), disk_car.geom.heads_per_cylinder);
-        log_warning("heads/cylinder %u (NTFS) != %u (HD)\n", le16(ntfs_header->heads),
+        log_warning("heads/cylinder {} (NTFS) != {} (HD)\n", le16(ntfs_header->heads),
                     disk_car.geom.heads_per_cylinder);
     }
     if (le16(ntfs_header->secs_track) != disk_car.geom.sectors_per_head)
     {
-        screen_buffer_add("Warning: number of sectors per track mismatches %u (NTFS) != %u (HD)\n",
+        screen_buffer_add("Warning: number of sectors per track mismatches {} (NTFS) != {} (HD)\n",
                           le16(ntfs_header->secs_track), disk_car.geom.sectors_per_head);
-        log_warning("sect/track %u (NTFS) != %u (HD)\n", le16(ntfs_header->secs_track),
+        log_warning("sect/track {} (NTFS) != {} (HD)\n", le16(ntfs_header->secs_track),
                     disk_car.geom.sectors_per_head);
     }
     if (ntfs_sector_size(ntfs_header) != disk_car.sector_size)
     {
-        screen_buffer_add("Warning: number of bytes per sector mismatches %u (NTFS) != %u (HD)\n",
+        screen_buffer_add("Warning: number of bytes per sector mismatches {} (NTFS) != {} (HD)\n",
                           ntfs_sector_size(ntfs_header), disk_car.sector_size);
-        log_warning("Warning: number of bytes per sector mismatches %u (NTFS) != %u (HD)\n",
+        log_warning("Warning: number of bytes per sector mismatches {} (NTFS) != {} (HD)\n",
                     ntfs_sector_size(ntfs_header), disk_car.sector_size);
     }
 
@@ -193,15 +193,15 @@ int test_NTFS(const disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header
 
         if (part_size * ntfs_sector_size(ntfs_header) > partition.part_size)
         {
-            screen_buffer_add("Error: size boot_sector %lu > partition %lu\n", (long unsigned)part_size,
+            screen_buffer_add("Error: size boot_sector {} > partition {}\n", (long unsigned)part_size,
                               (long unsigned)(partition.part_size / disk_car.sector_size));
-            log_error("Error: size boot_sector %lu > partition %lu\n", (long unsigned)part_size,
+            log_error("Error: size boot_sector {} > partition {}\n", (long unsigned)part_size,
                       (long unsigned)(partition.part_size / disk_car.sector_size));
             return 1;
         }
         if (verbose > 0 && (part_size != partition.part_size / disk_car.sector_size))
         {
-            log_info("Info: size boot_sector %lu, partition %lu\n", (long unsigned)part_size,
+            log_info("Info: size boot_sector {}, partition {}\n", (long unsigned)part_size,
                      (long unsigned)(partition.part_size / disk_car.sector_size));
         }
     }
@@ -347,7 +347,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition, const
     /* Record 3 = $Volume */
     mft_pos += 3 * mft_record_size;
 #ifdef NTFS_DEBUG
-    log_info("NTFS MFT cluster = %lu\n", le64(ntfs_header->mft_lcn));
+    log_info("NTFS MFT cluster = {}\n", le64(ntfs_header->mft_lcn));
     log_info("NTFS cluster size =    %5u sectors\n", ntfs_header->sectors_per_cluster);
     log_info("NTFS MFT_record_size = %5u bytes\n", mft_record_size);
     log_info("NTFS sector size =     %5u bytes\n", ntfs_sector_size(ntfs_header));
@@ -416,10 +416,10 @@ int is_ntfs(const partition_t &partition)
 
 int log_ntfs_info(const struct ntfs_boot_sector *ntfs_header)
 {
-    log_info("filesystem size           %llu\n", (long long unsigned)le64(ntfs_header->sectors_nbr) + 1);
-    log_info("sectors_per_cluster       %u\n", ntfs_header->sectors_per_cluster);
-    log_info("mft_lcn                   %lu\n", (long unsigned int)le64(ntfs_header->mft_lcn));
-    log_info("mftmirr_lcn               %lu\n", (long unsigned int)le64(ntfs_header->mftmirr_lcn));
+    log_info("filesystem size           {}\n", (long long unsigned)le64(ntfs_header->sectors_nbr) + 1);
+    log_info("sectors_per_cluster       {}\n", ntfs_header->sectors_per_cluster);
+    log_info("mft_lcn                   {}\n", (long unsigned int)le64(ntfs_header->mft_lcn));
+    log_info("mftmirr_lcn               {}\n", (long unsigned int)le64(ntfs_header->mftmirr_lcn));
     log_info("clusters_per_mft_record   %d\n", ntfs_header->clusters_per_mft_record);
     log_info("clusters_per_index_record %d\n", ntfs_header->clusters_per_index_record);
     return 0;

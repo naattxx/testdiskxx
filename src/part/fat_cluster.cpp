@@ -56,7 +56,7 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, con
                   disk_car.sector_size;
     if (verbose > 0)
     {
-        // log_verbose("find_sectors_per_cluster skip_sectors=%lu (skip_offset=%lu)\n",
+        // log_verbose("find_sectors_per_cluster skip_sectors={} (skip_offset={})\n",
         // (unsigned long)(skip_offset/disk_car.sector_size),
         // (unsigned long)skip_offset);
     }
@@ -80,7 +80,7 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, con
             if (buffer[0] == '.' && is_fat_directory(buffer))
             {
                 const unsigned long int cluster = fat_get_cluster_from_entry((const struct msdos_dir_entry *)buffer);
-                log_info("sector %lu, cluster %lu\n", (unsigned long)(offset / disk_car.sector_size), cluster);
+                log_info("sector {}, cluster {}\n", (unsigned long)(offset / disk_car.sector_size), cluster);
                 sector_cluster[nbr_subdir].cluster = cluster;
                 sector_cluster[nbr_subdir].sector = offset / disk_car.sector_size;
                 nbr_subdir++;
@@ -141,8 +141,8 @@ int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const u
                                 {
                                     cluster_offset[sol_cur].nbr++;
                                 }
-                                /* log_debug("sectors_per_cluster=%u offset=%lu
-                                 * nbr=%u\n",cluster_offset[sol_cur].sectors_per_cluster,cluster_offset[sol_cur].offset,cluster_offset[sol_cur].nbr);
+                                /* log_debug("sectors_per_cluster={} offset={}
+                                 * nbr={}\n",cluster_offset[sol_cur].sectors_per_cluster,cluster_offset[sol_cur].offset,cluster_offset[sol_cur].nbr);
                                  */
                                 found = 1;
                             }
@@ -170,7 +170,7 @@ int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const u
                 (part_size_in_sectors - cluster_offset[i].offset) / cluster_offset[i].sectors_per_cluster);
             if (verbose > 0)
             {
-                // log_verbose("sectors_per_cluster=%u offset=%lu nbr=%u ",
+                // log_verbose("sectors_per_cluster={} offset={} nbr={} ",
                 //     cluster_offset[i].sectors_per_cluster,
                 //     cluster_offset[i].offset,
                 //     cluster_offset[i].nbr);
@@ -199,7 +199,7 @@ int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const u
         delete (cluster_offset);
         if (nbr_max == 0)
             return 0;
-        log_info("Selected: sectors_per_cluster=%u, cluster 2 at sector %lu, nbr=%u\n", *sectors_per_cluster,
+        log_info("Selected: sectors_per_cluster={}, cluster 2 at sector {}, nbr={}\n", *sectors_per_cluster,
                  (long unsigned int)(*offset), nbr_max);
         return 1;
     }

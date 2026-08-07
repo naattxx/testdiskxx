@@ -166,7 +166,7 @@ int search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &partit
     //  assert(sizeof(struct disk_fatx)<=8*DEFAULT_SECTOR_SIZE);
     if (verbose > 2)
     {
-        //    log_trace("search_type_0 lba=%lu\n",
+        //    log_trace("search_type_0 lba={}\n",
         // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (le32(apfs->nx_magic) == 0x4253584e && recover_APFS(disk, apfs, partition, verbose, dump_ind) == 0)
@@ -236,7 +236,7 @@ int search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t &
     //  assert(sizeof(sun_partition_i386)<=2*0x200);
     if (verbose > 2)
     {
-        //    log_trace("search_type_1 lba=%lu\n",
+        //    log_trace("search_type_1 lba={}\n",
         // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (le32(bsd_header->d_magic) == DISKMAGIC && le32(bsd_header->d_magic2) == DISKMAGIC &&
@@ -273,7 +273,7 @@ int search_type_2(const unsigned char *buffer, disk_t &disk, partition_t &partit
     //  assert(sizeof(struct f2fs_super_block)==3072);
     if (verbose > 2)
     {
-        //    log_trace("search_type_2 lba=%lu\n",
+        //    log_trace("search_type_2 lba={}\n",
         // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (le16(sb->s_magic) == EXT2_SUPER_MAGIC && recover_EXT2(disk, sb, partition, verbose, dump_ind) == 0)
@@ -293,7 +293,7 @@ int search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, c
 {
     if (verbose > 2)
     {
-        //    log_trace("search_type_8 lba=%lu\n",
+        //    log_trace("search_type_8 lba={}\n",
         // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (disk.pread(disk, buffer, 4096, partition.part_offset + 4096) != 4096)
@@ -316,7 +316,7 @@ int search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition, 
 {
     if (verbose > 2)
     {
-        //    log_trace("search_type_16 lba=%lu\n",
+        //    log_trace("search_type_16 lba={}\n",
         // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     /* 8k offset */
@@ -343,7 +343,7 @@ int search_type_64(unsigned char *buffer, disk_t &disk, partition_t &partition, 
 {
     if (verbose > 2)
     {
-        //    log_trace("search_type_64 lba=%lu\n",
+        //    log_trace("search_type_64 lba={}\n",
         // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     /* 32k offset */
@@ -365,7 +365,7 @@ int search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition,
 {
     if (verbose > 2)
     {
-        //    log_trace("search_type_128 lba=%lu\n",
+        //    log_trace("search_type_128 lba={}\n",
         // (long unsigned)(partition.part_offset/disk->sector_size));
     }
     if (disk.pread(disk, buffer, 11 * DEFAULT_SECTOR_SIZE, partition.part_offset + 126 * 512) !=
@@ -403,7 +403,7 @@ int search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partition
 {
     if (verbose > 2)
     {
-        //    log_trace("search_type_2048 lba=%lu\n",
+        //    log_trace("search_type_2048 lba={}\n",
         // (long unsigned)(partition.part_offset/disk.sector_size));
     }
     if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition.part_offset + 2048 * 512) !=

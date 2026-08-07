@@ -35,7 +35,7 @@ static void set_BeFS_info(const struct disk_super_block *beos_block, partition_t
     partition.upart_type = UP_BEOS;
     partition.blocksize = 1 << le32(beos_block->block_shift);
     partition.info[0] = '\0';
-    snprintf(partition.info, sizeof(partition.info), "BeFS blocksize=%u", partition.blocksize);
+    snprintf(partition.info, sizeof(partition.info), "BeFS blocksize={}", partition.blocksize);
     partition.set_name(beos_block->name, B_OS_NAME_LENGTH);
 }
 
@@ -47,7 +47,7 @@ static int test_BeFS(const disk_t &disk_car, const struct disk_super_block *beos
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nBeFS magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nBeFS magic value at {}/{}/{}", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         ; // dump_log(beos_block,DEFAULT_SECTOR_SIZE);
     }

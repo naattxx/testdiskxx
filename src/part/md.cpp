@@ -37,13 +37,13 @@ static int test_MD(const disk_t &disk_car, const struct mdp_superblock_s *sb, co
     if (le32(sb->md_magic) != (unsigned int)MD_SB_MAGIC)
         return 1;
 #ifndef DISABLED_FOR_FRAMAC
-    log_info("\nRaid magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+    log_info("\nRaid magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
              offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
-    log_info("Raid apparent size: %llu sectors\n", (long long unsigned)(sb->size << 1));
+    log_info("Raid apparent size: {} sectors\n", (long long unsigned)(sb->size << 1));
     if (le32(sb->major_version) == 0)
     {
         /* chunk_size may be 0 */
-        log_info("Raid chunk size: %llu bytes\n", (long long unsigned)le32(sb->chunk_size));
+        log_info("Raid chunk size: {} bytes\n", (long long unsigned)le32(sb->chunk_size));
     }
 #endif
     if (le32(sb->major_version) > 1)
@@ -62,13 +62,13 @@ static int test_MD_be(const disk_t &disk_car, const struct mdp_superblock_s *sb,
     if (be32(sb->md_magic) != (unsigned int)MD_SB_MAGIC)
         return 1;
 #ifndef DISABLED_FOR_FRAMAC
-    log_info("\nRaid magic value at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+    log_info("\nRaid magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
              offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
-    log_info("Raid apparent size: %llu sectors\n", (long long unsigned)(sb->size << 1));
+    log_info("Raid apparent size: {} sectors\n", (long long unsigned)(sb->size << 1));
     if (be32(sb->major_version) == 0)
     {
         /* chunk_size may be 0 */
-        log_info("Raid chunk size: %llu bytes\n", (long long unsigned)be32(sb->chunk_size));
+        log_info("Raid chunk size: {} bytes\n", (long long unsigned)be32(sb->chunk_size));
     }
 #endif
     if (be32(sb->major_version) > 1)
@@ -269,7 +269,7 @@ int check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
 #ifndef DISABLED_FOR_FRAMAC
         if (verbose > 1)
         {
-            ; // log_verbose("Raid md 0.90 offset %llu\n", (long long unsigned)offset/512);
+            ; // log_verbose("Raid md 0.90 offset {}\n", (long long unsigned)offset/512);
         }
 #endif
         if (disk_car.pread(disk_car, buffer, MD_SB_BYTES, partition.part_offset + offset) == MD_SB_BYTES)
@@ -303,7 +303,7 @@ int check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
 #ifndef DISABLED_FOR_FRAMAC
         if (verbose > 1)
         {
-            ; // log_verbose("Raid md 1.0 offset %llu\n", (long long unsigned)offset/512);
+            ; // log_verbose("Raid md 1.0 offset {}\n", (long long unsigned)offset/512);
         }
 #endif
         if (disk_car.pread(disk_car, buffer, MD_SB_BYTES, partition.part_offset + offset) == MD_SB_BYTES)

@@ -76,7 +76,7 @@ int recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb, partit
         return 1;
     if (dump_ind != 0)
     {
-        log_info("\nbtrfs magic value at %u/%u/%u\n", offset2cylinder(disk, partition.part_offset),
+        log_info("\nbtrfs magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
                     offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
         ; // dump_log(sb, BTRFS_SUPER_INFO_SIZE);
     }
@@ -96,10 +96,10 @@ int recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb, partit
     if (verbose > 0)
     {
         // if (disk == NULL)
-        //     log_info("recover_btrfs: part_size %lu\n",
+        //     log_info("recover_btrfs: part_size {}\n",
         //              (long unsigned)(partition.part_size / le32(sb->dev_item.sector_size)));
         // else
-            log_info("recover_btrfs: part_size %lu\n", (long unsigned)(partition.part_size / disk.sector_size));
+            log_info("recover_btrfs: part_size {}\n", (long unsigned)(partition.part_size / disk.sector_size));
     }
     return 0;
 }

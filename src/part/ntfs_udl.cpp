@@ -304,7 +304,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
             ok = 0;
             if (ntfs_attr_pread(mft_data, vol->mft_record_size * inode_num, vol->mft_record_size, rec) < 1)
             {
-                log_error("ERROR: Couldn't read MFT Record %llu.\n", (long long unsigned)inode_num);
+                log_error("ERROR: Couldn't read MFT Record {}.\n", (long long unsigned)inode_num);
             }
             else if ((filename_attr = verify_parent(name, rec)))
             {
@@ -564,7 +564,7 @@ static struct ufile *read_record(ntfs_volume *vol, uint64_t record)
 
     if (ntfs_attr_mst_pread(mft, vol->mft_record_size * record, 1, vol->mft_record_size, file->mft) < 1)
     {
-        log_error("ERROR: Couldn't read MFT Record %llu.\n", (long long unsigned)record);
+        log_error("ERROR: Couldn't read MFT Record {}.\n", (long long unsigned)record);
         ntfs_attr_close(mft);
         free_file(file);
         return NULL;
@@ -721,7 +721,7 @@ static unsigned int calc_percentage(struct ufile *file, ntfs_volume *vol)
         if ((clusters_inuse + clusters_free) == 0)
         {
             log_error("ERROR: Unexpected error whilst "
-                      "calculating percentage for inode %llu\n",
+                      "calculating percentage for inode {}\n",
                       (long long unsigned)file->inode);
             continue;
         }
@@ -884,7 +884,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
     file = read_record(vol, inode);
     if (!file || !file->mft)
     {
-        log_error("Can't read info from mft record %llu.\n", (long long unsigned)inode);
+        log_error("Can't read info from mft record {}.\n", (long long unsigned)inode);
         return -2;
     }
 
@@ -1204,7 +1204,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
                 file = read_record(vol, (i + j) * 8 + k);
                 if (!file)
                 {
-                    log_error("Couldn't read MFT Record %llu.\n", (long long unsigned)(i + j) * 8 + k);
+                    log_error("Couldn't read MFT Record {}.\n", (long long unsigned)(i + j) * 8 + k);
                     continue;
                 }
 
@@ -1227,7 +1227,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
         }
     }
 done:
-    log_info("\nFiles with potentially recoverable content: %u\n", results);
+    log_info("\nFiles with potentially recoverable content: {}\n", results);
     delete[] (buffer);
     ntfs_attr_close(attr);
     dir_list.sort(filesort);
@@ -1651,7 +1651,7 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
         else
             file_ok++;
     }
-    log_info("NTFS undelete done (%u/%u)\n", file_ok, (file_ok + file_bad));
+    log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
     delete (dst_path);
     dir_data->local_dir = NULL;
     opts.dest = NULL;

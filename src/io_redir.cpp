@@ -71,7 +71,7 @@ int io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsign
         struct info_io_redir *data = new struct info_io_redir;
         disk_t old_disk_car = disk_car;
 #ifdef DEBUG_IO_REDIR
-        log_trace("io_redir_add_redir: install functions org_offset=%llu, size=%u, new_offset=%llu, mem=%p\n",
+        log_trace("io_redir_add_redir: install functions org_offset={}, size={}, new_offset={}, mem={:p}",
                   (long long unsigned)org_offset, size, (long long unsigned)new_offset, mem);
 #endif
         data->disk_car = &old_disk_car;
@@ -164,7 +164,7 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
     unsigned int current_count = count;
     list_redir_t *current_redir;
 #ifdef DEBUG_IO_REDIR
-    log_trace("io_redir_pread: count=%u offset=%llu\n", count, (long long unsigned)offset);
+    log_trace("io_redir_pread: count={} offset={}", count, (long long unsigned)offset);
 #endif
     while (current_count != 0)
     {
@@ -182,7 +182,7 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
                 /* Read data before redirection */
                 read_size = current_redir->org_offset - current_offset;
 #ifdef DEBUG_IO_REDIR
-                log_trace("io_redir_pread: read %u bytes before redirection\n", read_size);
+                log_trace("io_redir_pread: read {} bytes before redirection\n", read_size);
 #endif
                 res = data->disk_car->pread(*data->disk_car, buffer, read_size, current_offset);
                 current_count -= read_size;
@@ -194,7 +194,7 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
             if (current_redir->mem != NULL)
             {
 #ifdef DEBUG_IO_REDIR
-                log_trace("io_redir_pread: copy %u bytes from memory\n", read_size);
+                log_trace("io_redir_pread: copy {} bytes from memory\n", read_size);
 #endif
                 memcpy(buffer, (const unsigned char *)current_redir->mem + current_offset - current_redir->org_offset,
                        read_size);
@@ -203,7 +203,7 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
             else
             {
 #ifdef DEBUG_IO_REDIR
-                log_trace("io_redir_pread: read %u from another position\n", read_size);
+                log_trace("io_redir_pread: read {} from another position\n", read_size);
 #endif
                 res = data->disk_car->pread(*data->disk_car, buffer, read_size,
                                             current_redir->new_offset + current_offset - current_redir->org_offset);
@@ -214,7 +214,7 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
         {
             read_size = current_count;
 #ifdef DEBUG_IO_REDIR
-            log_trace("io_redir_pread: normal read of %u bytes\n", read_size);
+            log_trace("io_redir_pread: normal read of {} bytes\n", read_size);
 #endif
             res = data->disk_car->pread(*data->disk_car, buffer, read_size, current_offset);
         }

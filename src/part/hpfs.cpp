@@ -52,7 +52,7 @@ static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_
            */
             if (verbose || dump_ind)
             {
-                log_info("\nHPFS maybe at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+                log_info("\nHPFS maybe at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                          offset2head(disk_car, partition.part_offset),
                          offset2sector(disk_car, partition.part_offset));
             }

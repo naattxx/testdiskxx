@@ -70,7 +70,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
 {
     struct cache_struct *data = (struct cache_struct *)disk_car.data;
 #ifdef DEBUG_CACHE
-    log_info("cache_pread(buffer, count=%u, offset=%llu, read_ahead=%u)\n", count, (long long unsigned)offset,
+    log_info("cache_pread(buffer, count={}, offset={}, read_ahead={})", count, (long long unsigned)offset,
              read_ahead);
     data->nbr_fnct_call++;
 #endif
@@ -90,7 +90,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
                 if (count <= data_available)
                 {
 #ifdef DEBUG_CACHE
-                    log_info("cache use %5u count=%u, coffset=%llu, cstatus=%d\n", cache_buffer_nbr, cache->cache_size,
+                    log_info("cache use {:5} count={}, coffset={}, cstatus={}", cache_buffer_nbr, cache->cache_size,
                              (long long unsigned)cache->cache_offset, cache->cache_status);
                     data->nbr_fnct_sect += count;
 #endif
@@ -100,7 +100,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
                 else
                 {
 #ifdef DEBUG_CACHE
-                    log_info("cache USE %5u count=%u, coffset=%llu, ctstatus=%d, call again cache_pread_aux\n",
+                    log_info("cache USE {:5} count={}, coffset={}, ctstatus={}, call again cache_pread_aux",
                              cache_buffer_nbr, cache->cache_size, (long long unsigned)cache->cache_offset,
                              cache->cache_status);
                     data->nbr_fnct_sect += data_available;
@@ -137,7 +137,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
         data->nbr_fnct_sect += count;
         data->nbr_pread_call++;
         data->nbr_pread_sect += count_new;
-        log_info("cache PREAD(buffer[%u], count=%u, count_new=%u, offset=%llu, cstatus=%d)\n", data->cache_buffer_nbr,
+        log_info("cache PREAD(buffer[{}], count={}, count_new={}, offset={}, cstatus={})", data->cache_buffer_nbr,
                  count, count_new, (long long unsigned)offset, cache->cache_status);
 #endif
         if (cache->cache_status >= (signed)count)
@@ -221,7 +221,7 @@ static void cache_clean(disk_t &disk_car)
         struct cache_struct *data = (struct cache_struct *)disk_car.data;
         unsigned int i;
 #ifdef DEBUG_CACHE
-        log_info("%s\ncache_pread total_call=%u, total_count=%llu\n      read total_call=%u, total_count=%llu\n",
+        log_info("{}\ncache_pread total_call={}, total_count={}\n      read total_call={}, total_count={}\n",
                  data->disk_car.description(*data->disk_car), data->nbr_fnct_call,
                  (long long unsigned)data->nbr_fnct_sect, data->nbr_pread_call,
                  (long long unsigned)data->nbr_pread_sect);

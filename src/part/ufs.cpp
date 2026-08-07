@@ -65,7 +65,7 @@ static int test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, co
          le32(sb->fs_fsize) == 4096))
     {
         if (verbose > 1)
-            log_info("\nUFS Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+            log_info("\nUFS Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                      offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         return 0;
     }
@@ -74,7 +74,7 @@ static int test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, co
          be32(sb->fs_fsize) == 4096))
     {
         if (verbose > 1)
-            log_info("\nUFS Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+            log_info("\nUFS Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                      offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         return 0;
     }
@@ -83,7 +83,7 @@ static int test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, co
          le32(sb->fs_fsize) == 4096))
     {
         if (verbose > 1)
-            log_info("\nUFS2 Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+            log_info("\nUFS2 Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                      offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         return 0;
     }
@@ -92,7 +92,7 @@ static int test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, co
          be32(sb->fs_fsize) == 4096))
     {
         if (verbose > 1)
-            log_info("\nUFS2 Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+            log_info("\nUFS2 Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                      offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
         return 0;
     }
@@ -116,38 +116,38 @@ int recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, partit
         partition.part_size = (uint64_t)le32(sb->fs_size) * le32(sb->fs_fsize);
         if (verbose > 1)
         {
-            log_info("fs_size %lu, fs_fsize %lu\n", (long unsigned)le32(sb->fs_size),
+            log_info("fs_size {}, fs_fsize {}\n", (long unsigned)le32(sb->fs_size),
                      (long unsigned)le32(sb->fs_fsize));
-            log_info("fs_sblkno %lu\n", (long unsigned)le32(sb->fs_sblkno));
+            log_info("fs_sblkno {}\n", (long unsigned)le32(sb->fs_sblkno));
         }
         break;
     case UP_UFS2_LE:
         partition.part_size = (uint64_t)le64(sb->fs_u11.fs_u2.fs_size) * le32(sb->fs_fsize);
         if (verbose > 1)
         {
-            log_info("fs_size %lu, fs_fsize %lu\n", (long unsigned)le64(sb->fs_u11.fs_u2.fs_size),
+            log_info("fs_size {}, fs_fsize {}\n", (long unsigned)le64(sb->fs_u11.fs_u2.fs_size),
                      (long unsigned)le32(sb->fs_fsize));
-            log_info("fs_sblkno %lu\n", (long unsigned)le32(sb->fs_sblkno));
-            log_info("fs_sblockloc %llu\n", (long long unsigned)le64(sb->fs_u11.fs_u2.fs_sblockloc));
+            log_info("fs_sblkno {}\n", (long unsigned)le32(sb->fs_sblkno));
+            log_info("fs_sblockloc {}\n", (long long unsigned)le64(sb->fs_u11.fs_u2.fs_sblockloc));
         }
         break;
     case UP_UFS:
         partition.part_size = (uint64_t)be32(sb->fs_size) * be32(sb->fs_fsize);
         if (verbose > 1)
         {
-            log_info("fs_size %lu, fs_fsize %lu\n", (long unsigned)be32(sb->fs_size),
+            log_info("fs_size {}, fs_fsize {}\n", (long unsigned)be32(sb->fs_size),
                      (long unsigned)be32(sb->fs_fsize));
-            log_info("fs_sblkno %lu\n", (long unsigned)be32(sb->fs_sblkno));
+            log_info("fs_sblkno {}\n", (long unsigned)be32(sb->fs_sblkno));
         }
         break;
     case UP_UFS2:
         partition.part_size = (uint64_t)be64(sb->fs_u11.fs_u2.fs_size) * be32(sb->fs_fsize);
         if (verbose > 1)
         {
-            log_info("fs_size %lu, fs_fsize %lu\n", (long unsigned)be64(sb->fs_u11.fs_u2.fs_size),
+            log_info("fs_size {}, fs_fsize {}\n", (long unsigned)be64(sb->fs_u11.fs_u2.fs_size),
                      (long unsigned)be32(sb->fs_fsize));
-            log_info("fs_sblkno %lu\n", (long unsigned)be32(sb->fs_sblkno));
-            log_info("fs_sblockloc %llu\n", (long long unsigned)be64(sb->fs_u11.fs_u2.fs_sblockloc));
+            log_info("fs_sblkno {}\n", (long unsigned)be32(sb->fs_sblkno));
+            log_info("fs_sblockloc {}\n", (long long unsigned)be64(sb->fs_u11.fs_u2.fs_sblockloc));
         }
         break;
     default: /* BUG if hit*/

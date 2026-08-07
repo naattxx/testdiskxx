@@ -67,7 +67,7 @@ static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunla
     if ((le16(sunlabel->magic) != SUN_LABEL_MAGIC) || (le32(sunlabel->magic_start) != SUN_LABEL_MAGIC_START))
         return 1;
     if (verbose > 0)
-        log_info("\nSUN Marker at %u/%u/%u\n", offset2cylinder(disk_car, partition.part_offset),
+        log_info("\nSUN Marker at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
                  offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
     {

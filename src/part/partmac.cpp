@@ -418,7 +418,7 @@ static int check_part_mac(disk_t &disk_car, const int verbose, partition_t &part
     default:
         if (verbose > 0)
         {
-            log_info("check_part_mac %u type %02X: no test\n", partition.order, partition.part_type_mac);
+            log_info("check_part_mac {} type %02X: no test\n", partition.order, partition.part_type_mac);
         }
         break;
     }
