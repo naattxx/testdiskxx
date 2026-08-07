@@ -14,6 +14,8 @@ conf_data.set_quoted('TESTDISKDATE', 'July 2026')
 conf_data.set_quoted('TARGET', host_machine.system())
 conf_data.set_quoted('COMPILER_ID', compiler.get_id() + ' ' + compiler.version())
 
+conf_data.set('TESTDISK_LSB', host_machine.endian() == 'little')
+
 libewf = compiler.find_library('libewf', required: false)
 libntfs = compiler.find_library('libntfs', required: false)
 libntfs3g = compiler.find_library('libntfs-3g', required: false)

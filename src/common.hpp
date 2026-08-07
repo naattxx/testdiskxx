@@ -4,6 +4,7 @@
 #include <ctime>
 #include <list>
 #include <string>
+#include <config.h>
 
 struct [[gnu::gcc_struct,gnu::packed]] efi_guid_s
 {
