@@ -76,7 +76,7 @@
 #if __has_include(<sys/sysmacros.h>)
 #include <sys/sysmacros.h>
 #endif
-#include <errno.h>
+#include <cerrno>
 #include <stdio.h>
 #include <string.h>
 // #include "types.h"

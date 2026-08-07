@@ -34,7 +34,7 @@
 #include <unistd.h>
 #endif
 #include <assert.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <string.h>
 #if defined(__FRAMAC__)

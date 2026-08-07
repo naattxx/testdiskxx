@@ -26,7 +26,7 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
-// #include <errno.h>
+#include <cerrno>
 // #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp" /* get_LBA_part */

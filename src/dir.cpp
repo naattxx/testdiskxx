@@ -34,7 +34,7 @@
 #include <unistd.h>
 #endif
 // #include "types.h"
-#include <errno.h>
+#include <cerrno>
 #if __has_include(<io.h>)
 #include <io.h>
 #endif

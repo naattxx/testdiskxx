@@ -45,7 +45,7 @@
 #if __has_include(<sys/cygwin.h>)
 #include <sys/cygwin.h>
 #endif
-#include <errno.h>
+#include <cerrno>
 // #include "types.h"
 #include "common.hpp"
 // #include "lang.h"

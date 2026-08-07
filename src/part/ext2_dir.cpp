@@ -29,9 +29,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#if __has_include("errno.h")
-#include <errno.h>
-#endif
+#include <cerrno>
 
 #if defined(HAVE_LIBEXT2FS)
 #if __has_include("ext2fs/ext2_fs.h")

@@ -36,9 +36,7 @@
 // #include <features.h>
 #include <stdlib.h>
 #include <string.h>
-#if __has_include(<errno.h>)
-#include <errno.h>
-#endif
+#include <cerrno>
 // #include "types.h"
 #include "src/common.hpp"
 #if __has_include(<fcntl.h>)

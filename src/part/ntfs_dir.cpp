@@ -38,9 +38,7 @@
 #endif
 #include <string.h>
 #include <time.h>
-#if __has_include(<errno.h>)
-#include <errno.h>
-#endif
+#include <cerrno>
 #if __has_include(<sys/param.h>)
 #include <sys/param.h>
 #endif

@@ -33,7 +33,7 @@
 #if __has_include("sys/stat.h")
 #include <sys/stat.h>
 #endif
-#include <errno.h>
+#include <cerrno>
 // #include "types.h"
 #include "exfat.hpp"
 #include "exfat_dir.hpp"

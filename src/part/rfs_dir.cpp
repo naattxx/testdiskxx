@@ -31,9 +31,7 @@
 #include <fcntl.h>
 #endif
 #include <string.h>
-#if __has_include(<errno.h>)
-#include <errno.h>
-#endif
+#include <cerrno>
 // #include "types.h"
 #include "rfs.hpp"
 #include "rfs_dir.hpp"

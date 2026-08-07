@@ -31,7 +31,7 @@
 #if (defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G))
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <cerrno>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif

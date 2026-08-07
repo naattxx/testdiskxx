@@ -30,7 +30,7 @@
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
-#include <errno.h>
+#include <cerrno>
 // #include "types.h"
 #include "fat.hpp"
 #include "fat_common.hpp"
