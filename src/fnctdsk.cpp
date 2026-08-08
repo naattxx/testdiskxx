@@ -138,42 +138,37 @@ void insert_new_disk(list_disk_t &list_disk, disk_t &disk)
 void insert_new_partition(list_part_t &list_part, partition_t &new_partition, const int force_insert, int *insert_error)
 {
     *insert_error = 0;
-    if (list_part.empty())
-    {
-        list_part.push_back(new_partition);
-        return;
-    }
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_partition(part);
       @ loop invariant \valid(insert_error);
       @*/
-    for (partition_t partition : list_part)
+    for (auto next_part = list_part.begin(); ; ++next_part)
     { /* prev new next */
         /*@ assert partition != \null || valid_partition(partition); */
-        if ((new_partition.part_offset < partition.part_offset) ||
-            (new_partition.part_offset == partition.part_offset &&
-             ((new_partition.part_size < partition.part_size) ||
-              (new_partition.part_size == partition.part_size &&
-               (force_insert == 0 || new_partition.sb_offset < partition.sb_offset)))))
+        if (next_part == list_part.end() || (new_partition.part_offset < next_part->part_offset) ||
+            (new_partition.part_offset == next_part->part_offset &&
+             ((new_partition.part_size < next_part->part_size) ||
+              (new_partition.part_size == next_part->part_size &&
+               (force_insert == 0 || new_partition.sb_offset < next_part->sb_offset)))))
         {
-            if (force_insert == 0 && (partition.part_offset == new_partition.part_offset) &&
-                (partition.part_size == new_partition.part_size) && (partition.part_type_i386 == new_partition.part_type_i386) &&
-                (partition.part_type_mac == new_partition.part_type_mac) &&
-                (partition.part_type_sun == new_partition.part_type_sun) &&
-                (partition.part_type_xbox == new_partition.part_type_xbox) &&
-                (partition.upart_type == new_partition.upart_type || new_partition.upart_type == UP_UNK))
+            if (force_insert == 0 && next_part != list_part.end() && (next_part->part_offset == new_partition.part_offset) &&
+                (next_part->part_size == new_partition.part_size) && (next_part->part_type_i386 == new_partition.part_type_i386) &&
+                (next_part->part_type_mac == new_partition.part_type_mac) &&
+                (next_part->part_type_sun == new_partition.part_type_sun) &&
+                (next_part->part_type_xbox == new_partition.part_type_xbox) &&
+                (next_part->upart_type == new_partition.upart_type || new_partition.upart_type == UP_UNK))
             { /*CGR 2004/05/31*/
-                if (partition.status == STATUS_DELETED)
+                if (next_part->status == STATUS_DELETED)
                 {
-                    partition.status = new_partition.status;
+                    next_part->status = new_partition.status;
                 }
                 *insert_error = 1;
                 /*@ assert valid_list_part(list_part); */
                 return;
             }
             { /* prev new_element next */
-                list_part.push_back(new_partition);
+                list_part.insert(next_part, new_partition);
                 return;
             }
         }
