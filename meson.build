@@ -21,13 +21,13 @@ libntfs = compiler.find_library('libntfs', required: false)
 libntfs3g = compiler.find_library('libntfs-3g', required: false)
 libext2fs = compiler.find_library('libext2fs', required: false)
 reiserfs = compiler.find_library('reiserfs', required: false)
-libiconv = compiler.find_library('libiconv', required: false)
+iconv = compiler.find_library('iconv', required: false)
 conf_data.set('HAVE_LIBEWF', libewf.found())
 conf_data.set('HAVE_LIBNTFS', libntfs.found())
 conf_data.set('HAVE_LIBNTFS3G', libntfs3g.found())
 conf_data.set('HAVE_LIBEXT2FS', libext2fs.found())
 conf_data.set('HAVE_LIBREISERFS', reiserfs.found())
-conf_data.set('HAVE_ICONV', libiconv.found())
+conf_data.set('HAVE_ICONV', iconv.found())
 
 conf_data.set(
   'NTFS_MBSTOUCS_HAVE_TWO_ARGUMENTS',
@@ -215,7 +215,7 @@ sources = files(
   'src/utils.cpp',
 )
 
-deps = [spdlog_dep, libntfs, libntfs3g, libext2fs, libewf, reiserfs, libiconv]
+deps = [spdlog_dep, libntfs, libntfs3g, libext2fs, libewf, reiserfs, iconv]
 
 executable(
   'testdisk',
