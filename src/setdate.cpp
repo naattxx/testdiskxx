@@ -54,7 +54,7 @@ int set_date(const char *pathname, time_t actime, time_t modtime)
     ut.modtime = modtime;
     if (utime(pathname, &ut))
     {
-        log_error("ERROR: Couldn't set the file's date and time for %s\n", pathname);
+        log_error("ERROR: Couldn't set the file's date and time for {}", pathname);
         return -1;
     }
 #endif

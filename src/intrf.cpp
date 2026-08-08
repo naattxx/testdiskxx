@@ -85,7 +85,7 @@ int screen_buffer_add(const char *_format, ...)
         }
         start = end;
     }
-    /*	log_trace("aff_intr_buffer_screen %d =>%s<=\n",intr_nbr_line,tmp); */
+    /*	log_trace("aff_intr_buffer_screen {} =>{}<=\n",intr_nbr_line,tmp); */
     if (intr_nbr_line == MAX_LINES)
     {
         log_warning("Buffer can't store more than {} lines.\n", MAX_LINES);

@@ -383,7 +383,7 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
         case 'M':
             return list_part;
         default:
-            /*	log_trace("ask_structure command=%x\n",command); */
+            /*	log_trace("ask_structure command={:x}\n",command); */
             break;
         }
         if (pos_num < offset)

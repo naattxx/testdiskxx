@@ -183,7 +183,7 @@ int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
     int test_date = 0;
     if (dir_data != NULL)
     {
-        log_info("Directory %s\n", dir_data->current_directory);
+        log_info("Directory {}", dir_data->current_directory);
     }
 #ifndef DISABLED_FOR_FRAMAC
     for (const file_info_t *current_file : dir_list)
@@ -196,17 +196,17 @@ int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
             log_info("X");
         else
             log_info(" ");
-        log_info("%7lu %s %5u  %5u %9llu %s ", (unsigned long int)current_file->st_ino, str,
+        log_info("{:7} {} {:5}  {:5} {:9} {} ", (unsigned long int)current_file->st_ino, str,
                  (unsigned int)current_file->st_uid, (unsigned int)current_file->st_gid,
                  (long long unsigned int)current_file->st_size, datestr);
         if (dir_data != NULL && (dir_data->param & FLAG_LIST_PATHNAME) != 0)
         {
             if (dir_data->current_directory[1] != '\0')
-                log_info("%s/", dir_data->current_directory);
+                log_info("{}/", dir_data->current_directory);
             else
                 log_info("/");
         }
-        log_info("%s\n", current_file->name);
+        log_info("{}", current_file->name);
     }
 #endif
     return test_date;
@@ -219,7 +219,7 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
     log_partition(disk, partition);
     if (dir_data != NULL)
     {
-        log_info("Directory %s\n", dir_data->current_directory);
+        log_info("Directory {}", dir_data->current_directory);
     }
     for (const file_info_t *current_file : list)
     {
@@ -231,10 +231,10 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
             log_info(" ");
         set_datestr((char *)&datestr, sizeof(datestr), current_file->td_mtime);
         mode_string(current_file->st_mode, str);
-        log_info("%7lu ", (unsigned long int)current_file->st_ino);
-        log_info("%s %5u %5u ", str, (unsigned int)current_file->st_uid, (unsigned int)current_file->st_gid);
-        log_info("%9llu", (long long unsigned int)current_file->st_size);
-        log_info(" %s %s\n", datestr, current_file->name);
+        log_info("{:7} ", (unsigned long int)current_file->st_ino);
+        log_info("{} {:5} {:5} ", str, (unsigned int)current_file->st_uid, (unsigned int)current_file->st_gid);
+        log_info("{:9}", (long long unsigned int)current_file->st_size);
+        log_info(" {} {}", datestr, current_file->name);
     }
 #endif
 }

@@ -103,9 +103,9 @@ static void dump_bytes(const char *prefix, const unsigned char *p, const unsigne
 {
     unsigned int i;
     if (prefix)
-        log_info("%s: ", prefix);
+        log_info("{}: ", prefix);
     for (i = 0; i < len; i++)
-        log_info(" %02x", p[i]);
+        log_info(" {:02x}", p[i]);
     log_info("\n");
 }
 #endif

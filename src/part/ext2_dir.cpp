@@ -140,7 +140,7 @@ static errcode_t my_open(const char *dev, int flags, io_channel *channel)
 {
     *channel = shared_ioch;
 #ifdef DEBUG_EXT2
-    log_info("my_open %s done\n", dev);
+    log_info("my_open {} done\n", dev);
 #endif
     return 0;
 }
@@ -173,7 +173,7 @@ static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int
 
     size = (count < 0) ? -count : count * channel->block_size;
 #ifdef DEBUG_EXT2
-    log_info("my_read_blk start size={}, offset={} name=%s, block={}, count=%d, buf=%p\n", (long unsigned)size,
+    log_info("my_read_blk start size={}, offset={} name={}, block={}, count={}, buf={:p}", (long unsigned)size,
              (unsigned long)(block * channel->block_size), my_data->partition.fsname, block, count, buf);
 #endif
     if (my_data->disk_car->pread(*my_data->disk_car, buf, size,
@@ -232,7 +232,7 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
         return 0;
     if ((retval = ext2fs_read_inode(ls->current_fs, ino, &inode)) != 0)
     {
-        log_error("ext2fs_read_inode(ino={}) failed with error %ld.\n", (unsigned)ino, (long)retval);
+        log_error("ext2fs_read_inode(ino={}) failed with error {}.", (unsigned)ino, (long)retval);
         return 0;
     }
     if (inode.i_mode == 0)
@@ -272,7 +272,7 @@ static int ext2_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *
     ls->dir_list = dir_list;
     if ((retval = ext2fs_dir_iterate2(ls->current_fs, cluster, ls->flags, 0, list_dir_proc2, ls)) != 0)
     {
-        log_error("ext2fs_dir_iterate failed with error %ld.\n", (long)retval);
+        log_error("ext2fs_dir_iterate failed with error {}.", (long)retval);
         return -1;
     }
     return 0;

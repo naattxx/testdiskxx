@@ -52,11 +52,11 @@ static int test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, 
     {
         if (verbose > 0)
         {
-            log_info("CRC Ok\n");
+            log_info("CRC Ok");
         }
     }
     else
-        log_error("Bad CRC! CRC must be xor'd by %04X\n", crc);
+        log_error("Bad CRC! CRC must be xor'd by {:04X}", crc);
     for (i = 0; i < le16(bsd_header->d_npartitions); i++)
     {
         if (bsd_header->d_partitions[i].p_fstype > 0)
@@ -64,7 +64,7 @@ static int test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, 
             if (verbose > 0)
             {
                 /* UFS UFS2 SWAP */
-                log_info("BSD %c: ", 'a' + i);
+                log_info("BSD {}: ", 'a' + i);
                 switch (bsd_header->d_partitions[i].p_fstype)
                 {
                 case TST_FS_SWAP:
@@ -77,10 +77,10 @@ static int test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, 
                     log_info("4.4BSD log-structured filesystem");
                     break;
                 default:
-                    log_info("type %02X", bsd_header->d_partitions[i].p_fstype);
+                    log_info("type {:02X}", bsd_header->d_partitions[i].p_fstype);
                     break;
                 }
-                log_info(", offset %9u, size %9u ", (unsigned int)le32(bsd_header->d_partitions[i].p_offset),
+                log_info(", offset {:9}, size {:9} ", (unsigned int)le32(bsd_header->d_partitions[i].p_offset),
                          (unsigned int)le32(bsd_header->d_partitions[i].p_size));
                 log_CHS_from_LBA(disk_car, le32(bsd_header->d_partitions[i].p_offset));
                 log_info(" -> ");

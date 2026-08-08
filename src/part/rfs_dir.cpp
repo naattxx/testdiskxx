@@ -123,7 +123,7 @@ static int file_read(dal_t *dal, void *buff, blk_t block, blk_t count)
     uint64_t off;
     unsigned int blocklen;
     my_data_t *my_data;
-    /* log_trace("reiser file_read(dal=%p,buff=%p,block=%ld, count=%ld)\n",dal,buff,block,count); */
+    /* log_trace("reiser file_read(dal=%p,buff=%p,block={}, count={})\n",dal,buff,block,count); */
     if (!dal || !buff)
         return 0;
     my_data = (my_data_t *)dal->data;
@@ -134,7 +134,7 @@ static int file_read(dal_t *dal, void *buff, blk_t block, blk_t count)
     off = (uint64_t)block * (uint64_t)dal->blocksize;
     blocklen = count * dal->blocksize;
 #endif
-    /* log_debug("blocklen=%ld\n",blocklen); */
+    /* log_debug("blocklen={}\n",blocklen); */
     if (my_data->disk_car->pread(my_data->disk_car, buff, blocklen, my_data->partition.part_offset + off) != blocklen)
         return 0;
     return 1;

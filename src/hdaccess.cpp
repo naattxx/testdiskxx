@@ -1293,7 +1293,7 @@ static uint64_t compute_device_size(const int hd_h, const char *device, const in
     delete (buffer);
     if (verbose > 1)
     {
-        log_verbose("file_test_availability compute_device_size %s size {}\n", device,
+        log_verbose("file_test_availability compute_device_size {} size {}\n", device,
                     (long long unsigned)min_offset);
     }
     return min_offset;
@@ -1370,9 +1370,9 @@ static void file_clean(disk_t &disk)
         /*
     #ifdef BLKRRPART
         if (ioctl(data->handle, BLKRRPART, NULL)) {
-          log_error("%s BLKRRPART failed\n",disk.description(disk));
+          log_error("{} BLKRRPART failed",disk.description(disk));
         } else {
-          log_debug("%s BLKRRPART ok\n",disk.description(disk));
+          log_debug("{} BLKRRPART ok",disk.description(disk));
         }
     #endif
         */

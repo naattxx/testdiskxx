@@ -46,9 +46,9 @@ int is_hpa_or_dco(const disk_t &disk)
     if (res > 0)
     {
         if (res & 1)
-            log_warning("%s: Host Protected Area (HPA) present.\n", disk.device);
+            log_warning("{}: Host Protected Area (HPA) present.\n", disk.device);
         if (res & 2)
-            log_warning("%s: Device Configuration Overlay (DCO) present.\n", disk.device);
+            log_warning("{}: Device Configuration Overlay (DCO) present.\n", disk.device);
         // log_flush();
     }
 #endif

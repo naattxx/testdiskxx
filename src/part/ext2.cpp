@@ -161,12 +161,12 @@ int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partitio
     if (sb->s_mkfs_time > 0)
     {
         const time_t tm = le32(sb->s_mkfs_time);
-        log_info("Filesystem created: %s", ctime(&tm));
+        log_info("Filesystem created: {}", ctime(&tm));
     }
     if (sb->s_mtime > 0)
     {
         const time_t tm = le32(sb->s_mtime);
-        log_info("Last mount time:    %s", ctime(&tm));
+        log_info("Last mount time:    {}", ctime(&tm));
     }
     return 0;
 }

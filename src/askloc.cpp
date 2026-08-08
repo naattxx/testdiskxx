@@ -194,7 +194,7 @@ void ask_location(char *dst_directory, const unsigned int dst_size, const char *
 #endif
         if (dir == NULL)
         {
-            log_info("opendir(%s) failed\n", dst_directory);
+            log_info("opendir({}) failed", dst_directory);
             strncpy(dst_directory, SPATH_SEP, dst_size);
             dir = opendir(dst_directory);
         }

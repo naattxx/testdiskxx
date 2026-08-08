@@ -90,7 +90,7 @@ static int exfat_ucstoutf8(iconv_t cd, const unsigned char *ins, const unsigned 
     if (iconv(cd, (char **)&inp, &inb_left, &outp, &outb_left) == (size_t)(-1))
     {
         // Regardless of the value of errno
-        log_error("exfat_ucstoutf8: iconv failed %s\n", strerror(errno));
+        log_error("exfat_ucstoutf8: iconv failed {}", strerror(errno));
         return -1;
     }
     *outp = '\0';
@@ -405,15 +405,15 @@ dir_partition_t dir_partition_exfat_init(disk_t &disk, const partition_t &partit
     log_info("fat_blocknr ={}\n", le32(exfat_header->fat_blocknr));
     log_info("fat_block_counts={}\n", le32(exfat_header->fat_block_counts));
     log_info("clus_blocknr={}\n", le32(exfat_header->clus_blocknr));
-    log_info("total_clusters={}\n", le32(exfat_header->total_clusters));
-    log_info("rootdir_clusnr={}\n", le32(exfat_header->rootdir_clusnr));
-    log_info("serial_number=0x%08x\n", le32(exfat_header->serial_number));
-    log_info("state=0x%x\n", le16(exfat_header->state));
-    log_info("blocksize_bits={}\n", exfat_header->blocksize_bits);
-    log_info("block_per_clus_bits={}\n", exfat_header->block_per_clus_bits);
-    log_info("number_of_fats={}\n", exfat_header->number_of_fats);
-    log_info("drive_select=0x%x\n", exfat_header->drive_select);
-    log_info("allocated_percent={}\n", exfat_header->allocated_percent);
+    log_info("total_clusters={}", le32(exfat_header->total_clusters));
+    log_info("rootdir_clusnr={}", le32(exfat_header->rootdir_clusnr));
+    log_info("serial_number=0x{:08x}", le32(exfat_header->serial_number));
+    log_info("state=0x{:x}", le16(exfat_header->state));
+    log_info("blocksize_bits={}", exfat_header->blocksize_bits);
+    log_info("block_per_clus_bits={}", exfat_header->block_per_clus_bits);
+    log_info("number_of_fats={}", exfat_header->number_of_fats);
+    log_info("drive_select=0x{:x}", exfat_header->drive_select);
+    log_info("allocated_percent={}", exfat_header->allocated_percent);
 #endif
     strncpy(dir_data->current_directory, "/", sizeof(dir_data->current_directory));
     dir_data->current_inode = 0;
@@ -456,7 +456,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
     f_out = fopen_local(&new_file, dir_data->local_dir, dir_data->current_directory);
     if (!f_out)
     {
-        log_critical("Can't create file %s: \n", new_file);
+        log_critical("Can't create file: {}", new_file);
         delete (new_file);
         delete[] (buffer_file);
         return CP_CREATE_FAILED;

@@ -137,7 +137,7 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
             pos++;
             if (verbose > 1)
             {
-                // log_verbose("new disk: %s\n",pos);
+                // log_verbose("new disk: {}",pos);
             }
             if (new_backup != NULL)
                 list_backup.push_front(new_backup);
