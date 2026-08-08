@@ -674,29 +674,11 @@ time_t td_ntfs2utc(int64_t ntfstime);
 #define OPENBSD_MAXPARTITIONS 16
 #endif
 
-#define __swab16(x) (((((uint16_t)x) & (uint16_t)0xff00) >> 8) | (((uint16_t)(x) & (uint16_t)0x00ff) << 8))
-
-#define __swab24(x) ((((x) & 0x000000ffUL) << 16) | ((x) & 0x0000ff00UL) | (((x) & 0x00ff0000UL) >> 16))
-
-#define __swab32(x)                                                                                                    \
-    ((((uint32_t)(x) & (uint32_t)0xff000000UL) >> 24) | (((uint32_t)(x) & (uint32_t)0x00ff0000UL) >> 8) |              \
-     (((uint32_t)(x) & (uint32_t)0x0000ff00UL) << 8) | (((uint32_t)(x) & (uint32_t)0x000000ffUL) << 24))
-
-#define __swab64(x)                                                                                                    \
-    ((((uint64_t)(x) & (uint64_t)0xff00000000000000ULL) >> 56) |                                                       \
-     (((uint64_t)(x) & (uint64_t)0x00ff000000000000ULL) >> 40) |                                                       \
-     (((uint64_t)(x) & (uint64_t)0x0000ff0000000000ULL) >> 24) |                                                       \
-     (((uint64_t)(x) & (uint64_t)0x000000ff00000000ULL) >> 8) |                                                        \
-     (((uint64_t)(x) & (uint64_t)0x00000000ff000000ULL) << 8) |                                                        \
-     (((uint64_t)(x) & (uint64_t)0x0000000000ff0000ULL) << 24) |                                                       \
-     (((uint64_t)(x) & (uint64_t)0x000000000000ff00ULL) << 40) |                                                       \
-     (((uint64_t)(x) & (uint64_t)0x00000000000000ffULL) << 56))
-
 #ifdef TESTDISK_LSB
-#define be16(x) (__swab16(x))
-#define be24(x) (__swab24(x))
-#define be32(x) (__swab32(x))
-#define be64(x) (__swab64(x))
+#define be16(x) std::byteswap(x)
+#define be24(x) std::byteswap(x)
+#define be32(x) std::byteswap(x)
+#define be64(x) std::byteswap(x)
 #define le16(x) (x) /* x as little endian */
 #define le24(x) (x)
 #define le32(x) (x)
@@ -706,10 +688,10 @@ time_t td_ntfs2utc(int64_t ntfstime);
 #define be24(x) (x)
 #define be32(x) (x)
 #define be64(x) (x)
-#define le16(x) (__swab16(x))
-#define le24(x) (__swab24(x))
-#define le32(x) (__swab32(x))
-#define le64(x) (__swab64(x))
+#define le16(x) std::byteswap(x)
+#define le24(x) std::byteswap(x)
+#define le32(x) std::byteswap(x)
+#define le64(x) std::byteswap(x)
 #endif
 #if !defined(HAVE_LOCALTIME_R) && !defined(__MINGW32__) && !defined(DISABLED_FOR_FRAMAC)
 /*@
