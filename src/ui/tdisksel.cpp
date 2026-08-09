@@ -47,7 +47,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump, list_disk_t &list
 
         for (auto &disk : list_disk)
         {
-            auto diskBtn = std::make_shared<Button>(disk.description_short(disk));
+            auto diskBtn = std::make_shared<Button>(std::string(disk.description_short(disk)));
             diskBtn->alignment = Alignment::Left;
             diskBtn->on_hover = [disk, SerialN](bool hover) {
                 if (hover && !disk.serial_no.empty())

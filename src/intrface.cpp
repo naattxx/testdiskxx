@@ -20,6 +20,7 @@
 
  */
 
+#include <print>
 #include <stdio.h>
 #include <string.h>
 // #include "types.h"
@@ -50,7 +51,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
 {
     list_part_t list_part;
     log_info("\nAnalyse {}\n", disk.description(disk));
-    printf("%s\n", disk.description(disk));
+    std::println("{}", disk.description(disk));
     printf(msg_PART_HEADER_LONG);
     list_part = disk.arch->read_part(disk, verbose, saveheader);
     /*@ assert valid_list_part(list_part); */

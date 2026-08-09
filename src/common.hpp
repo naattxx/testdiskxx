@@ -18,8 +18,6 @@ struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
 
 #define DEFAULT_SECTOR_SIZE 0x200u
 
-#define DISKNAME_MAX 64
-#define DISKDESCRIPTION_MAX 128
 /* PARTITION TYPE */
 #define P_NO_OS 0x00
 #define P_12FAT 0x01
@@ -535,16 +533,16 @@ struct arch_fnct_t
 
 struct disk_t
 {
-    char description_txt[DISKDESCRIPTION_MAX];
-    char description_short_txt[DISKDESCRIPTION_MAX];
+    std::string description_txt;
+    std::string description_short_txt;
     CHSgeometry_t geom; /* logical CHS */
     uint64_t disk_size;
     std::string device;
     std::string model;
     std::string serial_no;
     std::string fw_rev;
-    const char *(*description)(disk_t &disk);
-    const char *(*description_short)(disk_t &disk);
+    std::string_view(*description)(disk_t &disk);
+    std::string_view(*description_short)(disk_t &disk);
     int (*pread)(disk_t &disk, void *buf, const unsigned int count, const uint64_t offset);
     int (*pwrite)(disk_t &disk, const void *buf, const unsigned int count, const uint64_t offset);
     int (*sync)(disk_t &disk);

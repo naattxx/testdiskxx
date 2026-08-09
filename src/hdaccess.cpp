@@ -168,7 +168,7 @@ struct info_file_struct
 #ifdef HDCLONE
     int handle_clone;
 #endif
-    char file_name[DISKNAME_MAX];
+    std::string file_name;
     int mode;
 };
 
@@ -1310,7 +1310,7 @@ static uint64_t compute_device_size(const int hd_h, const char *device, const in
   @ ensures  valid_disk(disk);
   @*/
 // ensures valid_read_string(\result);
-static const char *file_description(disk_t &disk)
+static std::string_view file_description(disk_t &disk)
 {
     const struct info_file_struct *data = (const struct info_file_struct *)disk.data;
     char buffer_disk_size[100];
@@ -1319,11 +1319,11 @@ static const char *file_description(disk_t &disk)
 #endif
     size_to_unit(disk.disk_size, buffer_disk_size);
     if (disk.geom.heads_per_cylinder == 1 && disk.geom.sectors_per_head == 1)
-        snprintf(disk.description_txt, sizeof(disk.description_txt), "Disk %s - %s - %llu sectors%s", disk.device.c_str(),
+        disk.description_txt = std::format("Disk {} - {} - {} sectors{}", disk.device.c_str(),
                  buffer_disk_size, (long long unsigned)(disk.disk_size / disk.sector_size),
                  ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     else
-        snprintf(disk.description_txt, sizeof(disk.description_txt), "Disk %s - %s - CHS %lu %u %u%s", disk.device.c_str(),
+        disk.description_txt = std::format("Disk {} - {} - CHS {} {} {}", disk.device.c_str(),
                  buffer_disk_size, disk.geom.cylinders, disk.geom.heads_per_cylinder, disk.geom.sectors_per_head,
                  ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     /*@ assert valid_read_string((char *)&disk.description_txt); */
@@ -1338,7 +1338,7 @@ static const char *file_description(disk_t &disk)
   @ ensures  valid_disk(disk_car);
   @*/
 // ensures valid_read_string(\result);
-static const char *file_description_short(disk_t &disk_car)
+static std::string_view file_description_short(disk_t &disk_car)
 {
     const struct info_file_struct *data = (const struct info_file_struct *)disk_car.data;
     char buffer_disk_size[100];
@@ -1347,10 +1347,10 @@ static const char *file_description_short(disk_t &disk_car)
 #endif
     size_to_unit(disk_car.disk_size, buffer_disk_size);
     if (disk_car.model.empty())
-        snprintf(disk_car.description_short_txt, sizeof(disk_car.description_txt), "Disk %s - %s%s", disk_car.device.c_str(),
+        disk_car.description_short_txt = std::format("Disk {} - {}{}", disk_car.device.c_str(),
                  buffer_disk_size, ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     else
-        snprintf(disk_car.description_short_txt, sizeof(disk_car.description_txt), "Disk %s - %s%s - %s",
+        disk_car.description_short_txt = std::format("Disk {} - {}{} - {}",
                  disk_car.device.c_str(), buffer_disk_size, ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"), disk_car.model.c_str());
     /*@ assert valid_read_string((char *)&disk_car.description_short_txt); */
     /*@ assert valid_disk(disk_car); */

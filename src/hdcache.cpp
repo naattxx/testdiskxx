@@ -21,6 +21,7 @@
  */
 #include <algorithm>
 #include <iostream>
+#include <string_view>
 #include <utility>
 #if !defined(DISABLED_FOR_FRAMAC)
 #include <stdio.h>
@@ -269,9 +270,9 @@ static void dup_geometry(CHSgeometry_t *CHS_dst, const CHSgeometry_t *CHS_source
   @ decreases 0;
   @ ensures valid_read_string(\result);
   @*/
-static const char *cache_description(disk_t &disk_car)
+static std::string_view cache_description(disk_t &disk_car)
 {
-    const char *tmp;
+    std::string_view tmp;
     struct cache_struct *data = (struct cache_struct *)disk_car.data;
     dup_geometry(&data->disk_car->geom, &disk_car.geom);
     data->disk_car->disk_size = disk_car.disk_size;
@@ -286,9 +287,9 @@ static const char *cache_description(disk_t &disk_car)
   @ decreases 0;
   @ ensures valid_read_string(\result);
   @*/
-static const char *cache_description_short(disk_t &disk_car)
+static std::string_view cache_description_short(disk_t &disk_car)
 {
-    const char *tmp;
+    std::string_view tmp;
     struct cache_struct *data = (struct cache_struct *)disk_car.data;
     dup_geometry(&data->disk_car->geom, &disk_car.geom);
     data->disk_car->disk_size = disk_car.disk_size;
