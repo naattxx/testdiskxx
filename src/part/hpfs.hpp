@@ -23,10 +23,6 @@
 #ifndef _HPFS_H
 #define _HPFS_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid_read(disk_car);
@@ -47,7 +43,4 @@ extern "C"
       @*/
     int check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

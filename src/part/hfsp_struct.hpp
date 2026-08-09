@@ -26,10 +26,6 @@
 #ifndef _HFSP_STRUCT_H
 #define _HFSP_STRUCT_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define HFSP_BOOT_SECTOR_SIZE 512
 #define HFSP_BLOCKSZ 512        /* A sector for Apple is always 512 bytes */
@@ -153,7 +149,4 @@ extern "C"
 #define HFSPLUS_VOL_SOFTLOCK 0x00008000
 #define HFSPLUS_VOL_RESERVED3 0xFFFF0000
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

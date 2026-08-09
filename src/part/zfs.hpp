@@ -24,10 +24,6 @@
 #define _ZFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 /* ZFS boot block */
 #define VDEV_BOOT_MAGIC 0x2f5b007b10cULL
 #define VDEV_BOOT_VERSION 1 /* version number       */
@@ -58,7 +54,4 @@ extern "C"
       @*/
     int recover_ZFS(const disk_t &disk, const struct vdev_boot_header *ZFS_header, partition_t &partition,
                     const int verbose, const int dump_ind);
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

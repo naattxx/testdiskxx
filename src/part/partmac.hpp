@@ -24,10 +24,6 @@
 #define _PARTMAC_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_MAC)
 
 #define BLOCK0_SIGNATURE 0x4552 /* Signature value.         */
@@ -115,8 +111,5 @@ extern "C"
     // ensures  valid_read_string(*current_cmd);
     void add_partition_mac_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd);
 
-#endif
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
 #endif
 #endif

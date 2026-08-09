@@ -22,10 +22,6 @@
 #ifndef _CHGTYPE_H
 #define _CHGTYPE_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid_read(disk_car);
@@ -38,7 +34,4 @@ extern "C"
       @*/
     void change_part_type_cli(const disk_t &disk_car, partition_t &partition, char **current_cmd);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

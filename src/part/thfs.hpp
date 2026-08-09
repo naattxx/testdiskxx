@@ -22,14 +22,7 @@
 #ifndef _THFS_H
 #define _THFS_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     int HFS_HFSP_boot_sector(disk_t &disk_car, partition_t &partition, const int verbose, char **current_cmd);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

@@ -22,10 +22,6 @@
 #ifndef _ISO9660_H
 #define _ISO9660_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
     struct [[gnu::gcc_struct,gnu::packed]] iso_primary_descriptor
     {
         char type;
@@ -66,7 +62,4 @@ extern "C"
     };
 #define ISO_PD_SIZE (sizeof(struct iso_primary_descriptor))
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

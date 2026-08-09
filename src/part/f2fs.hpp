@@ -22,10 +22,6 @@
 #ifndef _F2FS_H
 #define _F2FS_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk);
@@ -50,7 +46,4 @@ extern "C"
       @*/
     int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr, partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

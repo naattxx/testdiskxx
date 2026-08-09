@@ -24,10 +24,6 @@
 #define _RFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define REISERFS_SUPER_MAGIC "ReIsErFs"
 #define REISERFS2_SUPER_MAGIC "ReIsEr2Fs"
@@ -129,7 +125,4 @@ extern "C"
     int recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb, partition_t &partition,
                     const int verbose, const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

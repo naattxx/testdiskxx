@@ -22,10 +22,6 @@
 #ifndef _UNICODE_H
 #define _UNICODE_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(to + ( 0 .. len-1));
@@ -45,7 +41,4 @@ extern "C"
       @*/
     unsigned int str2UCSle(uint16_t *to, const char *from, const unsigned int len);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

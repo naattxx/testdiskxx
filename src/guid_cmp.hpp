@@ -23,10 +23,6 @@
 #define _GUID_CMP_H
 #include "src/common.hpp"
 #include <cstring>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ assigns \nothing;
@@ -36,7 +32,4 @@ extern "C"
         return memcmp(&left, &right, sizeof(efi_guid_t));
     }
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

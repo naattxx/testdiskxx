@@ -24,10 +24,6 @@
 #include "src/common.hpp"
 #include <cstdint>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define EXT2_SUPERBLOCK_SIZE 1024
 
@@ -231,7 +227,4 @@ extern "C"
       @ */
     int test_EXT2(const struct ext2_super_block *sb, const partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

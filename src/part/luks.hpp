@@ -24,10 +24,6 @@
 #define _LUKS_H
 #include "luks_struct.hpp"
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk_car);
@@ -48,7 +44,4 @@ extern "C"
     int recover_LUKS(const disk_t &disk_car, const struct luks_phdr *sb, partition_t &partition, const int verbose,
                      const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

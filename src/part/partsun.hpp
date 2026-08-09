@@ -22,10 +22,6 @@
 #ifndef _PARTSUN_H
 #define _PARTSUN_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
 
     /*@
@@ -40,8 +36,5 @@ extern "C"
     // ensures  valid_read_string(*current_cmd);
     void add_partition_sun_cli(const disk_t &disk_car, list_part_t &list_part, char **current_cmd);
 
-#endif
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
 #endif
 #endif

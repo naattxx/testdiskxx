@@ -31,10 +31,6 @@
 #define _XFS_H
 #include "src/common.hpp"
 #include "xfs_struct.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk_car);
@@ -53,7 +49,4 @@ extern "C"
     int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t &partition, const int verbose,
                     const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

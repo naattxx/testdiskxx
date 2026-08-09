@@ -23,10 +23,6 @@
 #define _NTFS_H
 #include "ntfs_struct.hpp"
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk_car);
@@ -100,7 +96,4 @@ extern "C"
       @*/
     long int ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr, const char *end);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

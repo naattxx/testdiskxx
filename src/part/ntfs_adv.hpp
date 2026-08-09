@@ -22,10 +22,6 @@
 #ifndef _NTFS_ADV_H
 #define _NTFS_ADV_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
     /*@
       @ requires \valid_read(nh1);
       @ requires \valid_read(nh2);
@@ -41,7 +37,4 @@ extern "C"
     int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int expert,
                         char **current_cmd);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

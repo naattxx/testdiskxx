@@ -22,10 +22,6 @@
 #ifndef _FAT_CLUSTER_H
 #define _FAT_CLUSTER_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     typedef struct sector_cluster_struct sector_cluster_t;
     typedef struct cluster_offset_struct cluster_offset_t;
@@ -72,7 +68,4 @@ extern "C"
                                      unsigned int *sectors_per_cluster, uint64_t *offset, const int verbose,
                                      const unsigned long int part_size_in_sectors, const upart_type_t upart_type);
 
-#ifdef __cplusplus
-} /* closing brace for extern "c" */
-#endif
 #endif

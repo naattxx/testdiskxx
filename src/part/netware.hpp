@@ -23,10 +23,6 @@
 #define _NETWARE_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     struct disk_netware
     {
@@ -55,7 +51,4 @@ extern "C"
       @*/
     int recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

@@ -23,10 +23,6 @@
 #ifndef _ISO_H
 #define _ISO_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
     /*@
       @ requires \valid(disk_car);
       @ requires valid_disk(disk_car);
@@ -44,7 +40,4 @@ extern "C"
       @ requires separation: \separated(iso, partition);
       @*/
     int recover_ISO(const struct iso_primary_descriptor *iso, partition_t &partition);
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

@@ -23,10 +23,6 @@
 #define _GFS2_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 // Structure from gfs2_ondisk.h
 #define GFS2_MAGIC 0x01161970
@@ -103,7 +99,4 @@ extern "C"
       @*/
     int recover_gfs2(const disk_t &disk_car, const struct gfs2_sb *sb, partition_t &partition, const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

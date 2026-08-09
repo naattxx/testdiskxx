@@ -2,10 +2,6 @@
 #define _APFS_COMMON_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #define MAX_CKSUM_SIZE 8
 #define NX_EPH_INFO_COUNT 4
 #define NX_EPH_INFO_VERSION_1 1
@@ -105,7 +101,4 @@ extern "C"
       @ */
     int test_APFS(const nx_superblock_t *sb, const partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

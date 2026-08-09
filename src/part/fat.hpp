@@ -23,10 +23,6 @@
 #ifndef _FAT_H
 #define _FAT_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #include "fat_common.hpp"
     /*@
@@ -201,7 +197,4 @@ extern "C"
       @*/
     int check_VFAT_volume_name(const char *name, const unsigned int max_size);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

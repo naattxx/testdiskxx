@@ -23,10 +23,6 @@
 #define _CRAMFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 /* real size is 76 */
 #define CRAMFS_SUPERBLOCK_SIZE 512
 #define CRAMFS_MAGIC 0x28cd3d45 /* some random number */
@@ -107,7 +103,4 @@ extern "C"
     int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partition_t &partition, const int verbose,
                        const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

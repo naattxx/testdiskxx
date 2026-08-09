@@ -22,10 +22,6 @@
 #ifndef _NTFS_FIX_H
 #define _NTFS_FIX_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk_car);
@@ -36,7 +32,4 @@ extern "C"
     int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int expert,
                    char **current_cmd);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

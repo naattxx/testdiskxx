@@ -22,17 +22,10 @@
 #ifndef _SETDATE_H
 #define _SETDATE_H
 #include <ctime>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires valid_read_string(pathname);
       @ assigns \nothing;
       @*/
     int set_date(const char *pathname, time_t actime, time_t modtime);
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

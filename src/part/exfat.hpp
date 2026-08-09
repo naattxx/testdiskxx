@@ -23,10 +23,6 @@
 #define _EXFAT_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #define EXFAT_BS_SIZE 512
 
     struct [[gnu::gcc_struct,gnu::packed]] exfat_super_block
@@ -139,7 +135,4 @@ extern "C"
       @*/
     int test_exFAT(const struct exfat_super_block *exfat_header);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

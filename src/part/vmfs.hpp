@@ -24,10 +24,6 @@
 #define _VMFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 /* VMFS boot block */
 #define VDEV_BOOT_MAGIC 0x2f5b007b10cULL
 #define VDEV_BOOT_VERSION 1 /* version number       */
@@ -50,7 +46,4 @@ extern "C"
     int check_VMFS(disk_t &disk, partition_t &partition);
     int recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb, partition_t &partition, const int verbose,
                      const int dump_ind);
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

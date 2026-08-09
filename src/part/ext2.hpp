@@ -23,10 +23,6 @@
 #define _EXT2_H
 #include "ext2_common.hpp"
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
     /*@
       @ requires \valid(disk_car);
       @ requires valid_disk(disk_car);
@@ -46,7 +42,4 @@ extern "C"
     int recover_EXT2(const disk_t &disk_car, const struct ext2_super_block *sb, partition_t &partition,
                      const int verbose, const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

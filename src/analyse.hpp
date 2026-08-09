@@ -22,10 +22,6 @@
 #ifndef _ANALYSE_H
 #define _ANALYSE_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk_car);
@@ -167,7 +163,4 @@ extern "C"
       @*/
     int check_linux(disk_t &disk, partition_t &partition, const int verbose);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

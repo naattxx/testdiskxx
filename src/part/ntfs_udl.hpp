@@ -22,10 +22,6 @@
 #ifndef _NTFS_UDL_H
 #define _NTFS_UDL_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk_car);
@@ -35,7 +31,4 @@ extern "C"
       @*/
     int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

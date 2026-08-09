@@ -30,10 +30,6 @@
 #ifndef _XFS_STRUCT_H
 #define _XFS_STRUCT_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define XFS_SUPERBLOCK_SIZE 512
 
@@ -111,7 +107,4 @@ extern "C"
         uint32_t sb_features2;      /* additonal feature bits */
     };
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

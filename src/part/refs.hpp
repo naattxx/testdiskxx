@@ -26,10 +26,6 @@
 #define _REFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define ReFS_BS_SIZE 0x200
     struct [[gnu::gcc_struct,gnu::packed]] ReFS_boot_sector
@@ -48,7 +44,4 @@ extern "C"
     int check_ReFS(disk_t &disk, partition_t &partition);
     int recover_ReFS(const disk_t &disk, const struct ReFS_boot_sector *refs_header, partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

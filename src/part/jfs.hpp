@@ -22,10 +22,7 @@
 #ifndef _JFS_H
 #define _JFS_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+
 /* real size is 184 */
 #define JFS_SUPERBLOCK_SIZE 512
 
@@ -49,7 +46,4 @@ extern "C"
     int recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partition_t &partition, const int verbose,
                     const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

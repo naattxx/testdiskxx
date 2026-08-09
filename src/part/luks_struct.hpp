@@ -23,10 +23,6 @@
 #ifndef _LUKS_STRUCT_H
 #define _LUKS_STRUCT_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define LUKS_CIPHERNAME_L 32
 #define LUKS_CIPHERMODE_L 32
@@ -62,7 +58,4 @@ extern "C"
         luks_keyslot_t keyslot[LUKS_NUMKEYS];
     };
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

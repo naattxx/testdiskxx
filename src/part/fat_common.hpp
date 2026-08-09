@@ -22,10 +22,6 @@
 #ifndef _FAT_COMMON_H
 #define _FAT_COMMON_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define FAT1X_PART_NAME 0x2B
 #define FAT32_PART_NAME 0x47
@@ -180,7 +176,4 @@ extern "C"
       @ */
     unsigned int fat_sectors(const struct fat_boot_sector *fat_header);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

@@ -23,10 +23,6 @@
 #define _FATX_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     struct [[gnu::gcc_struct,gnu::packed]] disk_fatx
     {
@@ -53,7 +49,4 @@ extern "C"
       @*/
     int recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

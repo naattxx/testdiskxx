@@ -28,10 +28,6 @@
 #define _MD_P_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*
  * RAID superblock.
@@ -288,7 +284,4 @@ static inline uint64_t md_event(mdp_super_t *sb) {
       @*/
     int recover_MD_from_partition(disk_t &disk_car, partition_t &partition, const int verbose);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

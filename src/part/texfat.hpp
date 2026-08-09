@@ -22,14 +22,7 @@
 #ifndef _TEXFAT_H
 #define _TEXFAT_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     int exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

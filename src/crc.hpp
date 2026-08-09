@@ -23,10 +23,6 @@
 #ifndef _CRC_H
 #define _CRC_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #if 0
 uint32_t* make_crc32_table(uint32_t poly);
@@ -40,7 +36,4 @@ unsigned int get_crc32_gen(const unsigned char *s, const unsigned int len, const
       @*/
     unsigned int get_crc32(const void *s, const unsigned int len, const uint32_t seed);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

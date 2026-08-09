@@ -23,10 +23,6 @@
 #ifndef _SWAP_H
 #define _SWAP_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define PAGE_SIZE 0x1000 /* 4k page */
 #define PAGE_8K 0x2000   /* 8K page */
@@ -69,7 +65,4 @@ extern "C"
       @*/
     int recover_Linux_SWAP(const union swap_header *swap_header, partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

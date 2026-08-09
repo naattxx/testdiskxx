@@ -21,10 +21,6 @@
 #ifndef _HFSP_H
 #define _HFSP_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #include "hfsp_struct.hpp"
 
     /*@
@@ -57,7 +53,4 @@ extern "C"
     int recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh, partition_t &partition, const int verbose,
                      const int dump_ind, const int backup);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

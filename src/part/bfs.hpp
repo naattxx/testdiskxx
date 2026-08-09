@@ -23,10 +23,6 @@
 #define _BFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /* real size is 164 */
 #define BFS_SUPERBLOCK_SIZE 512
@@ -105,7 +101,4 @@ extern "C"
     int recover_BeFS(const disk_t &disk_car, const struct disk_super_block *beos_block, partition_t &partition,
                      const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

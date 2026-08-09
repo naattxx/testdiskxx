@@ -22,10 +22,6 @@
 #ifndef _DIMAGE_H
 #define _DIMAGE_H
 #include "src/common.hpp"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid(disk_car);
@@ -36,7 +32,4 @@ extern "C"
       @*/
     int disk_image(disk_t &disk_car, const partition_t &partition, const char *image_dd);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

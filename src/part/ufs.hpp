@@ -25,10 +25,6 @@
 #define _UFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /* ufs superblock size is 1377 but there is room for 8192 */
 #define UFS_SUPERBLOCK_SIZE 2048
@@ -496,7 +492,4 @@ extern "C"
     int recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb, partition_t &partition, const int verbose,
                     const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

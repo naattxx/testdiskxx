@@ -22,10 +22,6 @@
 #ifndef _NTFS_STRUCT_H
 #define _NTFS_STRUCT_H
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define NTFS_BOOT_SECTOR_SIZE 0x200
 
@@ -248,7 +244,4 @@ extern "C"
         /* sizeof()= 32 bytes */
     } TD_INDEX_ROOT;
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

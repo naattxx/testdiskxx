@@ -23,10 +23,6 @@
 #define _SYSV_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define SYSV4_SUPERBLOCK_SIZE 512
 
@@ -216,7 +212,4 @@ extern "C"
     int recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd, partition_t &partition,
                      const int verbose, const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

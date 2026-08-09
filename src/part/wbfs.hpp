@@ -24,10 +24,6 @@
 #define _WBFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #define WBFS_MAGIC (('W' << 24) | ('B' << 16) | ('F' << 8) | ('S'))
 
     struct [[gnu::gcc_struct,gnu::packed]] wbfs_head
@@ -49,7 +45,4 @@ extern "C"
     int check_WBFS(disk_t &disk, partition_t &partition);
     int recover_WBFS(const disk_t &disk, const struct wbfs_head *sb, partition_t &partition, const int verbose,
                      const int dump_ind);
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

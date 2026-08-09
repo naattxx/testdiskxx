@@ -22,10 +22,6 @@
 #define _HFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /* HFS superblock size is 162 */
 #define HFS_SUPERBLOCK_SIZE 512
@@ -110,7 +106,4 @@ extern "C"
     int recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb, partition_t &partition, const int verbose,
                     const int dump_ind, const int backup);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif /* _HFS_H */

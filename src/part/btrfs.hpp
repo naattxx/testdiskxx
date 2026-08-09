@@ -23,10 +23,6 @@
 #define _BTRFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #define BTRFS_SUPER_INFO_OFFSET (64 * 1024)
 #define BTRFS_SUPER_INFO_SIZE 4096
@@ -163,7 +159,4 @@ extern "C"
     int recover_btrfs(const disk_t &disk_car, const struct btrfs_super_block *sb, partition_t &partition,
                       const int verbose, const int dump_ind);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

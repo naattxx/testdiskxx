@@ -23,10 +23,6 @@
 #define _SUN_H
 #include "src/common.hpp"
 #include <cstdint>
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     typedef struct
     {
@@ -104,7 +100,4 @@ extern "C"
       @*/
     int check_sun_i386(disk_t &disk_car, partition_t &partition, const int verbose);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif

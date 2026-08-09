@@ -23,10 +23,6 @@
 #define _PARTI386_H
 #include "src/common.hpp"
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
     /*@
       @ requires \valid_read(disk_car);
@@ -55,8 +51,5 @@ extern "C"
       @*/
     int recover_i386_logical(disk_t &disk, const unsigned char *buffer, partition_t &partition);
 
-#ifdef __cplusplus
-} /* closing brace for extern "C" */
-#endif
 #endif
 #endif
