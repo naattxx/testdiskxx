@@ -40,6 +40,8 @@ jobs:
         uses: rlalik/setup-cpp-compiler@dcaf5189c08c028eecc61c082b9993033d731224
         with:
           compiler: latest
+      - if: matrix.os == 'macos-latest'
+        run: brew unlink gcc && brew link gcc
       - name: Configure Project
         run: meson setup build/
         env:
