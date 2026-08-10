@@ -14,6 +14,14 @@ conf_data.set_quoted('TESTDISKDATE', 'July 2026')
 conf_data.set_quoted('TARGET', host_machine.system())
 conf_data.set_quoted('COMPILER_ID', compiler.get_id() + ' ' + compiler.version())
 
+# used by winnt.h
+conf_data.set('_AMD64_', target_machine.cpu_family() == 'x86_64')
+conf_data.set('_X86_', target_machine.cpu_family() == 'x86')
+conf_data.set('_ARM64EC_', target_machine.cpu() == 'arm64ec')
+conf_data.set('_IA64_', target_machine.cpu_family() == 'ia64')
+conf_data.set('_ARM_', target_machine.cpu_family() == 'arm')
+conf_data.set('_ARM64_', target_machine.cpu_family() == 'aarch64')
+
 conf_data.set('TESTDISK_LSB', host_machine.endian() == 'little')
 
 libewf = compiler.find_library('libewf', required: false)
