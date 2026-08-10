@@ -66,6 +66,7 @@ jobs:
         uses: aminya/setup-cpp@8170d66c458f4a045220b7b0966c10940bb2a15d
         with:
           compiler: ${{ matrix.compiler }}
+          ccache: true
       - name: Configure Project
         run: meson setup build/
         env:
