@@ -146,6 +146,7 @@ sources = files(
   'src/fnctdsk.cpp',
   'src/hdaccess.cpp',
   'src/hdcache.cpp',
+  'src/hdwin32.cpp',
   'src/hidden.cpp',
   'src/hpa_doc.cpp',
   'src/intrf.cpp',
@@ -222,6 +223,7 @@ sources = files(
   'src/ui/tlog.cpp',
   'src/unicode.cpp',
   'src/utils.cpp',
+  'src/win32.cpp',
 )
 
 deps = [spdlog_dep, libntfs, libntfs3g, libext2fs, libewf, reiserfs, iconv]
