@@ -115,7 +115,7 @@
 #include <stdlib.h> /* free, atexit, posix_memalign */
 
 #if defined(__CYGWIN__) || defined(__MINGW32__)
-#include "hdwin32.h"
+#include "hdwin32.hpp"
 #include "win32.h"
 #endif
 #if defined(DJGPP)
