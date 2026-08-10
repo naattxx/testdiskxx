@@ -55,6 +55,6 @@ jobs:
       - name: Configure Project
         run: meson setup build/
         env:
-          CXX: ${{ matrix.compiler }}
+          CXX: ${{ matrix.cxx }}
       - name: Build
         run: meson compile -C build/ -v
