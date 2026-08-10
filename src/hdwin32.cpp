@@ -21,7 +21,7 @@
  */
 #include <config.h>
 
-#if defined(__CYGWIN__) || defined(__MINGW32__)
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
 #include <stdio.h>
 //#include "types.h"
 #include "common.hpp"
@@ -68,7 +68,7 @@ void file_win32_disk_get_model(HANDLE handle, disk_t &dev, const int verbose)
     if(verbose>1)
     {
       log_info("IOCTL_STORAGE_QUERY_PROPERTY:\n");
-      dump_log(&buffer, cbBytesReturned);
+      //dump_log(&buffer, cbBytesReturned);
     }
     buffer[cbBytesReturned]='\0';
     if(descrip->SerialNumberOffset!=0 && descrip->SerialNumberOffset < cbBytesReturned)

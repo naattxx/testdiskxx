@@ -22,7 +22,13 @@
 #ifndef _HDWIN32_H
 #define _HDWIN32_H
 
-#if defined(__CYGWIN__) || defined(__MINGW32__)
+#include <config.h>
+
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
+#if __has_include(<windef.h>)
+#include <windef.h>
+#endif
+#include "common.hpp"
 /*@
   @ requires \valid(dev);
   @ requires valid_disk(dev);
