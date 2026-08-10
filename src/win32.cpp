@@ -20,6 +20,7 @@
 
  */
 #include <config.h>
+#include <cstddef>
 #include <errno.h>
 #include <format>
 #include <optional>
@@ -400,7 +401,7 @@ static int file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigne
         DWORD dw = GetLastError();
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-        log_error("file_win32_pread(%d,%u,buffer,%lu(%u/%u/%u)) seek err %s\n", (int)fd,
+        log_error("file_win32_pread({},{},buffer,{}({}/{}/{})) seek err {}", (size_t)fd,
                   (unsigned)(count / disk_car.sector_size), (long unsigned int)(offset / disk_car.sector_size),
                   offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset),
                   (char *)lpMsgBuf);
@@ -417,7 +418,7 @@ static int file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigne
     {
         if (ret > 0 || offset < disk_car.disk_size)
         {
-            log_error("file_win32_pread({},{},buffer,{}({}/{}/{})) read err: ", (int)fd,
+            log_error("file_win32_pread({},{},buffer,{}({}/{}/{})) read err: ", (size_t)fd,
                       (unsigned)(count / disk_car.sector_size), (long unsigned)(offset / disk_car.sector_size),
                       offset2cylinder(disk_car, offset), offset2head(disk_car, offset),
                       offset2sector(disk_car, offset));
@@ -459,7 +460,7 @@ static int file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsign
         DWORD dw = GetLastError();
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-        log_error("file_win32_pwrite(%d,%u,buffer,%lu(%u/%u/%u)) seek err %s\n", (int)fd,
+        log_error("file_win32_pwrite({},{},buffer,{}({}/{}/{})) seek err {}", (size_t)fd,
                   (unsigned)(count / disk_car.sector_size), (long unsigned int)(offset / disk_car.sector_size),
                   offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset),
                   (char *)lpMsgBuf);
@@ -475,7 +476,7 @@ static int file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsign
     disk_car.write_used = 1;
     if (ret != (signed)count)
     {
-        log_error("file_win32_pwrite(%u,%u,buffer,%lu(%u/%u/%u)) write err\n", (int)fd,
+        log_error("file_win32_pwrite({},{},buffer,{}({}/{}/{})) write err", (size_t)fd,
                   (unsigned)(count / disk_car.sector_size), (long unsigned)(offset / disk_car.sector_size),
                   offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset));
     }
@@ -490,7 +491,7 @@ static int file_win32_pwrite(disk_t &disk_car, const void *buf, const unsigned i
 static int file_win32_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
 {
     const struct info_file_win32_struct *data = (const struct info_file_win32_struct *)disk_car.data;
-    log_warning("file_win32_nopwrite({},{},buffer,{}({}/{}/{})) write refused", (unsigned int)data->handle,
+    log_warning("file_win32_nopwrite({},{},buffer,{}({}/{}/{})) write refused", (size_t)data->handle,
                 (unsigned)(count / disk_car.sector_size), (long unsigned)(offset / disk_car.sector_size),
                 offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset));
     return -1;
