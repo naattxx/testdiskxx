@@ -114,9 +114,9 @@
 #include <ctype.h>  /* isspace */
 #include <stdlib.h> /* free, atexit, posix_memalign */
 
-#if defined(__CYGWIN__) || defined(__MINGW32__)
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined (_WIN32)
 #include "hdwin32.hpp"
-#include "win32.h"
+#include "win32.hpp"
 #endif
 #if defined(DJGPP)
 #include "msdos.h"
@@ -210,29 +210,26 @@ void generic_clean(disk_t &disk)
     disk.wbuffer = NULL;
 }
 
-#if defined(__CYGWIN__) || defined(__MINGW32__)
-static list_disk_t *insert_new_disk_nodup(list_disk_t *list_disk, disk_t &disk_car, const char *device_name,
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
+static void insert_new_disk_nodup(list_disk_t &list_disk, disk_t &disk_car, const char *device_name,
                                           const int verbose)
 {
-    if (disk_car == NULL)
-        return list_disk;
-    if (disk_car->sector_size == 512)
+    if (disk_car.sector_size == 512)
     {
-        list_disk_t *cur;
-        for (cur = list_disk; cur != NULL; cur = cur->next)
+        for (disk_t &disk : list_disk)
         {
-            if (cur->disk->sector_size == disk_car->sector_size &&
-                ((cur->disk->model == NULL && disk_car->model == NULL && cur->disk->disk_size == disk_car->disk_size) ||
-                 (cur->disk->model != NULL && disk_car->model != NULL &&
-                  strcmp(cur->disk->model, disk_car->model) == 0)))
+            if (disk.sector_size == disk_car.sector_size &&
+                ((disk.model.empty() && disk_car.model.empty() && disk.disk_size == disk_car.disk_size) ||
+                 (!disk.model.empty() && !disk_car.model.empty() &&
+                  disk.model == disk_car.model)))
             {
-                log_debug("{} is available but reject it to avoid duplicate disk.\n", device_name);
-                disk_car->clean(disk_car);
-                return list_disk;
+                log_debug("{} is available but reject it to avoid duplicate disk.", device_name);
+                disk_car.clean(disk_car);
+                return;
             }
         }
     }
-    return insert_new_disk(list_disk, disk_car);
+    insert_new_disk(list_disk, disk_car);
 }
 #endif
 
@@ -276,28 +273,31 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
         else
             ind_stop = 1;
     }
-#elif defined(__CYGWIN__) || defined(__MINGW32__)
+#elif defined(__CYGWIN__) || defined(__MINGW32__) || defined (_WIN32)
     {
         char device_hd[] = "\\\\.\\PhysicalDrive00";
         char device_cdrom[] = "\\\\.\\C:";
         /* Disk */
         for (i = 0; i < 64; i++)
         {
-            disk_t *disk_car;
+            std::optional<disk_t> disk_car;
             sprintf(device_hd, "\\\\.\\PhysicalDrive%u", i);
             disk_car = file_test_availability_win32(device_hd, verbose, testdisk_mode);
-            list_disk = insert_new_disk(list_disk, disk_car);
+            if (disk_car)
+                insert_new_disk(list_disk, disk_car.value());
         }
         /* cdrom and digital camera */
         for (i = 'C'; i <= 'Z'; i++)
         {
-            disk_t *disk_car;
+            std::optional<disk_t> disk_car;
             device_cdrom[strlen(device_cdrom) - 2] = i;
             disk_car = file_test_availability_win32(device_cdrom, verbose, testdisk_mode);
-            if ((testdisk_mode & TESTDISK_O_ALL) == TESTDISK_O_ALL)
-                list_disk = insert_new_disk(list_disk, disk_car);
-            else
-                list_disk = insert_new_disk_nodup(list_disk, disk_car, device_cdrom, verbose);
+            if (disk_car) {
+                if ((testdisk_mode & TESTDISK_O_ALL) == TESTDISK_O_ALL)
+                    insert_new_disk(list_disk, disk_car.value());
+                else
+                    insert_new_disk_nodup(list_disk, disk_car.value(), device_cdrom, verbose);
+            }
         }
     }
 #elif defined(__APPLE__)
