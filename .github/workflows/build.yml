@@ -26,7 +26,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            compiler: g++-16
+          - os: macos-latest
+            compiler: clang++
+          - os: windows-latest
+            compiler: mingw
         meson_version: ["1.11.2"]
     steps:
       - name: Checkout code
@@ -40,10 +46,10 @@ jobs:
       - name: Setup Cpp
         uses: aminya/setup-cpp@8170d66c458f4a045220b7b0966c10940bb2a15d
         with:
-          compiler: g++-16
+          compiler: ${{ matrix.compiler }}
       - name: Configure Project
         run: meson setup build/
         env:
-          CXX: g++
+          CXX: ${{ matrix.compiler }}
       - name: Build
         run: meson compile -C build/ -v
