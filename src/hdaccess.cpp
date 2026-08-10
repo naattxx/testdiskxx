@@ -121,7 +121,7 @@
 #if defined(DJGPP)
 #include "msdos.h"
 #endif
-#if defined(__CYGWIN__)
+#if defined(__CYGWIN__)  || defined(_WIN32)
 #include <io.h>
 #endif
 #if defined(__HAIKU__)
@@ -1241,8 +1241,8 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         }
     }
 #endif
-#if defined(__CYGWIN__) || defined(__MINGW32__)
-    if (dev.model != NULL)
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
+    if (dev.model.empty())
         return;
     {
         HANDLE handle;
@@ -1421,19 +1421,19 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
             DWORD dw = GetLastError();
             FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
                           MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-            log_error("file_pread({},{},buffer,{}({}/{}/{})) ReadFile {}", fd, (unsigned)(count / disk->sector_size),
-                      (long unsigned int)(offset / disk->sector_size), offset2cylinder(disk, offset),
+            log_error("file_pread({},{},buffer,{}({}/{}/{})) ReadFile {}", fd, (unsigned)(count / disk.sector_size),
+                      (long unsigned int)(offset / disk.sector_size), offset2cylinder(disk, offset),
                       offset2head(disk, offset), offset2sector(disk, offset), (char *)lpMsgBuf);
             LocalFree(lpMsgBuf);
             return -1;
         }
         return dwByteRead;
     }
-#elif defined(__MINGW32__)
+#elif defined(__MINGW32__) || defined(_WIN32)
     if (_lseeki64(fd, offset, SEEK_SET) < 0)
     {
-        log_error("file_pread({},{},buffer,{}({}/{}/{})) seek err {}", fd, (unsigned)(count / disk->sector_size),
-                  (long unsigned int)(offset / disk->sector_size), offset2cylinder(disk, offset),
+        log_error("file_pread({},{},buffer,{}({}/{}/{})) seek err {}", fd, (unsigned)(count / disk.sector_size),
+                  (long unsigned int)(offset / disk.sector_size), offset2cylinder(disk, offset),
                   offset2head(disk, offset), offset2sector(disk, offset), strerror(errno));
         return -1;
     }
