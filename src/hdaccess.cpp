@@ -23,6 +23,7 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <utility>
 
 #if defined(DISABLED_FOR_FRAMAC)
 #undef HAVE_FSYNC
@@ -40,6 +41,9 @@
 #undef HAVE_SYS_SYSMACROS_H
 #endif
 
+#if __has_include(<libewf.h>)
+#include <libewf.h>
+#endif
 #if __has_include(<fcntl.h>)
 #include <fcntl.h> /* open */
 #endif
@@ -127,7 +131,7 @@
 #include "__fc_builtin.h"
 #endif
 #include "fnctdsk.hpp"
-// #include "ewf.h"
+#include "ewf.hpp"
 #include "alignio.hpp"
 #include "hdaccess.hpp"
 #include "hpa_dco.hpp"

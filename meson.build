@@ -142,6 +142,7 @@ sources = files(
   'src/dimage.cpp',
   'src/dir.cpp',
   'src/dirpart.cpp',
+  'src/ewf.cpp',
   'src/fnctdsk.cpp',
   'src/hdaccess.cpp',
   'src/hdcache.cpp',
