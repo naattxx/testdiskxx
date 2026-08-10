@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <algorithm>
 #include <config.h>
 
 #ifdef DISABLED_FOR_FRAMAC
@@ -237,9 +238,9 @@ time_t date_dos2unix(const unsigned short f_time, const unsigned short f_date)
     unsigned long int secs;
     year = f_date >> 9;
     /*@ assert 0 <= year <= 127; */
-    month = td_max(1, (f_date >> 5) & 0xf);
+    month = std::max(1, (f_date >> 5) & 0xf);
     /*@ assert 1 <= month <= 15; */
-    day = td_max(1, f_date & 0x1f) - 1;
+    day = std::max(1, f_date & 0x1f) - 1;
     /*@ assert 0 <= day <= 30; */
     leap_day = _date_get_leap_day(year, month);
     /*@ assert 0 <= leap_day <= 32; */

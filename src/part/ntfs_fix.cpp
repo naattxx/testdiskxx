@@ -96,7 +96,7 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
 
     cluster_size = ntfs_header->sectors_per_cluster * ntfs_sector_size(ntfs_header);
 
-    mftmirr_size_bytes = td_max(cluster_size, 4 * mft_record_size);
+    mftmirr_size_bytes = std::max(cluster_size, 4 * mft_record_size);
 #ifdef DEBUG_REPAIR_MFT
     log_info("mft_pos          {}\n", (unsigned long)(mft_pos / disk_car.sector_size));
     log_info("mftmirr_pos      {}\n", (unsigned long)(mftmirr_pos / disk_car.sector_size));

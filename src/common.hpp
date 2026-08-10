@@ -654,28 +654,6 @@ time_t td_ntfs2utc(int64_t ntfstime);
 struct tm *localtime_r(const time_t *timep, struct tm *result);
 #endif
 
-/*
- * td_min()/td_max() macros that also do
- * strict type-checking.. See the
- * "unnecessary" pointer comparison.
- * Comes from Linux kernel
- */
-#define td_min(x, y)                                                                                                   \
-    ({                                                                                                                 \
-        decltype(x) _x = (x);                                                                                            \
-        decltype(y) _y = (y);                                                                                            \
-        (void)(&_x == &_y);                                                                                            \
-        _x < _y ? _x : _y;                                                                                             \
-    })
-
-#define td_max(x, y)                                                                                                   \
-    ({                                                                                                                 \
-        decltype(x) _x = (x);                                                                                            \
-        decltype(y) _y = (y);                                                                                            \
-        (void)(&_x == &_y);                                                                                            \
-        _x > _y ? _x : _y;                                                                                             \
-    })
-
 /*@
   @ requires \valid(current_cmd);
   @ requires valid_read_string(*current_cmd);
