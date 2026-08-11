@@ -34,7 +34,7 @@ jobs:
             cxx: g++
           - os: macos-latest
             compiler: g++
-            cxx: g++
+            cxx: gcc
           - os: windows-latest
             compiler: mingw
             cxx: g++
