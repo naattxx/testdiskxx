@@ -70,6 +70,6 @@ jobs:
       - name: Configure Project
         run: meson setup build/
         env:
-          CXX: ${{ matrix.cxx }}
+          CXX: ccache ${{ matrix.cxx }}
       - name: Build
         run: meson compile -C build/ -v
