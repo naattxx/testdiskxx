@@ -59,7 +59,7 @@ jobs:
             ~/Library/Caches/ccache
             ${{ env.LOCALAPPDATA }}/ccache
             ${{ env.XDG_CACHE_HOME }}/ccache
-          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('./meson.build', '**/*.wrap') }}
+          key: meson${{ matrix.meson_version }}-${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('./meson.build', '**/*.wrap') }}
           restore-keys: |
             ${{ runner.os }}-${{ env.BUILD_TYPE }}-
       - name: Setup Cpp
