@@ -307,12 +307,16 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
         for (i = 0; i < 20; i++)
         {
             snprintf(device, sizeof(device), "/dev/disk%u", i);
-            list_disk = insert_new_disk(list_disk, file_test_availability(device, verbose, testdisk_mode));
+            std::optional<disk_t> disk = file_test_availability(device, verbose, testdisk_mode);
+            if (disk)
+                insert_new_disk(list_disk, disk.value());
         }
         for (i = 0; i < 20; i++)
         {
             snprintf(device, sizeof(device), "/dev/rdisk%u", i);
-            list_disk = insert_new_disk(list_disk, file_test_availability(device, verbose, testdisk_mode));
+            std::optional<disk_t> disk = file_test_availability(device, verbose, testdisk_mode);
+            if (disk)
+                insert_new_disk(list_disk, disk.value());
         }
     }
 #elif defined(DISABLED_FOR_FRAMAC)
