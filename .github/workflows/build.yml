@@ -33,8 +33,8 @@ jobs:
             compiler: g++-16
             cxx: g++
           - os: macos-latest
-            compiler: clang++
-            cxx: clang++
+            compiler: g++
+            cxx: g++
           - os: windows-latest
             compiler: mingw
             cxx: g++
