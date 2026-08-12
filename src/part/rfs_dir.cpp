@@ -22,6 +22,7 @@
  */
 #include <config.h>
 
+#include <print>
 #include <stdio.h>
 #include <stdlib.h>
 #if __has_include(<sys/stat.h>)
@@ -287,7 +288,7 @@ dal_t *dal_open(struct dal_ops *myops, unsigned blocksize, int flags, void *data
 
     if (!power_of_two(blocksize))
     {
-        fprintf(stderr, "Block size isn't power of two.\n");
+        std::println(stderr, "Block size isn't power of two.");
         return NULL;
     }
 

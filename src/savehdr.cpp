@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <print>
 #include <string.h>
 #include <time.h>
 #if __has_include(<sys/time.h>)
@@ -221,7 +222,7 @@ int partition_save(disk_t &disk_car, const list_part_t &list_part, const int ver
         log_critical("Can't create backup.log file: {}\n", strerror(errno));
         return -1;
     }
-    fprintf(f_backup, "#%lu %s\n", (unsigned long int)time(NULL), disk_car.description(disk_car));
+    std::println(f_backup, "#{} {}", (unsigned long int)time(NULL), disk_car.description(disk_car));
     for (const partition_t &partition : list_part)
     {
         char status = 'D';
@@ -246,7 +247,7 @@ int partition_save(disk_t &disk_car, const list_part_t &list_part, const int ver
             status = 'D';
             break;
         }
-        fprintf(f_backup, "%2u : start=%9lu, size=%9lu, Id=%02X, %c\n",
+        std::println(f_backup, "{:2} : start={:9}, size={:9}, Id={:02X}, {}",
                 (partition.order < 100 ? partition.order : 0),
                 (unsigned long)(partition.part_offset / disk_car.sector_size),
                 (unsigned long)(partition.part_size / disk_car.sector_size),
