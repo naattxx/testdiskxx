@@ -314,10 +314,10 @@ static int ask_root_directory(const disk_t &disk_car, const partition_t &partiti
 
 static int is_root_cluster_candidat(const dir_list_t &dir_list)
 {
-    const file_info_t *file1 = dir_list.front();
-    const file_info_t *file2 = *std::next(dir_list.begin());
+    const file_info_t &file1 = dir_list.front();
+    const file_info_t &file2 = *std::next(dir_list.begin());
     //return (!dir_list.empty() && (&file2->list == &dir_list->list || file1->st_ino != file2->st_ino));
-    return (!dir_list.empty() && (file2 == file1 || file1->st_ino != file2->st_ino));
+    return (!dir_list.empty() && (dir_list.size() == 1 || file1.st_ino != file2.st_ino));
 }
 
 static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t &partition,
@@ -388,12 +388,9 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                             dir_aff_log(NULL, dir_list);
                         }
                         {
-                            const file_info_t *first_entry =
-                                dir_list.front();
-                            file_info_t *new_file = new file_info_t;
-                            memcpy(new_file, first_entry, sizeof(*new_file));
-                            new_file->name = new char[32];
-                            snprintf(new_file->name, 32, "DIR%05u", ++dir_nbr);
+                            file_info_t new_file = dir_list.front();
+                            new_file.name = new char[32];
+                            snprintf(new_file.name, 32, "DIR%05u", ++dir_nbr);
                             rootdir_list.push_front(new_file);
                         }
                         delete_list_file(dir_list);
@@ -873,15 +870,15 @@ static int analyse_dir_entries2(disk_t &disk_car, const partition_t &partition, 
     {
         dir_aff_log(NULL, dir_list);
     }
-    for (const file_info_t *current_file : dir_list)
+    for (const file_info_t &current_file : dir_list)
     {
-        if (LINUX_S_ISDIR(current_file->st_mode) && (current_file->status & FILE_STATUS_DELETED) == 0)
+        if (LINUX_S_ISDIR(current_file.st_mode) && (current_file.status & FILE_STATUS_DELETED) == 0)
         {
-            const unsigned long int new_inode = current_file->st_ino;
+            const unsigned long int new_inode = current_file.st_ino;
             unsigned int dir_entries;
             if (verbose > 1)
             {
-                ; // log_verbose("Directory %s used inode={}\n",current_file->name,new_inode);
+                ; // log_verbose("Directory %s used inode={}\n",current_file.name,new_inode);
             }
             for (dir_entries = disk_car.sector_size / 32; dir_entries <= root_size_max;
                  dir_entries += disk_car.sector_size / 32)

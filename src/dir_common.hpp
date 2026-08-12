@@ -69,7 +69,7 @@ struct file_info_t
     time_t td_ctime; /* time of last status change */
     unsigned int status;
 };
-typedef std::list<file_info_t *> dir_list_t;
+typedef std::list<file_info_t> dir_list_t;
 
 struct dir_data
 {
@@ -82,7 +82,7 @@ struct dir_data
     int (*get_dir)(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                    const unsigned long int first_inode, dir_list_t &list);
     copy_file_t (*copy_file)(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                             const file_info_t *file);
+                             const file_info_t &file);
     void (*close)(dir_data_t *dir_data);
     char *local_dir;
     void *private_dir_data;

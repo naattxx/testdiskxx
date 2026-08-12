@@ -74,7 +74,7 @@ static int fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const d
   @ requires \separated(disk_car, partition, dir_data, file);
   @*/
 static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                            const file_info_t *file);
+                            const file_info_t &file);
 
 /*@
   @ requires \valid(dir_data);
@@ -286,40 +286,40 @@ RecEnd:
         if (unicode[0] != DELETED_FLAG)
         {
             unsigned int i, o;
-            file_info_t *new_file = new file_info_t;
-            new_file->name = new char[DIR_NAME_LEN];
+            file_info_t new_file;
+            new_file.name = new char[DIR_NAME_LEN];
             for (i = 0, o = 0; o < DIR_NAME_LEN - 2 && unicode[i] != 0; i++)
             {
                 if (utf8 && unicode[i] > 0x7f)
                 {
 #ifdef HAVE_WCTOMB
-                    const int sizec = wctomb(&new_file->name[o], unicode[i]);
+                    const int sizec = wctomb(&new_file.name[o], unicode[i]);
 #else
                     const int sizec = unicode[i];
 #endif
                     if (sizec <= 0)
                     {
-                        new_file->name[o++] = unicode[i];
+                        new_file.name[o++] = unicode[i];
                         utf8 = 0;
                     }
                     else
                         o += sizec;
                 }
                 else
-                    new_file->name[o++] = unicode[i];
+                    new_file.name[o++] = unicode[i];
             }
-            new_file->name[o] = '\0';
-            new_file->st_ino = inode;
-            new_file->st_mode = MSDOS_MKMODE(de->attr, (LINUX_S_IRWXUGO & ~(LINUX_S_IWGRP | LINUX_S_IWOTH)));
-            new_file->st_uid = 0;
-            new_file->st_gid = 0;
-            new_file->st_size = le32(de->size);
+            new_file.name[o] = '\0';
+            new_file.st_ino = inode;
+            new_file.st_mode = MSDOS_MKMODE(de->attr, (LINUX_S_IRWXUGO & ~(LINUX_S_IWGRP | LINUX_S_IWOTH)));
+            new_file.st_uid = 0;
+            new_file.st_gid = 0;
+            new_file.st_size = le32(de->size);
             //      new_file->st_blksize=cluster_size;
-            new_file->td_atime = new_file->td_ctime = new_file->td_mtime =
+            new_file.td_atime = new_file.td_ctime = new_file.td_mtime =
                 date_dos2unix(le16(de->time), le16(de->date));
-            new_file->status = status;
-            /* log_debug("fat: new file %s de=%p size={}\n",new_file->name,de,le32(de->size)); */
-            dir_list.push_front(new_file);
+            new_file.status = status;
+            /* log_debug("fat: new file %s de=%p size={}\n",new_file.name,de,le32(de->size)); */
+            dir_list.push_front(std::move(new_file));
         }
     }
     de++;
@@ -571,7 +571,7 @@ static void dir_partition_fat_close(dir_data_t *dir_data)
   @ decreases 0;
   @*/
 static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                            const file_info_t *file)
+                            const file_info_t &file)
 {
     char *new_file;
     FILE *f_out;
@@ -581,7 +581,7 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
     const unsigned int block_size = fat_sector_size(fat_header) * sectors_per_cluster;
     unsigned char *buffer_file = new unsigned char[block_size];
     unsigned int cluster;
-    unsigned int file_size = file->st_size;
+    unsigned int file_size = file.st_size;
     fat_method_t fat_meth = FAT_FOLLOW_CLUSTER;
     uint64_t start_fat1, start_data, part_size;
     unsigned long int no_of_cluster, fat_length;
@@ -595,7 +595,7 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
         delete[] (buffer_file);
         return CP_CREATE_FAILED;
     }
-    cluster = file->st_ino;
+    cluster = file.st_ino;
     fat_length = le16(fat_header->fat_length) > 0 ? le16(fat_header->fat_length) : le32(fat_header->fat32_length);
     part_size = (fat_sectors(fat_header) > 0 ? fat_sectors(fat_header) : le32(fat_header->total_sect));
     start_fat1 = le16(fat_header->reserved);
@@ -631,7 +631,7 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
             log_error("fat_copy: failed to write data %s\n", strerror(errno));
 #endif
             fclose(f_out);
-            set_date(new_file, file->td_atime, file->td_mtime);
+            set_date(new_file, file.td_atime, file.td_mtime);
             delete (new_file);
             delete[] (buffer_file);
             return CP_NOSPACE;
@@ -645,7 +645,7 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
                     get_next_cluster(disk_car, partition, partition.upart_type, start_fat1, cluster);
                 if (next_cluster >= 2 && next_cluster <= no_of_cluster + 2)
                     cluster = next_cluster;
-                else if (cluster == file->st_ino && next_cluster == 0)
+                else if (cluster == file.st_ino && next_cluster == 0)
                     fat_meth = FAT_NEXT_FREE_CLUSTER; /* Recovery of a deleted file */
                 else
                     fat_meth = FAT_NEXT_CLUSTER; /* FAT is corrupted, don't trust it */
@@ -661,7 +661,7 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
         }
     }
     fclose(f_out);
-    set_date(new_file, file->td_atime, file->td_mtime);
+    set_date(new_file, file.td_atime, file.td_mtime);
     delete (new_file);
     delete[] (buffer_file);
     return CP_OK;

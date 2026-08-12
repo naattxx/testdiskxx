@@ -23,6 +23,7 @@
 #include "src/dir_common.hpp"
 #include <config.h>
 #include <ctype.h>
+#include <optional>
 #include <stdio.h>
 #if __has_include(<iconv.h>)
 #include <iconv.h>
@@ -59,7 +60,7 @@ struct exfat_dir_struct
 static int exfat_dir(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
                      const unsigned long int first_cluster, file_info_t *dir_list);
 static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
-                              const file_info_t *file);
+                              const file_info_t &file);
 static void dir_partition_exfat_close(dir_data_t *dir_data);
 
 #if 0
@@ -223,7 +224,7 @@ static int dir_exfat_aux(const unsigned char *buffer, const unsigned int size, c
      * 0xE2 Windows CE ACL
      *
      */
-    file_info_t *current_file = NULL;
+    std::optional<file_info_t> current_file;
     unsigned int offset = 0;
     unsigned int sec_count = 0;
     for (offset = 0; offset < size; offset += 0x20)
@@ -233,23 +234,23 @@ static int dir_exfat_aux(const unsigned char *buffer, const unsigned int size, c
         if ((buffer[offset] & 0x7f) == 0x05)
         { /* File directory entry */
             const struct exfat_file_entry *entry = (const struct exfat_file_entry *)&buffer[offset];
-            file_info_t *new_file = new file_info_t;
+            file_info_t new_file;
             sec_count = entry->sec_count;
-            new_file->name = new char[512];
-            new_file->name[0] = 0;
-            new_file->st_ino = 0;
-            new_file->st_mode = EXFAT_MKMODE(entry->attr, (LINUX_S_IRWXUGO & ~(LINUX_S_IWGRP | LINUX_S_IWOTH)));
-            new_file->st_uid = 0;
-            new_file->st_gid = 0;
-            new_file->st_size = 0;
-            new_file->td_atime = date_dos2unix(le16(entry->atime), le16(entry->adate));
-            new_file->td_ctime = date_dos2unix(le16(entry->ctime), le16(entry->cdate));
-            new_file->td_mtime = date_dos2unix(le16(entry->mtime), le16(entry->mdate));
-            new_file->status = ((entry->type & 0x80) == 0x80 ? 0 : FILE_STATUS_DELETED);
+            new_file.name = new char[512];
+            new_file.name[0] = 0;
+            new_file.st_ino = 0;
+            new_file.st_mode = EXFAT_MKMODE(entry->attr, (LINUX_S_IRWXUGO & ~(LINUX_S_IWGRP | LINUX_S_IWOTH)));
+            new_file.st_uid = 0;
+            new_file.st_gid = 0;
+            new_file.st_size = 0;
+            new_file.td_atime = date_dos2unix(le16(entry->atime), le16(entry->adate));
+            new_file.td_ctime = date_dos2unix(le16(entry->ctime), le16(entry->cdate));
+            new_file.td_mtime = date_dos2unix(le16(entry->mtime), le16(entry->mdate));
+            new_file.status = ((entry->type & 0x80) == 0x80 ? 0 : FILE_STATUS_DELETED);
             current_file = new_file;
-            dir_list.push_front(new_file);
+            dir_list.push_front(std::move(new_file));
         }
-        else if (sec_count > 0 && current_file != NULL)
+        else if (sec_count > 0 && current_file)
         {
             if ((buffer[offset] & 0x7f) == 0x40)
             {
@@ -439,7 +440,7 @@ static void dir_partition_exfat_close(dir_data_t *dir_data)
     delete (ls);
 }
 
-static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_data_t *dir_data, const file_info_t *file)
+static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_data_t *dir_data, const file_info_t &file)
 {
     char *new_file;
     FILE *f_out;
@@ -448,7 +449,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
     const unsigned int cluster_shift = exfat_header->block_per_clus_bits + exfat_header->blocksize_bits;
     unsigned char *buffer_file = new unsigned char[1 << cluster_shift];
     unsigned int cluster;
-    uint64_t file_size = file->st_size;
+    uint64_t file_size = file.st_size;
     exfat_method_t exfat_meth = exFAT_FOLLOW_CLUSTER;
     uint64_t start_exfat1;
     unsigned long int clus_blocknr;
@@ -461,7 +462,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
         delete[] (buffer_file);
         return CP_CREATE_FAILED;
     }
-    cluster = file->st_ino;
+    cluster = file.st_ino;
     start_exfat1 = (uint64_t)le32(exfat_header->fat_blocknr) << exfat_header->blocksize_bits;
     clus_blocknr = le32(exfat_header->clus_blocknr);
     total_clusters = le32(exfat_header->total_clusters);
@@ -483,7 +484,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
         {
             log_error("exfat_copy: no space left on destination.\n");
             fclose(f_out);
-            set_date(new_file, file->td_atime, file->td_mtime);
+            set_date(new_file, file.td_atime, file.td_mtime);
             delete (new_file);
             delete[] (buffer_file);
             return CP_NOSPACE;
@@ -496,7 +497,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
                 const unsigned int next_cluster = exfat_get_next_cluster(disk, partition, start_exfat1, cluster);
                 if (next_cluster >= 2 && next_cluster <= total_clusters)
                     cluster = next_cluster;
-                else if (cluster == file->st_ino && next_cluster == 0)
+                else if (cluster == file.st_ino && next_cluster == 0)
                     exfat_meth = exFAT_NEXT_FREE_CLUSTER; /* Recovery of a deleted file */
                 else
                     exfat_meth = exFAT_NEXT_CLUSTER; /* exFAT is corrupted, don't trust it */
@@ -512,7 +513,7 @@ static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_da
         }
     }
     fclose(f_out);
-    set_date(new_file, file->td_atime, file->td_mtime);
+    set_date(new_file, file.td_atime, file.td_mtime);
     delete (new_file);
     delete[] (buffer_file);
     return CP_OK;

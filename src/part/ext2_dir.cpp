@@ -223,7 +223,7 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     struct ext2_inode inode;
     ext2_ino_t ino;
     struct ext2_dir_struct *ls = (struct ext2_dir_struct *)privateinfo;
-    file_info_t *new_file;
+    file_info_t new_file;
     errcode_t retval;
     if (entry == DIRENT_DELETED_FILE && (ls->dir_data->param & FLAG_LIST_DELETED) == 0)
         return 0;
@@ -237,29 +237,28 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     }
     if (inode.i_mode == 0)
         return 0;
-    new_file = new file_info_t;
     {
         const unsigned int thislen =
             ((dirent->name_len & 0xFF) < EXT2_NAME_LEN) ? (dirent->name_len & 0xFF) : EXT2_NAME_LEN;
-        new_file->name = new char[thislen + 1];
-        memcpy(new_file->name, dirent->name, thislen);
-        new_file->name[thislen] = '\0';
+        new_file.name = new char[thislen + 1];
+        memcpy(new_file.name, dirent->name, thislen);
+        new_file.name[thislen] = '\0';
     }
     if (entry == DIRENT_DELETED_FILE)
-        new_file->status = FILE_STATUS_DELETED;
+        new_file.status = FILE_STATUS_DELETED;
     else
-        new_file->status = 0;
-    new_file->st_ino = ino;
-    new_file->st_mode = inode.i_mode;
+        new_file.status = 0;
+    new_file.st_ino = ino;
+    new_file.st_mode = inode.i_mode;
     //  new_file->st_nlink=inode.i_links_count;
-    new_file->st_uid = inode.i_uid;
-    new_file->st_gid = inode.i_gid;
-    new_file->st_size = LINUX_S_ISDIR(inode.i_mode) ? inode.i_size : inode.i_size | ((uint64_t)inode.i_size_high << 32);
+    new_file.st_uid = inode.i_uid;
+    new_file.st_gid = inode.i_gid;
+    new_file.st_size = LINUX_S_ISDIR(inode.i_mode) ? inode.i_size : inode.i_size | ((uint64_t)inode.i_size_high << 32);
     //  new_file->st_blksize=blocksize;
     //  new_file->st_blocks=inode.i_blocks;
-    new_file->td_atime = inode.i_atime;
-    new_file->td_mtime = inode.i_mtime;
-    new_file->td_ctime = inode.i_ctime;
+    new_file.td_atime = inode.i_atime;
+    new_file.td_mtime = inode.i_mtime;
+    new_file.td_ctime = inode.i_ctime;
     ls->dir_list.push_front(new_file);
     return 0;
 }
@@ -287,7 +286,7 @@ static void dir_partition_ext2_close(dir_data_t *dir_data)
 }
 
 static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                             const file_info_t *file)
+                             const file_info_t &file)
 {
     copy_file_t error = CP_OK;
     FILE *f_out;
@@ -306,14 +305,14 @@ static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir
         char buffer[8192];
         ext2_file_t e2_file;
 
-        if (ext2fs_read_inode(ls->current_fs, file->st_ino, &inode) != 0)
+        if (ext2fs_read_inode(ls->current_fs, file.st_ino, &inode) != 0)
         {
             delete (new_file);
             fclose(f_out);
             return CP_STAT_FAILED;
         }
 
-        retval = ext2fs_file_open(ls->current_fs, file->st_ino, 0, &e2_file);
+        retval = ext2fs_file_open(ls->current_fs, file.st_ino, 0, &e2_file);
         if (retval)
         {
             log_error("Error while opening ext2 file %s\n", dir_data->current_directory);
@@ -347,8 +346,8 @@ static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir
             error = CP_CLOSE_FAILED;
         }
         fclose(f_out);
-        set_date(new_file, file->td_atime, file->td_mtime);
-        (void)set_mode(new_file, file->st_mode);
+        set_date(new_file, file.td_atime, file.td_mtime);
+        (void)set_mode(new_file, file.st_mode);
     }
     delete (new_file);
     return error;

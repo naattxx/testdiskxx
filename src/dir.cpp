@@ -186,19 +186,19 @@ int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
         log_info("Directory {}", dir_data->current_directory);
     }
 #ifndef DISABLED_FOR_FRAMAC
-    for (const file_info_t *current_file : dir_list)
+    for (const file_info_t &current_file : dir_list)
         {
         char datestr[80];
         char str[11];
-        test_date = set_datestr((char *)&datestr, sizeof(datestr), current_file->td_mtime);
-        mode_string(current_file->st_mode, str);
-        if ((current_file->status & FILE_STATUS_DELETED) != 0)
+        test_date = set_datestr((char *)&datestr, sizeof(datestr), current_file.td_mtime);
+        mode_string(current_file.st_mode, str);
+        if ((current_file.status & FILE_STATUS_DELETED) != 0)
             log_info("X");
         else
             log_info(" ");
-        log_info("{:7} {} {:5}  {:5} {:9} {} ", (unsigned long int)current_file->st_ino, str,
-                 (unsigned int)current_file->st_uid, (unsigned int)current_file->st_gid,
-                 (long long unsigned int)current_file->st_size, datestr);
+        log_info("{:7} {} {:5}  {:5} {:9} {} ", (unsigned long int)current_file.st_ino, str,
+                 (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid,
+                 (long long unsigned int)current_file.st_size, datestr);
         if (dir_data != NULL && (dir_data->param & FLAG_LIST_PATHNAME) != 0)
         {
             if (dir_data->current_directory[1] != '\0')
@@ -206,7 +206,7 @@ int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
             else
                 log_info("/");
         }
-        log_info("{}", current_file->name);
+        log_info("{}", current_file.name);
     }
 #endif
     return test_date;
@@ -221,20 +221,20 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
     {
         log_info("Directory {}", dir_data->current_directory);
     }
-    for (const file_info_t *current_file : list)
+    for (const file_info_t &current_file : list)
     {
         char datestr[80];
         char str[11];
-        if ((current_file->status & FILE_STATUS_DELETED) != 0)
+        if ((current_file.status & FILE_STATUS_DELETED) != 0)
             log_info("X");
         else
             log_info(" ");
-        set_datestr((char *)&datestr, sizeof(datestr), current_file->td_mtime);
-        mode_string(current_file->st_mode, str);
-        log_info("{:7} ", (unsigned long int)current_file->st_ino);
-        log_info("{} {:5} {:5} ", str, (unsigned int)current_file->st_uid, (unsigned int)current_file->st_gid);
-        log_info("{:9}", (long long unsigned int)current_file->st_size);
-        log_info(" {} {}", datestr, current_file->name);
+        set_datestr((char *)&datestr, sizeof(datestr), current_file.td_mtime);
+        mode_string(current_file.st_mode, str);
+        log_info("{:7} ", (unsigned long int)current_file.st_ino);
+        log_info("{} {:5} {:5} ", str, (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid);
+        log_info("{:9}", (long long unsigned int)current_file.st_size);
+        log_info(" {} {}", datestr, current_file.name);
     }
 #endif
 }
@@ -243,10 +243,9 @@ unsigned int delete_list_file(dir_list_t &dir_list)
 {
     unsigned int nbr = 0;
 #ifndef DISABLED_FOR_FRAMAC
-    for (file_info_t *tmp : dir_list)
+    for (file_info_t &tmp : dir_list)
     {
-        delete (tmp->name);
-        delete (tmp);
+        delete (tmp.name);
         nbr++;
     }
 #endif
@@ -258,14 +257,14 @@ unsigned int delete_list_file(dir_list_t &dir_list)
   @ requires \valid_read(inode_known + (0 .. dir_nbr-1));
   @ assigns \nothing;
   @*/
-static int is_inode_valid(const file_info_t *current_file, const unsigned int dir_nbr,
+static int is_inode_valid(const file_info_t &current_file, const unsigned int dir_nbr,
                           const unsigned long int *inode_known)
 {
-    const unsigned long int new_inode = current_file->st_ino;
+    const unsigned long int new_inode = current_file.st_ino;
     unsigned int i;
     if (new_inode < 2)
         return 0;
-    if (strcmp(current_file->name, "..") == 0)
+    if (strcmp(current_file.name, "..") == 0)
         return 0;
     /*@
       @ loop assigns i;
@@ -301,16 +300,16 @@ static int dir_whole_partition_log_aux(disk_t &disk, const partition_t &partitio
     dir_aff_log(dir_data, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
-    for (file_info_t *current_file : dir_list)
+    for (file_info_t &current_file : dir_list)
     {
-        if (LINUX_S_ISDIR(current_file->st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0 &&
-            strlen(dir_data->current_directory) + 1 + strlen(current_file->name) <
+        if (LINUX_S_ISDIR(current_file.st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0 &&
+            strlen(dir_data->current_directory) + 1 + strlen(current_file.name) <
                 sizeof(dir_data->current_directory) - 1)
         {
             if (strcmp(dir_data->current_directory, "/"))
                 strcat(dir_data->current_directory, "/");
-            strcat(dir_data->current_directory, current_file->name);
-            dir_whole_partition_log_aux(disk, partition, dir_data, current_file->st_ino);
+            strcat(dir_data->current_directory, current_file.name);
+            dir_whole_partition_log_aux(disk, partition, dir_data, current_file.st_ino);
             /* restore current_directory name */
             dir_data->current_directory[current_directory_namelength] = '\0';
         }
@@ -350,22 +349,22 @@ static int dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partiti
     dir_data->get_dir(disk, partition, dir_data, inode, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
-    for (file_info_t *current_file : dir_list)
+    for (file_info_t &current_file : dir_list)
     {
-        if (strlen(dir_data->current_directory) + 1 + strlen(current_file->name) <
+        if (strlen(dir_data->current_directory) + 1 + strlen(current_file.name) <
             sizeof(dir_data->current_directory) - 1)
         {
             if (strcmp(dir_data->current_directory, "/"))
                 strcat(dir_data->current_directory, "/");
-            strcat(dir_data->current_directory, current_file->name);
-            if (LINUX_S_ISDIR(current_file->st_mode) != 0)
+            strcat(dir_data->current_directory, current_file.name);
+            if (LINUX_S_ISDIR(current_file.st_mode) != 0)
             {
                 if (is_inode_valid(current_file, dir_nbr, inode_known) > 0)
                 {
-                    dir_whole_partition_copy_aux(disk, partition, dir_data, current_file->st_ino, copy_ok, copy_bad);
+                    dir_whole_partition_copy_aux(disk, partition, dir_data, current_file.st_ino, copy_ok, copy_bad);
                 }
             }
-            else if (LINUX_S_ISREG(current_file->st_mode) != 0)
+            else if (LINUX_S_ISREG(current_file.st_mode) != 0)
             {
                 if (dir_data->copy_file(disk, partition, dir_data, current_file) == 0)
                     (*copy_ok)++;
@@ -401,24 +400,24 @@ void dir_whole_partition_copy(disk_t &disk, const partition_t &partition, dir_da
     log_info("Copy done! {} ok, {} failed", copy_ok, copy_bad);
 }
 
-bool filesort(const struct file_info_t *file_a, const struct file_info_t *file_b)
+bool filesort(const struct file_info_t &file_a, const struct file_info_t &file_b)
 {
     /* . and .. must listed before the other directories */
     /* Directories must be listed before files */
     /*@ assert valid_read_string(file_a->name); */
-    if ((file_a->st_mode & LINUX_S_IFDIR) && strcmp(file_a->name, ".") == 0)
+    if ((file_a.st_mode & LINUX_S_IFDIR) && strcmp(file_a.name, ".") == 0)
         return true;
-    if ((file_a->st_mode & LINUX_S_IFDIR) && strcmp(file_a->name, "..") == 0 && strcmp(file_b->name, ".") != 0)
+    if ((file_a.st_mode & LINUX_S_IFDIR) && strcmp(file_a.name, "..") == 0 && strcmp(file_b.name, ".") != 0)
         return true;
     /*@ assert valid_read_string(file_b->name); */
-    if ((file_b->st_mode & LINUX_S_IFDIR) && strcmp(file_b->name, ".") == 0)
+    if ((file_b.st_mode & LINUX_S_IFDIR) && strcmp(file_b.name, ".") == 0)
         return false;
-    if ((file_b->st_mode & LINUX_S_IFDIR) && strcmp(file_b->name, "..") == 0 && strcmp(file_a->name, ".") != 0)
+    if ((file_b.st_mode & LINUX_S_IFDIR) && strcmp(file_b.name, "..") == 0 && strcmp(file_a.name, ".") != 0)
         return false;
-    if ((file_a->st_mode & LINUX_S_IFDIR) && !(file_b->st_mode & LINUX_S_IFDIR))
+    if ((file_a.st_mode & LINUX_S_IFDIR) && !(file_b.st_mode & LINUX_S_IFDIR))
         return true;
     /* Files and directories are sorted by name */
-    return strcmp(file_a->name, file_b->name) <= 0;
+    return strcmp(file_a.name, file_b.name) <= 0;
 }
 
 /*

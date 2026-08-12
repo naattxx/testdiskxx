@@ -1116,26 +1116,26 @@ free:
     return -2;
 }
 
-static file_info_t *ufile_to_file_data(const struct ufile *file, const struct data *d)
+static file_info_t ufile_to_file_data(const struct ufile *file, const struct data *d)
 {
-    file_info_t *new_file = new file_info_t;
+    file_info_t new_file;
     char inode_name[32];
     const unsigned int len = (file->pref_pname == NULL ? 0 : strlen(file->pref_pname)) +
                              (file->pref_name == NULL ? sizeof(inode_name) : strlen(file->pref_name) + 1) +
                              (d->name == NULL ? 0 : strlen(d->name) + 1) + 1;
     sprintf(inode_name, "inode_%llu", (long long unsigned)file->inode);
-    new_file->name = new char[len];
-    sprintf(new_file->name, "%s%s%s%s%s", (file->pref_pname ? file->pref_pname : ""), (file->pref_pname ? "/" : ""),
+    new_file.name = new char[len];
+    sprintf(new_file.name, "%s%s%s%s%s", (file->pref_pname ? file->pref_pname : ""), (file->pref_pname ? "/" : ""),
             (file->pref_name ? file->pref_name : inode_name), (d->name ? ":" : ""), (d->name ? d->name : ""));
-    new_file->st_ino = file->inode;
-    new_file->st_mode =
+    new_file.st_ino = file->inode;
+    new_file.st_mode =
         (file->directory ? LINUX_S_IFDIR | LINUX_S_IRUGO | LINUX_S_IXUGO : LINUX_S_IFREG | LINUX_S_IRUGO);
-    new_file->st_uid = 0;
-    new_file->st_gid = 0;
+    new_file.st_uid = 0;
+    new_file.st_gid = 0;
 
-    new_file->st_size = max(d->size_init, d->size_data);
-    new_file->td_atime = new_file->td_ctime = new_file->td_mtime = file->date;
-    new_file->status = 0;
+    new_file.st_size = max(d->size_init, d->size_data);
+    new_file.td_atime = new_file.td_ctime = new_file.td_mtime = file->date;
+    new_file.status = 0;
     return new_file;
 }
 
@@ -1211,13 +1211,9 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
                 {
                     for (const data *d : file->data)
                     {
-                        file_info_t *new_file;
-                        new_file = ufile_to_file_data(file, d);
-                        if (new_file != NULL)
-                        {
-                            dir_list.push_front(new_file);
-                            results++;
-                        }
+                        file_info_t new_file = ufile_to_file_data(file, d);
+                        dir_list.push_front(new_file);
+                        results++;
                     }
                 }
                 free_file(file);
@@ -1642,9 +1638,9 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
     dst_path = get_default_location();
     dir_data->local_dir = dst_path;
     opts.dest = dst_path;
-    for (const file_info_t *file_info : dir_list)
+    for (const file_info_t &file_info : dir_list)
     {
-        if (undelete_file(ls->vol, file_info->st_ino) < 0)
+        if (undelete_file(ls->vol, file_info.st_ino) < 0)
             file_bad++;
         else
             file_ok++;
