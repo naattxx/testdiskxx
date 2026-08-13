@@ -1808,7 +1808,6 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
     /*@ assert 0 <= hd_h < 1024; */
 #endif
     disk_car.arch = &arch_none;
-    init_disk(disk_car);
 #ifdef DISABLED_FOR_FRAMAC
     disk_car.device = new char[2048];
     strncpy(disk_car.device, device, 2048);
@@ -2016,20 +2015,19 @@ void hd_update_all_geometry(list_disk_t &list_disk, const int verbose)
     }
 }
 
-void init_disk(disk_t &disk)
+disk_t::disk_t():
+    description_txt("\0"),
+    disk_size(0),
+    user_max(0),
+    native_max(0),
+    dco(0),
+    offset(0), /* Note, some Raid reserve the first 1024 512-sectors */
+    rbuffer(NULL),
+    wbuffer(NULL),
+    rbuffer_size(0),
+    wbuffer_size(0),
+    write_used(0),
+    autodetect(0),
+    unit(UNIT::CHS)
 {
-    disk.autodetect = 0;
-    disk.disk_size = 0;
-    disk.user_max = 0;
-    disk.native_max = 0;
-    disk.dco = 0;
-    /* Note, some Raid reserve the first 1024 512-sectors */
-    disk.offset = 0;
-    disk.rbuffer = NULL;
-    disk.wbuffer = NULL;
-    disk.rbuffer_size = 0;
-    disk.wbuffer_size = 0;
-    disk.write_used = 0;
-    disk.description_txt[0] = '\0';
-    disk.unit = UNIT::CHS;
 }

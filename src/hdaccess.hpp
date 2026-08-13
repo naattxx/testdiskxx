@@ -48,31 +48,6 @@ void update_disk_car_fields(disk_t &disk_car);
 
 /*@
   @ requires \valid(disk);
-  @ ensures disk->autodetect == 0;
-  @ ensures disk->disk_size == 0;
-  @ ensures disk->user_max == 0;
-  @ ensures disk->native_max == 0;
-  @ ensures disk->dco == 0;
-  @ ensures disk->offset == 0;
-  @ ensures disk->rbuffer == NULL;
-  @ ensures disk->wbuffer == NULL;
-  @ ensures disk->rbuffer_size == 0;
-  @ ensures disk->wbuffer_size == 0;
-  @ ensures disk->model == NULL;
-  @ ensures disk->serial_no == NULL;
-  @ ensures disk->fw_rev == NULL;
-  @ ensures disk->write_used == 0;
-  @ ensures disk->description_txt[0] == '\0';
-  @ ensures disk->unit == UNIT_CHS;
-  @ assigns disk->autodetect, disk->disk_size, disk->user_max, disk->native_max, disk->dco, disk->offset;
-  @ assigns disk->rbuffer, disk->wbuffer, disk->rbuffer_size, disk->wbuffer_size;
-  @ assigns disk->model, disk->serial_no, disk->fw_rev, disk->write_used;
-  @ assigns disk->description_txt[0], disk->unit;
-  @*/
-void init_disk(disk_t &disk);
-
-/*@
-  @ requires \valid(disk);
   @ requires valid_disk(disk);
   @ requires \freeable(disk);
   @ requires valid_disk(disk);

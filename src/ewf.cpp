@@ -370,7 +370,6 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
   {
     log_error("{} Unable to parse EWF header values", device);
   }
-  init_disk(disk);
   disk.arch=&arch_none;
   disk.device=strdup(device);
   if(disk.device.empty())

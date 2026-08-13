@@ -283,7 +283,6 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
         return std::nullopt;
     {
         struct info_file_win32_struct *data;
-        init_disk(disk_car);
         disk_car.arch = &arch_none;
         disk_car.device = strdup(device);
         data = new struct info_file_win32_struct;
