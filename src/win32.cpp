@@ -301,7 +301,7 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
         disk_get_geometry_win32(&disk_car.geom, handle, device, verbose);
         disk_car.disk_real_size = disk_get_size_win32(handle, device, verbose);
         file_win32_disk_get_model(handle, disk_car, verbose);
-        update_disk_car_fields(disk_car);
+        disk_car.update_fields();
         if (disk_car.disk_real_size != 0)
             return disk_car;
         log_warning("Warning: can't get size for %s\n", device);

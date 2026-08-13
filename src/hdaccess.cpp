@@ -936,36 +936,36 @@ static uint64_t disk_get_size(const int hd_h, const char *device, const int verb
 }
 #endif
 
-void update_disk_car_fields(disk_t &disk_car)
+void disk_t::update_fields()
 {
-    if (disk_car.disk_real_size == 0)
+    if (disk_real_size == 0)
     {
-        if (disk_car.geom.cylinders > 0)
+        if (geom.cylinders > 0)
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_warning("Fix disk size using CHS");
 #endif
-            disk_car.disk_real_size = (uint64_t)disk_car.geom.cylinders * disk_car.geom.heads_per_cylinder *
-                                       disk_car.geom.sectors_per_head * disk_car.sector_size;
+            disk_real_size = (uint64_t)geom.cylinders * geom.heads_per_cylinder *
+                                       geom.sectors_per_head * sector_size;
         }
     }
     else
     {
-        const unsigned long int cylinder_num = disk_car.disk_real_size / (uint64_t)disk_car.geom.heads_per_cylinder /
-                                               (uint64_t)disk_car.geom.sectors_per_head /
-                                               (uint64_t)disk_car.sector_size;
-        if (cylinder_num > 0 && disk_car.geom.cylinders != cylinder_num)
+        const unsigned long int cylinder_num = disk_real_size / (uint64_t)geom.heads_per_cylinder /
+                                               (uint64_t)geom.sectors_per_head /
+                                               (uint64_t)sector_size;
+        if (cylinder_num > 0 && geom.cylinders != cylinder_num)
         {
 #ifndef DISABLED_FOR_FRAMAC
-            log_debug("Fix cylinder count for {}: number of cylinders {} != {} (calculated)", disk_car.device,
-                      disk_car.geom.cylinders, cylinder_num);
+            log_debug("Fix cylinder count for {}: number of cylinders {} != {} (calculated)", device,
+                      geom.cylinders, cylinder_num);
 #endif
-            disk_car.geom.cylinders = cylinder_num;
+            geom.cylinders = cylinder_num;
         }
     }
-    if (disk_car.geom.cylinders == 0)
-        disk_car.geom.cylinders++;
-    disk_car.disk_size = disk_car.disk_real_size;
+    if (geom.cylinders == 0)
+        geom.cylinders++;
+    disk_size = disk_real_size;
 }
 
 #ifdef __linux__
@@ -1941,7 +1941,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
         }
         delete[] (buffer);
     }
-    update_disk_car_fields(disk_car);
+    disk_car.update_fields();
     if (disk_car.disk_real_size != 0)
     {
 #ifdef HDCLONE

@@ -282,7 +282,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
     }
     disk.disk_real_size=media_size;
   }
-  update_disk_car_fields(disk);
+  disk.update_fields();
   libewf_glob_free(
     filenames,
     num_files,
@@ -428,7 +428,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
 #else
   disk.disk_real_size=libewf_get_media_size(data->handle);
 #endif
-  update_disk_car_fields(disk);
+  disk.update_fields();
 #if __has_include(<glob.h>)
   globfree(&globbuf);
 #endif
