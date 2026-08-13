@@ -1620,49 +1620,49 @@ static int file_sync(disk_t &disk_car)
 // assigns disk->geom.bytes_per_sector;
 // ensures 0 < disk->geom.heads_per_cylinder <= 255;
 // ensures 0 < disk->geom.sectors_per_head <= 63;
-static void autoset_geometry(disk_t &disk, const unsigned char *buffer, const int verbose)
+void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose)
 {
     /*@ assert 0 < disk->sector_size; */
-    if ((disk.arch)->get_geometry_from_mbr != NULL)
+    if ((arch)->get_geometry_from_mbr != NULL)
     {
-        /*@ assert \valid_function(disk->arch->get_geometry_from_mbr); */
+        /*@ assert \valid_function(arch->get_geometry_from_mbr); */
         CHSgeometry_t geometry;
         geometry.cylinders = 0;
         geometry.heads_per_cylinder = 0;
         geometry.sectors_per_head = 0;
         geometry.bytes_per_sector = 0;
-        disk.arch->get_geometry_from_mbr(buffer, verbose, &geometry);
-        disk.autodetect = 1;
+        arch->get_geometry_from_mbr(buffer, verbose, &geometry);
+        autodetect = 1;
         if (geometry.heads_per_cylinder > 0 && geometry.heads_per_cylinder <= 255 && geometry.sectors_per_head > 0 &&
             geometry.sectors_per_head <= 63)
         {
             /*@ assert 0 < geometry.heads_per_cylinder <= 255; */
             /*@ assert 0 < geometry.sectors_per_head <= 63; */
-            disk.geom.heads_per_cylinder = geometry.heads_per_cylinder;
-            disk.geom.sectors_per_head = geometry.sectors_per_head;
-            /*@ assert 0 < disk->geom.heads_per_cylinder <= 255; */
-            /*@ assert 0 < disk->geom.sectors_per_head <= 63; */
+            geom.heads_per_cylinder = geometry.heads_per_cylinder;
+            geom.sectors_per_head = geometry.sectors_per_head;
+            /*@ assert 0 < geom.heads_per_cylinder <= 255; */
+            /*@ assert 0 < geom.sectors_per_head <= 63; */
             if (geometry.bytes_per_sector != 0)
             {
-                disk.geom.bytes_per_sector = geometry.bytes_per_sector;
-                disk.sector_size = geometry.bytes_per_sector;
-                /*@ assert 0 < disk->sector_size; */
+                geom.bytes_per_sector = geometry.bytes_per_sector;
+                sector_size = geometry.bytes_per_sector;
+                /*@ assert 0 < sector_size; */
             }
-            /*@ assert 0 < disk->sector_size; */
+            /*@ assert 0 < sector_size; */
         }
         else
         {
-            disk.geom.heads_per_cylinder = 255;
-            disk.geom.sectors_per_head = 63;
+            geom.heads_per_cylinder = 255;
+            geom.sectors_per_head = 63;
         }
     }
-    /*@ assert 0 < disk->sector_size; */
-    /*@ assert 0 < disk->geom.heads_per_cylinder <= 255; */
-    /*@ assert 0 < disk->geom.sectors_per_head <= 63; */
+    /*@ assert 0 < sector_size; */
+    /*@ assert 0 < geom.heads_per_cylinder <= 255; */
+    /*@ assert 0 < geom.sectors_per_head <= 63; */
     /* Round up because file is often truncated. */
-    disk.geom.cylinders = (disk.disk_size / disk.sector_size +
-                            (uint64_t)disk.geom.sectors_per_head * disk.geom.heads_per_cylinder - 1) /
-                           disk.geom.sectors_per_head / disk.geom.heads_per_cylinder;
+    geom.cylinders = (disk_size / sector_size +
+                            (uint64_t)geom.sectors_per_head * geom.heads_per_cylinder - 1) /
+                           geom.sectors_per_head / geom.heads_per_cylinder;
 }
 
 /*@
@@ -1936,7 +1936,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
                     disk_car.disk_real_size = 0;
             }
 #ifndef DISABLED_FOR_FRAMAC
-            autoset_geometry(disk_car, buffer, verbose);
+            disk_car.autoset_geometry(buffer, verbose);
 #endif
         }
         delete[] (buffer);
@@ -1978,23 +1978,23 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
     return std::nullopt;
 }
 
-void hd_update_geometry(disk_t &disk, const int verbose)
+void disk_t::update_geometry(const int verbose)
 {
-    if (disk.autodetect != 0)
+    if (autodetect != 0)
     {
-        unsigned char *buffer = new unsigned char[disk.sector_size];
-        if ((unsigned)disk.pread(disk, buffer, disk.sector_size, 0) == disk.sector_size)
+        unsigned char *buffer = new unsigned char[sector_size];
+        if ((unsigned)pread(*this, buffer, sector_size, 0) == sector_size)
         {
             log_trace("autoset_geometry");
-            autoset_geometry(disk, buffer, 1);
+            autoset_geometry(buffer, 1);
         }
         delete[] (buffer);
     }
 #ifdef DJGPP
-    if (disk.description == disk_description)
+    if (description == disk_description)
     {
-        struct info_disk_struct *data = (struct info_disk_struct *)disk.data;
-        data->geo_phys.cylinders = disk.geom.cylinders;
+        struct info_disk_struct *data = (struct info_disk_struct *)data;
+        data->geo_phys.cylinders = geom.cylinders;
     }
 #endif
 }
@@ -2009,7 +2009,7 @@ void hd_update_all_geometry(list_disk_t &list_disk, const int verbose)
     {
         /*@ assert \valid(disk); */
         /*@ assert valid_disk(disk); */
-        hd_update_geometry(disk, verbose);
+        disk.update_geometry(verbose);
         /*@ assert \valid(disk); */
     }
 }

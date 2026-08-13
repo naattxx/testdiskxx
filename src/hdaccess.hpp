@@ -4,17 +4,6 @@
 #include <string>
 
 /*@
-  @ requires \valid(disk_car);
-  @ requires valid_disk(disk_car);
-  @ requires disk_car->sector_size > 0;
-  @ requires disk_car->geom.heads_per_cylinder > 0;
-  @ requires \valid_function(disk_car->pread);
-  @ decreases 0;
-  @ ensures  valid_disk(disk_car);
-  @*/
-void hd_update_geometry(disk_t &disk_car, const int verbose);
-
-/*@
   @ requires valid_list_disk(list_disk);
   @*/
 void hd_update_all_geometry(list_disk_t &list_disk, const int verbose);
