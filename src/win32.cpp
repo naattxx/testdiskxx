@@ -367,7 +367,6 @@ static void file_win32_clean(disk_t &disk)
         delete data;
         data = nullptr;
     }
-    generic_clean(disk);
 }
 
 static unsigned int file_win32_compute_sector_size(HANDLE handle)

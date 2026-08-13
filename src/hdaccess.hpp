@@ -45,11 +45,3 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
   @ assigns disk_car->disk_real_size, disk_car->geom.cylinders, disk_car->disk_size;
   @*/
 void update_disk_car_fields(disk_t &disk_car);
-
-/*@
-  @ requires \valid(disk);
-  @ requires valid_disk(disk);
-  @ requires \freeable(disk);
-  @ requires valid_disk(disk);
-  @*/
-void generic_clean(disk_t &disk);

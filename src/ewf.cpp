@@ -484,7 +484,6 @@ static void fewf_clean(disk_t &disk)
     free(disk.data);
     disk.data=NULL;
   }
-  generic_clean(disk);
 }
 
 static int fewf_sync(disk_t &disk)

@@ -200,12 +200,12 @@ static uint64_t compute_device_size(const int hd_h, const char *device, const in
                                     const unsigned int sector_size);
 #endif
 
-void generic_clean(disk_t &disk)
+disk_t::~disk_t()
 {
-    delete[] (disk.rbuffer);
-    delete[] (disk.wbuffer);
-    disk.rbuffer = NULL;
-    disk.wbuffer = NULL;
+    delete[] (rbuffer);
+    delete[] (wbuffer);
+    rbuffer = NULL;
+    wbuffer = NULL;
 }
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
@@ -1394,7 +1394,6 @@ static void file_clean(disk_t &disk)
         delete data;
         data = nullptr;
     }
-    generic_clean(disk);
 }
 
 /*@

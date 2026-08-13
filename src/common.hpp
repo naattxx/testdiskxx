@@ -517,6 +517,7 @@ struct disk_t
     std::string serial_no;
     std::string fw_rev;
     disk_t();
+    ~disk_t();
     std::string_view(*description)(disk_t &disk);
     std::string_view(*description_short)(disk_t &disk);
     int (*pread)(disk_t &disk, void *buf, const unsigned int count, const uint64_t offset);
