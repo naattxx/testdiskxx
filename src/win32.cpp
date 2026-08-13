@@ -364,6 +364,8 @@ static void file_win32_clean(disk_t &disk)
     {
         struct info_file_win32_struct *data = (struct info_file_win32_struct *)disk.data;
         CloseHandle(data->handle);
+        delete data;
+        data = nullptr;
     }
     generic_clean(disk);
 }
