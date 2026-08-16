@@ -37,6 +37,45 @@ conf_data.set('HAVE_LIBEXT2FS', libext2fs.found())
 conf_data.set('HAVE_LIBREISERFS', reiserfs.found())
 conf_data.set('HAVE_ICONV', iconv.found())
 
+libuuid = dependency('uuid', fallback: ['libuuid'], required: false)
+
+if libuuid.found()
+  prefix = '''#if __has_include(<uuid.h>)
+  #include <uuid.h>
+  #elif __has_include(<uuid/uuid.h>)
+  #include <uuid/uuid.h>
+  #elif __has_include(<sys/uuid.h>)
+  #include <sys/uuid.h>
+  #endif'''
+  conf_data.set(
+    'HAVE_UUID_GENERATE',
+    compiler.has_function(
+      'uuid_generate',
+      prefix: prefix,
+      dependencies: [libuuid],
+      required: false,
+    ),
+  )
+  conf_data.set(
+    'HAVE_UUIDGEN',
+    compiler.has_function(
+      'uuidgen',
+      prefix: prefix,
+      dependencies: [libuuid],
+      required: false,
+    ),
+  )
+  conf_data.set(
+    'HAVE_UUID_CREATE',
+    compiler.has_function(
+      'uuid_create',
+      prefix: prefix,
+      dependencies: [libuuid],
+      required: false,
+    ),
+  )
+endif
+
 conf_data.set(
   'NTFS_MBSTOUCS_HAVE_TWO_ARGUMENTS',
   compiler.compiles(
@@ -226,7 +265,7 @@ sources = files(
   'src/win32.cpp',
 )
 
-deps = [spdlog_dep, libntfs, libntfs3g, libext2fs, libewf, reiserfs, iconv]
+deps = [spdlog_dep, libntfs, libntfs3g, libext2fs, libewf, reiserfs, iconv, libuuid]
 
 executable(
   'testdisk',
