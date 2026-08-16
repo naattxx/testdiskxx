@@ -36,7 +36,7 @@ jobs:
             compiler: g++-16
             cxx: g++-16
           - os: windows-latest
-            compiler: mingw-16
+            compiler: mingw-16.1.0
             cxx: g++
         meson_version: ["1.12.0"]
     steps:
