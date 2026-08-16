@@ -196,7 +196,7 @@ int search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &partit
     if (memcmp(luks->magic, LUKS_MAGIC, LUKS_MAGIC_L) == 0 &&
         recover_LUKS(disk, luks, partition, verbose, dump_ind) == 0)
         return 1;
-    if (refs_header->fsname == be32(0x52654653) && recover_ReFS(disk, refs_header, partition) == 0)
+    if (refs_header->fsname == be32(0x52654653u) && recover_ReFS(disk, refs_header, partition) == 0)
         return 1;
     /* MD 1.1 */
     if (le32(sb1->major_version) == 1 &&

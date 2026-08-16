@@ -114,7 +114,7 @@ static io_channel alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
 #ifdef DEBUG_EXT2
     log_info("alloc_io_channel start\n");
 #endif
-    ioch = (io_channel) new unsigned char[sizeof(struct struct_io_channel)];
+    ioch = (io_channel) new struct struct_io_channel;
     if (ioch == NULL)
         return NULL;
     memset(ioch, 0, sizeof(struct struct_io_channel));
@@ -147,7 +147,7 @@ static errcode_t my_open(const char *dev, int flags, io_channel *channel)
 
 static errcode_t my_close(io_channel channel)
 {
-    delete (channel->private_data);
+    delete (my_data_t *)channel->private_data;
     delete (channel->name);
     delete (channel);
 #ifdef DEBUG_EXT2

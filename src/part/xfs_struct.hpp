@@ -33,7 +33,7 @@
 
 #define XFS_SUPERBLOCK_SIZE 512
 
-#define XFS_SB_MAGIC 0x58465342 /* 'XFSB' */
+#define XFS_SB_MAGIC 0x58465342u /* 'XFSB' */
 #define XFS_SB_VERSION_1 1      /* 5.3, 6.0.1, 6.1 */
 #define XFS_SB_VERSION_2 2      /* 6.2 - attributes */
 #define XFS_SB_VERSION_3 3      /* 6.2 - new inode version */

@@ -474,14 +474,14 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                                     ; // log_verbose("prev cluster({})=>{}\n",new_root_cluster,tmp);
                                 if (tmp == 0)
                                 {
-                                    delete (buffer);
+                                    delete[] (buffer);
                                     return new_root_cluster;
                                 }
                                 /* Check cluster number */
                                 if ((tmp < 2) || (tmp >= 2 + no_of_cluster))
                                 {
                                     log_error("bad cluster number\n");
-                                    delete (buffer);
+                                    delete[] (buffer);
                                     return new_root_cluster;
                                 }
                                 /* Read the cluster */
@@ -492,7 +492,7 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                                                 disk_car.sector_size) != cluster_size)
                                 {
                                     log_critical("cluster can't be read\n");
-                                    delete (buffer);
+                                    delete[] (buffer);
                                     return new_root_cluster;
                                 }
                                 /* Check if this cluster is a directory structure. FAT can be damaged */
@@ -501,12 +501,12 @@ static unsigned int fat32_find_root_cluster(disk_t &disk_car, const partition_t 
                                     if (check_FAT_dir_entry(&buffer[i * 0x20], i) != 1)
                                     {
                                         log_error("cluster data is not a directory structure\n");
-                                        delete (buffer);
+                                        delete[] (buffer);
                                         return new_root_cluster;
                                     }
                                 }
                             }
-                            delete (buffer);
+                            delete[] (buffer);
                             return new_root_cluster;
                         }
                         else
@@ -921,7 +921,7 @@ static int analyse_dir_entries2(disk_t &disk_car, const partition_t &partition, 
         }
     }
     log_warning("No directory found\n");
-    delete (buffer_dir);
+    delete[] (buffer_dir);
     delete_list_file(dir_list);
     return root_size_max;
 }

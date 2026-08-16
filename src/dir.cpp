@@ -461,6 +461,7 @@ static struct
 /*@
   @ assigns \nothing;
   @*/
+[[maybe_unused]]
 static mode_t mode_xlate(unsigned int lmode)
 {
     unsigned int i;

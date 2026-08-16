@@ -25,10 +25,10 @@
 #include <cstdint>
 
 // Structure from gfs2_ondisk.h
-#define GFS2_MAGIC 0x01161970
+#define GFS2_MAGIC 0x01161970u
 #define GFS2_BASIC_BLOCK 512
 #define GFS2_BASIC_BLOCK_SHIFT 9
-#define GFS2_FORMAT_SB 100
+#define GFS2_FORMAT_SB 100u
 
     /*
      * An on-disk inode number

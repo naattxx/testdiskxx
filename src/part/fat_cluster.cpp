@@ -196,7 +196,7 @@ int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const u
                 *offset = cluster_offset[i].offset;
             }
         }
-        delete (cluster_offset);
+        delete[] (cluster_offset);
         if (nbr_max == 0)
             return 0;
         log_info("Selected: sectors_per_cluster={}, cluster 2 at sector {}, nbr={}\n", *sectors_per_cluster,

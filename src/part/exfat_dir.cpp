@@ -58,7 +58,7 @@ struct exfat_dir_struct
 };
 
 static int exfat_dir(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
-                     const unsigned long int first_cluster, file_info_t *dir_list);
+                     const unsigned long int first_cluster, dir_list_t &dir_list);
 static copy_file_t exfat_copy(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
                               const file_info_t &file);
 static void dir_partition_exfat_close(dir_data_t *dir_data);
