@@ -19,9 +19,6 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#include <stdio.h>
-// #include "types.h"
-#include "autoset.hpp"
 #include "common.hpp"
 
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
@@ -34,22 +31,20 @@ extern const arch_fnct_t arch_humax;
 extern const arch_fnct_t arch_mac;
 #endif
 
-void autoset_unit(disk_t &disk)
+void disk_t::autoset_unit()
 {
-    // if (disk == NULL)
-    //     return;
     if (
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
-        disk.arch == &arch_gpt ||
+        arch == &arch_gpt ||
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_HUMAX)
-        disk.arch == &arch_humax ||
+        arch == &arch_humax ||
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_MAC)
-        disk.arch == &arch_mac ||
+        arch == &arch_mac ||
 #endif
-        (disk.geom.heads_per_cylinder == 1 && disk.geom.sectors_per_head == 1))
-        disk.unit = UNIT::SECTOR;
+        (geom.heads_per_cylinder == 1 && geom.sectors_per_head == 1))
+        unit = UNIT::SECTOR;
     else
-        disk.unit = UNIT::CHS;
+        unit = UNIT::CHS;
 }

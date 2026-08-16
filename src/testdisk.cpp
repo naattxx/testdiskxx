@@ -4,7 +4,6 @@
 #include "hdaccess.hpp"
 #include "hdcache.hpp"
 #include "log.hpp"
-#include "src/autoset.hpp"
 #include "src/hidden.hpp"
 #include "src/intrface.hpp"
 #include "ui/tdisksel.hpp"
@@ -100,7 +99,7 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
     {
         disk.autodetect_arch(nullptr);
         if (unit == UNIT::DEFAULT)
-            autoset_unit(disk);
+            disk.autoset_unit();
         else
             disk.unit = unit;
         interface_list(disk, verbose, saveheader, create_backup);
