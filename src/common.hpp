@@ -521,6 +521,7 @@ struct disk_t
     void update_fields();
     void update_geometry(const int verbose);
     void autoset_geometry(const unsigned char *buffer, const int verbose);
+    void autodetect_arch(const arch_fnct_t *arch);
     std::string_view(*description)(disk_t &disk);
     std::string_view(*description_short)(disk_t &disk);
     int (*pread)(disk_t &disk, void *buf, const unsigned int count, const uint64_t offset);

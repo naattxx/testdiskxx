@@ -7,7 +7,6 @@
 #include "src/autoset.hpp"
 #include "src/hidden.hpp"
 #include "src/intrface.hpp"
-#include "src/partauto.hpp"
 #include "ui/tdisksel.hpp"
 #include "utils.hpp"
 #include "ui/tlog.hpp"
@@ -99,7 +98,7 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
 
     for (disk_t& disk : list_disk)
     {
-        autodetect_arch(disk, nullptr);
+        disk.autodetect_arch(nullptr);
         if (unit == UNIT::DEFAULT)
             autoset_unit(disk);
         else
