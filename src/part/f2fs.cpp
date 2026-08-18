@@ -39,12 +39,10 @@ static void set_f2fs_info(partition_t &partition,
   partition.blocksize  = 1 << le32(hdr->log_blocksize);
   partition.fsname[0]  = '\0';
   if (partition.sb_offset == 0)
-    snprintf(partition.info, sizeof(partition.info), "F2FS, blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("F2FS, blocksize={}", partition.blocksize);
   else
-    snprintf(partition.info, sizeof(partition.info),
-             "F2FS found using backup sector, blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("F2FS found using backup sector, blocksize={}",
+                                 partition.blocksize);
 }
 
 auto check_f2fs(disk_t &disk, partition_t &partition) -> int

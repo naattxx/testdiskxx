@@ -48,7 +48,7 @@ static auto test_WBFS(const disk_t &disk, const struct wbfs_head *sb,
 static void set_WBFS_info(partition_t &partition)
 {
   partition.upart_type = UP_WBFS;
-  memcpy(partition.info, "WBFS", 5);
+  partition.info       = "WBFS";
 }
 
 auto check_WBFS(disk_t &disk, partition_t &partition) -> int

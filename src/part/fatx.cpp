@@ -64,6 +64,6 @@ auto recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition)
 static void set_FATX_info(partition_t &partition)
 {
   partition.upart_type = UP_FATX;
-  partition.fsname[0]  = '\0';
-  strncpy(partition.info, "FATX", sizeof(partition.info));
+  partition.fsname.clear();
+  partition.info = "FATX";
 }

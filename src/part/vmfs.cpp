@@ -32,8 +32,7 @@
 static void set_VMFS_info(const struct vmfs_volume *sb, partition_t &partition)
 {
   partition.upart_type = UP_VMFS;
-  sprintf(partition.info, "VMFS %lu",
-          static_cast<long unsigned> le32(sb->version));
+  partition.info       = std::format("VMFS {}", le32(sb->version));
 }
 
 static auto test_VMFS(const disk_t &disk, const struct vmfs_volume *sb,

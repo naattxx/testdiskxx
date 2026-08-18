@@ -1,10 +1,12 @@
 #pragma once
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <ctime>
 #include <list>
 #include <string>
 #include <config.h>
+#include <string_view>
 
 struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
 {
@@ -13,7 +15,7 @@ struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
     uint16_t time_hi_and_version;
     uint8_t clock_seq_hi_and_reserved;
     uint8_t clock_seq_low;
-    uint8_t node[6];
+    std::array<uint8_t, 6> node;
 };
 
 #define DEFAULT_SECTOR_SIZE 0x200u
@@ -589,9 +591,9 @@ struct partition_t
     partition_t() = default;
     partition_t(const arch_fnct_t *arch);
 
-    char fsname[128];
-    char partname[128];
-    char info[128];
+    std::string fsname;
+    std::string partname;
+    std::string info;
     uint64_t part_offset;
     uint64_t part_size;
     uint64_t sborg_offset;

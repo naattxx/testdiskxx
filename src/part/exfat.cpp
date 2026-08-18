@@ -64,12 +64,11 @@ static void set_exFAT_info(partition_t &partition,
       1 << (exfat_header->block_per_clus_bits + exfat_header->blocksize_bits);
   partition.fsname[0] = '\0';
   if (partition.sb_offset == 0)
-    snprintf(partition.info, sizeof(partition.info), "exFAT, blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("exFAT, blocksize={}", partition.blocksize);
   else
-    snprintf(partition.info, sizeof(partition.info),
-             "exFAT found using backup sector, blocksize=%u",
-             partition.blocksize);
+    partition.info =
+        std::format("exFAT found using backup sector, blocksize={}",
+                    partition.blocksize);
 }
 
 auto check_exFAT(disk_t &disk, partition_t &partition) -> int

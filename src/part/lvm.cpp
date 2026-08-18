@@ -34,9 +34,8 @@
 static void set_LVM_info(partition_t &partition)
 {
   partition.upart_type = UP_LVM;
-  partition.fsname[0]  = '\0';
-  partition.info[0]    = '\0';
-  snprintf(partition.info, sizeof(partition.info), "LVM");
+  partition.fsname.clear();
+  partition.info = "LVM";
 }
 
 static auto test_LVM(const disk_t &disk_car, const pv_disk_t *pv,
@@ -132,9 +131,8 @@ auto recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
 static void set_LVM2_info(partition_t &partition)
 {
   partition.upart_type = UP_LVM2;
-  partition.fsname[0]  = '\0';
-  partition.info[0]    = '\0';
-  snprintf(partition.info, sizeof(partition.info), "LVM2");
+  partition.fsname.clear();
+  partition.info = "LVM2";
 }
 
 static auto test_LVM2(const disk_t &disk_car,

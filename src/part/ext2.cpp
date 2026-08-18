@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <format>
 // #include "types.h"
 #include "ext2.hpp"
 #include "src/common.hpp"
@@ -80,25 +81,22 @@ static void set_EXT2_info(const struct ext2_super_block *sb,
       EXT2_HAS_RO_COMPAT_FEATURE(sb, EXT4_FEATURE_RO_COMPAT_EXTRA_ISIZE) != 0 ||
       EXT2_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_64BIT) != 0 ||
       EXT2_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_MMP) != 0)
-    snprintf(partition.info, sizeof(partition.info), "ext4 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("ext4 blocksize={}", partition.blocksize);
   else if (EXT2_HAS_COMPAT_FEATURE(sb, EXT3_FEATURE_COMPAT_HAS_JOURNAL) != 0)
-    snprintf(partition.info, sizeof(partition.info), "ext3 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("ext3 blocksize={}", partition.blocksize);
   else
-    snprintf(partition.info, sizeof(partition.info), "ext2 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("ext2 blocksize={}", partition.blocksize);
   if (EXT2_HAS_RO_COMPAT_FEATURE(sb, EXT2_FEATURE_RO_COMPAT_LARGE_FILE) != 0)
-    strcat(partition.info, " Large_file");
+    partition.info += " Large_file";
   if (EXT2_HAS_RO_COMPAT_FEATURE(sb, EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER) != 0)
-    strcat(partition.info, " Sparse_SB");
+    partition.info += " Sparse_SB";
   if (EXT2_HAS_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER) != 0)
-    strcat(partition.info, " Recover");
+    partition.info += " Recover";
   if (EXT2_HAS_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_JOURNAL_DEV) != 0)
-    strcat(partition.info, " Journal_dev");
+    partition.info += " Journal_dev";
   if (le16(sb->s_block_group_nr) != 0)
   {
-    strcat(partition.info, " Backup_SB");
+    partition.info += " Backup_SB";
     if (verbose > 0)
     {
       log_warning("\nblock_group_nr {}\n", le16(sb->s_block_group_nr));

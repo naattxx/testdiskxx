@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 // #include "types.h"
 #include "rfs.hpp"
 #include "src/common.hpp"
@@ -46,10 +47,9 @@ static void set_rfs4_info(const struct reiser4_master_sb *sb4,
                           partition_t &partition)
 {
   partition.upart_type = UP_RFS4;
-  partition.fsname[0]  = '\0';
-  partition.blocksize  = le16(sb4->blocksize);
-  snprintf(partition.info, sizeof(partition.info), "ReiserFS 4 blocksize=%u",
-           partition.blocksize);
+  partition.fsname.clear();
+  partition.blocksize = le16(sb4->blocksize);
+  partition.info = std::format("ReiserFS 4 blocksize={}", partition.blocksize);
 }
 
 auto check_rfs(disk_t &disk_car, partition_t &partition, const int verbose)
@@ -209,23 +209,23 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
 static void set_rfs_info(const struct reiserfs_super_block *sb,
                          partition_t &partition)
 {
-  partition.fsname[0] = '\0';
+  partition.fsname.clear();
   partition.blocksize = le16(sb->s_blocksize);
   if (memcmp(sb->s_magic, REISERFS_SUPER_MAGIC, sizeof(REISERFS_SUPER_MAGIC)) ==
       0)
   {
     partition.upart_type = UP_RFS;
-    snprintf(partition.info, sizeof(partition.info),
-             "ReiserFS 3.5 with standard journal blocksize=%u",
-             partition.blocksize);
+    partition.info =
+        std::format("ReiserFS 3.5 with standard journal blocksize={}",
+                    partition.blocksize);
   }
   else if (memcmp(sb->s_magic, REISERFS2_SUPER_MAGIC,
                   sizeof(REISERFS2_SUPER_MAGIC)) == 0)
   {
     partition.upart_type = UP_RFS2;
-    snprintf(partition.info, sizeof(partition.info),
-             "ReiserFS 3.6 with standard journal blocksize=%u",
-             partition.blocksize);
+    partition.info =
+        std::format("ReiserFS 3.6 with standard journal blocksize={}",
+                    partition.blocksize);
     partition.set_name(reinterpret_cast<const char *>(sb->s_label), 16);
   }
   else if (memcmp(sb->s_magic, REISERFS3_SUPER_MAGIC,
@@ -233,21 +233,21 @@ static void set_rfs_info(const struct reiserfs_super_block *sb,
   {
     partition.upart_type = UP_RFS3;
     if (le16(sb->sb_version) == 1)
-      snprintf(partition.info, sizeof(partition.info),
-               "ReiserFS 3.5 with non standard journal blocksize=%u",
-               partition.blocksize);
+      partition.info =
+          std::format("ReiserFS 3.5 with non standard journal blocksize={}",
+                      partition.blocksize);
     else if (le16(sb->sb_version) == 2)
-      snprintf(partition.info, sizeof(partition.info),
-               "ReiserFS 3.6 with non standard journal blocksize=%u",
-               partition.blocksize);
+      partition.info =
+          std::format("ReiserFS 3.6 with non standard journal blocksize={}",
+                      partition.blocksize);
     else
-      snprintf(partition.info, sizeof(partition.info),
-               "ReiserFS 3.? with non standard journal blocksize=%u",
-               partition.blocksize);
+      partition.info =
+          std::format("ReiserFS 3.? with non standard journal blocksize={}",
+                      partition.blocksize);
     partition.set_name(reinterpret_cast<const char *>(sb->s_label), 16);
   }
   if (le16(sb->s_state) == REISERFS_ERROR_FS)
   {
-    strcat(partition.info, ", need recovery");
+    partition.info += ", need recovery";
   }
 }

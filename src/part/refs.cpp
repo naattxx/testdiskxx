@@ -31,9 +31,8 @@
 static void set_ReFS_info(partition_t &partition)
 {
   partition.upart_type = UP_ReFS;
-  partition.fsname[0]  = '\0';
-  partition.info[0]    = '\0';
-  snprintf(partition.info, sizeof(partition.info), "ReFS");
+  partition.fsname.clear();
+  partition.info = "ReFS";
 }
 
 static auto test_ReFS(const struct ReFS_boot_sector *refs_header) -> int

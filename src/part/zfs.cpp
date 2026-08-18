@@ -34,8 +34,8 @@ static void set_ZFS_info(const struct vdev_boot_header *sb,
                          partition_t &partition)
 {
   partition.upart_type = UP_ZFS;
-  sprintf(partition.info, "ZFS %lu (Data size unknown)",
-          static_cast<long unsigned> le64(sb->vb_version));
+  partition.info =
+      std::format("ZFS {} (Data size unknown)", le64(sb->vb_version));
 }
 
 static auto test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,

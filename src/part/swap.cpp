@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 // #include "types.h"
 #include "src/common.hpp"
 #include "swap.hpp"
@@ -61,26 +62,26 @@ static void set_Linux_SWAP_info(const union swap_header *swap_header,
   {
     partition.upart_type = UP_LINSWAP;
     partition.blocksize  = 4096;
-    snprintf(partition.info, sizeof(partition.info),
-             "SWAP version %u, pagesize=%u", le32(swap_header->info.version),
-             partition.blocksize);
+    partition.info =
+        std::format("SWAP version {}, pagesize={}",
+                    le32(swap_header->info.version), partition.blocksize);
   }
   else if (memcmp(swap_header->magic.magic, "SWAPSPACE2", 10) == 0)
   {
     partition.upart_type = UP_LINSWAP2;
     partition.blocksize  = 4096;
-    snprintf(partition.info, sizeof(partition.info),
-             "SWAP2 version %u, pagesize=%u", le32(swap_header->info.version),
-             partition.blocksize);
+    partition.info =
+        std::format("SWAP2 version {}, pagesize={}",
+                    le32(swap_header->info.version), partition.blocksize);
     /* set_part_name(partition,swap_header->info.volume_name,16); */
   }
   else if (memcmp(swap_header->magic8k.magic, "SWAP-SPACE", 10) == 0)
   {
     partition.upart_type = UP_LINSWAP_8K;
     partition.blocksize  = 8192;
-    snprintf(partition.info, sizeof(partition.info),
-             "SWAP version %u, pagesize=%u", le32(swap_header->info.version),
-             partition.blocksize);
+    partition.info =
+        std::format("SWAP version {}, pagesize={}",
+                    le32(swap_header->info.version), partition.blocksize);
   }
   else if (memcmp(swap_header->magic8k.magic, "SWAPSPACE2", 10) == 0)
   {
@@ -88,17 +89,16 @@ static void set_Linux_SWAP_info(const union swap_header *swap_header,
     if (le32(swap_header->info.version) <= be32(swap_header->info.version))
     {
       partition.upart_type = UP_LINSWAP2_8K;
-      snprintf(partition.info, sizeof(partition.info),
-               "SWAP2 version %u, pagesize=%u", le32(swap_header->info.version),
-               partition.blocksize);
+      partition.info =
+          std::format("SWAP2 version {}, pagesize={}",
+                      le32(swap_header->info.version), partition.blocksize);
     }
     else
     {
       partition.upart_type = UP_LINSWAP2_8KBE;
-      snprintf(partition.info, sizeof(partition.info),
-               "SWAP2 version %u, pagesize=%u",
-               static_cast<unsigned int>(be32(swap_header->info.version)),
-               partition.blocksize);
+      partition.info =
+          std::format("SWAP2 version {}, pagesize={}",
+                      be32(swap_header->info.version), partition.blocksize);
     }
   }
 }

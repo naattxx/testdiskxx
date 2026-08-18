@@ -127,7 +127,7 @@ static auto alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
   memset(ioch, 0, sizeof(struct struct_io_channel));
   ioch->magic   = EXT2_ET_MAGIC_IO_CHANNEL;
   ioch->manager = &my_struct_manager;
-  ioch->name    = strdup(my_data->partition.fsname);
+  ioch->name    = strdup(my_data->partition.fsname.c_str());
   if (ioch->name == nullptr)
   {
     delete (ioch);

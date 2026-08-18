@@ -109,5 +109,5 @@ static void set_cramfs_info(const struct cramfs_super *sb,
 {
   partition.upart_type = UP_CRAMFS;
   partition.set_name(reinterpret_cast<const char *>(sb->name), 16);
-  strncpy(partition.info, "cramfs", sizeof(partition.info));
+  partition.info = "cramfs";
 }

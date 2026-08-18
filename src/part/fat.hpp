@@ -212,7 +212,7 @@ auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose)
   @ terminates \true;
   @ assigns \nothing;
   @*/
-auto check_VFAT_volume_name(const char *name, const unsigned int max_size)
+auto check_VFAT_volume_name(std::string_view name, const unsigned int max_size)
     -> int;
 
 #endif

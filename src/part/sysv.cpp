@@ -128,6 +128,6 @@ static void set_sysv4_info(const struct sysv4_super_block *sbd,
                            partition_t &partition)
 {
   partition.upart_type = UP_SYSV4;
-  strncpy(partition.info, "SysV4", sizeof(partition.info));
+  partition.info       = "SysV4";
   partition.set_name(sbd->s_fname, sizeof(sbd->s_fname));
 }

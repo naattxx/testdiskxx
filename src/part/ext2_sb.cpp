@@ -71,7 +71,7 @@ auto interface_superblock(disk_t &disk_car, const list_part_t &list_part,
       screen_buffer_add("superblock {}, blocksize={} [%s]\n",
                         static_cast<long unsigned>(partition.sb_offset /
                                                    partition.blocksize),
-                        partition.blocksize, partition.fsname);
+                        partition.blocksize, partition.fsname.c_str());
   }
   if (!list_part.empty())
   {

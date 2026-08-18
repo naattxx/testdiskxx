@@ -78,9 +78,10 @@ struct [[gnu::gcc_struct, gnu::packed]] reiserfs_super_block
       s_flags; /* Right now used only by inode-attributes, if enabled */
   /* 84 */ unsigned char s_uuid[16];  /* filesystem unique identifier */
   /*100 */ unsigned char s_label[16]; /* filesystem volume label */
-  /*116 */ char s_unused[88];         /* zero filled by mkreiserfs and
-                                       * reiserfs_convert_objectid_map_v1()         so
-                                       * any         additions must be updated there as well. */
+  /*116 */ char
+      s_unused[88]; /* zero filled by mkreiserfs and
+                     * reiserfs_convert_objectid_map_v1()         so
+                     * any         additions must be updated there as well. */
   /*204*/
 };
 

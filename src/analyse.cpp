@@ -93,13 +93,13 @@ auto search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
         if (hfs_mdb->drSigWord == be16(HFS_SUPER_MAGIC) &&
             recover_HFS(disk, hfs_mdb, partition, verbose, dump_ind, 1) == 0)
         {
-            strncpy(partition.info, "HFS found using backup sector!", sizeof(partition.info));
+            partition.info = "HFS found using backup sector!";
             return 1;
         }
         if ((be16(vh->version) == 4 || be16(vh->version) == 5) &&
             recover_HFSP(disk, vh, partition, verbose, dump_ind, 1) == 0)
         {
-            strncpy(partition.info, "HFS+ found using backup sector!", sizeof(partition.info));
+            partition.info = "HFS+ found using backup sector!";
             return 1;
         }
     }

@@ -35,9 +35,9 @@ static void set_LUKS_info(const struct luks_phdr *sb, partition_t &partition)
   const unsigned int version = be16(sb->version);
   partition.upart_type       = UP_LUKS;
   if (partition.part_size > 0)
-    sprintf(partition.info, "LUKS %u", version);
+    partition.info = std::format("LUKS {}", version);
   else
-    sprintf(partition.info, "LUKS %u (Data size unknown)", version);
+    partition.info = std::format("LUKS {} (Data size unknown)", version);
 }
 
 static auto test_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,

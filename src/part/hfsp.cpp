@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 // #include "types.h"
 #include "hfsp.hpp"
 #include "src/common.hpp"
@@ -37,14 +38,12 @@ static void set_HFSP_info(partition_t &partition, const struct hfsp_vh *vh)
   if (be16(vh->version) == 4)
   {
     partition.upart_type = UP_HFSP;
-    snprintf(partition.info, sizeof(partition.info), "HFS+ blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("HFS+ blocksize={}", partition.blocksize);
   }
   else if (be16(vh->version) == 5)
   {
     partition.upart_type = UP_HFSX;
-    snprintf(partition.info, sizeof(partition.info), "HFSX blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("HFSX blocksize={}", partition.blocksize);
   }
 }
 
@@ -71,7 +70,7 @@ auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
       test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition,
                 verbose, 0) == 0)
   {
-    strcat(partition.info, " + Backup");
+    partition.info += " + Backup";
   }
   delete[] (buffer);
   return 0;
@@ -107,7 +106,7 @@ auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
         test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer),
                   partition, verbose, 0) == 0)
     {
-      strcat(partition.info, " + Backup");
+      partition.info += " + Backup";
     }
     delete[] (buffer);
   }

@@ -25,7 +25,7 @@
 #include "common.hpp"
 #include "unicode.hpp"
 
-auto UCSle2str(char *to, const uint16_t *from, const unsigned int len) -> unsigned int
+auto UCSle2str(std::string &to, const uint16_t *from, const unsigned int len) -> unsigned int
 {
     unsigned int i;
     /*@
@@ -44,7 +44,7 @@ auto UCSle2str(char *to, const uint16_t *from, const unsigned int len) -> unsign
     return i;
 }
 
-auto str2UCSle(uint16_t *to, const char *from, const unsigned int len) -> unsigned int
+auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) -> unsigned int
 {
     unsigned int i;
     /*@

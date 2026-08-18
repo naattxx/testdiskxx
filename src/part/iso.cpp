@@ -86,11 +86,10 @@ static void set_ISO_info(const struct iso_primary_descriptor *iso,
       logical_block_size_le == logical_block_size_be)
   {
     partition.blocksize = logical_block_size_le;
-    snprintf(partition.info, sizeof(partition.info), "ISO9660 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("ISO9660 blocksize={}", partition.blocksize);
   }
   else
-    snprintf(partition.info, sizeof(partition.info), "ISO");
+    partition.info = "ISO";
 }
 
 auto recover_ISO(const struct iso_primary_descriptor *iso,

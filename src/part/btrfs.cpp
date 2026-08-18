@@ -39,11 +39,10 @@ static void set_btrfs_info(const struct btrfs_super_block *sb,
   partition.upart_type = UP_BTRFS;
   partition.blocksize  = le32(sb->dev_item.sector_size);
   partition.set_name(sb->label, sizeof(sb->label));
-  snprintf(partition.info, sizeof(partition.info), "btrfs blocksize=%u",
-           partition.blocksize);
+  partition.info = std::format("btrfs blocksize={}", partition.blocksize);
   if (le64(sb->bytenr) != partition.part_offset + BTRFS_SUPER_INFO_OFFSET)
   {
-    strcat(partition.info, " Backup superblock");
+    partition.info += " Backup superblock";
   }
   /* last mounted => date */
 }

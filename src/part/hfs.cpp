@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 // #include "types.h"
 #include "hfs.hpp"
 #include "src/common.hpp"
@@ -136,9 +137,9 @@ static void set_HFS_info(partition_t &partition, const hfs_mdb_t *hfs_mdb)
   unsigned int name_size = sizeof(hfs_mdb->drVN) - 1;
   partition.upart_type   = UP_HFS;
   partition.blocksize    = be32(hfs_mdb->drAlBlkSiz);
-  snprintf(partition.info, sizeof(partition.info), "HFS blocksize=%u",
-           partition.blocksize);
+  partition.info         = std::format("HFS blocksize={}", partition.blocksize);
   if (name_size > hfs_mdb->drVN[0])
     name_size = hfs_mdb->drVN[0];
-  memcpy(partition.fsname, &hfs_mdb->drVN[0] + 1, name_size);
+  partition.fsname.reserve(name_size);
+  memcpy(partition.fsname.data(), &hfs_mdb->drVN[0] + 1, name_size);
 }

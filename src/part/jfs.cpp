@@ -36,9 +36,9 @@ static void set_JFS_info(const struct jfs_superblock *sb,
 {
   partition.upart_type = UP_JFS;
   partition.blocksize  = le32(sb->s_bsize);
-  snprintf(partition.info, sizeof(partition.info), "JFS %u, blocksize=%u",
-           static_cast<unsigned int> le32(sb->s_version), partition.blocksize);
-  partition.fsname[0] = '\0';
+  partition.info = std::format("JFS {}, blocksize={}", le32(sb->s_version),
+                               partition.blocksize);
+  partition.fsname.clear();
   if (le32(sb->s_version) == 1)
   {
     partition.set_name(sb->s_fpack, 11);

@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 // #include "types.h"
 #include "md.hpp"
 #include "src/common.hpp"
@@ -97,27 +98,21 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
   {
     unsigned int i;
     partition.upart_type = UP_MD;
-    sprintf(partition.fsname, "md%u",
-            static_cast<unsigned int> le32(sb->md_minor));
-    sprintf(partition.info, "md %u.%u.%u L.Endian Raid %u: devices",
-            static_cast<unsigned int> le32(sb->major_version),
-            static_cast<unsigned int> le32(sb->minor_version),
-            static_cast<unsigned int> le32(sb->patch_version),
-            static_cast<unsigned int> le32(sb->level));
+    partition.fsname     = std::format("md{}", le32(sb->md_minor));
+    partition.info =
+        std::format("md {}.{}.{} L.Endian Raid {}: devices",
+                    le32(sb->major_version), le32(sb->minor_version),
+                    le32(sb->patch_version), le32(sb->level));
     for (i = 0; i < MD_SB_DISKS; i++)
     {
       if (le32(sb->disks[i].major) != 0 && le32(sb->disks[i].minor) != 0)
       {
-        if (strlen(partition.info) < sizeof(partition.info) - 26)
-        {
-          sprintf(&partition.info[strlen(partition.info)], " %u(%u,%u)",
-                  static_cast<unsigned int> le32(sb->disks[i].number),
-                  static_cast<unsigned int> le32(sb->disks[i].major),
-                  static_cast<unsigned int> le32(sb->disks[i].minor));
-          if (le32(sb->disks[i].major) == le32(sb->this_disk.major) &&
-              le32(sb->disks[i].minor) == le32(sb->this_disk.minor))
-            sprintf(&partition.info[strlen(partition.info)], "*");
-        }
+        partition.info +=
+            std::format(" {}({},{})", le32(sb->disks[i].number),
+                        le32(sb->disks[i].major), le32(sb->disks[i].minor));
+        if (le32(sb->disks[i].major) == le32(sb->this_disk.major) &&
+            le32(sb->disks[i].minor) == le32(sb->this_disk.minor))
+          partition.info += "*";
       }
     }
   }
@@ -126,10 +121,9 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
     const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
     partition.upart_type = UP_MD1;
     partition.set_name(sb1->set_name, 32);
-    sprintf(partition.info, "md %u.x L.Endian Raid %u - Array Slot : %lu",
-            static_cast<unsigned int> le32(sb1->major_version),
-            static_cast<unsigned int> le32(sb1->level),
-            static_cast<long unsigned> le32(sb1->dev_number));
+    partition.info = std::format("md {}.x L.Endian Raid {} - Array Slot : {}",
+                                 le32(sb1->major_version), le32(sb1->level),
+                                 le32(sb1->dev_number));
 #ifndef DISABLED_FOR_FRAMAC
     if (le32(sb1->max_dev) <= 384)
     {
@@ -137,21 +131,20 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
       for (i = le32(sb1->max_dev); i > 0; i--)
         if (le16(sb1->dev_roles[i - 1]) != 0xffff)
           break;
-      strcat(partition.info, " (");
-      for (d = 0; d < i && strlen(partition.info) < sizeof(partition.info) - 9;
-           d++)
+      partition.info += " (";
+      for (d = 0; d < i; d++)
       {
         const int role = le16(sb1->dev_roles[d]);
         if (d)
-          strcat(partition.info, ", ");
+          partition.info += ", ";
         if (role == 0xffff)
-          strcat(partition.info, "empty");
+          partition.info += "empty";
         else if (role == 0xfffe)
-          strcat(partition.info, "failed");
+          partition.info += "failed";
         else
-          sprintf(&partition.info[strlen(partition.info)], "%d", role);
+          partition.info += std::to_string(role);
       }
-      strcat(partition.info, ")");
+      partition.info += ")";
     }
 #endif
   }
@@ -168,27 +161,21 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
   {
     unsigned int i;
     partition.upart_type = UP_MD;
-    sprintf(partition.fsname, "md%u",
-            static_cast<unsigned int>(be32(sb->md_minor)));
-    sprintf(partition.info, "md %u.%u.%u B.Endian Raid %u: devices",
-            static_cast<unsigned int>(be32(sb->major_version)),
-            static_cast<unsigned int>(be32(sb->minor_version)),
-            static_cast<unsigned int>(be32(sb->patch_version)),
-            static_cast<unsigned int>(be32(sb->level)));
+    partition.fsname     = std::format("md{}", be32(sb->md_minor));
+    partition.info =
+        std::format("md {}.{}.{} B.Endian Raid {}: devices",
+                    be32(sb->major_version), be32(sb->minor_version),
+                    be32(sb->patch_version), be32(sb->level));
     for (i = 0; i < MD_SB_DISKS; i++)
     {
       if (be32(sb->disks[i].major) != 0 && be32(sb->disks[i].minor) != 0)
       {
-        if (strlen(partition.info) < sizeof(partition.info) - 26)
-        {
-          sprintf(&partition.info[strlen(partition.info)], " %u(%u,%u)",
-                  static_cast<unsigned int>(be32(sb->disks[i].number)),
-                  static_cast<unsigned int>(be32(sb->disks[i].major)),
-                  static_cast<unsigned int>(be32(sb->disks[i].minor)));
-          if (be32(sb->disks[i].major) == be32(sb->this_disk.major) &&
-              be32(sb->disks[i].minor) == be32(sb->this_disk.minor))
-            sprintf(&partition.info[strlen(partition.info)], "*");
-        }
+        partition.info +=
+            std::format(" {}({},{})", be32(sb->disks[i].number),
+                        be32(sb->disks[i].major), be32(sb->disks[i].minor));
+        if (be32(sb->disks[i].major) == be32(sb->this_disk.major) &&
+            be32(sb->disks[i].minor) == be32(sb->this_disk.minor))
+          partition.info += "*";
       }
     }
   }
@@ -197,10 +184,9 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
     const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
     partition.upart_type = UP_MD1;
     partition.set_name(sb1->set_name, 32);
-    sprintf(partition.info, "md %u.x B.Endian Raid %u - Array Slot : %lu",
-            static_cast<unsigned int>(be32(sb1->major_version)),
-            static_cast<unsigned int>(be32(sb1->level)),
-            static_cast<long unsigned>(be32(sb1->dev_number)));
+    partition.info = std::format("md {}.x B.Endian Raid {} - Array Slot : {}",
+                                 be32(sb1->major_version), be32(sb1->level),
+                                 be32(sb1->dev_number));
 #if !defined(DISABLED_FOR_FRAMAC)
     if (be32(sb1->max_dev) <= 384)
     {
@@ -208,21 +194,20 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
       for (i = be32(sb1->max_dev); i > 0; i--)
         if (be16(sb1->dev_roles[i - 1]) != 0xffff)
           break;
-      strcat(partition.info, " (");
-      for (d = 0; d < i && strlen(partition.info) < sizeof(partition.info) - 9;
-           d++)
+      partition.info += " (";
+      for (d = 0; d < i; d++)
       {
         const int role = be16(sb1->dev_roles[d]);
         if (d)
-          strcat(partition.info, ", ");
+          partition.info += ", ";
         if (role == 0xffff)
-          strcat(partition.info, "empty");
+          partition.info += "empty";
         else if (role == 0xfffe)
-          strcat(partition.info, "failed");
+          partition.info += "failed";
         else
-          sprintf(&partition.info[strlen(partition.info)], "%d", role);
+          partition.info += std::to_string(role);
       }
-      strcat(partition.info, ")");
+      partition.info += ")";
     }
 #endif
   }

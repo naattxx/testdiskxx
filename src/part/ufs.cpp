@@ -172,22 +172,22 @@ auto recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
   default: /* BUG if hit*/
     break;
   }
-  if (strcmp(partition.fsname, "/") == 0)
+  if (partition.fsname == "/")
   {
     partition.part_type_sun = static_cast<unsigned char>(PSUN_ROOT);
     partition.part_type_gpt = GPT_ENT_TYPE_SOLARIS_ROOT;
   }
-  else if (strcmp(partition.fsname, "/var") == 0)
+  else if (partition.fsname == "/var")
   {
     partition.part_type_sun = static_cast<unsigned char>(PSUN_VAR);
     partition.part_type_gpt = GPT_ENT_TYPE_SOLARIS_VAR;
   }
-  else if (strcmp(partition.fsname, "/usr") == 0)
+  else if (partition.fsname == "/usr")
   {
     partition.part_type_sun = static_cast<unsigned char>(PSUN_USR);
     partition.part_type_gpt = GPT_ENT_TYPE_SOLARIS_USR;
   }
-  else if (strcmp(partition.fsname, "/export/home") == 0)
+  else if (partition.fsname == "/export/home")
   {
     partition.part_type_sun = static_cast<unsigned char>(PSUN_HOME);
     partition.part_type_gpt = GPT_ENT_TYPE_SOLARIS_HOME;
@@ -213,8 +213,7 @@ static void set_ufs_info(const struct ufs_super_block *sb,
         reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
         sizeof(sb->fs_u11.fs_u1.fs_fsmnt)
     );
-    snprintf(partition.info, sizeof(partition.info), "UFS1 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("UFS1 blocksize={}", partition.blocksize);
   }
   if (be32(sb->fs_magic) == UFS_MAGIC)
   {
@@ -224,8 +223,7 @@ static void set_ufs_info(const struct ufs_super_block *sb,
         reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
         sizeof(sb->fs_u11.fs_u1.fs_fsmnt)
     );
-    snprintf(partition.info, sizeof(partition.info), "UFS1 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("UFS1 blocksize={}", partition.blocksize);
   }
   if (le32(sb->fs_magic) == UFS2_MAGIC)
   {
@@ -235,8 +233,7 @@ static void set_ufs_info(const struct ufs_super_block *sb,
         reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
         sizeof(sb->fs_u11.fs_u2.fs_fsmnt)
     );
-    snprintf(partition.info, sizeof(partition.info), "UFS2 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("UFS2 blocksize={}", partition.blocksize);
   }
   if (be32(sb->fs_magic) == UFS2_MAGIC)
   {
@@ -246,7 +243,6 @@ static void set_ufs_info(const struct ufs_super_block *sb,
         reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
         sizeof(sb->fs_u11.fs_u2.fs_fsmnt)
     );
-    snprintf(partition.info, sizeof(partition.info), "UFS2 blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("UFS2 blocksize={}", partition.blocksize);
   }
 }

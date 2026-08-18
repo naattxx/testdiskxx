@@ -136,7 +136,7 @@ struct [[gnu::gcc_struct, gnu::packed]] TD_INDEX_HEADER
                                    /*
                                       For the index root attribute, the above two numbers are always
                                       equal, as the attribute is resident and it is resized as needed.
-
+                                 
                                       For the index allocation attribute, the attribute is not resident
                                       and the allocated_size is equal to the index_block_size specified
                                       by the corresponding INDEX_ROOT attribute minus the INDEX_BLOCK

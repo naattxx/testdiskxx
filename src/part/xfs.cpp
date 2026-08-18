@@ -36,38 +36,37 @@ static void set_xfs_info(const struct xfs_sb *sb, partition_t &partition)
 {
   const unsigned int version = be16(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS;
   partition.blocksize        = be32(sb->sb_blocksize);
-  partition.fsname[0]        = '\0';
-  partition.info[0]          = '\0';
+  partition.fsname.clear();
+  partition.info.clear();
   switch (version)
   {
   case XFS_SB_VERSION_1:
     partition.upart_type = UP_XFS;
-    snprintf(partition.info, sizeof(partition.info), "XFS <=6.1, blocksize=%u",
-             partition.blocksize);
+    partition.info =
+        std::format("XFS <=6.1, blocksize={}", partition.blocksize);
     break;
   case XFS_SB_VERSION_2:
     partition.upart_type = UP_XFS2;
-    snprintf(partition.info, sizeof(partition.info),
-             "XFS 6.2 - attributes, blocksize=%u", partition.blocksize);
+    partition.info =
+        std::format("XFS 6.2 - attributes, blocksize={}", partition.blocksize);
     break;
   case XFS_SB_VERSION_3:
     partition.upart_type = UP_XFS3;
-    snprintf(partition.info, sizeof(partition.info),
-             "XFS 6.2 - new inode version, blocksize=%u", partition.blocksize);
+    partition.info = std::format("XFS 6.2 - new inode version, blocksize={}",
+                                 partition.blocksize);
     break;
   case XFS_SB_VERSION_4:
     partition.upart_type = UP_XFS4;
-    snprintf(partition.info, sizeof(partition.info),
-             "XFS 6.2+ - bitmap version, blocksize=%u", partition.blocksize);
+    partition.info = std::format("XFS 6.2+ - bitmap version, blocksize={}",
+                                 partition.blocksize);
     break;
   case XFS_SB_VERSION_5:
     partition.upart_type = UP_XFS5;
-    snprintf(partition.info, sizeof(partition.info),
-             "XFS CRC enabled, blocksize=%u", partition.blocksize);
+    partition.info =
+        std::format("XFS CRC enabled, blocksize={}", partition.blocksize);
     break;
   default:
-    snprintf(partition.info, sizeof(partition.info), "XFS unknown version %u\n",
-             version);
+    partition.info = std::format("XFS unknown version {}", version);
     break;
   }
   partition.set_name(sb->sb_fname, 12);

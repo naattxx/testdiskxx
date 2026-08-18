@@ -147,12 +147,10 @@ static void set_NTFS_info(disk_t &disk_car,
   partition.blocksize =
       ntfs_header->sectors_per_cluster * ntfs_sector_size(ntfs_header);
   if (partition.sb_offset == 0)
-    snprintf(partition.info, sizeof(partition.info), "NTFS, blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("NTFS, blocksize={}", partition.blocksize);
   else
-    snprintf(partition.info, sizeof(partition.info),
-             "NTFS found using backup sector, blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("NTFS found using backup sector, blocksize={}",
+                                 partition.blocksize);
   ntfs_get_volume_name(disk_car, partition, ntfs_header);
 }
 
@@ -448,7 +446,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
         delete[] (buffer);
         return;
       }
-      for (dest = partition.fsname;
+      for (dest = partition.fsname.data();
            volume_name_length > 0 && *name_it != '\0' && name_it[1] == '\0';
            name_it += 2, volume_name_length--)
         *dest++ = *name_it;

@@ -174,8 +174,7 @@ static void set_FAT_info(disk_t &disk_car,
   if (no_of_cluster < 4085)
   {
     partition.upart_type = UP_FAT12;
-    snprintf(partition.info, sizeof(partition.info), "FAT12, blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("FAT12, blocksize={}", partition.blocksize);
     if (buffer[38] == 0x29) /* BS_BootSig */
     {
       partition.set_name_chomp(buffer + FAT1X_PART_NAME, 11);
@@ -186,8 +185,7 @@ static void set_FAT_info(disk_t &disk_car,
   else if (no_of_cluster < 65525)
   {
     partition.upart_type = UP_FAT16;
-    snprintf(partition.info, sizeof(partition.info), "FAT16, blocksize=%u",
-             partition.blocksize);
+    partition.info = std::format("FAT16, blocksize={}", partition.blocksize);
     if (buffer[38] == 0x29) /* BS_BootSig */
     {
       partition.set_name_chomp(buffer + FAT1X_PART_NAME, 11);
@@ -199,12 +197,11 @@ static void set_FAT_info(disk_t &disk_car,
   {
     partition.upart_type = UP_FAT32;
     if (partition.sb_offset == 0)
-      snprintf(partition.info, sizeof(partition.info), "FAT32, blocksize=%u",
-               partition.blocksize);
+      partition.info = std::format("FAT32, blocksize={}", partition.blocksize);
     else
-      snprintf(partition.info, sizeof(partition.info),
-               "FAT32 found using backup sector, blocksize=%u",
-               partition.blocksize);
+      partition.info =
+          std::format("FAT32 found using backup sector, blocksize={}",
+                      partition.blocksize);
     fat32_set_part_name(disk_car, partition, fat_header);
   }
 }
@@ -1255,14 +1252,14 @@ auto recover_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
 #endif
     return 1;
   }
-  if (memcmp(partition.fsname, "EFI", 4) == 0)
+  if (partition.fsname.starts_with("EFI"))
     efi = 1;
   if (efi == 0)
     efi = fat_has_EFI_entry(disk_car, partition, verbose);
   if (efi)
   {
     partition.part_type_gpt = GPT_ENT_TYPE_EFI;
-    strcpy(partition.partname, "EFI System Partition");
+    partition.partname      = "EFI System Partition";
   }
   return 0;
 }
@@ -1489,7 +1486,7 @@ auto fat32_free_info(disk_t &disk_car, const partition_t &partition,
   return 0;
 }
 
-auto check_VFAT_volume_name(const char *name, const unsigned int max_size)
+auto check_VFAT_volume_name(std::string_view name, const unsigned int max_size)
     -> int
 {
   unsigned int i;
