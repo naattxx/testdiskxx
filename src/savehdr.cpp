@@ -20,13 +20,13 @@
 
  */
 #include <print>
-#include <string.h>
-#include <time.h>
+#include <cstring>
+#include <ctime>
 #if __has_include(<sys/time.h>)
 #include <sys/time.h>
 #endif
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <cerrno>
 // #include "types.h"
 #include "common.hpp"
@@ -35,7 +35,7 @@
 #include "savehdr.hpp"
 #define BACKUP_MAXSIZE 5120
 
-int save_header(disk_t &disk_car, const partition_t &partition, const int verbose)
+auto save_header(disk_t &disk_car, const partition_t &partition, const int verbose) -> int
 {
     unsigned char *buffer;
     FILE *f_backup;
@@ -75,15 +75,15 @@ int save_header(disk_t &disk_car, const partition_t &partition, const int verbos
             status = 'D';
             break;
         }
-        snprintf((char *)buffer, 256 * DEFAULT_SECTOR_SIZE, "%s\n%2u %c Sys=%02X %5u %3u %2u %5u %3u %2u %10lu\n",
+        snprintf(reinterpret_cast<char *>(buffer), 256 * DEFAULT_SECTOR_SIZE, "%s\n%2u %c Sys=%02X %5u %3u %2u %5u %3u %2u %10lu\n",
                  disk_car.description(disk_car), partition.order, status,
-                 (disk_car.arch->get_part_type != NULL ? disk_car.arch->get_part_type(partition) : 0),
+                 (disk_car.arch->get_part_type != nullptr ? disk_car.arch->get_part_type(partition) : 0),
                  offset2cylinder(disk_car, partition.part_offset), offset2head(disk_car, partition.part_offset),
                  offset2sector(disk_car, partition.part_offset),
                  offset2cylinder(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
                  offset2head(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
                  offset2sector(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
-                 (unsigned long)(partition.part_size / disk_car.sector_size));
+                 static_cast<unsigned long>(partition.part_size / disk_car.sector_size));
     }
     if (fwrite(buffer, DEFAULT_SECTOR_SIZE, 1, f_backup) != 1)
         res = -1;
@@ -97,13 +97,13 @@ int save_header(disk_t &disk_car, const partition_t &partition, const int verbos
     return res;
 }
 
-backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
+auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_list_t
 {
     FILE *f_backup;
     char *buffer;
-    char *pos = NULL;
+    char *pos = nullptr;
     int taille;
-    backup_disk_t *new_backup = NULL;
+    backup_disk_t *new_backup = nullptr;
     backup_disk_list_t list_backup;
 
     if (verbose > 1)
@@ -131,7 +131,7 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
         }
     }
     pos = buffer;
-    while (pos != NULL && pos < buffer + taille)
+    while (pos != nullptr && pos < buffer + taille)
     {
         if (*pos == '#')
         {
@@ -140,18 +140,18 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
             {
                 // log_verbose("new disk: {}",pos);
             }
-            if (new_backup != NULL)
+            if (new_backup != nullptr)
                 list_backup.push_front(new_backup);
             new_backup = new backup_disk_t;
             new_backup->description[0] = '\0';
             new_backup->my_time = strtol(pos, &pos, 10);
-            if (pos != NULL)
+            if (pos != nullptr)
             {
                 strncpy(new_backup->description, ++pos, sizeof(new_backup->description));
                 new_backup->description[sizeof(new_backup->description) - 1] = '\0';
             }
         }
-        else if (new_backup != NULL)
+        else if (new_backup != nullptr)
         {
             partition_t new_partition(disk_car.arch);
             char status;
@@ -165,9 +165,9 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
             if (sscanf(pos, "%2u : start=%10lu, size=%10lu, Id=%02X, %c\n", &new_partition.order, &part_offset,
                        &part_size, &part_type, &status) == 5)
             {
-                new_partition.part_offset = (uint64_t)part_offset * disk_car.sector_size;
-                new_partition.part_size = (uint64_t)part_size * disk_car.sector_size;
-                if (disk_car.arch->set_part_type != NULL)
+                new_partition.part_offset = static_cast<uint64_t>(part_offset) * disk_car.sector_size;
+                new_partition.part_size = static_cast<uint64_t>(part_size) * disk_car.sector_size;
+                if (disk_car.arch->set_part_type != nullptr)
                     disk_car.arch->set_part_type(new_partition, part_type);
                 switch (status)
                 {
@@ -192,24 +192,24 @@ backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose)
             else
             {
                 log_critical("partition_load: sscanf failed\n");
-                pos = NULL;
+                pos = nullptr;
             }
         }
-        if (pos != NULL)
+        if (pos != nullptr)
         {
             while (*pos != '\0' && pos < buffer + taille)
                 pos++;
             pos++;
         }
     }
-    if (new_backup != NULL)
+    if (new_backup != nullptr)
         list_backup.push_front(new_backup);
     fclose(f_backup);
     delete[] (buffer);
     return list_backup;
 }
 
-int partition_save(disk_t &disk_car, const list_part_t &list_part, const int verbose)
+auto partition_save(disk_t &disk_car, const list_part_t &list_part, const int verbose) -> int
 {
     FILE *f_backup;
     if (verbose > 0)
@@ -222,7 +222,7 @@ int partition_save(disk_t &disk_car, const list_part_t &list_part, const int ver
         log_critical("Can't create backup.log file: {}\n", strerror(errno));
         return -1;
     }
-    std::println(f_backup, "#{} {}", (unsigned long int)time(NULL), disk_car.description(disk_car));
+    std::println(f_backup, "#{} {}", static_cast<unsigned long int>(time(nullptr)), disk_car.description(disk_car));
     for (const partition_t &partition : list_part)
     {
         char status = 'D';
@@ -249,9 +249,9 @@ int partition_save(disk_t &disk_car, const list_part_t &list_part, const int ver
         }
         std::println(f_backup, "{:2} : start={:9}, size={:9}, Id={:02X}, {}",
                 (partition.order < 100 ? partition.order : 0),
-                (unsigned long)(partition.part_offset / disk_car.sector_size),
-                (unsigned long)(partition.part_size / disk_car.sector_size),
-                (disk_car.arch->get_part_type != NULL ? disk_car.arch->get_part_type(partition) : 0), status);
+                static_cast<unsigned long>(partition.part_offset / disk_car.sector_size),
+                static_cast<unsigned long>(partition.part_size / disk_car.sector_size),
+                (disk_car.arch->get_part_type != nullptr ? disk_car.arch->get_part_type(partition) : 0), status);
     }
     fclose(f_backup);
     return 0;

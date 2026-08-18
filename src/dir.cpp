@@ -23,10 +23,10 @@
 #undef HAVE_CHMOD
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -50,7 +50,7 @@ const char *monstr[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", 
   @ terminates \true;
   @ assigns \result;
   @*/
-static char ftypelet(unsigned int bits)
+static auto ftypelet(unsigned int bits) -> char
 {
 #ifdef LINUX_S_ISBLK
     if (LINUX_S_ISBLK(bits))
@@ -150,7 +150,7 @@ void mode_string(const unsigned int mode, char *str)
 #endif
 }
 
-int set_datestr(char *datestr, size_t n, const time_t timev)
+auto set_datestr(char *datestr, size_t n, const time_t timev) -> int
 {
     const struct tm *tm_p;
 #if !defined(__MINGW32__)
@@ -166,7 +166,7 @@ int set_datestr(char *datestr, size_t n, const time_t timev)
 #else
     tm_p = localtime_r(&timev, &tmp);
 #endif
-    if (tm_p == NULL)
+    if (tm_p == nullptr)
     {
         strncpy(datestr, "                 ", n);
         return 0;
@@ -178,10 +178,10 @@ int set_datestr(char *datestr, size_t n, const time_t timev)
     return 0;
 }
 
-int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
+auto dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list) -> int
 {
     int test_date = 0;
-    if (dir_data != NULL)
+    if (dir_data != nullptr)
     {
         log_info("Directory {}", dir_data->current_directory);
     }
@@ -190,7 +190,7 @@ int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
         {
         char datestr[80];
         char str[11];
-        test_date = set_datestr((char *)&datestr, sizeof(datestr), current_file.td_mtime);
+        test_date = set_datestr(reinterpret_cast<char *>(&datestr), sizeof(datestr), current_file.td_mtime);
         mode_string(current_file.st_mode, str);
         if ((current_file.status & FILE_STATUS_DELETED) != 0)
             log_info("X");
@@ -199,7 +199,7 @@ int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list)
         log_info("{:7} {} {:5}  {:5} {:9} {} ", (unsigned long int)current_file.st_ino, str,
                  (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid,
                  (long long unsigned int)current_file.st_size, datestr);
-        if (dir_data != NULL && (dir_data->param & FLAG_LIST_PATHNAME) != 0)
+        if (dir_data != nullptr && (dir_data->param & FLAG_LIST_PATHNAME) != 0)
         {
             if (dir_data->current_directory[1] != '\0')
                 log_info("{}/", dir_data->current_directory);
@@ -217,7 +217,7 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
 {
 #ifndef DISABLED_FOR_FRAMAC
     log_partition(disk, partition);
-    if (dir_data != NULL)
+    if (dir_data != nullptr)
     {
         log_info("Directory {}", dir_data->current_directory);
     }
@@ -229,7 +229,7 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
             log_info("X");
         else
             log_info(" ");
-        set_datestr((char *)&datestr, sizeof(datestr), current_file.td_mtime);
+        set_datestr(reinterpret_cast<char *>(&datestr), sizeof(datestr), current_file.td_mtime);
         mode_string(current_file.st_mode, str);
         log_info("{:7} ", (unsigned long int)current_file.st_ino);
         log_info("{} {:5} {:5} ", str, (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid);
@@ -239,7 +239,7 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
 #endif
 }
 
-unsigned int delete_list_file(dir_list_t &dir_list)
+auto delete_list_file(dir_list_t &dir_list) -> unsigned int
 {
     unsigned int nbr = 0;
 #ifndef DISABLED_FOR_FRAMAC
@@ -257,8 +257,8 @@ unsigned int delete_list_file(dir_list_t &dir_list)
   @ requires \valid_read(inode_known + (0 .. dir_nbr-1));
   @ assigns \nothing;
   @*/
-static int is_inode_valid(const file_info_t &current_file, const unsigned int dir_nbr,
-                          const unsigned long int *inode_known)
+static auto is_inode_valid(const file_info_t &current_file, const unsigned int dir_nbr,
+                          const unsigned long int *inode_known) -> int
 {
     const unsigned long int new_inode = current_file.st_ino;
     unsigned int i;
@@ -285,8 +285,8 @@ static int is_inode_valid(const file_info_t &current_file, const unsigned int di
   @ requires \separated(disk, partition, dir_data);
   @ decreases 0;
   @*/
-static int dir_whole_partition_log_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
-                                       const unsigned long int inode)
+static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
+                                       const unsigned long int inode) -> int
 {
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
@@ -319,8 +319,8 @@ static int dir_whole_partition_log_aux(disk_t &disk, const partition_t &partitio
     return 0;
 }
 
-int dir_whole_partition_log(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
-                            const unsigned long int inode)
+auto dir_whole_partition_log(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
+                            const unsigned long int inode) -> int
 {
     log_partition(disk, partition);
     return dir_whole_partition_log_aux(disk, partition, dir_data, inode);
@@ -337,8 +337,8 @@ int dir_whole_partition_log(disk_t &disk, const partition_t &partition, dir_data
   @ requires \separated(disk, partition, dir_data, copy_ok, copy_bad);
   @ decreases 0;
   @*/
-static int dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
-                                        const unsigned long int inode, unsigned int *copy_ok, unsigned int *copy_bad)
+static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
+                                        const unsigned long int inode, unsigned int *copy_ok, unsigned int *copy_bad) -> int
 {
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
@@ -400,7 +400,7 @@ void dir_whole_partition_copy(disk_t &disk, const partition_t &partition, dir_da
     log_info("Copy done! {} ok, {} failed", copy_ok, copy_bad);
 }
 
-bool filesort(const struct file_info_t &file_a, const struct file_info_t &file_b)
+auto filesort(const struct file_info_t &file_a, const struct file_info_t &file_b) -> bool
 {
     /* . and .. must listed before the other directories */
     /* Directories must be listed before files */
@@ -430,39 +430,39 @@ static struct
     mode_t mask;
 } mode_table[] = {
 #ifdef S_IRUSR
-    {LINUX_S_IRUSR, S_IRUSR},
+    {.lmask=LINUX_S_IRUSR, .mask=S_IRUSR},
 #endif
 #ifdef S_IWUSR
-    {LINUX_S_IWUSR, S_IWUSR},
+    {.lmask=LINUX_S_IWUSR, .mask=S_IWUSR},
 #endif
 #ifdef S_IXUSR
-    {LINUX_S_IXUSR, S_IXUSR},
+    {.lmask=LINUX_S_IXUSR, .mask=S_IXUSR},
 #endif
 #ifdef S_IRGRP
-    {LINUX_S_IRGRP, S_IRGRP},
+    {.lmask=LINUX_S_IRGRP, .mask=S_IRGRP},
 #endif
 #ifdef S_IWGRP
-    {LINUX_S_IWGRP, S_IWGRP},
+    {.lmask=LINUX_S_IWGRP, .mask=S_IWGRP},
 #endif
 #ifdef S_IXGRP
-    {LINUX_S_IXGRP, S_IXGRP},
+    {.lmask=LINUX_S_IXGRP, .mask=S_IXGRP},
 #endif
 #ifdef S_IROTH
-    {LINUX_S_IROTH, S_IROTH},
+    {.lmask=LINUX_S_IROTH, .mask=S_IROTH},
 #endif
 #ifdef S_IWOTH
-    {LINUX_S_IWOTH, S_IWOTH},
+    {.lmask=LINUX_S_IWOTH, .mask=S_IWOTH},
 #endif
 #ifdef S_IXOTH
-    {LINUX_S_IXOTH, S_IXOTH},
+    {.lmask=LINUX_S_IXOTH, .mask=S_IXOTH},
 #endif
-    {0, 0}};
+    {.lmask=0, .mask=0}};
 
 /*@
   @ assigns \nothing;
   @*/
 [[maybe_unused]]
-static mode_t mode_xlate(unsigned int lmode)
+static auto mode_xlate(unsigned int lmode) -> mode_t
 {
     unsigned int i;
     mode_t mode = 0;
@@ -488,7 +488,7 @@ static mode_t mode_xlate(unsigned int lmode)
  * Return:  0  Success, set the file's mode
  *	    -1  Error, failed to change the file's mode
  */
-int set_mode(const char *pathname, unsigned int mode)
+auto set_mode(const char *pathname, unsigned int mode) -> int
 {
 #if defined(HAVE_CHMOD) && !(defined(__CYGWIN__) || defined(__MINGW32__) || defined(DJGPP) || defined(__OS2__))
     return chmod(pathname, mode_xlate(mode));
@@ -681,7 +681,7 @@ static unsigned int filename_convert(char *dst, const char *src, const unsigned 
   @ requires \valid_read(src + (0 .. n-1));
   @ requires \separated(dst + (..), src + (..));
   @*/
-static unsigned int filename_convert(char *dst, const char *src, const unsigned int n)
+static auto filename_convert(char *dst, const char *src, const unsigned int n) -> unsigned int
 {
     unsigned int i;
     /*@
@@ -695,7 +695,7 @@ static unsigned int filename_convert(char *dst, const char *src, const unsigned 
 }
 #endif
 
-char *gen_local_filename(const char *filename)
+auto gen_local_filename(const char *filename) -> char *
 {
     const int l = strlen(filename);
     char *dst = new char[l + 1];
@@ -707,17 +707,17 @@ char *gen_local_filename(const char *filename)
     return dst;
 }
 
-char *mkdir_local(const char *localroot, const char *pathname)
+auto mkdir_local(const char *localroot, const char *pathname) -> char *
 {
 #ifdef DISABLED_FOR_FRAMAC
     return NULL;
 #else
-    const int l1 = (localroot == NULL ? 0 : strlen(localroot));
+    const int l1 = (localroot == nullptr ? 0 : strlen(localroot));
     const int l2 = strlen(pathname);
     char *localdir = new char[l1 + l2 + 1];
     const char *src;
     char *dst;
-    if (localroot != NULL)
+    if (localroot != nullptr)
         memcpy(localdir, localroot, l1);
     memcpy(localdir + l1, pathname, l2 + 1);
 #ifdef __linux__
@@ -729,7 +729,7 @@ char *mkdir_local(const char *localroot, const char *pathname)
         return localdir;
 #endif
     /* Need to create the parent and maybe convert the pathname */
-    if (localroot != NULL)
+    if (localroot != nullptr)
         memcpy(localdir, localroot, l1);
     localdir[l1] = '\0';
     src = pathname;
@@ -781,15 +781,15 @@ void mkdir_local_for_file(const char *filename)
     char *sep;
     dir = strdup(filename);
     sep = strrchr(dir, '/');
-    if (sep != NULL)
+    if (sep != nullptr)
     {
         *sep = '\0';
-        delete[] mkdir_local(NULL, dir);
+        delete[] mkdir_local(nullptr, dir);
     }
     free(dir);
 }
 
-FILE *fopen_local(char **localfilename, const char *localroot, const char *filename)
+auto fopen_local(char **localfilename, const char *localroot, const char *filename) -> FILE *
 {
 #ifdef DISABLED_FOR_FRAMAC
     return NULL;

@@ -4,7 +4,7 @@
 
 using namespace spdlog;
 
-bool log_open(std::string &logfile, TD_LOG create_log)
+auto log_open(std::string &logfile, TD_LOG create_log) -> bool
 {
     if (create_log == TD_LOG::NONE)
         return false;

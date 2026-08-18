@@ -21,10 +21,10 @@
  */
 #include <config.h>
 #include <cstddef>
-#include <errno.h>
+#include <cerrno>
 #include <format>
 #include <optional>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <string_view>
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)

@@ -20,9 +20,10 @@
 
  */
 #include <cerrno>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <utility>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #include "io_redir.hpp"
@@ -30,7 +31,7 @@
 
 // #define DEBUG_IO_REDIR 1
 
-typedef struct struclist_redir_t list_redir_t;
+using list_redir_t = struct struclist_redir_t;
 struct struclist_redir_t
 {
     uint64_t org_offset;
@@ -54,7 +55,7 @@ struct info_io_redir
   @ requires separation: \separated(disk_car, (char *)buffer + (0 .. count-1));
   @ decreases 0;
   @*/
-static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset);
+static auto io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -63,19 +64,19 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
   @*/
 static void io_redir_clean(disk_t &disk_car);
 
-int io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsigned int size, const uint64_t new_offset,
-                       const void *mem)
+auto io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsigned int size, const uint64_t new_offset,
+                       const void *mem) -> int
 {
     if (disk_car.pread != &io_redir_pread)
     {
-        struct info_io_redir *data = new struct info_io_redir;
+        auto *data = new struct info_io_redir;
         disk_t old_disk_car = disk_car;
 #ifdef DEBUG_IO_REDIR
         log_trace("io_redir_add_redir: install functions org_offset={}, size={}, new_offset={}, mem={:p}",
                   (long long unsigned)org_offset, size, (long long unsigned)new_offset, mem);
 #endif
         data->disk_car = &old_disk_car;
-        data->list_redir = NULL;
+        data->list_redir = nullptr;
         disk_car.write_used = 0;
         disk_car.data = data;
         disk_car.description = old_disk_car.description;
@@ -84,14 +85,14 @@ int io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsign
         disk_car.clean = &io_redir_clean;
     }
     {
-        struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
-        list_redir_t *prev_redir = NULL;
+        auto *data = static_cast<struct info_io_redir *>(disk_car.data);
+        list_redir_t *prev_redir = nullptr;
         list_redir_t *current_redir;
         for (current_redir = data->list_redir;
-             (current_redir != NULL) && org_offset < current_redir->org_offset + current_redir->size;
+             (current_redir != nullptr) && org_offset < current_redir->org_offset + current_redir->size;
              current_redir = current_redir->next)
             prev_redir = current_redir;
-        if (current_redir != NULL && org_offset >= current_redir->org_offset)
+        if (current_redir != nullptr && org_offset >= current_redir->org_offset)
         {
             log_critical("io_redir_add_redir failed: already redirected\n");
             return 1;
@@ -107,7 +108,7 @@ int io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsign
             new_redir->new_offset = new_offset;
             new_redir->mem = mem;
             new_redir->next = current_redir;
-            if (prev_redir != NULL)
+            if (prev_redir != nullptr)
                 prev_redir->next = new_redir;
             else
                 data->list_redir = new_redir;
@@ -116,7 +117,7 @@ int io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsign
     return 0;
 }
 
-int io_redir_del_redir(disk_t &disk_car, uint64_t org_offset)
+auto io_redir_del_redir(disk_t &disk_car, uint64_t org_offset) -> int
 {
     if (disk_car.pread != &io_redir_pread)
     {
@@ -124,24 +125,24 @@ int io_redir_del_redir(disk_t &disk_car, uint64_t org_offset)
         return 1;
     }
     {
-        struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
+        auto *data = static_cast<struct info_io_redir *>(disk_car.data);
         list_redir_t *current_redir;
-        for (current_redir = data->list_redir; (current_redir != NULL) && org_offset != current_redir->org_offset;
+        for (current_redir = data->list_redir; (current_redir != nullptr) && org_offset != current_redir->org_offset;
              current_redir = current_redir->next)
             ;
-        if (current_redir != NULL)
+        if (current_redir != nullptr)
         {
 #ifdef DEBUG_IO_REDIR
             log_trace("io_redir_del_redir: remove redirection\n");
 #endif
-            if (current_redir->prev != NULL)
+            if (current_redir->prev != nullptr)
                 current_redir->prev->next = current_redir->next;
-            if (current_redir->next != NULL)
+            if (current_redir->next != nullptr)
                 current_redir->next->prev = current_redir->prev;
             if (data->list_redir == current_redir)
                 data->list_redir = current_redir->next;
             delete (current_redir);
-            if (data->list_redir == NULL)
+            if (data->list_redir == nullptr)
             {
 #ifdef DEBUG_IO_REDIR
                 log_trace("io_redir_del_redir: uninstall functions\n");
@@ -157,9 +158,9 @@ int io_redir_del_redir(disk_t &disk_car, uint64_t org_offset)
     }
 }
 
-static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset)
+static auto io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset) -> int
 {
-    struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
+    auto *data = static_cast<struct info_io_redir *>(disk_car.data);
     uint64_t current_offset = offset;
     unsigned int current_count = count;
     list_redir_t *current_redir;
@@ -171,11 +172,11 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
         unsigned int read_size;
         int res = 0;
         for (current_redir = data->list_redir;
-             (current_redir != NULL) &&
+             (current_redir != nullptr) &&
              !(current_redir->org_offset <= offset && offset < current_redir->org_offset + current_redir->size);
              current_redir = current_redir->next)
             ;
-        if (current_redir != NULL)
+        if (current_redir != nullptr)
         {
             if (current_redir->org_offset > current_offset)
             {
@@ -187,16 +188,16 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
                 res = data->disk_car->pread(*data->disk_car, buffer, read_size, current_offset);
                 current_count -= read_size;
                 current_offset += read_size;
-                buffer = (unsigned char *)buffer + read_size;
+                buffer = static_cast<unsigned char *>(buffer) + read_size;
             }
             /* Redirection */
             read_size = (current_count > current_redir->size ? current_redir->size : current_count);
-            if (current_redir->mem != NULL)
+            if (current_redir->mem != nullptr)
             {
 #ifdef DEBUG_IO_REDIR
                 log_trace("io_redir_pread: copy {} bytes from memory\n", read_size);
 #endif
-                memcpy(buffer, (const unsigned char *)current_redir->mem + current_offset - current_redir->org_offset,
+                memcpy(buffer, static_cast<const unsigned char *>(current_redir->mem) + current_offset - current_redir->org_offset,
                        read_size);
                 res = read_size;
             }
@@ -218,11 +219,11 @@ static int io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int cou
 #endif
             res = data->disk_car->pread(*data->disk_car, buffer, read_size, current_offset);
         }
-        if ((unsigned)res != read_size)
+        if (std::cmp_not_equal(res, read_size))
             return res;
         current_count -= read_size;
         current_offset += read_size;
-        buffer = (unsigned char *)buffer + read_size;
+        buffer = static_cast<unsigned char *>(buffer) + read_size;
     }
     return count;
 }
@@ -231,10 +232,10 @@ static void io_redir_clean(disk_t &disk_car)
 {
     if (disk_car.data)
     {
-        struct info_io_redir *data = (struct info_io_redir *)disk_car.data;
+        auto *data = static_cast<struct info_io_redir *>(disk_car.data);
         data->disk_car->clean(*data->disk_car);
         delete (data->disk_car);
-        delete (struct info_io_redir *)disk_car.data;
-        disk_car.data = NULL;
+        delete static_cast<struct info_io_redir *>(disk_car.data);
+        disk_car.data = nullptr;
     }
 }

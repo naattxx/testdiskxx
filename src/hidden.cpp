@@ -20,13 +20,13 @@
 
  */
 
-#include <stdio.h>
+#include <cstdio>
 // #include "types.h"
 #include "common.hpp"
 #include "hidden.hpp"
 #include "log.hpp"
 
-int is_hpa_or_dco(const disk_t &disk)
+auto is_hpa_or_dco(const disk_t &disk) -> int
 {
     int res = 0;
     if (disk.native_max > 0 && disk.user_max < disk.native_max + 1)

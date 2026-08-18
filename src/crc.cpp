@@ -58,11 +58,11 @@ static const uint32_t crc32_tab[] = {
     0x24b4a3a6L, 0xbad03605L, 0xcdd70693L, 0x54de5729L, 0x23d967bfL, 0xb3667a2eL, 0xc4614ab8L, 0x5d681b02L, 0x2a6f2b94L,
     0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL, 0x2d02ef8dL};
 
-unsigned int get_crc32(const void *buf, const unsigned int len, const uint32_t seed)
+auto get_crc32(const void *buf, const unsigned int len, const uint32_t seed) -> unsigned int
 {
     unsigned int i;
     uint32_t crc32val;
-    const unsigned char *s = (const unsigned char *)buf;
+    const auto *s = static_cast<const unsigned char *>(buf);
     /*@ assert \valid_read(s + (0 .. len-1)); */
     crc32val = seed;
     /*@
@@ -75,7 +75,7 @@ unsigned int get_crc32(const void *buf, const unsigned int len, const uint32_t s
         /*@ assert i < len; */
         crc32val = crc32_tab[(crc32val ^ s[i]) & 0xff] ^ (crc32val >> 8);
     }
-    return (unsigned int)crc32val;
+    return static_cast<unsigned int>(crc32val);
 }
 
 #if 0

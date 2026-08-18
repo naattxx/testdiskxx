@@ -22,15 +22,15 @@
 #include <algorithm>
 #include <config.h>
 
-#include <assert.h>
+#include <cassert>
 #include <cstddef>
-#include <ctype.h>
+#include <cctype>
 #include <iterator>
 #include <list>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #include "intrf.hpp"
@@ -75,7 +75,7 @@ extern const arch_fnct_t arch_xbox;
 
 #define DEFAULT_IMAGE_NAME "image.dd"
 
-static int is_part_hfs(const partition_t &partition)
+static auto is_part_hfs(const partition_t &partition) -> int
 {
     if (partition.part_type_i386 == P_HFS || partition.part_type_mac == PMAC_HFS)
         return 1;
@@ -84,7 +84,7 @@ static int is_part_hfs(const partition_t &partition)
     return 0;
 }
 
-static int is_part_hfsp(const partition_t &partition)
+static auto is_part_hfsp(const partition_t &partition) -> int
 {
     if (partition.part_type_i386 == P_HFSP || partition.part_type_mac == PMAC_HFS)
         return 1;
@@ -93,7 +93,7 @@ static int is_part_hfsp(const partition_t &partition)
     return 0;
 }
 
-int is_part_linux(const partition_t &partition)
+auto is_part_linux(const partition_t &partition) -> int
 {
     if (partition.arch == &arch_i386 && partition.part_type_i386 == P_LINUX)
         return 1;
@@ -108,22 +108,22 @@ int is_part_linux(const partition_t &partition)
     return 0;
 }
 
-static int is_exfat(const partition_t &partition)
+static auto is_exfat(const partition_t &partition) -> int
 {
     return (is_part_ntfs(partition) || partition.upart_type == UP_EXFAT);
 }
 
-static int is_hfs(const partition_t &partition)
+static auto is_hfs(const partition_t &partition) -> int
 {
     return (is_part_hfs(partition) || partition.upart_type == UP_HFS);
 }
 
-static int is_hfsp(const partition_t &partition)
+static auto is_hfsp(const partition_t &partition) -> int
 {
     return (is_part_hfsp(partition) || partition.upart_type == UP_HFSP || partition.upart_type == UP_HFSX);
 }
 
-static int is_linux(const partition_t &partition)
+static auto is_linux(const partition_t &partition) -> int
 {
     if (is_part_linux(partition))
         return 1;
@@ -197,11 +197,11 @@ static void interface_adv_ncurses(disk_t &disk, const int rewrite, list_part_t *
 }
 #endif
 
-static int adv_string_to_command(char **current_cmd, std::list<partition_t>::iterator current_element, list_part_t &list_part)
+static auto adv_string_to_command(char **current_cmd, std::list<partition_t>::iterator current_element, list_part_t &list_part) -> int
 {
     int keep_asking;
     int command = 'q';
-    assert(current_cmd != NULL);
+    assert(current_cmd != nullptr);
     do
     {
         keep_asking = 0;
@@ -237,7 +237,7 @@ static int adv_string_to_command(char **current_cmd, std::list<partition_t>::ite
         else if (isdigit(*current_cmd[0]))
         {
             const unsigned int order = get_int_from_command(current_cmd);
-            current_element = std::find_if(list_part.begin(), list_part.end(), [&](const partition_t &element) {
+            current_element = std::ranges::find_if(list_part, [&](const partition_t &element) -> bool {
                 return element.order == order;
             });
             if (current_element != list_part.end())
@@ -310,8 +310,8 @@ static const char *adv_get_options_for_partition(const partition_t &partition)
 }
 #endif
 
-static int adv_menu_boot_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
-                                  const unsigned int expert, char **current_cmd)
+static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
+                                  const unsigned int expert, char **current_cmd) -> int
 {
     if (is_part_fat32(partition))
     {
@@ -388,7 +388,7 @@ static void adv_menu_undelete_selected(disk_t &disk, const partition_t &partitio
     if (partition.sb_offset != 0 && partition.sb_size > 0)
     {
         io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset, partition.sb_size,
-                           partition.part_offset + partition.sb_offset, NULL);
+                           partition.part_offset + partition.sb_offset, nullptr);
         if (partition.upart_type == UP_NTFS || (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
             ntfs_undelete_part(disk, partition, verbose, current_cmd);
         else
@@ -410,7 +410,7 @@ static void adv_menu_list_selected(disk_t &disk, const partition_t &partition, c
     if (partition.sb_offset != 0 && partition.sb_size > 0)
     {
         io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset, partition.sb_size,
-                           partition.part_offset + partition.sb_offset, NULL);
+                           partition.part_offset + partition.sb_offset, nullptr);
         dir_partition(disk, partition, verbose, expert, current_cmd);
         io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
     }
@@ -443,13 +443,13 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
     unsigned int menu = 0;
     list_part_t list_part;
     std::list<partition_t>::iterator current_element;
-    assert(current_cmd != NULL);
+    assert(current_cmd != nullptr);
     log_info("\nInterface Advanced\n");
     list_part = disk_car.arch->read_part(disk_car, verbose, 0);
     /*@ assert valid_list_part(list_part); */
     current_element = list_part.begin();
     log_all_partitions(disk_car, list_part);
-    while (1)
+    while (true)
     {
         int command;
 #ifdef HAVE_NCURSES
@@ -482,7 +482,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
             menuAdv[2].desc = adv_get_boot_description(*current_element);
 #endif
         }
-        if (*current_cmd != NULL)
+        if (*current_cmd != nullptr)
         {
             command = adv_string_to_command(current_cmd, current_element, list_part);
         }
@@ -505,7 +505,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
             if (disk_car.arch != &arch_none)
             {
                 current_element = list_part.end();
-                if (*current_cmd != NULL)
+                if (*current_cmd != nullptr)
                     add_partition_cli(disk_car, list_part, current_cmd);
 #ifdef HAVE_NCURSES
                 else
@@ -590,7 +590,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
                 break;
             case 't':
             case 'T':
-                if (*current_cmd != NULL)
+                if (*current_cmd != nullptr)
                     change_part_type_cli(disk_car, *current_element, current_cmd);
 #ifdef HAVE_NCURSES
                 else

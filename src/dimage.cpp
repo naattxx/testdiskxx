@@ -22,8 +22,8 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -33,10 +33,11 @@
 #if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
-#include <assert.h>
+#include <cassert>
 #include <cerrno>
+#include <utility>
 #include <fcntl.h>
-#include <string.h>
+#include <cstring>
 #if defined(__FRAMAC__)
 #include "__fc_builtin.h"
 #endif
@@ -62,12 +63,12 @@ static void disk_image_backward(int disk_dst, disk_t &disk, const uint64_t src_o
                                 const uint64_t src_offset_end, uint64_t dst_offset)
 {
     uint64_t src_offset;
-    unsigned char *buffer = new unsigned char[disk.sector_size];
+    auto *buffer = new unsigned char[disk.sector_size];
     for (src_offset = src_offset_end - disk.sector_size; src_offset > src_offset_start;
          src_offset -= disk.sector_size, dst_offset -= disk.sector_size)
     {
         const ssize_t pread_res = disk.pread(disk, buffer, disk.sector_size, src_offset);
-        if ((unsigned)pread_res != disk.sector_size)
+        if (std::cmp_not_equal(pread_res, disk.sector_size))
         {
             delete[] (buffer);
             return;
@@ -94,7 +95,7 @@ static void disk_image_backward(int disk_dst, disk_t &disk, const uint64_t src_o
     delete[] (buffer);
 }
 
-int disk_image(disk_t &disk, const partition_t &partition, const char *image_dd)
+auto disk_image(disk_t &disk, const partition_t &partition, const char *image_dd) -> int
 {
     int ind_stop = 0;
     uint64_t nbr_read_error = 0;
@@ -105,7 +106,7 @@ int disk_image(disk_t &disk, const partition_t &partition, const char *image_dd)
     const uint64_t offset_inc = (src_offset_end - src_offset) / 10000;
     uint64_t src_offset_next = src_offset;
     struct stat stat_buf;
-    unsigned char *buffer = new unsigned char[READ_SIZE];
+    auto *buffer = new unsigned char[READ_SIZE];
     unsigned int readsize = READ_SIZE;
     int disk_dst;
 #ifdef HAVE_PWRITE
@@ -205,7 +206,7 @@ int disk_image(disk_t &disk, const partition_t &partition, const char *image_dd)
             }
         }
         src_offset_old = src_offset;
-        if ((unsigned)pread_res == readsize)
+        if (std::cmp_equal(pread_res, readsize))
         {
             src_offset += readsize;
             dst_offset += readsize;

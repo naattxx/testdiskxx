@@ -22,9 +22,9 @@
 
 #include <config.h>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp"
@@ -32,31 +32,31 @@
 #include "log_part.hpp"
 // #include "guid_cpy.hpp"
 
-unsigned long int C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
+auto C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S) -> unsigned long int
 {
-    return ((unsigned long int)C * disk_car.geom.heads_per_cylinder + H) * disk_car.geom.sectors_per_head + S - 1;
+    return (static_cast<unsigned long int>(C) * disk_car.geom.heads_per_cylinder + H) * disk_car.geom.sectors_per_head + S - 1;
 }
 
-uint64_t CHS2offset(const disk_t &disk_car, const CHS_t *CHS)
+auto CHS2offset(const disk_t &disk_car, const CHS_t *CHS) -> uint64_t
 {
-    return (((uint64_t)CHS->cylinder * disk_car.geom.heads_per_cylinder + CHS->head) *
+    return ((static_cast<uint64_t>(CHS->cylinder) * disk_car.geom.heads_per_cylinder + CHS->head) *
                 disk_car.geom.sectors_per_head +
             CHS->sector - 1) *
            disk_car.sector_size;
     //  return (uint64_t)C_H_S2LBA(disk_car, CHS->cylinder, CHS->head, CHS->sector) * disk_car.sector_size;
 }
 
-unsigned int offset2sector(const disk_t &disk_car, const uint64_t offset)
+auto offset2sector(const disk_t &disk_car, const uint64_t offset) -> unsigned int
 {
     return ((offset / disk_car.sector_size) % disk_car.geom.sectors_per_head) + 1;
 }
 
-unsigned int offset2head(const disk_t &disk_car, const uint64_t offset)
+auto offset2head(const disk_t &disk_car, const uint64_t offset) -> unsigned int
 {
     return ((offset / disk_car.sector_size) / disk_car.geom.sectors_per_head) % disk_car.geom.heads_per_cylinder;
 }
 
-unsigned int offset2cylinder(const disk_t &disk_car, const uint64_t offset)
+auto offset2cylinder(const disk_t &disk_car, const uint64_t offset) -> unsigned int
 {
     return ((offset / disk_car.sector_size) / disk_car.geom.sectors_per_head) / disk_car.geom.heads_per_cylinder;
 }
@@ -76,7 +76,7 @@ void offset2CHS(const disk_t &disk_car, const uint64_t offset, CHS_t *CHS)
   @ requires valid_disk(disk);
   @ assigns \nothing;
   @*/
-static disk_t *search_disk(const list_disk_t &list_disk, const disk_t &disk)
+static auto search_disk(const list_disk_t &list_disk, const disk_t &disk) -> disk_t *
 {
     /*@
       @ loop assigns tmp;
@@ -175,7 +175,7 @@ void insert_new_partition(list_part_t &list_part, partition_t &new_partition, co
     }
 }
 
-int delete_list_disk(list_disk_t& list_disk)
+auto delete_list_disk(list_disk_t& list_disk) -> int
 {
     int write_used = 0;
     /*@
@@ -210,7 +210,7 @@ void sort_partition_list(list_part_t &list_part)
     list_part = new_list_part;
 }
 
-list_part_t gen_sorted_partition_list(const list_part_t &list_part)
+auto gen_sorted_partition_list(const list_part_t &list_part) -> list_part_t
 {
     list_part_t new_list_part;
     /*@ assert valid_list_part(new_list_part); */
@@ -231,7 +231,7 @@ list_part_t gen_sorted_partition_list(const list_part_t &list_part)
     return new_list_part;
 }
 
-int is_part_overlapping(const list_part_t &list_part)
+auto is_part_overlapping(const list_part_t &list_part) -> int
 {
 
     /* Test overlapping
@@ -244,7 +244,7 @@ int is_part_overlapping(const list_part_t &list_part)
       @ loop invariant \valid_read(element);
       @ loop assigns element;
       @*/
-    while (1)
+    while (true)
     {
         auto next = std::next(element);
         const partition_t &partition = *element;
@@ -307,7 +307,7 @@ int is_part_overlapping(const list_part_t &list_part)
 void partition_t::reset(const arch_fnct_t *arch)
 {
     /* lba=0; Don't reset lba, used by search_part */
-    part_size = (uint64_t)0;
+    part_size = static_cast<uint64_t>(0);
     sborg_offset = 0;
     sb_offset = 0;
     sb_size = 0;
@@ -316,7 +316,7 @@ void partition_t::reset(const arch_fnct_t *arch)
     part_type_sun = PSUN_UNK;
     part_type_mac = PMAC_UNK;
     part_type_xbox = PXBOX_UNK;
-    part_type_gpt = (const efi_guid_t)GPT_ENT_TYPE_UNUSED;
+    part_type_gpt = static_cast<const efi_guid_t>(GPT_ENT_TYPE_UNUSED);
 #ifndef DISABLED_FOR_FRAMAC
     part_uuid = GPT_ENT_TYPE_UNUSED;
     // guid_cpy(&part_uuid, &GPT_ENT_TYPE_UNUSED);
@@ -346,8 +346,8 @@ partition_t::partition_t(const arch_fnct_t *arch)
   @ requires \valid_read(list_part);
   @ assigns \nothing;
   @*/
-static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, const list_part_t &list_part,
-                                                    const int verbose)
+static auto get_geometry_from_list_part_aux(const disk_t &disk_car, const list_part_t &list_part,
+                                                    const int verbose) -> unsigned int
 {
     unsigned int nbr = 0;
     /*@
@@ -394,7 +394,7 @@ static unsigned int get_geometry_from_list_part_aux(const disk_t &disk_car, cons
     return nbr;
 }
 
-unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t &list_part, const int verbose)
+auto get_geometry_from_list_part(const disk_t &disk_car, const list_part_t &list_part, const int verbose) -> unsigned int
 {
     const unsigned int head_list[] = {8, 16, 32, 64, 128, 240, 255, 0};
     unsigned int best_score;
@@ -422,18 +422,18 @@ void size_to_unit(const uint64_t disk_size, char *buffer)
 #ifdef DISABLED_FOR_FRAMAC
     buffer[0] = '\0';
 #else
-    if (disk_size < (uint64_t)10 * 1024)
-        sprintf(buffer, "%u B", (unsigned)disk_size);
-    else if (disk_size < (uint64_t)10 * 1024 * 1024)
-        sprintf(buffer, "%u KB / %u KiB", (unsigned)(disk_size / 1000), (unsigned)(disk_size / 1024));
-    else if (disk_size < (uint64_t)10 * 1024 * 1024 * 1024)
-        sprintf(buffer, "%u MB / %u MiB", (unsigned)(disk_size / 1000 / 1000), (unsigned)(disk_size / 1024 / 1024));
-    else if (disk_size < (uint64_t)10 * 1024 * 1024 * 1024 * 1024)
-        sprintf(buffer, "%u GB / %u GiB", (unsigned)(disk_size / 1000 / 1000 / 1000),
-                (unsigned)(disk_size / 1024 / 1024 / 1024));
+    if (disk_size < static_cast<uint64_t>(10) * 1024)
+        sprintf(buffer, "%u B", static_cast<unsigned>(disk_size));
+    else if (disk_size < static_cast<uint64_t>(10) * 1024 * 1024)
+        sprintf(buffer, "%u KB / %u KiB", static_cast<unsigned>(disk_size / 1000), static_cast<unsigned>(disk_size / 1024));
+    else if (disk_size < static_cast<uint64_t>(10) * 1024 * 1024 * 1024)
+        sprintf(buffer, "%u MB / %u MiB", static_cast<unsigned>(disk_size / 1000 / 1000), static_cast<unsigned>(disk_size / 1024 / 1024));
+    else if (disk_size < static_cast<uint64_t>(10) * 1024 * 1024 * 1024 * 1024)
+        sprintf(buffer, "%u GB / %u GiB", static_cast<unsigned>(disk_size / 1000 / 1000 / 1000),
+                static_cast<unsigned>(disk_size / 1024 / 1024 / 1024));
     else
-        sprintf(buffer, "%u TB / %u TiB", (unsigned)(disk_size / 1000 / 1000 / 1000 / 1000),
-                (unsigned)(disk_size / 1024 / 1024 / 1024 / 1024));
+        sprintf(buffer, "%u TB / %u TiB", static_cast<unsigned>(disk_size / 1000 / 1000 / 1000 / 1000),
+                static_cast<unsigned>(disk_size / 1024 / 1024 / 1024 / 1024));
 #endif
 }
 

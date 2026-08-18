@@ -25,10 +25,10 @@
 #undef HAVE_GETCWD
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #if __has_include(<dirent.h>)
 #include <dirent.h>
 #endif
@@ -44,7 +44,7 @@
 #if __has_include(<sys/cygwin.h>)
 #include <sys/cygwin.h>
 #endif
-#include <stdarg.h>
+#include <cstdarg>
 // #include "types.h"
 #include "common.hpp"
 #include "intrf.hpp"
@@ -53,7 +53,7 @@
 #include "dir.hpp"
 #include "log.hpp"
 
-char *td_getcwd(char *buf, unsigned long size)
+auto td_getcwd(char *buf, unsigned long size) -> char *
 {
     /* buf must non-NULL*/
 #ifdef HAVE_GETCWD
@@ -72,7 +72,7 @@ char *td_getcwd(char *buf, unsigned long size)
     return buf;
 }
 
-char *get_default_location(void)
+auto get_default_location() -> char *
 {
     char dst_directory[4096];
     td_getcwd(dst_directory, sizeof(dst_directory));

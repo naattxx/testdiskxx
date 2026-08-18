@@ -21,9 +21,9 @@
  */
 #include <config.h>
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
 // #include "types.h"
 #include "chgtype.hpp"
 #include "common.hpp"
@@ -41,9 +41,9 @@ extern const arch_fnct_t arch_none;
   @ ensures  valid_read_string(*current_cmd);
   @*/
 // TODO assigns  *current_cmd;
-static int get_hex_from_command(char **current_cmd)
+static auto get_hex_from_command(char **current_cmd) -> int
 {
-    const int tmp = strtol(*current_cmd, NULL, 16);
+    const int tmp = strtol(*current_cmd, nullptr, 16);
     /*@
       @ loop invariant valid_read_string(*current_cmd);
       @ loop assigns *current_cmd;
@@ -56,8 +56,8 @@ static int get_hex_from_command(char **current_cmd)
 
 void change_part_type_cli(const disk_t &disk_car, partition_t &partition, char **current_cmd)
 {
-    assert(current_cmd != NULL);
-    if (*current_cmd == NULL || partition.arch == NULL)
+    assert(current_cmd != nullptr);
+    if (*current_cmd == nullptr || partition.arch == nullptr)
         return;
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
     if (partition.arch == &arch_gpt)
@@ -76,7 +76,7 @@ void change_part_type_cli(const disk_t &disk_car, partition_t &partition, char *
         return;
     }
 #endif
-    if (partition.arch->set_part_type == NULL)
+    if (partition.arch->set_part_type == nullptr)
         return;
     skip_comma_in_command(current_cmd);
     {

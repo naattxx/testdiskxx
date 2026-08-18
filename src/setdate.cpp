@@ -31,7 +31,7 @@
 #endif
 #include "log.hpp"
 #include "setdate.hpp"
-#include <stdio.h>
+#include <cstdio>
 
 /**
  * set_date - Set the file's date and time
@@ -44,7 +44,7 @@
  * Return:  0  Success, set the file's date and time
  *	    -1  Error, failed to change the file's date and time
  */
-int set_date(const char *pathname, time_t actime, time_t modtime)
+auto set_date(const char *pathname, time_t actime, time_t modtime) -> int
 {
 #if __has_include("utime.h")
     struct utimbuf ut;

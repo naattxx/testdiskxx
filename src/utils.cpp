@@ -5,7 +5,7 @@
 #endif
 #include "utils.hpp"
 
-bool isAdmin()
+auto isAdmin() -> bool
 {
     bool isAdmin = false;
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)

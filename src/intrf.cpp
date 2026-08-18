@@ -20,12 +20,12 @@
 
  */
 
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cctype>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #if __has_include(<libgen.h>)
 #include <libgen.h>
@@ -57,7 +57,7 @@
 char intr_buffer_screen[MAX_LINES][BUFFER_LINE_LENGTH + 1];
 int intr_nbr_line = 0;
 
-int screen_buffer_add(const char *_format, ...)
+auto screen_buffer_add(const char *_format, ...) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
     char tmp[BUFFER_LINE_LENGTH + 1];
@@ -67,17 +67,17 @@ int screen_buffer_add(const char *_format, ...)
     va_start(ap, _format);
     vsnprintf(tmp, sizeof(tmp), _format, ap);
     va_end(ap);
-    while (start != NULL && intr_nbr_line < MAX_LINES)
+    while (start != nullptr && intr_nbr_line < MAX_LINES)
     {
         const unsigned int dst_current_len = strlen(intr_buffer_screen[intr_nbr_line]);
         const char *end = strchr(start, '\n');
-        unsigned int nbr = (end == NULL ? strlen(start) : (unsigned int)(end - start));
+        unsigned int nbr = (end == nullptr ? strlen(start) : static_cast<unsigned int>(end - start));
         if (nbr > BUFFER_LINE_LENGTH - dst_current_len)
             nbr = BUFFER_LINE_LENGTH - dst_current_len;
 
         memcpy(&intr_buffer_screen[intr_nbr_line][dst_current_len], start, nbr);
         intr_buffer_screen[intr_nbr_line][dst_current_len + nbr] = '\0';
-        if (end != NULL)
+        if (end != nullptr)
         {
             if (++intr_nbr_line < MAX_LINES)
                 intr_buffer_screen[intr_nbr_line][0] = '\0';
@@ -100,13 +100,13 @@ int screen_buffer_add(const char *_format, ...)
   @ assigns intr_nbr_line;
   @ assigns intr_buffer_screen[0 .. MAX_LINES-1][ 0 .. BUFFER_LINE_LENGTH];
   @*/
-void screen_buffer_reset(void)
+void screen_buffer_reset()
 {
     intr_nbr_line = 0;
     memset(intr_buffer_screen, 0, sizeof(intr_buffer_screen));
 }
 
-void screen_buffer_to_log(void)
+void screen_buffer_to_log()
 {
     int i;
     if (intr_buffer_screen[intr_nbr_line][0] != '\0')
@@ -119,7 +119,7 @@ void screen_buffer_to_log(void)
         log_info("{}\n", intr_buffer_screen[i]);
 }
 
-char get_partition_status(const partition_t &partition)
+auto get_partition_status(const partition_t &partition) -> char
 {
     switch (partition.status)
     {
@@ -140,13 +140,13 @@ char get_partition_status(const partition_t &partition)
     }
 }
 
-const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition)
+auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition) -> const char *
 {
     char status = ' ';
     static char msg[200];
     unsigned int pos = 0;
     const arch_fnct_t *arch = partition.arch;
-    if (arch == NULL)
+    if (arch == nullptr)
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_error("BUG: No arch for a partition\n");
@@ -175,7 +175,7 @@ const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, con
             status = ' ';
     }
     pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%c", status);
-    if (arch->get_partition_typename(partition) != NULL)
+    if (arch->get_partition_typename(partition) != nullptr)
         pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " %-20s ", arch->get_partition_typename(partition));
     else if (arch->get_part_type)
         pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " Sys=%02X               ", arch->get_part_type(partition));
@@ -185,8 +185,8 @@ const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, con
     {
         pos +=
             snprintf(&msg[pos], sizeof(msg) - pos - 1, " %10llu %10llu ",
-                     (long long unsigned)(partition.part_offset / disk_car.sector_size),
-                     (long long unsigned)((partition.part_offset + partition.part_size - 1) / disk_car.sector_size));
+                     static_cast<long long unsigned>(partition.part_offset / disk_car.sector_size),
+                     static_cast<long long unsigned>((partition.part_offset + partition.part_size - 1) / disk_car.sector_size));
     }
     else
     {
@@ -198,7 +198,7 @@ const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, con
                         offset2sector(disk_car, partition.part_offset + partition.part_size - 1));
     }
     pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%10llu",
-                    (long long unsigned)(partition.part_size / disk_car.sector_size));
+                    static_cast<long long unsigned>(partition.part_size / disk_car.sector_size));
     if (partition.partname[0] != '\0')
         pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.partname);
     if (partition.fsname[0] != '\0')
@@ -213,7 +213,7 @@ const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, con
 #define PATH_DRIVE_LENGTH 9
 #endif
 
-uint64_t atouint64(const char *nptr)
+auto atouint64(const char *nptr) -> uint64_t
 {
     uint64_t tmp = 0;
     /*@
@@ -228,11 +228,11 @@ uint64_t atouint64(const char *nptr)
     return tmp;
 }
 
-uint64_t ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t val_min, const uint64_t val_max,
-                        const char *_format, ...)
+auto ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t val_min, const uint64_t val_max,
+                        const char *_format, ...) -> uint64_t
 {
     /*@ assert \valid(current_cmd); */
-    if (*current_cmd != NULL)
+    if (*current_cmd != nullptr)
     {
         uint64_t tmp_val;
         skip_comma_in_command(current_cmd);

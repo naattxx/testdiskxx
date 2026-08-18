@@ -81,8 +81,8 @@
 #include <sys/sysmacros.h>
 #endif
 #include <cerrno>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #if __has_include(<sys/disklabel.h>)
@@ -111,8 +111,8 @@
 #if __has_include(<fnctl.h>)
 #include <fnctl.h>
 #endif
-#include <ctype.h>  /* isspace */
-#include <stdlib.h> /* free, atexit, posix_memalign */
+#include <cctype>  /* isspace */
+#include <cstdlib> /* free, atexit, posix_memalign */
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined (_WIN32)
 #include "hdwin32.hpp"
@@ -191,21 +191,21 @@ struct [[gnu::packed]] dosemu_image_header
     uint32_t dexeflags;
 };
 
-static int file_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset);
-static int file_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset);
-static int file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset);
-static int file_sync(disk_t &disk_car);
+static auto file_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset) -> int;
+static auto file_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int;
+static auto file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int;
+static auto file_sync(disk_t &disk_car) -> int;
 #ifndef DJGPP
-static uint64_t compute_device_size(const int hd_h, const char *device, const int verbose,
-                                    const unsigned int sector_size);
+static auto compute_device_size(const int hd_h, const char *device, const int verbose,
+                                    const unsigned int sector_size) -> uint64_t;
 #endif
 
 disk_t::~disk_t()
 {
     delete[] (rbuffer);
     delete[] (wbuffer);
-    rbuffer = NULL;
-    wbuffer = NULL;
+    rbuffer = nullptr;
+    wbuffer = nullptr;
 }
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
@@ -242,7 +242,7 @@ void hd_glob_parse(const char *device_pattern, list_disk_t &list_disk, const int
 {
     glob_t globbuf;
     globbuf.gl_offs = 0;
-    glob(device_pattern, GLOB_DOOFFS, NULL, &globbuf);
+    glob(device_pattern, GLOB_DOOFFS, nullptr, &globbuf);
     if (globbuf.gl_pathc > 0)
     {
         unsigned int i;
@@ -575,7 +575,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
   @ requires valid_read_string(device);
   @ ensures \result > 0;
   @*/
-static unsigned int disk_get_sector_size(const int hd_h, const char *device, const int verbose)
+static auto disk_get_sector_size(const int hd_h, const char *device, const int verbose) -> unsigned int
 {
 #ifdef BLKSSZGET
     {
@@ -687,7 +687,7 @@ static unsigned int disk_get_sector_size(const int hd_h, const char *device, con
   0x2000000000000) ==> \result == -1;
   @ assigns \nothing;
   @*/
-static int check_geometry(const CHSgeometry_t *geom)
+static auto check_geometry(const CHSgeometry_t *geom) -> int
 {
     if (geom->heads_per_cylinder == 0 || geom->heads_per_cylinder > 255)
         return -1;
@@ -853,7 +853,7 @@ static void disk_get_geometry(CHSgeometry_t *geom, const int hd_h, const char *d
 /*@
   @ requires valid_read_string(device);
   @*/
-static uint64_t disk_get_size(const int hd_h, const char *device, const int verbose, const unsigned int sector_size)
+static auto disk_get_size(const int hd_h, const char *device, const int verbose, const unsigned int sector_size) -> uint64_t
 {
     log_debug("disk_get_size for {}", device);
 #ifdef BLKGETSIZE64
@@ -879,7 +879,7 @@ static uint64_t disk_get_size(const int hd_h, const char *device, const int verb
             {
                 log_warning("disk_get_size, TestDisk assumes BLKGETSIZE returns the number of 512 byte sectors.\n");
             }
-            return (uint64_t)longsectors * sector_size;
+            return static_cast<uint64_t>(longsectors) * sector_size;
         }
     }
 #endif
@@ -945,15 +945,15 @@ void disk_t::update_fields()
 #ifndef DISABLED_FOR_FRAMAC
             log_warning("Fix disk size using CHS");
 #endif
-            disk_real_size = (uint64_t)geom.cylinders * geom.heads_per_cylinder *
+            disk_real_size = static_cast<uint64_t>(geom.cylinders) * geom.heads_per_cylinder *
                                        geom.sectors_per_head * sector_size;
         }
     }
     else
     {
-        const unsigned long int cylinder_num = disk_real_size / (uint64_t)geom.heads_per_cylinder /
-                                               (uint64_t)geom.sectors_per_head /
-                                               (uint64_t)sector_size;
+        const unsigned long int cylinder_num = disk_real_size / static_cast<uint64_t>(geom.heads_per_cylinder) /
+                                               static_cast<uint64_t>(geom.sectors_per_head) /
+                                               static_cast<uint64_t>(sector_size);
         if (cylinder_num > 0 && geom.cylinders != cylinder_num)
         {
 #ifndef DISABLED_FOR_FRAMAC
@@ -997,19 +997,19 @@ static void rtrim(char *buf)
   @ ensures \result==-1 || \result==0;
   @ ensures \result==-1 || valid_string(buf);
   @*/
-static int read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file)
+static auto read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file) -> int
 {
     FILE *f;
 #ifndef DISABLED_FOR_FRAMAC
     char name_buf[128];
     snprintf(name_buf, 127, "/sys/block/%s/device/%s", basename(disk_car.device.data()), file);
-    if ((f = fopen(name_buf, "r")) == NULL)
+    if ((f = fopen(name_buf, "r")) == nullptr)
         return -1;
 #else
     if ((f = fopen("/sys/block/hda/device/vendor", "r")) == NULL)
         return -1;
 #endif
-    if (fgets(buf, 255, f) == NULL)
+    if (fgets(buf, 255, f) == nullptr)
     {
         fclose(f);
         return -1;
@@ -1039,7 +1039,7 @@ static int read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file)
 #endif
 
 #if defined(__linux__) && defined(INQUIRY) && defined(SG_GET_VERSION_NUM)
-typedef struct [[gnu::gcc_struct,gnu::packed]] _scsi_inquiry_data
+using scsi_inquiry_data_t = struct [[gnu::gcc_struct,gnu::packed]] _scsi_inquiry_data
 {
     uint8_t peripheral_info;
     uint8_t device_info;
@@ -1054,7 +1054,7 @@ typedef struct [[gnu::gcc_struct,gnu::packed]] _scsi_inquiry_data
     uint8_t product_revision[4];
     uint8_t vendor_specific[20];
     uint8_t _reserved3[40];
-} scsi_inquiry_data_t;
+};
 #define INQ_CMD_LEN 6
 #define INQ_REPLY_LEN sizeof(scsi_inquiry_data_t)
 
@@ -1063,7 +1063,7 @@ typedef struct [[gnu::gcc_struct,gnu::packed]] _scsi_inquiry_data
   @ requires \valid(product);
   @ requires \valid(fw_rev);
   @*/
-static int scsi_query_product_info(const int sg_fd, char **vendor, char **product, std::string& fw_rev)
+static auto scsi_query_product_info(const int sg_fd, char **vendor, char **product, std::string& fw_rev) -> int
 {
     unsigned char inqCmdBlk[INQ_CMD_LEN] = {INQUIRY, 0, 0, 0, INQ_REPLY_LEN, 0};
     scsi_inquiry_data_t inqBuff;
@@ -1071,8 +1071,8 @@ static int scsi_query_product_info(const int sg_fd, char **vendor, char **produc
     sg_io_hdr_t io_hdr;
     int k;
     char buf[32];
-    *vendor = NULL;
-    *product = NULL;
+    *vendor = nullptr;
+    *product = nullptr;
 
     /* It is prudent to check we have a sg device by trying an ioctl */
     if (ioctl(sg_fd, SG_GET_VERSION_NUM, &k) < 0 || k < 30000)
@@ -1085,7 +1085,7 @@ static int scsi_query_product_info(const int sg_fd, char **vendor, char **produc
     io_hdr.mx_sb_len = sizeof(sense_buffer);
     io_hdr.dxfer_direction = SG_DXFER_FROM_DEV;
     io_hdr.dxfer_len = INQ_REPLY_LEN;
-    io_hdr.dxferp = (unsigned char *)&inqBuff;
+    io_hdr.dxferp = reinterpret_cast<unsigned char *>(&inqBuff);
     io_hdr.cmdp = inqCmdBlk;
     io_hdr.sbp = sense_buffer;
     io_hdr.timeout = 20000; /* 20000 millisecs == 20 seconds */
@@ -1135,10 +1135,10 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/model", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
-            if ((f = fopen(name_buf, "r")) != NULL)
+            if ((f = fopen(name_buf, "r")) != nullptr)
             {
                 char tmp[41];
-                if (fgets(tmp, 40, f) != NULL)
+                if (fgets(tmp, 40, f) != nullptr)
                 {
                     dev.model = strip_dup(tmp);
                 }
@@ -1149,10 +1149,10 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/serial", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
-            if ((f = fopen(name_buf, "r")) != NULL)
+            if ((f = fopen(name_buf, "r")) != nullptr)
             {
                 char tmp[41];
-                if (fgets(tmp, 40, f) != NULL)
+                if (fgets(tmp, 40, f) != nullptr)
                 {
                     dev.serial_no = strip_dup(tmp);
                 }
@@ -1163,10 +1163,10 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/rev", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
-            if ((f = fopen(name_buf, "r")) != NULL)
+            if ((f = fopen(name_buf, "r")) != nullptr)
             {
                 char tmp[41];
-                if (fgets(tmp, 40, f) != NULL)
+                if (fgets(tmp, 40, f) != nullptr)
                 {
                     dev.fw_rev = strip_dup(tmp);
                 }
@@ -1210,8 +1210,8 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         return;
     {
         /* Uses direct queries via the deprecated ioctl SCSI_IOCTL_SEND_COMMAND */
-        char *vendor = NULL;
-        char *product = NULL;
+        char *vendor = nullptr;
+        char *product = nullptr;
         scsi_query_product_info(hd_h, &vendor, &product, dev.fw_rev);
         if (vendor && product)
         {
@@ -1263,8 +1263,8 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
   @ requires sector_size > 0;
   @ requires valid_read_string(device);
   @*/
-static uint64_t compute_device_size(const int hd_h, const char *device, const int verbose,
-                                    const unsigned int sector_size)
+static auto compute_device_size(const int hd_h, const char *device, const int verbose,
+                                    const unsigned int sector_size) -> uint64_t
 {
 #if defined(HAVE_PREAD)
     /* This function can failed if there are bad sectors */
@@ -1316,9 +1316,9 @@ static uint64_t compute_device_size(const int hd_h, const char *device, const in
   @ ensures  valid_disk(disk);
   @*/
 // ensures valid_read_string(\result);
-static std::string_view file_description(disk_t &disk)
+static auto file_description(disk_t &disk) -> std::string_view
 {
-    const struct info_file_struct *data = (const struct info_file_struct *)disk.data;
+    const auto *data = static_cast<const struct info_file_struct *>(disk.data);
     char buffer_disk_size[100];
 #ifdef DISABLED_FOR_FRAMAC
     memset(&buffer_disk_size, 0, sizeof(buffer_disk_size));
@@ -1326,7 +1326,7 @@ static std::string_view file_description(disk_t &disk)
     size_to_unit(disk.disk_size, buffer_disk_size);
     if (disk.geom.heads_per_cylinder == 1 && disk.geom.sectors_per_head == 1)
         disk.description_txt = std::format("Disk {} - {} - {} sectors{}", disk.device.c_str(),
-                 buffer_disk_size, (long long unsigned)(disk.disk_size / disk.sector_size),
+                 buffer_disk_size, static_cast<long long unsigned>(disk.disk_size / disk.sector_size),
                  ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     else
         disk.description_txt = std::format("Disk {} - {} - CHS {} {} {}", disk.device.c_str(),
@@ -1344,9 +1344,9 @@ static std::string_view file_description(disk_t &disk)
   @ ensures  valid_disk(disk_car);
   @*/
 // ensures valid_read_string(\result);
-static std::string_view file_description_short(disk_t &disk_car)
+static auto file_description_short(disk_t &disk_car) -> std::string_view
 {
-    const struct info_file_struct *data = (const struct info_file_struct *)disk_car.data;
+    const auto *data = static_cast<const struct info_file_struct *>(disk_car.data);
     char buffer_disk_size[100];
 #ifdef DISABLED_FOR_FRAMAC
     memset(&buffer_disk_size, 0, sizeof(buffer_disk_size));
@@ -1370,9 +1370,9 @@ static std::string_view file_description_short(disk_t &disk_car)
   @*/
 static void file_clean(disk_t &disk)
 {
-    if (disk.data != NULL)
+    if (disk.data != nullptr)
     {
-        struct info_file_struct *data = (struct info_file_struct *)disk.data;
+        auto *data = static_cast<struct info_file_struct *>(disk.data);
         /*
     #ifdef BLKRRPART
         if (ioctl(data->handle, BLKRRPART, NULL)) {
@@ -1401,10 +1401,10 @@ static void file_clean(disk_t &disk)
   @ requires valid_disk(disk);
   @ requires \valid((char *)buf + (0 .. count - 1));
   @*/
-static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int count, const uint64_t offset)
+static auto file_pread_aux(const disk_t &disk, void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     long int ret;
-    const int fd = ((const struct info_file_struct *)disk.data)->handle;
+    const int fd = (static_cast<const struct info_file_struct *>(disk.data))->handle;
 #if defined(__CYGWIN__)
     if (lseek(fd, offset, SEEK_SET) < 0)
     {
@@ -1447,7 +1447,7 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
     if (ret < 0 && errno == ENOSYS)
 #endif
     {
-        if (lseek(fd, offset, SEEK_SET) == (off_t)-1)
+        if (lseek(fd, offset, SEEK_SET) == static_cast<off_t>(-1))
         {
             log_error("file_pread({},{},buffer,{}({}/{}/{})) lseek err {}", fd, (unsigned)(count / disk.sector_size),
                       (long unsigned int)(offset / disk.sector_size), offset2cylinder(disk, offset),
@@ -1457,7 +1457,7 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
         ret = read(fd, buf, count);
     }
 #endif
-    if (ret != count)
+    if (std::cmp_not_equal(ret , count))
     {
         if (offset + count <= disk.disk_size && offset + count <= disk.disk_real_size)
         {
@@ -1477,7 +1477,7 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
             memset(buf, 0, count);
             return -1;
         }
-        memset((char *)buf + ret, 0, count - ret);
+        memset(static_cast<char *>(buf) + ret, 0, count - ret);
     }
 #ifdef HDCLONE
     if (ret > 0)
@@ -1502,7 +1502,7 @@ static int file_pread_aux(const disk_t &disk, void *buf, const unsigned int coun
   @ requires offset < 0x2000000000000;
   @ requires \valid((char *)buf + (0 .. count-1));
   @*/
-static int file_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset)
+static auto file_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     return align_pread(&file_pread_aux, disk_car, buf, count, offset);
 }
@@ -1516,9 +1516,9 @@ static int file_pread(disk_t &disk_car, void *buf, const unsigned int count, con
   @ requires offset < 0x2000000000000;
   @ requires \valid_read((char *)buf + (0 .. count-1));
   @*/
-static int file_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
+static auto file_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
-    int fd = ((struct info_file_struct *)disk_car.data)->handle;
+    int fd = (static_cast<struct info_file_struct *>(disk_car.data))->handle;
     long int ret;
 #if defined(HAVE_PWRITE) && !defined(__CYGWIN__)
     ret = pwrite(fd, buf, count, offset);
@@ -1547,7 +1547,7 @@ static int file_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned int
         ret = write(fd, buf, count);
     }
     disk_car.write_used = 1;
-    if (ret != count)
+    if (std::cmp_not_equal(ret , count))
     {
         log_error("file_pwrite({},{},buffer,{}({}/{}/{})) write err {}", fd, (unsigned)(count / disk_car.sector_size),
                   (long unsigned)(offset / disk_car.sector_size), offset2cylinder(disk_car, offset),
@@ -1566,7 +1566,7 @@ static int file_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned int
   @ requires offset < 0x2000000000000;
   @ requires \valid_read((char *)buf + (0 .. count-1));
   @*/
-static int file_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
+static auto file_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     return align_pwrite(&file_pread_aux, &file_pwrite_aux, disk_car, buf, count, offset);
 }
@@ -1580,9 +1580,9 @@ static int file_pwrite(disk_t &disk_car, const void *buf, const unsigned int cou
   @ requires offset < 0x2000000000000;
   @ requires \valid_read((char *)buf + (0 .. count-1));
   @*/
-static int file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
+static auto file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
-    struct info_file_struct *data = (struct info_file_struct *)disk_car.data;
+    auto *data = static_cast<struct info_file_struct *>(disk_car.data);
     log_warning("file_nopwrite({},{},buffer,{}({}/{}/{})) write refused", data->handle,
                 (unsigned)(count / disk_car.sector_size), (long unsigned)(offset / disk_car.sector_size),
                 offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset));
@@ -1593,7 +1593,7 @@ static int file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int c
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @*/
-static int file_sync(disk_t &disk_car)
+static auto file_sync(disk_t &disk_car) -> int
 {
 #if defined(HAVE_FSYNC)
     struct info_file_struct *data = (struct info_file_struct *)disk_car.data;
@@ -1623,7 +1623,7 @@ static int file_sync(disk_t &disk_car)
 void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose)
 {
     /*@ assert 0 < disk->sector_size; */
-    if ((arch)->get_geometry_from_mbr != NULL)
+    if ((arch)->get_geometry_from_mbr != nullptr)
     {
         /*@ assert \valid_function(arch->get_geometry_from_mbr); */
         CHSgeometry_t geometry;
@@ -1661,7 +1661,7 @@ void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose)
     /*@ assert 0 < geom.sectors_per_head <= 63; */
     /* Round up because file is often truncated. */
     geom.cylinders = (disk_size / sector_size +
-                            (uint64_t)geom.sectors_per_head * geom.heads_per_cylinder - 1) /
+                            static_cast<uint64_t>(geom.sectors_per_head) * geom.heads_per_cylinder - 1) /
                            geom.sectors_per_head / geom.heads_per_cylinder;
 }
 
@@ -1669,7 +1669,7 @@ void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose)
   @ requires \valid_read(hdr);
   @ assigns \nothing;
   @*/
-static int is_dosemu_image(const struct dosemu_image_header *hdr)
+static auto is_dosemu_image(const struct dosemu_image_header *hdr) -> int
 {
     if (memcmp(&hdr->sig, "DOSEMU", 6) == 0 && 0 < le32(hdr->sectors) && le32(hdr->sectors) <= 63 &&
         0 < le32(hdr->heads) && le32(hdr->heads) <= 255 && 0 < le32(hdr->cylinders) && 0 < le32(hdr->header_end))
@@ -1677,7 +1677,7 @@ static int is_dosemu_image(const struct dosemu_image_header *hdr)
     return 0;
 }
 
-std::optional<disk_t> file_test_availability(const char *device, const int verbose, int testdisk_mode)
+auto file_test_availability(const char *device, const int verbose, int testdisk_mode) -> std::optional<disk_t>
 {
     /*@ assert valid_read_string(device); */
     disk_t disk_car;
@@ -1875,7 +1875,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
 #endif
         disk_car.sector_size = DEFAULT_SECTOR_SIZE;
         buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-        ewf = (const struct tdewf_file_header *)buffer;
+        ewf = reinterpret_cast<const struct tdewf_file_header *>(buffer);
         if (read(hd_h, buffer, DEFAULT_SECTOR_SIZE) != DEFAULT_SECTOR_SIZE)
         {
             memset(buffer, 0, DEFAULT_SECTOR_SIZE);
@@ -1884,7 +1884,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
         Frama_C_make_unknown((char *)buffer, DEFAULT_SECTOR_SIZE);
 #endif
 #ifndef DISABLED_FOR_FRAMAC
-        hdr = (const struct dosemu_image_header *)buffer;
+        hdr = reinterpret_cast<const struct dosemu_image_header *>(buffer);
         if (is_dosemu_image(hdr))
         {
             log_info("{} DOSEMU", device);
@@ -1894,7 +1894,7 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
             /*@ assert 0 < disk_car.geom.heads_per_cylinder <= 255; */
             disk_car.geom.sectors_per_head = le32(hdr->sectors);
             /*@ assert 0 < disk_car.geom.sectors_per_head <= 63; */
-            disk_car.disk_real_size = (uint64_t)disk_car.geom.cylinders * disk_car.geom.heads_per_cylinder *
+            disk_car.disk_real_size = static_cast<uint64_t>(disk_car.geom.cylinders) * disk_car.geom.heads_per_cylinder *
                                        disk_car.geom.sectors_per_head * disk_car.sector_size;
             disk_car.offset = le32(hdr->header_end);
         }
@@ -1927,10 +1927,10 @@ std::optional<disk_t> file_test_availability(const char *device, const int verbo
             {
                 off_t pos;
                 pos = lseek(hd_h, 0, SEEK_END);
-                if (pos > 0 && (uint64_t)pos > disk_car.offset)
+                if (pos > 0 && std::cmp_greater(pos, disk_car.offset))
                 {
                     /*@ assert pos > disk_car.offset; */
-                    disk_car.disk_real_size = (uint64_t)pos - disk_car.offset;
+                    disk_car.disk_real_size = static_cast<uint64_t>(pos) - disk_car.offset;
                 }
                 else
                     disk_car.disk_real_size = 0;
@@ -1982,8 +1982,8 @@ void disk_t::update_geometry(const int verbose)
 {
     if (autodetect != 0)
     {
-        unsigned char *buffer = new unsigned char[sector_size];
-        if ((unsigned)pread(*this, buffer, sector_size, 0) == sector_size)
+        auto *buffer = new unsigned char[sector_size];
+        if (std::cmp_equal(pread(*this, buffer, sector_size, 0), sector_size))
         {
             log_trace("autoset_geometry");
             autoset_geometry(buffer, 1);
@@ -2021,8 +2021,8 @@ disk_t::disk_t():
     native_max(0),
     dco(0),
     offset(0), /* Note, some Raid reserve the first 1024 512-sectors */
-    rbuffer(NULL),
-    wbuffer(NULL),
+    rbuffer(nullptr),
+    wbuffer(nullptr),
     rbuffer_size(0),
     wbuffer_size(0),
     write_used(0),

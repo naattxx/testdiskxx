@@ -24,9 +24,9 @@
 #include <string_view>
 #include <utility>
 #if !defined(DISABLED_FOR_FRAMAC)
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #include "hdcache.hpp"
@@ -66,10 +66,10 @@ struct cache_struct
   @ requires \valid((char *)buffer + (0 .. count-1));
   @ requires separation: \separated(disk_car, (char *)buffer + (0 .. count-1));
   @*/
-static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset,
-                           const unsigned int read_ahead)
+static auto cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset,
+                           const unsigned int read_ahead) -> int
 {
-    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    auto *data = static_cast<struct cache_struct *>(disk_car.data);
 #ifdef DEBUG_CACHE
     log_info("cache_pread(buffer, count={}, offset={}, read_ahead={})", count, (long long unsigned)offset,
              read_ahead);
@@ -84,7 +84,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
         {
             const struct cache_buffer_struct *cache = &data->cache[cache_buffer_nbr];
             if (cache->cache_offset <= offset && offset < cache->cache_offset + cache->cache_size &&
-                cache->buffer != NULL && cache->cache_size > 0)
+                cache->buffer != nullptr && cache->cache_size > 0)
             {
                 const unsigned int data_available = cache->cache_size + cache->cache_offset - offset;
                 const int res = cache->cache_status + cache->cache_offset - offset;
@@ -96,7 +96,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
                     data->nbr_fnct_sect += count;
 #endif
                     memcpy(buffer, cache->buffer + offset - cache->cache_offset, count);
-                    return (res < (signed)count ? res : (signed)count);
+                    return (std::cmp_less(res ,count) ? res : static_cast<signed>(count));
                 }
                 else
                 {
@@ -107,7 +107,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
                     data->nbr_fnct_sect += data_available;
 #endif
                     memcpy(buffer, cache->buffer + offset - cache->cache_offset, data_available);
-                    return res + cache_pread_aux(disk_car, (unsigned char *)buffer + data_available,
+                    return res + cache_pread_aux(disk_car, static_cast<unsigned char *>(buffer) + data_available,
                                                  count - data_available, offset + data_available, read_ahead);
                 }
             }
@@ -124,9 +124,9 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
         if (cache->buffer_size < count_new)
         { /* Buffer is too small, drop it */
             delete (cache->buffer);
-            cache->buffer = NULL;
+            cache->buffer = nullptr;
         }
-        if (cache->buffer == NULL)
+        if (cache->buffer == nullptr)
         { /* Allocate buffer */
             cache->buffer_size = (count_new < CACHE_DEFAULT_SIZE ? CACHE_DEFAULT_SIZE : count_new);
             cache->buffer = new unsigned char[cache->buffer_size];
@@ -141,7 +141,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
         log_info("cache PREAD(buffer[{}], count={}, count_new={}, offset={}, cstatus={})", data->cache_buffer_nbr,
                  count, count_new, (long long unsigned)offset, cache->cache_status);
 #endif
-        if (cache->cache_status >= (signed)count)
+        if (std::cmp_greater_equal(cache->cache_status ,count))
         {
             data->last_io_error_nbr = 0;
             memcpy(buffer, cache->buffer, count);
@@ -162,7 +162,7 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
             memset(buffer, 0, count);
             for (off = 0; off < count; off += disk_car.sector_size)
             {
-                if (cache_pread_aux(disk_car, (unsigned char *)buffer + off,
+                if (cache_pread_aux(disk_car, static_cast<unsigned char *>(buffer) + off,
                                     (disk_car.sector_size < count - off ? disk_car.sector_size : count - off),
                                     offset + off, 0) <= 0)
                 {
@@ -180,9 +180,9 @@ static int cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int co
   @ requires \valid((char *)buffer + (0 .. count-1));
   @ requires separation: \separated(disk_car, (char *)buffer + (0 .. count-1));
   @*/
-static int cache_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset)
+static auto cache_pread(disk_t &disk_car, void *buffer, const unsigned int count, const uint64_t offset) -> int
 {
-    const struct cache_struct *data = (const struct cache_struct *)disk_car.data;
+    const auto *data = static_cast<const struct cache_struct *>(disk_car.data);
     return cache_pread_aux(disk_car, buffer, count, offset, (data->last_io_error_nbr == 0));
 }
 
@@ -193,9 +193,9 @@ static int cache_pread(disk_t &disk_car, void *buffer, const unsigned int count,
   @ requires separation: \separated(disk_car, (const char *)buffer + (0 .. count-1));
   @ decreases 0;
   @*/
-static int cache_pwrite(disk_t &disk_car, const void *buffer, const unsigned int count, const uint64_t offset)
+static auto cache_pwrite(disk_t &disk_car, const void *buffer, const unsigned int count, const uint64_t offset) -> int
 {
-    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    auto *data = static_cast<struct cache_struct *>(disk_car.data);
     unsigned int i;
     for (i = 0; i < CACHE_BUFFER_NBR; i++)
     {
@@ -219,7 +219,7 @@ static void cache_clean(disk_t &disk_car)
 {
     if (disk_car.data)
     {
-        struct cache_struct *data = (struct cache_struct *)disk_car.data;
+        auto *data = static_cast<struct cache_struct *>(disk_car.data);
         unsigned int i;
 #ifdef DEBUG_CACHE
         log_info("{}\ncache_pread total_call={}, total_count={}\n      read total_call={}, total_count={}\n",
@@ -233,8 +233,8 @@ static void cache_clean(disk_t &disk_car)
             struct cache_buffer_struct *cache = &data->cache[i];
             delete (cache->buffer);
         }
-        delete (struct cache_struct *)disk_car.data;
-        disk_car.data = NULL;
+        delete static_cast<struct cache_struct *>(disk_car.data);
+        disk_car.data = nullptr;
     }
 }
 
@@ -242,9 +242,9 @@ static void cache_clean(disk_t &disk_car)
   @ requires \valid(disk_car);
   @ decreases 0;
   @*/
-static int cache_sync(disk_t &disk_car)
+static auto cache_sync(disk_t &disk_car) -> int
 {
-    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    auto *data = static_cast<struct cache_struct *>(disk_car.data);
     return data->disk_car->sync(*data->disk_car);
 }
 
@@ -270,10 +270,10 @@ static void dup_geometry(CHSgeometry_t *CHS_dst, const CHSgeometry_t *CHS_source
   @ decreases 0;
   @ ensures valid_read_string(\result);
   @*/
-static std::string_view cache_description(disk_t &disk_car)
+static auto cache_description(disk_t &disk_car) -> std::string_view
 {
     std::string_view tmp;
-    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    auto *data = static_cast<struct cache_struct *>(disk_car.data);
     dup_geometry(&data->disk_car->geom, &disk_car.geom);
     data->disk_car->disk_size = disk_car.disk_size;
     tmp = data->disk_car->description(*data->disk_car);
@@ -287,10 +287,10 @@ static std::string_view cache_description(disk_t &disk_car)
   @ decreases 0;
   @ ensures valid_read_string(\result);
   @*/
-static std::string_view cache_description_short(disk_t &disk_car)
+static auto cache_description_short(disk_t &disk_car) -> std::string_view
 {
     std::string_view tmp;
-    struct cache_struct *data = (struct cache_struct *)disk_car.data;
+    auto *data = static_cast<struct cache_struct *>(disk_car.data);
     dup_geometry(&data->disk_car->geom, &disk_car.geom);
     data->disk_car->disk_size = disk_car.disk_size;
     tmp = data->disk_car->description_short(*data->disk_car);
@@ -298,10 +298,10 @@ static std::string_view cache_description_short(disk_t &disk_car)
     return tmp;
 }
 
-disk_t new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode)
+auto new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode) -> disk_t
 {
     unsigned int i;
-    struct cache_struct *data = new struct cache_struct;
+    auto *data = new struct cache_struct;
     disk_t new_disk_car = disk_car;
     data->disk_car = &disk_car;
 #ifdef DEBUG_CACHE
@@ -329,13 +329,13 @@ disk_t new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode)
     new_disk_car.clean = &cache_clean;
     new_disk_car.description = &cache_description;
     new_disk_car.description_short = &cache_description_short;
-    new_disk_car.rbuffer = NULL;
-    new_disk_car.wbuffer = NULL;
+    new_disk_car.rbuffer = nullptr;
+    new_disk_car.wbuffer = nullptr;
     new_disk_car.rbuffer_size = 0;
     new_disk_car.wbuffer_size = 0;
     for (i = 0; i < CACHE_BUFFER_NBR; i++)
     {
-        data->cache[i].buffer = NULL;
+        data->cache[i].buffer = nullptr;
         data->cache[i].buffer_size = 0;
     }
     std::swap(new_disk_car,disk_car);

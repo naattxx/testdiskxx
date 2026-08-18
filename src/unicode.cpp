@@ -25,7 +25,7 @@
 #include "common.hpp"
 #include "unicode.hpp"
 
-unsigned int UCSle2str(char *to, const uint16_t *from, const unsigned int len)
+auto UCSle2str(char *to, const uint16_t *from, const unsigned int len) -> unsigned int
 {
     unsigned int i;
     /*@
@@ -37,14 +37,14 @@ unsigned int UCSle2str(char *to, const uint16_t *from, const unsigned int len)
         if (le16(from[i]) & 0xff00)
             to[i] = '?';
         else
-            to[i] = (char)(le16(from[i]));
+            to[i] = static_cast<char>(le16(from[i]));
     }
     if (i < len)
         to[i] = '\0';
     return i;
 }
 
-unsigned int str2UCSle(uint16_t *to, const char *from, const unsigned int len)
+auto str2UCSle(uint16_t *to, const char *from, const unsigned int len) -> unsigned int
 {
     unsigned int i;
     /*@

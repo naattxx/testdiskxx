@@ -28,18 +28,18 @@
 #undef HAVE_NCURSES
 #endif
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
 // #include <malloc.h>
-#include <string.h>
+#include <cstring>
 #ifdef __MINGW32__
 #if __has_include(<io.h>)
 #include <io.h>
 #endif
 #endif
-#include <assert.h>
-#include <time.h>
+#include <cassert>
+#include <ctime>
 // #include "types.h"
 #include "common.hpp"
 #include "log.hpp"
@@ -95,7 +95,7 @@ void partition_t::set_name_chomp(const char *src, const unsigned int max_size)
     /*@ assert valid_string(fsname); */
 }
 
-char *strip_dup(char *str)
+auto strip_dup(char *str) -> char *
 {
     char *end;
     char *tmp;
@@ -120,7 +120,7 @@ char *strip_dup(char *str)
             end = tmp;
     /*@ assert valid_string(end); */
     if (str == end)
-        return NULL;
+        return nullptr;
     *(end + 1) = 0;
     return strdup(str);
 }
@@ -151,7 +151,7 @@ char *strip_dup(char *str)
   @ ensures 0 <= \result <= 32;
   @ assigns \nothing;
   @*/
-static unsigned int _date_get_leap_day(const unsigned long int year, const unsigned long int month)
+static auto _date_get_leap_day(const unsigned long int year, const unsigned long int month) -> unsigned int
 {
     unsigned long int leap_day;
     if (year > YEAR_2100) /* 2100 isn't leap year */
@@ -184,8 +184,8 @@ static unsigned int _date_get_leap_day(const unsigned long int year, const unsig
   @ ensures 0 <= \result <= 334 + 127 * 365 + 32 + 30 + DAYS_DELTA;
   @ assigns \nothing;
   @*/
-static unsigned long int _date_get_days(const unsigned long int days, const unsigned long int year,
-                                        const unsigned long int leap_day, const unsigned long int day)
+static auto _date_get_days(const unsigned long int days, const unsigned long int year,
+                                        const unsigned long int leap_day, const unsigned long int day) -> unsigned long int
 {
     return days + year * 365 + leap_day + day + DAYS_DELTA;
 }
@@ -195,7 +195,7 @@ static unsigned long int _date_get_days(const unsigned long int days, const unsi
   @ ensures 0 <= \result <= 62;
   @ assigns \nothing;
   @*/
-static unsigned long int _date_get_seconds(const unsigned long int seconds2)
+static auto _date_get_seconds(const unsigned long int seconds2) -> unsigned long int
 {
     return seconds2 << 1;
 }
@@ -206,7 +206,7 @@ static unsigned long int _date_get_seconds(const unsigned long int seconds2)
   @ ensures 0 <= \result <= 0x3f * SECS_PER_MIN;
   @ assigns \nothing;
   @*/
-static unsigned long int _date_min_to_seconds(const unsigned long int m)
+static auto _date_min_to_seconds(const unsigned long int m) -> unsigned long int
 {
     return m * SECS_PER_MIN;
 }
@@ -217,7 +217,7 @@ static unsigned long int _date_min_to_seconds(const unsigned long int m)
   @ ensures 0 <= \result <= 0x3f * SECS_PER_HOUR;
   @ assigns \nothing;
   @*/
-static unsigned long int _date_hours_to_seconds(const unsigned long int h)
+static auto _date_hours_to_seconds(const unsigned long int h) -> unsigned long int
 {
     return h * SECS_PER_HOUR;
 }
@@ -229,7 +229,7 @@ static unsigned long int _date_hours_to_seconds(const unsigned long int h)
   @ terminates \true;
   @ assigns \nothing;
   @*/
-time_t date_dos2unix(const unsigned short f_time, const unsigned short f_date)
+auto date_dos2unix(const unsigned short f_time, const unsigned short f_date) -> time_t
 {
     static const unsigned int days_in_year[] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 0, 0, 0};
     /* JanFebMarApr May Jun Jul Aug Sep Oct Nov Dec */
@@ -264,9 +264,9 @@ time_t date_dos2unix(const unsigned short f_time, const unsigned short f_date)
 #endif
 }
 
-void set_secwest(void)
+void set_secwest()
 {
-    const time_t t = time(NULL);
+    const time_t t = time(nullptr);
 #if defined(__MINGW32__) || defined(DISABLED_FOR_FRAMAC)
     const struct tm *tmptr = localtime(&t);
 #else
@@ -309,14 +309,14 @@ void set_secwest(void)
  * Return:  n  A Unix time (number of seconds since 1970)
  */
 #define NTFS_TIME_OFFSET ((int64_t)(369 * 365 + 89) * 24 * 3600 * 10000000)
-time_t td_ntfs2utc(int64_t ntfstime)
+auto td_ntfs2utc(int64_t ntfstime) -> time_t
 {
     if (ntfstime < NTFS_TIME_OFFSET)
         return 0;
     return (ntfstime - NTFS_TIME_OFFSET) / 10000000;
 }
 
-int check_command(char **current_cmd, const char *cmd, const size_t n)
+auto check_command(char **current_cmd, const char *cmd, const size_t n) -> int
 {
     const int res = strncmp(*current_cmd, cmd, n);
     if (res == 0)
@@ -343,7 +343,7 @@ void skip_comma_in_command(char **current_cmd)
     /*@ assert valid_read_string(*current_cmd); */
 }
 
-uint64_t get_int_from_command(char **current_cmd)
+auto get_int_from_command(char **current_cmd) -> uint64_t
 {
     uint64_t tmp = 0;
     /*@

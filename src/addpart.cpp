@@ -22,8 +22,8 @@
 
 #include <config.h>
 
-#include <assert.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
 // #include "types.h"
 #include "addpart.hpp"
 #include "common.hpp"
@@ -55,7 +55,7 @@ extern const arch_fnct_t arch_xbox;
 
 void add_partition_cli(disk_t &disk, list_part_t &list_part, char **current_cmd)
 {
-    assert(current_cmd != NULL);
+    assert(current_cmd != nullptr);
     /*@ assert valid_read_string(*current_cmd); */
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
     if (disk.arch == &arch_gpt) {

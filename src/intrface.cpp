@@ -21,8 +21,9 @@
  */
 
 #include <iostream>
-#include <stdio.h>
-#include <string.h>
+#include <print>
+#include <cstdio>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #include "intrf.hpp"
@@ -59,9 +60,9 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     {
         const char *msg;
         msg = aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
-        printf("%s\n", msg);
+        std::println("{}", msg);
         if (partition.info[0] != '\0')
-            printf("     %s\n", partition.info);
+            std::println("     {}", partition.info);
     }
     if (backup > 0)
     {
@@ -79,7 +80,7 @@ static void ask_structure_cli(disk_t &disk_car, const partition_t &partition, co
         else
         {
             io_redir_add_redir(disk_car, partition.part_offset + partition.sborg_offset, partition.sb_size,
-                                partition.part_offset + partition.sb_offset, NULL);
+                                partition.part_offset + partition.sb_offset, nullptr);
             dir_partition(disk_car, partition, verbose, 0, current_cmd);
             io_redir_del_redir(disk_car, partition.part_offset + partition.sborg_offset);
         }
@@ -397,7 +398,7 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
 
 void ask_structure(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd)
 {
-    if (*current_cmd != NULL)
+    if (*current_cmd != nullptr)
         ask_structure_cli(disk_car, partition, verbose, current_cmd);
 #ifdef HAVE_NCURSES
     ask_structure_ncurses(disk_car, partition, verbose);

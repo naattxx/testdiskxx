@@ -48,8 +48,8 @@
 #if __has_include(<unistd.h>)
 #include <unistd.h> /* lseek, read, write, close */
 #endif
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #if __has_include(<fnctl.h>)
@@ -111,7 +111,7 @@ static void dump_bytes(const char *prefix, const unsigned char *p, const unsigne
 #endif
 
 #ifdef HDIO_DRIVE_CMD
-static uint64_t read_native_max(int fd)
+static auto read_native_max(int fd) -> uint64_t
 {
 #ifdef HDIO_DRIVE_TASK
     unsigned char task_args[7];
@@ -134,14 +134,14 @@ static uint64_t read_native_max(int fd)
 #endif
 }
 
-static uint64_t sg_read_native_max_ext(int fd)
+static auto sg_read_native_max_ext(int fd) -> uint64_t
 {
 #ifdef SG_IO
     unsigned char cdb[16];
     unsigned char sb[32];
     sg_io_hdr_t io_hdr;
-    const unsigned char *desc = (const unsigned char *)(sb + 8);
-    const uint16_t *word = (const uint16_t *)(sb + 10);
+    const auto *desc = (const unsigned char *)(sb + 8);
+    const auto *word = reinterpret_cast<const uint16_t *>(sb + 10);
 
     memset(&cdb, 0, sizeof(cdb));
     cdb[0] = 0x85;
@@ -157,7 +157,7 @@ static uint64_t sg_read_native_max_ext(int fd)
     io_hdr.mx_sb_len = sizeof(sb);
     io_hdr.dxfer_direction = SG_DXFER_NONE;
     io_hdr.dxfer_len = 0;
-    io_hdr.dxferp = NULL;
+    io_hdr.dxferp = nullptr;
     io_hdr.cmdp = cdb;
     io_hdr.sbp = sb;
     io_hdr.pack_id = 0;
@@ -181,14 +181,14 @@ static uint64_t sg_read_native_max_ext(int fd)
         return 0;
     if (sb[0] != 0x72 || sb[7] < 14 || desc[0] != 9 || desc[1] < 12)
         return 0;
-    return ((uint64_t)word[2] >> 8) | (((uint64_t)word[3] >> 8) << 8) | (((uint64_t)word[4] >> 8) << 16) |
-           ((uint64_t)(word[2] & 0xff) << 24) | (((uint64_t)word[3] & 0xff) << 32) | (((uint64_t)word[4] & 0xff) << 48);
+    return (static_cast<uint64_t>(word[2]) >> 8) | ((static_cast<uint64_t>(word[3]) >> 8) << 8) | ((static_cast<uint64_t>(word[4]) >> 8) << 16) |
+           (static_cast<uint64_t>(word[2] & 0xff) << 24) | ((static_cast<uint64_t>(word[3]) & 0xff) << 32) | ((static_cast<uint64_t>(word[4]) & 0xff) << 48);
 #else
     return 0;
 #endif
 }
 
-static uint64_t sg_device_configuration_identify(int fd)
+static auto sg_device_configuration_identify(int fd) -> uint64_t
 {
 #ifdef SG_IO
     unsigned char data[512];
@@ -197,7 +197,7 @@ static uint64_t sg_device_configuration_identify(int fd)
     uint64_t hdsize;
     unsigned int i;
     unsigned int sum = 0;
-    uint16_t *word = (uint16_t *)&data;
+    auto *word = reinterpret_cast<uint16_t *>(&data);
     sg_io_hdr_t io_hdr;
 
     memset(&cdb, 0, sizeof(cdb));
@@ -257,7 +257,7 @@ static uint64_t sg_device_configuration_identify(int fd)
         sum += data[i];
     if ((sum & 0xff) != 0)
         return 0;
-    hdsize = (uint64_t)word[3] | ((uint64_t)word[4] << 16) | ((uint64_t)word[5] << 32) | ((uint64_t)word[6] << 48);
+    hdsize = static_cast<uint64_t>(word[3]) | (static_cast<uint64_t>(word[4]) << 16) | (static_cast<uint64_t>(word[5]) << 32) | (static_cast<uint64_t>(word[6]) << 48);
     return hdsize;
 #else
     return 0;
@@ -268,7 +268,7 @@ void disk_get_hpa_dco(const int fd, disk_t &disk)
 {
 #ifdef HDIO_DRIVE_CMD
     unsigned char id_args[4 + 512];
-    const uint16_t *id_val = (const uint16_t *)&id_args[4];
+    const auto *id_val = reinterpret_cast<const uint16_t *>(&id_args[4]);
     unsigned int flags = 0;
     /* Execute the IDENTIFY DEVICE command */
     memset(id_args, 0, sizeof(id_args));
@@ -332,13 +332,13 @@ void disk_get_hpa_dco(const int fd, disk_t &disk)
     disk.user_max = 0;
     if (flags & DISK_HAS_48_SUPPORT)
     {
-        disk.user_max = (uint64_t)id_val[103] << 48 | (uint64_t)id_val[102] << 32 | (uint64_t)id_val[101] << 16 |
-                         (uint64_t)id_val[100];
+        disk.user_max = static_cast<uint64_t>(id_val[103]) << 48 | static_cast<uint64_t>(id_val[102]) << 32 | static_cast<uint64_t>(id_val[101]) << 16 |
+                         static_cast<uint64_t>(id_val[100]);
     }
     /* Use the 28-bit fields */
     if (disk.user_max == 0)
     {
-        disk.user_max = (uint64_t)id_val[61] << 16 | id_val[60];
+        disk.user_max = static_cast<uint64_t>(id_val[61]) << 16 | id_val[60];
     }
     disk.dco = sg_device_configuration_identify(fd);
     if (flags & DISK_HAS_HPA_SUPPORT)

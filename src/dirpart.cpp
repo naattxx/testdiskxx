@@ -19,9 +19,9 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #include "intrf.hpp"
@@ -42,8 +42,8 @@
 #include "part/ntfs_dir.hpp"
 #include "part/rfs_dir.hpp"
 
-static dir_partition_t dir_partition_init(disk_t &disk, const partition_t &partition, const int verbose,
-                                          const int expert, dir_data_t *dir_data)
+static auto dir_partition_init(disk_t &disk, const partition_t &partition, const int verbose,
+                                          const int expert, dir_data_t *dir_data) -> dir_partition_t
 {
     if (is_part_fat(partition))
     {
@@ -87,8 +87,8 @@ static dir_partition_t dir_partition_init(disk_t &disk, const partition_t &parti
     }
 }
 
-dir_partition_t dir_partition(disk_t &disk, const partition_t &partition, const int verbose, const int expert,
-                              char **current_cmd)
+auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose, const int expert,
+                              char **current_cmd) -> dir_partition_t
 {
     dir_data_t dir_data;
 #ifdef HAVE_NCURSES
@@ -96,14 +96,14 @@ dir_partition_t dir_partition(disk_t &disk, const partition_t &partition, const 
 #endif
     dir_partition_t res;
     fflush(stderr);
-    dir_data.local_dir = NULL;
+    dir_data.local_dir = nullptr;
     res = dir_partition_init(disk, partition, verbose, expert, &dir_data);
 #ifdef HAVE_NCURSES
     window = newwin(LINES, COLS, 0, 0); /* full screen */
     dir_data.display = window;
     aff_copy(window);
 #else
-    dir_data.display = NULL;
+    dir_data.display = nullptr;
 #endif
     log_info("\n");
     switch (res)
@@ -118,7 +118,7 @@ dir_partition_t dir_partition(disk_t &disk, const partition_t &partition, const 
         log_partition(disk, partition);
         screen_buffer_add("Support for this filesystem hasn't been implemented.\n");
         screen_buffer_to_log();
-        if (current_cmd == NULL || *current_cmd == NULL)
+        if (current_cmd == nullptr || *current_cmd == nullptr)
         {
 #ifdef HAVE_NCURSES
             screen_buffer_display(window, "", NULL);
@@ -135,7 +135,7 @@ dir_partition_t dir_partition(disk_t &disk, const partition_t &partition, const 
         log_partition(disk, partition);
         screen_buffer_add("Support for this filesystem wasn't enabled during compilation.\n");
         screen_buffer_to_log();
-        if (current_cmd == NULL || *current_cmd == NULL)
+        if (current_cmd == nullptr || *current_cmd == nullptr)
         {
 #ifdef HAVE_NCURSES
             screen_buffer_display(window, "", NULL);
@@ -152,7 +152,7 @@ dir_partition_t dir_partition(disk_t &disk, const partition_t &partition, const 
         log_partition(disk, partition);
         screen_buffer_add("Can't open filesystem. Filesystem seems damaged.\n");
         screen_buffer_to_log();
-        if (current_cmd == NULL || *current_cmd == NULL)
+        if (current_cmd == nullptr || *current_cmd == nullptr)
         {
 #ifdef HAVE_NCURSES
             screen_buffer_display(window, "", NULL);
@@ -162,7 +162,7 @@ dir_partition_t dir_partition(disk_t &disk, const partition_t &partition, const 
     case DIR_PART_OK: {
         int recursive = 0;
         int copy_files = 0;
-        if (current_cmd != NULL && *current_cmd != NULL)
+        if (current_cmd != nullptr && *current_cmd != nullptr)
         {
             int do_continue;
             do

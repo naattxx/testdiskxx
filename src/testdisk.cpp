@@ -19,7 +19,7 @@
 
 using namespace cpptui;
 
-static void display_version(void)
+static void display_version()
 {
     std::cout << "\n"
                  "Version: " VERSION "\n"
@@ -38,8 +38,8 @@ static void display_version(void)
         ; // << "OS: " << get_os() << '\n';
 }
 
-static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, const int create_backup, const int safe,
-                             const int saveheader, const UNIT unit, const int verbose)
+static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, const int create_backup, const int safe,
+                             const int saveheader, const UNIT unit, const int verbose) -> int
 {
     std::cout << "Please wait...\n";
     /* Scan for available device only if no device or image has been supplied in parameter */
@@ -79,14 +79,14 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
         if (hpa_dco != 0)
         {
             if (disk.sector_size != 0)
-                std::cout << "size       " << (long long unsigned)(disk.disk_real_size / disk.sector_size)
+                std::cout << "size       " << static_cast<long long unsigned>(disk.disk_real_size / disk.sector_size)
                           << " sectors\n";
             if (disk.user_max != 0)
-                std::cout << "user_max   " << (long long unsigned)disk.user_max << " sectors\n";
+                std::cout << "user_max   " << static_cast<long long unsigned>(disk.user_max) << " sectors\n";
             if (disk.native_max != 0)
-                std::cout << "native_max " << (long long unsigned)(disk.native_max + 1) << " sectors\n";
+                std::cout << "native_max " << static_cast<long long unsigned>(disk.native_max + 1) << " sectors\n";
             if (disk.dco != 0)
-                std::cout << "dco        " << (long long unsigned)(disk.dco + 1) << " sectors\n";
+                std::cout << "dco        " << static_cast<long long unsigned>(disk.dco + 1) << " sectors\n";
             if (hpa_dco & 1)
                 std::cout << "Host Protected Area (HPA) present.\n";
             if (hpa_dco & 2)
@@ -109,7 +109,7 @@ static int display_disk_list(list_disk_t list_disk, const int testdisk_mode, con
     return 0;
 }
 
-int main(int argc, char **argv)
+auto main(int argc, char **argv) -> int
 {
     TD_LOG create_log{TD_LOG::NONE};
     bool log_opened = false;
@@ -219,8 +219,8 @@ int main(int argc, char **argv)
     {
       const char *locale;
       locale = setlocale(LC_ALL, "");
-      if (locale==NULL) {
-        locale = setlocale(LC_ALL, NULL);
+      if (locale==nullptr) {
+        locale = setlocale(LC_ALL, nullptr);
         log_error("Failed to set locale, using default '{}'.", locale);
       } else {
         log_info("Using locale '{}'.", locale);

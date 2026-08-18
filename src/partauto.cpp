@@ -20,8 +20,8 @@
 
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 // #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp"
@@ -123,8 +123,8 @@ void disk_t::autodetect_arch(const arch_fnct_t *default_arch)
         log_info("Partition table type (auto): {}\n", arch->part_name);
         return;
     }
-    arch_autodetected = NULL;
-    if (default_arch != NULL)
+    arch_autodetected = nullptr;
+    if (default_arch != nullptr)
     {
         arch = default_arch;
     }
@@ -147,7 +147,7 @@ void disk_t::autodetect_arch(const arch_fnct_t *default_arch)
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || (defined(SINGLE_PARTITION_I386) && defined(SINGLE_PARTITION_GPT))
             /* PC/Intel partition table is limited to 2 TB, 2^32 512-bytes sectors */
-            if (disk_size < ((uint64_t)1 << (32 + 9)))
+            if (disk_size < (static_cast<uint64_t>(1) << (32 + 9)))
                 arch = &arch_i386;
             else
                 arch = &arch_gpt;

@@ -27,9 +27,10 @@
 
 #if __has_include(<libewf.h>) && defined(HAVE_LIBEWF)
 
-#include <string.h>
+#include <cstring>
 
 #include <optional>
+#include <utility>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -42,10 +43,10 @@
 #include <fcntl.h> 	/* open */
 #endif
 
-#include <stdio.h>
-#include <errno.h>
+#include <cstdio>
+#include <cerrno>
 
-#include <stdlib.h>     /* free */
+#include <cstdlib>     /* free */
 
 //#include "types.h"
 #include "common.hpp"
@@ -73,13 +74,13 @@
 
 extern const arch_fnct_t arch_none;
 
-static std::string_view fewf_description(disk_t &disk);
-static std::string_view fewf_description_short(disk_t &disk);
+static auto fewf_description(disk_t &disk) -> std::string_view;
+static auto fewf_description_short(disk_t &disk) -> std::string_view;
 static void fewf_clean(disk_t &disk);
-static int fewf_pread(disk_t &disk, void *buffer, const unsigned int count, const uint64_t offset);
-static int fewf_nopwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset);
-static int fewf_pwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset);
-static int fewf_sync(disk_t &disk);
+static auto fewf_pread(disk_t &disk, void *buffer, const unsigned int count, const uint64_t offset) -> int;
+static auto fewf_nopwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset) -> int;
+static auto fewf_pwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset) -> int;
+static auto fewf_sync(disk_t &disk) -> int;
 
 struct info_fewf_struct
 {
@@ -96,22 +97,22 @@ struct info_fewf_struct
 };
 
 #if defined( HAVE_LIBEWF_V2_API )
-std::optional<disk_t> fewf_init(const char *device, const int mode)
+auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
 {
   unsigned int num_files=0;
-  char **filenames= NULL;
+  char **filenames= nullptr;
   disk_t disk;
   struct info_fewf_struct *data;
-  libewf_error_t *ewf_error = NULL;
+  libewf_error_t *ewf_error = nullptr;
   data = new struct info_fewf_struct;
   memset(data, 0, sizeof(struct info_fewf_struct));
   data->file_name = strdup(device);
-  if(data->file_name==NULL)
+  if(data->file_name==nullptr)
   {
     delete data;
     return std::nullopt;
   }
-  data->handle=NULL;
+  data->handle=nullptr;
   data->mode = mode;
 
 #ifdef DEBUG_EWF
@@ -124,7 +125,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
        strlen(data->file_name),
        LIBEWF_FORMAT_UNKNOWN,
        &filenames,
-       (int *)&num_files,
+       reinterpret_cast<int *>(&num_files),
        &ewf_error) < 0 )
   {
     char buffer[4096];
@@ -150,7 +151,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
       libewf_glob_free(
 	  filenames,
 	  num_files,
-	  NULL );
+	  nullptr );
       free(data->file_name);
       delete data;
       return std::nullopt;
@@ -171,14 +172,14 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
       libewf_error_sprint(ewf_error, buffer, sizeof(buffer));
       log_error("{}", buffer);
       libewf_error_free(&ewf_error);
-      ewf_error=NULL;
+      ewf_error=nullptr;
       libewf_handle_free(
 	  &( data->handle ),
-	  NULL );
-      data->handle=NULL;
+	  nullptr );
+      data->handle=nullptr;
     }
   }
-  if(data->handle==NULL)
+  if(data->handle==nullptr)
   {
     data->mode&=~TESTDISK_O_RDWR;
     if( libewf_handle_initialize(
@@ -192,7 +193,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
       libewf_glob_free(
 	  filenames,
 	  num_files,
-	  NULL );
+	  nullptr );
       free(data->file_name);
       delete data;
       return std::nullopt;
@@ -211,12 +212,12 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
 
       libewf_handle_free(
 	  &( data->handle ),
-	  NULL );
+	  nullptr );
 
       libewf_glob_free(
 	  filenames,
 	  num_files,
-	  NULL );
+	  nullptr );
       free(data->file_name);
       delete data;
       return std::nullopt;
@@ -225,7 +226,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
   if( libewf_handle_set_header_values_date_format(
        data->handle,
        LIBEWF_DATE_FORMAT_DAYMONTH,
-       NULL ) != 1 )
+       nullptr ) != 1 )
   {
     log_error("{} Unable to set header values date format", device);
   }
@@ -236,7 +237,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
     libewf_glob_free(
 	filenames,
 	num_files,
-	NULL );
+	nullptr );
     free(data->file_name);
     delete data;
     return std::nullopt;
@@ -254,7 +255,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
     if( libewf_handle_get_bytes_per_sector(
 	  data->handle,
 	  &bytes_per_sector,
-	  NULL ) != 1 )
+	  nullptr ) != 1 )
     {
       disk.sector_size=DEFAULT_SECTOR_SIZE;
     }
@@ -276,7 +277,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
     if( libewf_handle_get_media_size(
 	  data->handle,
 	  &media_size,
-	  NULL ) != 1 )
+	  nullptr ) != 1 )
     {
       disk.disk_real_size=0;
     }
@@ -286,7 +287,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
   libewf_glob_free(
     filenames,
     num_files,
-    NULL );
+    nullptr );
   return disk;
 }
 #else
@@ -437,9 +438,9 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
 }
 #endif
 
-static std::string_view fewf_description(disk_t &disk)
+static auto fewf_description(disk_t &disk) -> std::string_view
 {
-  const struct info_fewf_struct *data=(const struct info_fewf_struct *)disk.data;
+  const auto *data=static_cast<const struct info_fewf_struct *>(disk.data);
   char buffer_disk_size[100];
   size_to_unit(disk.disk_size, buffer_disk_size);
   disk.description_txt = std::format("Image {} - {} - CHS {} {} {}{}",
@@ -449,9 +450,9 @@ static std::string_view fewf_description(disk_t &disk)
   return disk.description_txt;
 }
 
-static std::string_view fewf_description_short(disk_t &disk)
+static auto fewf_description_short(disk_t &disk) -> std::string_view
 {
-  const struct info_fewf_struct *data=(const struct info_fewf_struct *)disk.data;
+  const auto *data=static_cast<const struct info_fewf_struct *>(disk.data);
   char buffer_disk_size[100];
   size_to_unit(disk.disk_size, buffer_disk_size);
   disk.description_short_txt = std::format("Image {} - {}{}",
@@ -462,39 +463,39 @@ static std::string_view fewf_description_short(disk_t &disk)
 
 static void fewf_clean(disk_t &disk)
 {
-  if(disk.data!=NULL)
+  if(disk.data!=nullptr)
   {
-    struct info_fewf_struct *data=(struct info_fewf_struct *)disk.data;
+    auto *data=static_cast<struct info_fewf_struct *>(disk.data);
 #if defined( HAVE_LIBEWF_V2_API )
     libewf_handle_close(
      data->handle,
-     NULL);
+     nullptr);
     libewf_handle_free(
      &( data->handle ),
-     NULL );
+     nullptr );
 #else
     libewf_close(data->handle);
 #endif
     free(data->file_name);
-    data->file_name=NULL;
+    data->file_name=nullptr;
 
     free(data->buffer);
-    data->buffer=NULL;
+    data->buffer=nullptr;
 
     free(disk.data);
-    disk.data=NULL;
+    disk.data=nullptr;
   }
 }
 
-static int fewf_sync(disk_t &disk)
+static auto fewf_sync(disk_t &disk) -> int
 {
   errno=EINVAL;
   return -1;
 }
 
-static int fewf_pread(disk_t &disk, void *buffer, const unsigned int count, const uint64_t offset)
+static auto fewf_pread(disk_t &disk, void *buffer, const unsigned int count, const uint64_t offset) -> int
 {
-  struct info_fewf_struct *data=(struct info_fewf_struct *)disk.data;
+  auto *data=static_cast<struct info_fewf_struct *>(disk.data);
   int64_t taille;
 #if defined( HAVE_LIBEWF_V2_API )
 #if defined( HAVE_LIBEWF_HANDLE_READ_BUFFER_AT_OFFSET )
@@ -510,12 +511,12 @@ static int fewf_pread(disk_t &disk, void *buffer, const unsigned int count, cons
             buffer,
             count,
             offset,
-            NULL );
+            nullptr );
 #endif
 #else
   taille=libewf_read_random(data->handle, buffer, count, offset);
 #endif
-  if(taille!=count)
+  if(std::cmp_not_equal(taille,count))
   {
     log_error("fewf_pread(xxx,{},buffer,{}({}/{}/{})) read err: ",
 	(unsigned)(count/disk.sector_size), (long unsigned)(offset/disk.sector_size),
@@ -532,9 +533,9 @@ static int fewf_pread(disk_t &disk, void *buffer, const unsigned int count, cons
   return taille;
 }
 
-static int fewf_pwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset)
+static auto fewf_pwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset) -> int
 {
-  struct info_fewf_struct *data=(struct info_fewf_struct *)disk.data;
+  auto *data=static_cast<struct info_fewf_struct *>(disk.data);
   int64_t taille;
 #if defined( HAVE_LIBEWF_V2_API )
 #if defined( HAVE_LIBEWF_HANDLE_WRITE_BUFFER_AT_OFFSET )
@@ -550,12 +551,12 @@ static int fewf_pwrite(disk_t &disk, const void *buffer, const unsigned int coun
             buffer,
             count,
             offset,
-            NULL );
+            nullptr );
 #endif
 #else
   taille=libewf_write_random(data->handle, buffer, count, offset);
 #endif
-  if(taille!=count)
+  if(std::cmp_not_equal(taille,count))
   {
     log_error("fewf_pwrite(xxx,{},buffer,{}({}/{}/{})) write err: {}",
     	(unsigned)(count/disk.sector_size), (long unsigned)(offset/disk.sector_size),
@@ -567,7 +568,7 @@ static int fewf_pwrite(disk_t &disk, const void *buffer, const unsigned int coun
   return taille;
 }
 
-static int fewf_nopwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset)
+static auto fewf_nopwrite(disk_t &disk, const void *buffer, const unsigned int count, const uint64_t offset) -> int
 {
   log_error("fewf_nopwrite(xx,{},buffer,{}({}/{}/{})) write refused",
       (unsigned)(count/disk.sector_size), (long unsigned)(offset/disk.sector_size),
@@ -575,7 +576,7 @@ static int fewf_nopwrite(disk_t &disk, const void *buffer, const unsigned int co
   return -1;
 }
 
-const char*td_ewf_version(void)
+auto td_ewf_version() -> const char*
 {
 #ifdef LIBEWF_VERSION_STRING
   return (const char*)LIBEWF_VERSION_STRING;
