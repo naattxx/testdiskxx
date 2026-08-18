@@ -29,13 +29,14 @@
 #endif
 
 #if defined(HAVE_LIBEXT2FS)
-#include <ext2fs/ext2fs.h>
 #include "src/dir_common.hpp"
-struct ext2_dir_struct {
-	dir_list_t dir_list;
-	ext2_filsys current_fs;
-	int flags;
-	dir_data_t *dir_data;
+#include <ext2fs/ext2fs.h>
+struct ext2_dir_struct
+{
+  dir_list_t dir_list;
+  ext2_filsys current_fs;
+  int flags;
+  dir_data_t *dir_data;
 };
 #endif
 

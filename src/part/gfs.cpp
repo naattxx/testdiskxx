@@ -32,51 +32,57 @@
 
 static void set_gfs2_info(partition_t &partition)
 {
-    partition.upart_type = UP_GFS2;
-    partition.info[0] = '\0';
+  partition.upart_type = UP_GFS2;
+  partition.info[0]    = '\0';
 }
 
-static auto test_gfs2(const disk_t &disk, const struct gfs2_sb *sb, const partition_t &partition, const int dump_ind)
-    -> int
+static auto test_gfs2(const disk_t &disk, const struct gfs2_sb *sb,
+                      const partition_t &partition, const int dump_ind) -> int
 {
-    if (sb->sb_header.mh_magic != be32(GFS2_MAGIC))
-        return 1;
-    if (sb->sb_header.mh_format != be32(GFS2_FORMAT_SB))
-        return 1;
-    if (dump_ind != 0)
-    {
-        log_info("\ngfs2 magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
-                 offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
-        ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
-    }
-    return 0;
+  if (sb->sb_header.mh_magic != be32(GFS2_MAGIC))
+    return 1;
+  if (sb->sb_header.mh_format != be32(GFS2_FORMAT_SB))
+    return 1;
+  if (dump_ind != 0)
+  {
+    log_info("\ngfs2 magic value at {}/{}/{}\n",
+             offset2cylinder(disk, partition.part_offset),
+             offset2head(disk, partition.part_offset),
+             offset2sector(disk, partition.part_offset));
+    ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
+  }
+  return 0;
 }
 
 auto check_gfs2(disk_t &disk, partition_t &partition) -> int
 {
-    unsigned char *buffer;
-    buffer = new unsigned char[512];
-    if (disk.pread(disk, buffer, 512, partition.part_offset + (GFS2_SB_ADDR << GFS2_BASIC_BLOCK_SHIFT)) != 512)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    if (test_gfs2(disk, reinterpret_cast<const struct gfs2_sb *>(buffer), partition, 0) != 0)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    set_gfs2_info(partition);
+  unsigned char *buffer;
+  buffer = new unsigned char[512];
+  if (disk.pread(disk, buffer, 512,
+                 partition.part_offset +
+                     (GFS2_SB_ADDR << GFS2_BASIC_BLOCK_SHIFT)) != 512)
+  {
     delete[] (buffer);
-    return 0;
+    return 1;
+  }
+  if (test_gfs2(disk, reinterpret_cast<const struct gfs2_sb *>(buffer),
+                partition, 0) != 0)
+  {
+    delete[] (buffer);
+    return 1;
+  }
+  set_gfs2_info(partition);
+  delete[] (buffer);
+  return 0;
 }
 
-auto recover_gfs2(const disk_t &disk, const struct gfs2_sb *sb, partition_t &partition, const int dump_ind) -> int
+auto recover_gfs2(const disk_t &disk, const struct gfs2_sb *sb,
+                  partition_t &partition, const int dump_ind) -> int
 {
-    if (test_gfs2(disk, sb, partition, dump_ind) != 0)
-        return 1;
-    set_gfs2_info(partition);
-    partition.part_size = disk.sector_size;
-    partition.part_type_i386 = static_cast<unsigned char>(P_LINUX);
-    return 0;
+  if (test_gfs2(disk, sb, partition, dump_ind) != 0)
+    return 1;
+  set_gfs2_info(partition);
+  partition.part_size      = disk.sector_size;
+  partition.part_type_i386 = static_cast<unsigned char>(P_LINUX);
+  return 0;
 }

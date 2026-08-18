@@ -28,54 +28,56 @@
 
 auto fat_sector_size(const struct fat_boot_sector *fat_header) -> unsigned int
 {
-    const unsigned int hi = fat_header->sector_size[1];
-    const unsigned int lo = fat_header->sector_size[0];
-    /*@ assert 0 <= hi < 1<<8; */
-    /*@ assert 0 <= hi<<8 < 1<<16; */
-    /*@ assert 0 <= lo < 1<<8; */
-    const unsigned int res = (hi << 8) | lo;
-    /*@ assert res <= 65535; */
-    return res;
+  const unsigned int hi = fat_header->sector_size[1];
+  const unsigned int lo = fat_header->sector_size[0];
+  /*@ assert 0 <= hi < 1<<8; */
+  /*@ assert 0 <= hi<<8 < 1<<16; */
+  /*@ assert 0 <= lo < 1<<8; */
+  const unsigned int res = (hi << 8) | lo;
+  /*@ assert res <= 65535; */
+  return res;
 }
 
 auto get_dir_entries(const struct fat_boot_sector *fat_header) -> unsigned int
 {
-    const unsigned int hi = fat_header->dir_entries[1];
-    const unsigned int lo = fat_header->dir_entries[0];
-    /*@ assert 0 <= hi < 1<<8; */
-    /*@ assert 0 <= hi<<8 < 1<<16; */
-    /*@ assert 0 <= lo < 1<<8; */
-    const unsigned int res = (hi << 8) | lo;
-    /*@ assert res <= 65535; */
-    return res;
+  const unsigned int hi = fat_header->dir_entries[1];
+  const unsigned int lo = fat_header->dir_entries[0];
+  /*@ assert 0 <= hi < 1<<8; */
+  /*@ assert 0 <= hi<<8 < 1<<16; */
+  /*@ assert 0 <= lo < 1<<8; */
+  const unsigned int res = (hi << 8) | lo;
+  /*@ assert res <= 65535; */
+  return res;
 }
 
 auto fat_sectors(const struct fat_boot_sector *fat_header) -> unsigned int
 {
-    const unsigned int hi = fat_header->sectors[1];
-    const unsigned int lo = fat_header->sectors[0];
-    /*@ assert 0 <= hi < 1<<8; */
-    /*@ assert 0 <= hi<<8 < 1<<16; */
-    /*@ assert 0 <= lo < 1<<8; */
-    const unsigned int res = (hi << 8) | lo;
-    /*@ assert res <= 65535; */
-    return res;
+  const unsigned int hi = fat_header->sectors[1];
+  const unsigned int lo = fat_header->sectors[0];
+  /*@ assert 0 <= hi < 1<<8; */
+  /*@ assert 0 <= hi<<8 < 1<<16; */
+  /*@ assert 0 <= lo < 1<<8; */
+  const unsigned int res = (hi << 8) | lo;
+  /*@ assert res <= 65535; */
+  return res;
 }
 
-auto fat_get_cluster_from_entry(const struct msdos_dir_entry *entry) -> unsigned int
+auto fat_get_cluster_from_entry(const struct msdos_dir_entry *entry)
+    -> unsigned int
 {
-    const unsigned int hi = le16(entry->starthi);
-    const unsigned int lo = le16(entry->start);
-    /*@ assert 0 <= hi < 1<<16; */
-    /*@ assert 0 <= hi<<16 < 1<<32; */
-    /*@ assert 0 <= lo < 1<<16; */
-    return (hi << 16) | lo;
+  const unsigned int hi = le16(entry->starthi);
+  const unsigned int lo = le16(entry->start);
+  /*@ assert 0 <= hi < 1<<16; */
+  /*@ assert 0 <= hi<<16 < 1<<32; */
+  /*@ assert 0 <= lo < 1<<16; */
+  return (hi << 16) | lo;
 }
 
 auto is_fat_directory(const unsigned char *buffer) -> int
 {
-    return (buffer[0] == '.' && memcmp(buffer, ".          ", 8 + 3) == 0 &&
-            memcmp(&buffer[0x20], "..         ", 8 + 3) == 0 && buffer[0xB] != ATTR_EXT &&
-            (buffer[0xB] & ATTR_DIR) != 0 && buffer[1 * 0x20 + 0xB] != ATTR_EXT &&
-            (buffer[1 * 0x20 + 0xB] & ATTR_DIR) != 0);
+  return (buffer[0] == '.' && memcmp(buffer, ".          ", 8 + 3) == 0 &&
+          memcmp(&buffer[0x20], "..         ", 8 + 3) == 0 &&
+          buffer[0xB] != ATTR_EXT && (buffer[0xB] & ATTR_DIR) != 0 &&
+          buffer[1 * 0x20 + 0xB] != ATTR_EXT &&
+          (buffer[1 * 0x20 + 0xB] & ATTR_DIR) != 0);
 }

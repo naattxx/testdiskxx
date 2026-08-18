@@ -70,26 +70,31 @@ static auto is_extended(const unsigned int part_type) -> int;
   @*/
 static auto test_structure_i386(const list_part_t &list_part) -> int;
 
-#define pt_offset_const(b, n) ((const struct partition_dos *)((b) + 0x1be + (n) * sizeof(struct partition_dos)))
-#define pt_offset(b, n) ((struct partition_dos *)((b) + 0x1be + (n) * sizeof(struct partition_dos)))
+#define pt_offset_const(b, n)                                          \
+  ((const struct partition_dos *)((b) + 0x1be +                        \
+                                  (n) * sizeof(struct partition_dos)))
+#define pt_offset(b, n)                                                        \
+  ((struct partition_dos *)((b) + 0x1be + (n) * sizeof(struct partition_dos)))
 
 struct partition_dos
 {
-    unsigned char boot_ind;   /* 0x80 - active */
-    unsigned char head;       /* starting head */
-    unsigned char sector;     /* starting sector */
-    unsigned char cyl;        /* starting cylinder */
-    unsigned char sys_ind;    /* What partition type */
-    unsigned char end_head;   /* end head */
-    unsigned char end_sector; /* end sector */
-    unsigned char end_cyl;    /* end cylinder */
-    unsigned char start4[4];  /* starting sector counting from 0 */
-    unsigned char size4[4];   /* nr of sectors in partition */
+  unsigned char boot_ind;   /* 0x80 - active */
+  unsigned char head;       /* starting head */
+  unsigned char sector;     /* starting sector */
+  unsigned char cyl;        /* starting cylinder */
+  unsigned char sys_ind;    /* What partition type */
+  unsigned char end_head;   /* end head */
+  unsigned char end_sector; /* end sector */
+  unsigned char end_cyl;    /* end cylinder */
+  unsigned char start4[4];  /* starting sector counting from 0 */
+  unsigned char size4[4];   /* nr of sectors in partition */
 };
 
-#define s_cyl(p) (((p)->cyl & (unsigned)0xff) | (((p)->sector << 2) & (unsigned)0x300))
+#define s_cyl(p)                                                         \
+  (((p)->cyl & (unsigned)0xff) | (((p)->sector << 2) & (unsigned)0x300))
 #define s_sect(p) ((p)->sector & (unsigned)0x3f)
-#define e_cyl(p) (((p)->end_cyl & (unsigned)0xff) | (((p)->end_sector << 2) & (unsigned)0x300))
+#define e_cyl(p) \
+  (((p)->end_cyl & (unsigned)0xff) | (((p)->end_sector << 2) & (unsigned)0x300))
 #define e_sect(p) ((p)->end_sector & (unsigned)0x3f)
 static void log_dos_entry(const struct partition_dos *);
 
@@ -101,15 +106,19 @@ static void log_dos_entry(const struct partition_dos *);
   @ requires geometry->heads_per_cylinder==0;
   @ requires geometry->sectors_per_head==0;
   @*/
-// assigns geometry->sectors_per_head, geometry->heads_per_cylinder, geometry->bytes_per_sector;
-static auto get_geometry_from_i386mbr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry) -> int;
+// assigns geometry->sectors_per_head, geometry->heads_per_cylinder,
+// geometry->bytes_per_sector;
+static auto get_geometry_from_i386mbr(const unsigned char *buffer,
+                                      const int verbose,
+                                      CHSgeometry_t *geometry) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose, const int saveheader)
+static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
+                              const int verbose, const int saveheader)
     -> list_part_t;
 
 /*@
@@ -121,45 +130,51 @@ static void test_MBR_data(const list_part_t &list_part);
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static auto test_MBR_over(const disk_t &disk_car, const list_part_t &list_part) -> int;
-
-/*@
-  @ requires \valid(disk_car);
-  @ requires list_part == \null || \valid(list_part);
-  @ requires separation: \separated(disk_car, list_part);
-  @*/
-static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
-
-/*@
-  @ requires \valid(disk_car);
-  @ requires list_part == \null || \valid(list_part);
-  @ requires separation: \separated(disk_car, list_part);
-  @*/
-static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
-
-static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned char buffer_org[DEFAULT_SECTOR_SIZE])
+static auto test_MBR_over(const disk_t &disk_car, const list_part_t &list_part)
     -> int;
+
+/*@
+  @ requires \valid(disk_car);
+  @ requires list_part == \null || \valid(list_part);
+  @ requires separation: \separated(disk_car, list_part);
+  @*/
+static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part,
+                           const int ro, const int verbose) -> int;
+
+/*@
+  @ requires \valid(disk_car);
+  @ requires list_part == \null || \valid(list_part);
+  @ requires separation: \separated(disk_car, list_part);
+  @*/
+static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
+                               const int ro, const int verbose) -> int;
+
+static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE],
+                 const unsigned char buffer_org[DEFAULT_SECTOR_SIZE]) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static auto read_part_i386(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t;
+static auto read_part_i386(disk_t &disk_car, const int verbose,
+                           const int saveheader) -> list_part_t;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static auto write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
+static auto write_part_i386(disk_t &disk_car, const list_part_t &list_part,
+                            const int ro, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static void init_part_order_i386(const disk_t &disk_car, list_part_t &list_part);
+static void init_part_order_i386(const disk_t &disk_car,
+                                 list_part_t &list_part);
 
 /*@
   @ requires \valid(disk_car);
@@ -174,7 +189,8 @@ static auto write_MBR_code_i386_aux(unsigned char *buffer) -> int;
   @ requires separation: \separated(disk_car, partition);
   @ assigns partition.status;
   @*/
-static void set_prev_status_i386(const disk_t &disk_car, partition_t &partition);
+static void set_prev_status_i386(const disk_t &disk_car,
+                                 partition_t &partition);
 
 /*@
   @ requires \valid_read(disk_car);
@@ -182,13 +198,15 @@ static void set_prev_status_i386(const disk_t &disk_car, partition_t &partition)
   @ requires separation: \separated(disk_car, partition);
   @ assigns partition.status;
   @*/
-static void set_next_status_i386(const disk_t &disk_car, partition_t &partition);
+static void set_next_status_i386(const disk_t &disk_car,
+                                 partition_t &partition);
 
 /*@
   @ requires \valid(partition);
   @ assigns partition.part_type_i386;
   @*/
-static auto set_part_type_i386(partition_t &partition, unsigned int part_type) -> int;
+static auto set_part_type_i386(partition_t &partition, unsigned int part_type)
+    -> int;
 
 /*@
   @ requires \valid(partition);
@@ -201,7 +219,8 @@ static auto is_part_known_i386(const partition_t &partition) -> int;
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part, const int verbose);
+static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part,
+                                const int verbose);
 
 /*@
   @ requires \valid(disk_car);
@@ -213,7 +232,9 @@ static auto erase_list_part_i386(disk_t &disk_car) -> int;
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, partition);
   @*/
-static auto check_part_i386(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int;
+static auto check_part_i386(disk_t &disk_car, const int verbose,
+                            partition_t &partition, const int saveheader)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -221,7 +242,8 @@ static auto check_part_i386(disk_t &disk_car, const int verbose, partition_t &pa
   @ requires \valid(p);
   @ requires \separated(disk_car, partition, p);
   @*/
-static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos, const partition_t &partition,
+static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos,
+                                  const partition_t &partition,
                                   struct partition_dos *p);
 
 /*@
@@ -230,21 +252,27 @@ static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos, co
   @ requires \valid_read(p);
   @ requires separation: \separated(disk_car, partition, p);
   @*/
-static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset, partition_t &partition,
-                                 const struct partition_dos *p, const status_type_t status, const unsigned int order,
-                                 const int verbose, const int saveheader) -> int;
-static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const char *;
+static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
+                                 partition_t &partition,
+                                 const struct partition_dos *p,
+                                 const status_type_t status,
+                                 const unsigned int order, const int verbose,
+                                 const int saveheader) -> int;
+static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const
+    char *;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_i386(const partition_t &partition) -> const char *;
+static auto get_partition_typename_i386(const partition_t &partition) -> const
+    char *;
 
 /*@
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_i386_aux(const unsigned int part_type_i386) -> const char *;
+static auto get_partition_typename_i386_aux(const unsigned int part_type_i386)
+    -> const char *;
 
 /*@
   @ requires \valid_read(partition);
@@ -256,135 +284,142 @@ static auto get_part_type_i386(const partition_t &partition) -> unsigned int;
   @ requires \valid_read(disk_car);
   @ assigns \nothing;
   @*/
-static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
+static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C,
+                         const unsigned int H, const unsigned int S)
     -> uint64_t;
 
 static const struct systypes i386_sys_types[] = {
-    {.part_type = P_NO_OS, .name = "No partition"},
-    {.part_type = P_12FAT, .name = "FAT12"},
-    {.part_type = 0x02, .name = "XENIX root"},
-    {.part_type = 0x03, .name = "XENIX /usr"},
-    {.part_type = P_16FAT, .name = "FAT16 <32M"},
-    {.part_type = P_EXTENDED, .name = "extended"},
-    {.part_type = P_16FATBD, .name = "FAT16 >32M"},
-    {.part_type = P_NTFS, .name = "HPFS - NTFS"},
-    {.part_type = 0x09, .name = "AIX data"},
-    {.part_type = P_OS2MB, .name = "OS/2 Boot Manager"},
-    {.part_type = P_32FAT, .name = "FAT32"},
-    {.part_type = P_32FAT_LBA, .name = "FAT32 LBA"},
-    {.part_type = P_16FATBD_LBA, .name = "FAT16 LBA"},
-    {.part_type = P_EXTENDX, .name = "extended LBA"},
-    {.part_type = 0x10, .name = "OPUS"},
-    {.part_type = P_12FATH, .name = "hid. FAT12"},
-    {.part_type = 0x12, .name = "Compaq Diagnostics"},
-    {.part_type = P_16FATH, .name = "hid. FAT16 <32M"},
-    {.part_type = P_16FATBDH, .name = "hid. FAT16 >32M"},
-    {.part_type = P_NTFSH, .name = "hid. HPFS/NTFS"},
-    {.part_type = 0x18, .name = "AST swap"},
-    {.part_type = 0x19, .name = "Willowtech Photon"},
-    {.part_type = P_32FATH, .name = "hid. FAT32"},
-    {.part_type = P_32FAT_LBAH, .name = "hid. FAT32 LBA"},
-    {.part_type = P_16FATBD_LBAH, .name = "hid. FAT16 LBA"},
-    {.part_type = 0x20, .name = "Willowsoft OFS1"},
-    {.part_type = 0x24, .name = "NEC MS-DOS 3.x"},
-    {.part_type = 0x27, .name = "Windows RE(store)"},
-    {.part_type = 0x38, .name = "Theos"},
-    {.part_type = 0x3c, .name = "PMagic recovery"},
-    {.part_type = 0x40, .name = "VENIX 80286"},
-    {.part_type = 0x41, .name = "PPC PReP Boot"},
-    {.part_type = 0x42, .name = "W2K Dynamic/SFS"},
-    {.part_type = 0x50, .name = "OnTrack DM RO"},
-    {.part_type = 0x51, .name = "OnTrack DM RW-NOVEL"},
-    {.part_type = 0x52, .name = "CP/M-Microport V/386"},
-    {.part_type = 0x53, .name = "OnTrack DM WO ???"},
-    {.part_type = 0x54, .name = "OnTrack DM DDO"},
-    {.part_type = 0x55, .name = "EZ-Drive"},
-    {.part_type = 0x56, .name = "GoldenBow VFeature"},
-    {.part_type = 0x61, .name = "SpeedStor"},
-    {.part_type = P_SYSV, .name = "Unixware, HURD, SCO"},
-    {.part_type = 0x64, .name = "NetWare 286"},
-    {.part_type = P_NETWARE, .name = "NetWare 3.11+"},
-    {.part_type = 0x67, .name = "Novell"},
-    {.part_type = 0x68, .name = "Novell"},
-    {.part_type = 0x69, .name = "Novell"},
-    {.part_type = 0x70, .name = "DiskSecure MB"},
-    {.part_type = 0x75, .name = "PC/IX"},
-    {.part_type = 0x80, .name = "Minix v1.1-1.4a"},
-    {.part_type = P_OLDLINUX, .name = "Minix / old Linux"},
-    {.part_type = P_LINSWAP, .name = "Linux Swap"},
-    {.part_type = P_LINUX, .name = "Linux"},
-    {.part_type = P_LINUXEXTENDX, .name = "Linux extended"},
-    {.part_type = 0x86, .name = "NT FAT16 V/S set"},
-    {.part_type = 0x87, .name = "HPFS FT mirror-V/S set"},
-    {.part_type = P_LVM, .name = "Linux LVM"},
-    {.part_type = 0x93, .name = "Amoeba"},
-    {.part_type = 0x94, .name = "Amoeba bad block"},
-    {.part_type = 0xa0, .name = "NoteBIOS save2disk"},
-    {.part_type = P_FREEBSD, .name = "FreeBSD"},
-    {.part_type = P_OPENBSD, .name = "OpenBSD"},
-    {.part_type = 0xa8, .name = "Darwin UFS"},
-    {.part_type = P_NETBSD, .name = "NetBSD"},
-    {.part_type = 0xab, .name = "Darwin boot"},
-    {.part_type = P_HFS, .name = "HFS"},
-    {.part_type = 0xb7, .name = "BSDI"},
-    {.part_type = 0xb8, .name = "BSDI swap"},
-    {.part_type = 0xbc, .name = "Acronis"},
-    {.part_type = 0xbe, .name = "Solaris boot"},
-    {.part_type = P_SUN, .name = "Solaris"},
-    {.part_type = 0xc1, .name = "secured FAT12"},
-    {.part_type = 0xc4, .name = "secured FAT16"},
-    {.part_type = 0xc6, .name = "sec. Huge-bad FAT16"},
-    {.part_type = 0xc7, .name = "Syrinx Boot-bad NTFS"},
-    {.part_type = 0xd8, .name = "CP/M-86"},
-    {.part_type = 0xdb, .name = "CP/M"},
-    {.part_type = 0xde, .name = "Dell Utility"},
-    {.part_type = 0xe1, .name = "SpeedStor FAT12 ext"},
-    {.part_type = 0xe3, .name = "DOS RO"},
-    {.part_type = 0xe4, .name = "SpeedStor FAT16 ext"},
-    {.part_type = 0xea, .name = "Boot (BLS)"},
-    {.part_type = P_BEOS, .name = "BeFS"},
-    {.part_type = 0xee, .name = "EFI GPT"},            /* Intel EFI GUID Partition Table */
-    {.part_type = 0xef, .name = "EFI (FAT-12/16/32)"}, /* Intel EFI System Partition */
-    {.part_type = 0xf0, .name = "Linux/PA-RISC boot"}, /* Linux/PA-RISC boot loader */
-    {.part_type = 0xf1, .name = "Storage Dimensions"},
-    {.part_type = 0xf2, .name = "DOS secondary"},
-    {.part_type = 0xf4, .name = "SpeedStor"},
-    {.part_type = P_VMFS, .name = "VMFS"},
-    {.part_type = P_RAID, .name = "Linux RAID"},
-    {.part_type = 0xfe, .name = "LANstep"},
-    {.part_type = 0xff, .name = "Xenix bad block"},
-    {.part_type = P_NO_OS, .name = nullptr}};
+    {.part_type = P_NO_OS,        .name = "No partition"          },
+    {.part_type = P_12FAT,        .name = "FAT12"                 },
+    {.part_type = 0x02,           .name = "XENIX root"            },
+    {.part_type = 0x03,           .name = "XENIX /usr"            },
+    {.part_type = P_16FAT,        .name = "FAT16 <32M"            },
+    {.part_type = P_EXTENDED,     .name = "extended"              },
+    {.part_type = P_16FATBD,      .name = "FAT16 >32M"            },
+    {.part_type = P_NTFS,         .name = "HPFS - NTFS"           },
+    {.part_type = 0x09,           .name = "AIX data"              },
+    {.part_type = P_OS2MB,        .name = "OS/2 Boot Manager"     },
+    {.part_type = P_32FAT,        .name = "FAT32"                 },
+    {.part_type = P_32FAT_LBA,    .name = "FAT32 LBA"             },
+    {.part_type = P_16FATBD_LBA,  .name = "FAT16 LBA"             },
+    {.part_type = P_EXTENDX,      .name = "extended LBA"          },
+    {.part_type = 0x10,           .name = "OPUS"                  },
+    {.part_type = P_12FATH,       .name = "hid. FAT12"            },
+    {.part_type = 0x12,           .name = "Compaq Diagnostics"    },
+    {.part_type = P_16FATH,       .name = "hid. FAT16 <32M"       },
+    {.part_type = P_16FATBDH,     .name = "hid. FAT16 >32M"       },
+    {.part_type = P_NTFSH,        .name = "hid. HPFS/NTFS"        },
+    {.part_type = 0x18,           .name = "AST swap"              },
+    {.part_type = 0x19,           .name = "Willowtech Photon"     },
+    {.part_type = P_32FATH,       .name = "hid. FAT32"            },
+    {.part_type = P_32FAT_LBAH,   .name = "hid. FAT32 LBA"        },
+    {.part_type = P_16FATBD_LBAH, .name = "hid. FAT16 LBA"        },
+    {.part_type = 0x20,           .name = "Willowsoft OFS1"       },
+    {.part_type = 0x24,           .name = "NEC MS-DOS 3.x"        },
+    {.part_type = 0x27,           .name = "Windows RE(store)"     },
+    {.part_type = 0x38,           .name = "Theos"                 },
+    {.part_type = 0x3c,           .name = "PMagic recovery"       },
+    {.part_type = 0x40,           .name = "VENIX 80286"           },
+    {.part_type = 0x41,           .name = "PPC PReP Boot"         },
+    {.part_type = 0x42,           .name = "W2K Dynamic/SFS"       },
+    {.part_type = 0x50,           .name = "OnTrack DM RO"         },
+    {.part_type = 0x51,           .name = "OnTrack DM RW-NOVEL"   },
+    {.part_type = 0x52,           .name = "CP/M-Microport V/386"  },
+    {.part_type = 0x53,           .name = "OnTrack DM WO ???"     },
+    {.part_type = 0x54,           .name = "OnTrack DM DDO"        },
+    {.part_type = 0x55,           .name = "EZ-Drive"              },
+    {.part_type = 0x56,           .name = "GoldenBow VFeature"    },
+    {.part_type = 0x61,           .name = "SpeedStor"             },
+    {.part_type = P_SYSV,         .name = "Unixware, HURD, SCO"   },
+    {.part_type = 0x64,           .name = "NetWare 286"           },
+    {.part_type = P_NETWARE,      .name = "NetWare 3.11+"         },
+    {.part_type = 0x67,           .name = "Novell"                },
+    {.part_type = 0x68,           .name = "Novell"                },
+    {.part_type = 0x69,           .name = "Novell"                },
+    {.part_type = 0x70,           .name = "DiskSecure MB"         },
+    {.part_type = 0x75,           .name = "PC/IX"                 },
+    {.part_type = 0x80,           .name = "Minix v1.1-1.4a"       },
+    {.part_type = P_OLDLINUX,     .name = "Minix / old Linux"     },
+    {.part_type = P_LINSWAP,      .name = "Linux Swap"            },
+    {.part_type = P_LINUX,        .name = "Linux"                 },
+    {.part_type = P_LINUXEXTENDX, .name = "Linux extended"        },
+    {.part_type = 0x86,           .name = "NT FAT16 V/S set"      },
+    {.part_type = 0x87,           .name = "HPFS FT mirror-V/S set"},
+    {.part_type = P_LVM,          .name = "Linux LVM"             },
+    {.part_type = 0x93,           .name = "Amoeba"                },
+    {.part_type = 0x94,           .name = "Amoeba bad block"      },
+    {.part_type = 0xa0,           .name = "NoteBIOS save2disk"    },
+    {.part_type = P_FREEBSD,      .name = "FreeBSD"               },
+    {.part_type = P_OPENBSD,      .name = "OpenBSD"               },
+    {.part_type = 0xa8,           .name = "Darwin UFS"            },
+    {.part_type = P_NETBSD,       .name = "NetBSD"                },
+    {.part_type = 0xab,           .name = "Darwin boot"           },
+    {.part_type = P_HFS,          .name = "HFS"                   },
+    {.part_type = 0xb7,           .name = "BSDI"                  },
+    {.part_type = 0xb8,           .name = "BSDI swap"             },
+    {.part_type = 0xbc,           .name = "Acronis"               },
+    {.part_type = 0xbe,           .name = "Solaris boot"          },
+    {.part_type = P_SUN,          .name = "Solaris"               },
+    {.part_type = 0xc1,           .name = "secured FAT12"         },
+    {.part_type = 0xc4,           .name = "secured FAT16"         },
+    {.part_type = 0xc6,           .name = "sec. Huge-bad FAT16"   },
+    {.part_type = 0xc7,           .name = "Syrinx Boot-bad NTFS"  },
+    {.part_type = 0xd8,           .name = "CP/M-86"               },
+    {.part_type = 0xdb,           .name = "CP/M"                  },
+    {.part_type = 0xde,           .name = "Dell Utility"          },
+    {.part_type = 0xe1,           .name = "SpeedStor FAT12 ext"   },
+    {.part_type = 0xe3,           .name = "DOS RO"                },
+    {.part_type = 0xe4,           .name = "SpeedStor FAT16 ext"   },
+    {.part_type = 0xea,           .name = "Boot (BLS)"            },
+    {.part_type = P_BEOS,         .name = "BeFS"                  },
+    {.part_type = 0xee,           .name = "EFI GPT"               }, /* Intel EFI GUID Partition Table */
+    {.part_type = 0xef,
+     .name      = "EFI (FAT-12/16/32)"                            }, /* Intel EFI System Partition */
+    {.part_type = 0xf0,
+     .name      = "Linux/PA-RISC boot"                            }, /* Linux/PA-RISC boot loader */
+    {.part_type = 0xf1,           .name = "Storage Dimensions"    },
+    {.part_type = 0xf2,           .name = "DOS secondary"         },
+    {.part_type = 0xf4,           .name = "SpeedStor"             },
+    {.part_type = P_VMFS,         .name = "VMFS"                  },
+    {.part_type = P_RAID,         .name = "Linux RAID"            },
+    {.part_type = 0xfe,           .name = "LANstep"               },
+    {.part_type = 0xff,           .name = "Xenix bad block"       },
+    {.part_type = P_NO_OS,        .name = nullptr                 }
+};
 
-arch_fnct_t arch_i386 = {.part_name = "Intel",
-                         .part_name_option = "partition_i386",
-                         .msg_part_type = "*=Primary bootable  P=Primary  L=Logical  E=Extended  D=Deleted",
-                         .read_part = &read_part_i386,
-                         .write_part = &write_part_i386,
-                         .init_part_order = &init_part_order_i386,
-                         .get_geometry_from_mbr = &get_geometry_from_i386mbr,
-                         .check_part = &check_part_i386,
-                         .write_MBR_code = &write_MBR_code_i386,
-                         .set_prev_status = &set_prev_status_i386,
-                         .set_next_status = &set_next_status_i386,
-                         .test_structure = &test_structure_i386,
-                         .get_part_type = &get_part_type_i386,
-                         .set_part_type = &set_part_type_i386,
-                         .init_structure = &init_structure_i386,
-                         .erase_list_part = &erase_list_part_i386,
-                         .get_partition_typename = &get_partition_typename_i386,
-                         .is_part_known = &is_part_known_i386};
+arch_fnct_t arch_i386 = {
+    .part_name        = "Intel",
+    .part_name_option = "partition_i386",
+    .msg_part_type =
+        "*=Primary bootable  P=Primary  L=Logical  E=Extended  D=Deleted",
+    .read_part              = &read_part_i386,
+    .write_part             = &write_part_i386,
+    .init_part_order        = &init_part_order_i386,
+    .get_geometry_from_mbr  = &get_geometry_from_i386mbr,
+    .check_part             = &check_part_i386,
+    .write_MBR_code         = &write_MBR_code_i386,
+    .set_prev_status        = &set_prev_status_i386,
+    .set_next_status        = &set_next_status_i386,
+    .test_structure         = &test_structure_i386,
+    .get_part_type          = &get_part_type_i386,
+    .set_part_type          = &set_part_type_i386,
+    .init_structure         = &init_structure_i386,
+    .erase_list_part        = &erase_list_part_i386,
+    .get_partition_typename = &get_partition_typename_i386,
+    .is_part_known          = &is_part_known_i386};
 
-static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
-    -> uint64_t
+static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C,
+                         const unsigned int H, const unsigned int S) -> uint64_t
 {
-    return ((static_cast<uint64_t>(C) * disk_car.geom.heads_per_cylinder + H) * disk_car.geom.sectors_per_head + S -
-            1) *
-           disk_car.sector_size;
+  return ((static_cast<uint64_t>(C) * disk_car.geom.heads_per_cylinder + H) *
+              disk_car.geom.sectors_per_head +
+          S - 1) *
+         disk_car.sector_size;
 }
 
 static auto get_part_type_i386(const partition_t &partition) -> unsigned int
 {
-    return partition.part_type_i386;
+  return partition.part_type_i386;
 }
 
 /*@
@@ -393,10 +428,10 @@ static auto get_part_type_i386(const partition_t &partition) -> unsigned int
   @*/
 static void store4_little_endian(unsigned char *cp, unsigned int val)
 {
-    cp[0] = (val & 0xff);
-    cp[1] = ((val >> 8) & 0xff);
-    cp[2] = ((val >> 16) & 0xff);
-    cp[3] = ((val >> 24) & 0xff);
+  cp[0] = (val & 0xff);
+  cp[1] = ((val >> 8) & 0xff);
+  cp[2] = ((val >> 16) & 0xff);
+  cp[3] = ((val >> 24) & 0xff);
 }
 
 /*@
@@ -405,8 +440,10 @@ static void store4_little_endian(unsigned char *cp, unsigned int val)
   @*/
 static auto read4_little_endian(const unsigned char *cp) -> unsigned int
 {
-    return static_cast<unsigned int>(cp[0]) + (static_cast<unsigned int>(cp[1]) << 8) +
-           (static_cast<unsigned int>(cp[2]) << 16) + (static_cast<unsigned int>(cp[3]) << 24);
+  return static_cast<unsigned int>(cp[0]) +
+         (static_cast<unsigned int>(cp[1]) << 8) +
+         (static_cast<unsigned int>(cp[2]) << 16) +
+         (static_cast<unsigned int>(cp[3]) << 24);
 }
 
 /*@
@@ -415,7 +452,7 @@ static auto read4_little_endian(const unsigned char *cp) -> unsigned int
   @*/
 static auto get_start_sect(const struct partition_dos *p) -> uint64_t
 {
-    return read4_little_endian(p->start4);
+  return read4_little_endian(p->start4);
 }
 
 /*@
@@ -424,7 +461,7 @@ static auto get_start_sect(const struct partition_dos *p) -> uint64_t
   @*/
 static auto get_nr_sects(const struct partition_dos *p) -> uint64_t
 {
-    return read4_little_endian(p->size4);
+  return read4_little_endian(p->size4);
 }
 
 /*@
@@ -433,7 +470,7 @@ static auto get_nr_sects(const struct partition_dos *p) -> uint64_t
   @*/
 static void set_nr_sects(struct partition_dos *p, unsigned int nr_sects)
 {
-    store4_little_endian(p->size4, nr_sects);
+  store4_little_endian(p->size4, nr_sects);
 }
 
 /*@
@@ -442,1448 +479,1593 @@ static void set_nr_sects(struct partition_dos *p, unsigned int nr_sects)
   @*/
 static void set_start_sect(struct partition_dos *p, unsigned int start_sect)
 {
-    store4_little_endian(p->start4, start_sect);
+  store4_little_endian(p->start4, start_sect);
 }
 
-static auto get_geometry_from_i386mbr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry) -> int
+static auto get_geometry_from_i386mbr(const unsigned char *buffer,
+                                      const int verbose,
+                                      CHSgeometry_t *geometry) -> int
 {
-    unsigned int i;
+  unsigned int i;
 #ifndef DISABLED_FOR_FRAMAC
-    if (verbose > 1)
-    {
-        ; // log_trace("get_geometry_from_i386mbr\n");
-    }
+  if (verbose > 1)
+  {
+    ; // log_trace("get_geometry_from_i386mbr\n");
+  }
 #endif
-    if ((buffer[0x1FE] != static_cast<unsigned char>(0x55)) || (buffer[0x1FF] != static_cast<unsigned char>(0xAA)))
+  if ((buffer[0x1FE] != static_cast<unsigned char>(0x55)) ||
+      (buffer[0x1FF] != static_cast<unsigned char>(0xAA)))
+  {
+    return 1;
+  }
+  /*@ loop assigns i, geometry->cylinders, geometry->heads_per_cylinder,
+   * geometry->sectors_per_head; */
+  for (i = 0; i < 4; i++)
+  {
+    const struct partition_dos *p = pt_offset_const(buffer, i);
+    if (p->sys_ind != 0)
     {
-        return 1;
+      if (geometry->cylinders < e_cyl(p) + 1)
+        geometry->cylinders = e_cyl(p) + 1;
+      if (geometry->heads_per_cylinder <
+          static_cast<unsigned int>(p->end_head) + 1)
+        geometry->heads_per_cylinder =
+            static_cast<unsigned int>(p->end_head) + 1;
+      if (geometry->sectors_per_head < e_sect(p))
+        geometry->sectors_per_head = e_sect(p);
     }
-    /*@ loop assigns i, geometry->cylinders, geometry->heads_per_cylinder, geometry->sectors_per_head; */
-    for (i = 0; i < 4; i++)
-    {
-        const struct partition_dos *p = pt_offset_const(buffer, i);
-        if (p->sys_ind != 0)
-        {
-            if (geometry->cylinders < e_cyl(p) + 1)
-                geometry->cylinders = e_cyl(p) + 1;
-            if (geometry->heads_per_cylinder < static_cast<unsigned int>(p->end_head) + 1)
-                geometry->heads_per_cylinder = static_cast<unsigned int>(p->end_head) + 1;
-            if (geometry->sectors_per_head < e_sect(p))
-                geometry->sectors_per_head = e_sect(p);
-        }
-    }
-    if (geometry->sectors_per_head == 32 ||
-        (geometry->sectors_per_head == 63 &&
-         (geometry->heads_per_cylinder == 16 || geometry->heads_per_cylinder == 32 ||
-          geometry->heads_per_cylinder == 64 || geometry->heads_per_cylinder == 128 ||
-          geometry->heads_per_cylinder == 240 || geometry->heads_per_cylinder == 255)))
-    {
+  }
+  if (geometry->sectors_per_head == 32 ||
+      (geometry->sectors_per_head == 63 &&
+       (geometry->heads_per_cylinder == 16 ||
+        geometry->heads_per_cylinder == 32 ||
+        geometry->heads_per_cylinder == 64 ||
+        geometry->heads_per_cylinder == 128 ||
+        geometry->heads_per_cylinder == 240 ||
+        geometry->heads_per_cylinder == 255)))
+  {
 #ifndef DISABLED_FOR_FRAMAC
-        log_info("Geometry from i386 MBR: head={} sector={}\n", geometry->heads_per_cylinder,
-                 geometry->sectors_per_head);
+    log_info("Geometry from i386 MBR: head={} sector={}\n",
+             geometry->heads_per_cylinder, geometry->sectors_per_head);
 #endif
-    }
-    else
-    {
+  }
+  else
+  {
 #ifndef DISABLED_FOR_FRAMAC
-        if (geometry->sectors_per_head > 0)
-            log_warning("Geometry from i386 MBR: head={} sector={}\n", geometry->heads_per_cylinder,
-                        geometry->sectors_per_head);
+    if (geometry->sectors_per_head > 0)
+      log_warning("Geometry from i386 MBR: head={} sector={}\n",
+                  geometry->heads_per_cylinder, geometry->sectors_per_head);
 #endif
-        /* Don't trust the geometry */
-        geometry->cylinders = 0;
-        geometry->heads_per_cylinder = 0;
-        geometry->sectors_per_head = 0;
-    }
-    return 0;
+    /* Don't trust the geometry */
+    geometry->cylinders          = 0;
+    geometry->heads_per_cylinder = 0;
+    geometry->sectors_per_head   = 0;
+  }
+  return 0;
 }
 
 static void init_part_order_i386(const disk_t &disk_car, list_part_t &list_part)
 {
-    int nbr_log = 0;
-    int nbr_prim = 0;
-    for (partition_t &element : list_part)
+  int nbr_log  = 0;
+  int nbr_prim = 0;
+  for (partition_t &element : list_part)
+  {
+    switch (element.status)
     {
-        switch (element.status)
-        {
-        case STATUS_PRIM:
-        case STATUS_PRIM_BOOT:
-        case STATUS_EXT:
-            element.order = ++nbr_prim;
-            break;
-        case STATUS_LOG:
-            element.order = (++nbr_log) + 4;
-            break;
-        default:
-            log_critical("init_part_order_i386: severe error\n");
-            break;
-        }
+    case STATUS_PRIM:
+    case STATUS_PRIM_BOOT:
+    case STATUS_EXT:
+      element.order = ++nbr_prim;
+      break;
+    case STATUS_LOG:
+      element.order = (++nbr_log) + 4;
+      break;
+    default:
+      log_critical("init_part_order_i386: severe error\n");
+      break;
     }
+  }
 }
 
-static auto read_part_i386(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t
+static auto read_part_i386(disk_t &disk_car, const int verbose,
+                           const int saveheader) -> list_part_t
 {
-    unsigned int i;
-    CHSgeometry_t geometry;
-    list_part_t new_list_part;
-    auto *buffer = new unsigned char[disk_car.sector_size];
-    /*@ assert valid_list_part(new_list_part); */
-    screen_buffer_reset();
-    if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size, static_cast<uint64_t>(0)),
-                           disk_car.sector_size))
-    {
-        screen_buffer_add(msg_PART_RD_ERR);
-        delete[] (buffer);
-        return new_list_part;
-    }
-    geometry.cylinders = 0;
-    geometry.heads_per_cylinder = 0;
-    geometry.sectors_per_head = 0;
-    if (get_geometry_from_i386mbr(buffer, verbose, &geometry) != 0)
-    {
-        screen_buffer_add(msg_TBL_NMARK);
-        delete[] (buffer);
-        return new_list_part;
-    }
-
-    /*@
-      @ loop invariant valid_list_part(new_list_part);
-      @*/
-    for (i = 0; i < 4; i++)
-    {
-        const struct partition_dos *p = pt_offset(buffer, i);
-        status_type_t status;
-        switch (p->sys_ind)
-        {
-        case P_EXTENDX:
-        case P_EXTENDED:
-        case P_LINUXEXTENDX:
-            status = STATUS_EXT;
-            break;
-        default:
-            status = STATUS_PRIM;
-            break;
-        }
-        if (p->sys_ind != P_NO_OS)
-        {
-            int insert_error = 0;
-            partition_t new_partition(&arch_i386);
-            i386_entry2partition(disk_car, static_cast<uint64_t>(0), new_partition, p, status, i + 1, verbose,
-                                 saveheader);
-            if (verbose > 1)
-                log_dos_entry(p);
-            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-            if (new_partition.errcode != BAD_NOERR)
-            {
-                screen_buffer_add("%s\n", errmsg_i386_entry2partition(new_partition.errcode));
-            }
-            insert_new_partition(new_list_part, new_partition, 0, &insert_error);
-        }
-    }
-    test_MBR_data(new_list_part);
-    test_MBR_over(disk_car, new_list_part);
-    new_list_part = get_ext_data_i386(disk_car, new_list_part, verbose, saveheader);
-    get_geometry_from_list_part(disk_car, new_list_part, verbose);
+  unsigned int i;
+  CHSgeometry_t geometry;
+  list_part_t new_list_part;
+  auto *buffer = new unsigned char[disk_car.sector_size];
+  /*@ assert valid_list_part(new_list_part); */
+  screen_buffer_reset();
+  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
+                                        static_cast<uint64_t>(0)),
+                         disk_car.sector_size))
+  {
+    screen_buffer_add(msg_PART_RD_ERR);
     delete[] (buffer);
     return new_list_part;
+  }
+  geometry.cylinders          = 0;
+  geometry.heads_per_cylinder = 0;
+  geometry.sectors_per_head   = 0;
+  if (get_geometry_from_i386mbr(buffer, verbose, &geometry) != 0)
+  {
+    screen_buffer_add(msg_TBL_NMARK);
+    delete[] (buffer);
+    return new_list_part;
+  }
+
+  /*@
+    @ loop invariant valid_list_part(new_list_part);
+    @*/
+  for (i = 0; i < 4; i++)
+  {
+    const struct partition_dos *p = pt_offset(buffer, i);
+    status_type_t status;
+    switch (p->sys_ind)
+    {
+    case P_EXTENDX:
+    case P_EXTENDED:
+    case P_LINUXEXTENDX:
+      status = STATUS_EXT;
+      break;
+    default:
+      status = STATUS_PRIM;
+      break;
+    }
+    if (p->sys_ind != P_NO_OS)
+    {
+      int insert_error = 0;
+      partition_t new_partition(&arch_i386);
+      i386_entry2partition(disk_car, static_cast<uint64_t>(0), new_partition, p,
+                           status, i + 1, verbose, saveheader);
+      if (verbose > 1)
+        log_dos_entry(p);
+      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                      new_partition);
+      if (new_partition.errcode != BAD_NOERR)
+      {
+        screen_buffer_add("%s\n",
+                          errmsg_i386_entry2partition(new_partition.errcode));
+      }
+      insert_new_partition(new_list_part, new_partition, 0, &insert_error);
+    }
+  }
+  test_MBR_data(new_list_part);
+  test_MBR_over(disk_car, new_list_part);
+  new_list_part =
+      get_ext_data_i386(disk_car, new_list_part, verbose, saveheader);
+  get_geometry_from_list_part(disk_car, new_list_part, verbose);
+  delete[] (buffer);
+  return new_list_part;
 }
 
 static void test_MBR_data(const list_part_t &list_part)
 {
-    unsigned int nb_dos = 0, nb_hidden = 0, nb_mb = 0, nb_ext = 0, nb_boot = 0;
-    for (const partition_t &partition : list_part)
+  unsigned int nb_dos = 0, nb_hidden = 0, nb_mb = 0, nb_ext = 0, nb_boot = 0;
+  for (const partition_t &partition : list_part)
+  {
+    switch (partition.status)
     {
-        switch (partition.status)
-        {
-        case STATUS_PRIM:
-        case STATUS_PRIM_BOOT:
-            if (partition.status == STATUS_PRIM_BOOT)
-                nb_boot++;
-            switch (partition.part_type_i386)
-            {
-            case P_12FAT:
-            case P_16FAT:
-            case P_16FATBD:
-                nb_dos++;
-                break;
-            case P_16FATBDH:
-            case P_16FATH:
-            case P_NTFSH:
-                nb_hidden++;
-                break;
-            case P_OS2MB:
-                nb_mb++;
-                break;
-            }
-            break;
-        case STATUS_EXT:
-            nb_ext++;
-            break;
-        default:
-            log_critical("test_MBR_data: severe error\n");
-            break;
-        }
+    case STATUS_PRIM:
+    case STATUS_PRIM_BOOT:
+      if (partition.status == STATUS_PRIM_BOOT)
+        nb_boot++;
+      switch (partition.part_type_i386)
+      {
+      case P_12FAT:
+      case P_16FAT:
+      case P_16FATBD:
+        nb_dos++;
+        break;
+      case P_16FATBDH:
+      case P_16FATH:
+      case P_NTFSH:
+        nb_hidden++;
+        break;
+      case P_OS2MB:
+        nb_mb++;
+        break;
+      }
+      break;
+    case STATUS_EXT:
+      nb_ext++;
+      break;
+    default:
+      log_critical("test_MBR_data: severe error\n");
+      break;
     }
-    if (nb_dos > 1)
-        screen_buffer_add(msg_ONLY_ONE_DOS);
-    if (nb_ext > 1)
-        screen_buffer_add(msg_ONLY_ONE_EXT);
-    /* S'il y a des partitions caches, il faut un MB */
-    /* Obsolete
-    if(nb_hidden>0 && nb_mb==0)
-      screen_buffer_add(msg_NO_OS2MB);
-      */
-    /* Nombre de partition bootable */
-    if (nb_boot == 0)
-        screen_buffer_add(msg_NO_BOOTABLE);
-    else if (nb_boot > 1)
-        screen_buffer_add(msg_ONLY1MUSTBOOT);
+  }
+  if (nb_dos > 1)
+    screen_buffer_add(msg_ONLY_ONE_DOS);
+  if (nb_ext > 1)
+    screen_buffer_add(msg_ONLY_ONE_EXT);
+  /* S'il y a des partitions caches, il faut un MB */
+  /* Obsolete
+  if(nb_hidden>0 && nb_mb==0)
+    screen_buffer_add(msg_NO_OS2MB);
+    */
+  /* Nombre de partition bootable */
+  if (nb_boot == 0)
+    screen_buffer_add(msg_NO_BOOTABLE);
+  else if (nb_boot > 1)
+    screen_buffer_add(msg_ONLY1MUSTBOOT);
 }
 
-static auto get_ext_partition_i386(const list_part_t &list_part) -> std::optional<partition_t>
+static auto get_ext_partition_i386(const list_part_t &list_part)
+    -> std::optional<partition_t>
 {
-    for (const partition_t &element : list_part)
-    {
-        if (element.status == STATUS_EXT)
-            return element;
-    }
-    return std::nullopt;
+  for (const partition_t &element : list_part)
+  {
+    if (element.status == STATUS_EXT)
+      return element;
+  }
+  return std::nullopt;
 }
 
-static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose, const int saveheader)
+static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
+                              const int verbose, const int saveheader)
     -> list_part_t
 {
-    using std::optional;
-    optional<partition_t> partition_main_ext;
-    optional<partition_t> partition_next_ext;
-    unsigned int order = 5;
-    unsigned int nbr_part = 0;
-    partition_main_ext = get_ext_partition_i386(list_part);
-    for (optional<partition_t> &partition_ext = partition_main_ext; partition_ext.has_value() && nbr_part < 32; partition_ext = partition_next_ext)
+  using std::optional;
+  optional<partition_t> partition_main_ext;
+  optional<partition_t> partition_next_ext;
+  unsigned int order    = 5;
+  unsigned int nbr_part = 0;
+  partition_main_ext    = get_ext_partition_i386(list_part);
+  for (optional<partition_t> &partition_ext = partition_main_ext;
+       partition_ext.has_value() && nbr_part < 32;
+       partition_ext = partition_next_ext)
+  {
+    unsigned char buffer[DEFAULT_SECTOR_SIZE];
+    int nb_hidden = 0, nb_mb = 0, nb_part = 0, nb_ext = 0, nb_boot = 0;
+    unsigned int i;
+    partition_next_ext = std::nullopt;
+    if (partition_ext->part_offset == 0)
+      return list_part;
+    if (disk_car.pread(disk_car, &buffer, sizeof(buffer),
+                       partition_ext->part_offset) != sizeof(buffer))
+      return list_part;
+    if ((buffer[0x1FE] != static_cast<unsigned char>(0x55)) ||
+        (buffer[0x1FF] != static_cast<unsigned char>(0xAA)))
     {
-        unsigned char buffer[DEFAULT_SECTOR_SIZE];
-        int nb_hidden = 0, nb_mb = 0, nb_part = 0, nb_ext = 0, nb_boot = 0;
-        unsigned int i;
-        partition_next_ext = std::nullopt;
-        if (partition_ext->part_offset == 0)
-            return list_part;
-        if (disk_car.pread(disk_car, &buffer, sizeof(buffer), partition_ext->part_offset) != sizeof(buffer))
-            return list_part;
-        if ((buffer[0x1FE] != static_cast<unsigned char>(0x55)) || (buffer[0x1FF] != static_cast<unsigned char>(0xAA)))
-        {
-            screen_buffer_add("\ntest_logical: " msg_TBL_NMARK);
-            return list_part;
-        }
-        for (i = 0; i < 4; i++)
-        {
-            const struct partition_dos *p = pt_offset(buffer, i);
-            if (p->boot_ind == static_cast<unsigned char>(0x80))
-                nb_boot++;
-            switch (p->sys_ind)
-            {
-            case P_16FATBDH:
-            case P_16FATH:
-            case P_NTFSH:
-                nb_hidden++;
-                break;
-            case P_OS2MB:
-                nb_mb++;
-                break;
-            case P_EXTENDX:
-            case P_EXTENDED:
-            case P_LINUXEXTENDX:
-                nb_ext++;
-                break;
-            case P_NO_OS:
-                break;
-            default:
-                nb_part++;
-            }
-        }
-        if (nb_hidden > 0)
-            screen_buffer_add("Partition must not be hidden\n");
-        if (nb_mb > 0)
-            screen_buffer_add("Multiboot must be a primary partition, not a logical\n");
-        if (nb_ext > 1)
-            screen_buffer_add("A logical partition must not have more than one link to another logical partition\n");
-        if (nb_part > 1)
-            screen_buffer_add("A logical partition must contain only one partition\n");
-        if (nb_boot > 0)
-            screen_buffer_add("Logical partition must not be bootable\n");
-        for (i = 0; i < 4; i++)
-        {
-            const struct partition_dos *p = pt_offset(buffer, i);
-            if (p->sys_ind != 0)
-            {
-                int insert_error = 0;
-                partition_t new_partition(&arch_i386);
-                new_partition.order = order;
-                if (verbose > 1)
-                    log_dos_entry(p);
-                if (is_extended(p->sys_ind))
-                {
-                    i386_entry2partition(disk_car, partition_main_ext->part_offset, new_partition, p, STATUS_EXT_IN_EXT,
-                                         order, verbose, saveheader);
-                    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-                    if (new_partition.errcode != BAD_NOERR)
-                    {
-                        screen_buffer_add("%s\n", errmsg_i386_entry2partition(new_partition.errcode));
-                    }
-                    {
-                        if ((new_partition.part_offset <= partition_main_ext->part_offset) ||
-                            (new_partition.part_offset + new_partition.part_size - 1 >
-                             partition_main_ext->part_offset + partition_main_ext->part_size - 1))
-                        { /* Must be IN partition_main_ext */
-                            screen_buffer_add("Must be in extended partition\n");
-                            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *partition_main_ext);
-                            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-                        }
-                        else
-                        {
-                            for (partition_t &partition : list_part)
-                            {
-                                if (partition.status == STATUS_EXT_IN_EXT)
-                                {
-                                    if (((partition.part_offset >= new_partition.part_offset) &&
-                                         (partition.part_offset <=
-                                          new_partition.part_offset + new_partition.part_size - 1)) ||
-                                        ((partition.part_offset + partition.part_size - 1 >=
-                                          new_partition.part_offset) &&
-                                         (partition.part_offset + partition.part_size - 1 <=
-                                          new_partition.part_offset + partition.part_size - 1)))
-                                    { /* New Partition start or end mustn't been in partition */
-                                        screen_buffer_add("Logical partition must be in its own extended partition\n");
-                                        aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
-                                        aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    i386_entry2partition(disk_car, partition_ext->part_offset, new_partition, p, STATUS_LOG, order,
-                                         verbose, saveheader);
-                    order++;
-                    if (verbose > 1)
-                        log_dos_entry(p);
-                    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-                    if (new_partition.errcode != BAD_NOERR)
-                    {
-                        screen_buffer_add("%s\n", errmsg_i386_entry2partition(new_partition.errcode));
-                    }
-                    {
-                        if ((new_partition.part_offset <= partition_main_ext->part_offset) ||
-                            (new_partition.part_offset + new_partition.part_size - 1 >
-                             partition_main_ext->part_offset + partition_main_ext->part_size - 1))
-                        { /* Must be IN partition_main_ext */
-                            screen_buffer_add(msg_SAME_SPACE);
-                            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *partition_main_ext);
-                            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
-                        }
-                    }
-                }
-                insert_new_partition(list_part, new_partition, 0, &insert_error);
-                if (insert_error == 0)
-                {
-                    nbr_part++;
-                    if (is_extended(p->sys_ind))
-                        partition_next_ext = new_partition;
-                }
-            }
-        }
+      screen_buffer_add("\ntest_logical: " msg_TBL_NMARK);
+      return list_part;
     }
-    return list_part;
-}
-
-auto recover_i386_logical(disk_t &disk, const unsigned char *buffer, partition_t &partition) -> int
-{
-    const struct partition_dos *p = pt_offset_const(buffer, 0);
-    if (partition.arch != &arch_i386)
-        return 1;
-    if (is_extended(p->sys_ind))
-        p = pt_offset_const(buffer, 1);
-    switch (p->sys_ind)
+    for (i = 0; i < 4; i++)
     {
-    case P_12FAT:
-    case P_16FAT:
-    case P_16FATBD:
-    case P_16FATBD_LBA:
-    case P_NTFS:
-    case P_32FAT:
-    case P_32FAT_LBA:
+      const struct partition_dos *p = pt_offset(buffer, i);
+      if (p->boot_ind == static_cast<unsigned char>(0x80))
+        nb_boot++;
+      switch (p->sys_ind)
+      {
+      case P_16FATBDH:
+      case P_16FATH:
+      case P_NTFSH:
+        nb_hidden++;
         break;
-    default:
-        return 1;
+      case P_OS2MB:
+        nb_mb++;
+        break;
+      case P_EXTENDX:
+      case P_EXTENDED:
+      case P_LINUXEXTENDX:
+        nb_ext++;
+        break;
+      case P_NO_OS:
+        break;
+      default:
+        nb_part++;
+      }
     }
-    if (partition.part_offset == 0)
-        return 1;
-    i386_entry2partition(disk, partition.part_offset, partition, p, STATUS_DELETED, 0, 0, 0);
-    partition.order = NO_ORDER;
-    return 0;
-}
-
-static auto test_MBR_over(const disk_t &disk_car, const list_part_t &list_part) -> int
-{ /* Test if partitions overlap */
-    int res = 0;
-    for (auto element = list_part.cbegin(); element != list_part.cend(); element = std::next(element))
-        if (std::next(element) != list_part.cend() &&
-            element->part_offset + element->part_size - 1 >= std::next(element)->part_offset)
+    if (nb_hidden > 0)
+      screen_buffer_add("Partition must not be hidden\n");
+    if (nb_mb > 0)
+      screen_buffer_add(
+          "Multiboot must be a primary partition, not a logical\n"
+      );
+    if (nb_ext > 1)
+      screen_buffer_add(
+          "A logical partition must not have more than one link to another "
+          "logical partition\n"
+      );
+    if (nb_part > 1)
+      screen_buffer_add(
+          "A logical partition must contain only one partition\n"
+      );
+    if (nb_boot > 0)
+      screen_buffer_add("Logical partition must not be bootable\n");
+    for (i = 0; i < 4; i++)
+    {
+      const struct partition_dos *p = pt_offset(buffer, i);
+      if (p->sys_ind != 0)
+      {
+        int insert_error = 0;
+        partition_t new_partition(&arch_i386);
+        new_partition.order = order;
+        if (verbose > 1)
+          log_dos_entry(p);
+        if (is_extended(p->sys_ind))
         {
-            res = 1;
-            screen_buffer_add(msg_SAME_SPACE);
-            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *element);
-            aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *std::next(element));
-        }
-    return res;
-}
-
-static auto write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
-{
-    int res = 0;
-    res += write_mbr_i386(disk_car, list_part, ro, verbose);
-    res += write_all_log_i386(disk_car, list_part, ro, verbose);
-    disk_car.sync(disk_car);
-    return res;
-}
-
-static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
-{
-    unsigned char *buffer;
-    unsigned char *buffer_org;
-    if (disk_car.sector_size < DEFAULT_SECTOR_SIZE)
-        return 0;
-    buffer = new unsigned char[disk_car.sector_size];
-    buffer_org = new unsigned char[disk_car.sector_size];
-    if (verbose > 0)
-    {
-        ; // log_trace("\nwrite_mbr_i386: starting...\n");
-    }
-    if (disk_car.pread(disk_car, buffer_org, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
-    {
-        log_error(msg_PART_RD_ERR);
-        memset(buffer_org, 0, DEFAULT_SECTOR_SIZE);
-    }
-    memset(buffer, 0, DEFAULT_SECTOR_SIZE);
-    if ((buffer_org[0x1FE] == 0x55) && (buffer_org[0x1FF] == 0xAA))
-    {
-        memcpy(buffer, buffer_org, TAB_PART);
-        buffer[0x1FE] = 0x55;
-        buffer[0x1FF] = 0xAA;
-    }
-    else
-    {
-        if (verbose > 0)
-            log_info("Store new MBR code\n");
-        write_MBR_code_i386_aux(buffer);
-    }
-    /* Remove Mac signature */
-    if (buffer[0] == 0x45 && buffer[1] == 0x52)
-        buffer[0] = 0;
-    /* Remove Sun signature */
-    if (buffer[0x1fc] == 0xda && buffer[0x1fd] == 0xbe)
-        buffer[0x1fc] = 0;
-    for (const partition_t &element : list_part)
-    {
-        switch (element.status)
-        {
-        case STATUS_PRIM:
-        case STATUS_PRIM_BOOT:
-        case STATUS_EXT:
-            if ((element.order >= 1) && (element.order <= 4))
-            {
-                partition2_i386_entry(disk_car, static_cast<uint64_t>(0), element,
-                                      pt_offset(buffer, element.order - 1));
-            }
-            break;
-        case STATUS_LOG:
-            break;
-        default:
-            log_critical("write_mbr_i386: severe error\n");
-            break;
-        }
-    }
-    if (verbose > 1)
-    {
-        int i;
-        for (i = 0; i < 4; i++)
-        {
-            const struct partition_dos *p = pt_offset(buffer, i);
-            log_dos_entry(p);
-        }
-        diff(buffer, buffer_org);
-    }
-    if (ro == 0)
-    {
-        if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
-        {
-            delete[] (buffer_org);
-            delete[] (buffer);
-            return 1;
-        }
-    }
-    delete[] (buffer_org);
-    delete[] (buffer);
-    return 0;
-}
-
-static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
-{
-    auto element = list_part.cbegin();
-    auto pos_ext = list_part.cend();
-    uint64_t current_pos;
-    partition_t bloc_nextext;
-    int res = 0;
-    if (verbose > 0)
-        ; // log_trace("write_all_log_i386: starting...\n");
-    for (; element != list_part.cend(); element = std::next(element))
-    {
-        if (element->status == STATUS_EXT)
-        {
-            if (is_extended(element->part_type_i386))
-            {
-                if (pos_ext != list_part.cend())
-                    log_critical("write_all_log_i386: pos_ext already defined\n");
-                pos_ext = element;
+          i386_entry2partition(disk_car, partition_main_ext->part_offset,
+                               new_partition, p, STATUS_EXT_IN_EXT, order,
+                               verbose, saveheader);
+          aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                          new_partition);
+          if (new_partition.errcode != BAD_NOERR)
+          {
+            screen_buffer_add(
+                "%s\n", errmsg_i386_entry2partition(new_partition.errcode)
+            );
+          }
+          {
+            if ((new_partition.part_offset <=
+                 partition_main_ext->part_offset) ||
+                (new_partition.part_offset + new_partition.part_size - 1 >
+                 partition_main_ext->part_offset +
+                     partition_main_ext->part_size - 1))
+            { /* Must be IN partition_main_ext */
+              screen_buffer_add("Must be in extended partition\n");
+              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                              *partition_main_ext);
+              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                              new_partition);
             }
             else
             {
-                log_critical("write_all_log_i386: STATUS_EXT with bad part_type\n");
+              for (partition_t &partition : list_part)
+              {
+                if (partition.status == STATUS_EXT_IN_EXT)
+                {
+                  if (((partition.part_offset >= new_partition.part_offset) &&
+                       (partition.part_offset <= new_partition.part_offset +
+                                                     new_partition.part_size -
+                                                     1)) ||
+                      ((partition.part_offset + partition.part_size - 1 >=
+                        new_partition.part_offset) &&
+                       (partition.part_offset + partition.part_size - 1 <=
+                        new_partition.part_offset + partition.part_size - 1)))
+                  { /* New Partition start or end mustn't been in partition */
+                    screen_buffer_add(
+                        "Logical partition must be in its own extended "
+                        "partition\n"
+                    );
+                    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                                    partition);
+                    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                                    new_partition);
+                  }
+                }
+              }
             }
-        }
-    }
-    if (pos_ext == list_part.cend())
-    {
-        log_info(msg_NO_EXT_PART);
-        return 0;
-    }
-    current_pos = pos_ext->part_offset;
-    bloc_nextext.part_type_i386 = P_EXTENDED; /* Never P_EXTENDX */
-    if (std::next(pos_ext) == list_part.cend() || (std::next(pos_ext)->status != STATUS_LOG))
-    {
-        unsigned char buffer[DEFAULT_SECTOR_SIZE];
-        unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
-        if (verbose > 0)
-        {
-            log_info("write_all_log_i386: CHS: {}/{}/{},lba={}\n", offset2cylinder(disk_car, current_pos),
-                     offset2head(disk_car, current_pos), offset2sector(disk_car, current_pos),
-                     (long unsigned)(current_pos / disk_car.sector_size));
-        }
-        if (disk_car.pread(disk_car, &buffer_org, sizeof(buffer_org), current_pos) != sizeof(buffer_org))
-        {
-            memset(buffer_org, 0, DEFAULT_SECTOR_SIZE);
-        }
-        memset(buffer, 0, DEFAULT_SECTOR_SIZE);
-        memcpy(buffer, buffer_org, TAB_PART);
-        buffer[0x1FE] = 0x55;
-        buffer[0x1FF] = 0xAA;
-        if (ro)
-        {
-            if (verbose > 1)
-                diff(buffer, buffer_org);
+          }
         }
         else
         {
-            if (disk_car.pwrite(disk_car, &buffer, sizeof(buffer), current_pos) != sizeof(buffer))
-            {
-                res = 1;
+          i386_entry2partition(disk_car, partition_ext->part_offset,
+                               new_partition, p, STATUS_LOG, order, verbose,
+                               saveheader);
+          order++;
+          if (verbose > 1)
+            log_dos_entry(p);
+          aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                          new_partition);
+          if (new_partition.errcode != BAD_NOERR)
+          {
+            screen_buffer_add(
+                "%s\n", errmsg_i386_entry2partition(new_partition.errcode)
+            );
+          }
+          {
+            if ((new_partition.part_offset <=
+                 partition_main_ext->part_offset) ||
+                (new_partition.part_offset + new_partition.part_size - 1 >
+                 partition_main_ext->part_offset +
+                     partition_main_ext->part_size - 1))
+            { /* Must be IN partition_main_ext */
+              screen_buffer_add(msg_SAME_SPACE);
+              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                              *partition_main_ext);
+              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                              new_partition);
             }
+          }
         }
+        insert_new_partition(list_part, new_partition, 0, &insert_error);
+        if (insert_error == 0)
+        {
+          nbr_part++;
+          if (is_extended(p->sys_ind))
+            partition_next_ext = new_partition;
+        }
+      }
+    }
+  }
+  return list_part;
+}
+
+auto recover_i386_logical(disk_t &disk, const unsigned char *buffer,
+                          partition_t &partition) -> int
+{
+  const struct partition_dos *p = pt_offset_const(buffer, 0);
+  if (partition.arch != &arch_i386)
+    return 1;
+  if (is_extended(p->sys_ind))
+    p = pt_offset_const(buffer, 1);
+  switch (p->sys_ind)
+  {
+  case P_12FAT:
+  case P_16FAT:
+  case P_16FATBD:
+  case P_16FATBD_LBA:
+  case P_NTFS:
+  case P_32FAT:
+  case P_32FAT_LBA:
+    break;
+  default:
+    return 1;
+  }
+  if (partition.part_offset == 0)
+    return 1;
+  i386_entry2partition(disk, partition.part_offset, partition, p,
+                       STATUS_DELETED, 0, 0, 0);
+  partition.order = NO_ORDER;
+  return 0;
+}
+
+static auto test_MBR_over(const disk_t &disk_car, const list_part_t &list_part)
+    -> int
+{ /* Test if partitions overlap */
+  int res = 0;
+  for (auto element = list_part.cbegin(); element != list_part.cend();
+       element      = std::next(element))
+    if (std::next(element) != list_part.cend() &&
+        element->part_offset + element->part_size - 1 >=
+            std::next(element)->part_offset)
+    {
+      res = 1;
+      screen_buffer_add(msg_SAME_SPACE);
+      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *element);
+      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                      *std::next(element));
+    }
+  return res;
+}
+
+static auto write_part_i386(disk_t &disk_car, const list_part_t &list_part,
+                            const int ro, const int verbose) -> int
+{
+  int res = 0;
+  res += write_mbr_i386(disk_car, list_part, ro, verbose);
+  res += write_all_log_i386(disk_car, list_part, ro, verbose);
+  disk_car.sync(disk_car);
+  return res;
+}
+
+static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part,
+                           const int ro, const int verbose) -> int
+{
+  unsigned char *buffer;
+  unsigned char *buffer_org;
+  if (disk_car.sector_size < DEFAULT_SECTOR_SIZE)
+    return 0;
+  buffer     = new unsigned char[disk_car.sector_size];
+  buffer_org = new unsigned char[disk_car.sector_size];
+  if (verbose > 0)
+  {
+    ; // log_trace("\nwrite_mbr_i386: starting...\n");
+  }
+  if (disk_car.pread(disk_car, buffer_org, DEFAULT_SECTOR_SIZE,
+                     static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
+  {
+    log_error(msg_PART_RD_ERR);
+    memset(buffer_org, 0, DEFAULT_SECTOR_SIZE);
+  }
+  memset(buffer, 0, DEFAULT_SECTOR_SIZE);
+  if ((buffer_org[0x1FE] == 0x55) && (buffer_org[0x1FF] == 0xAA))
+  {
+    memcpy(buffer, buffer_org, TAB_PART);
+    buffer[0x1FE] = 0x55;
+    buffer[0x1FF] = 0xAA;
+  }
+  else
+  {
+    if (verbose > 0)
+      log_info("Store new MBR code\n");
+    write_MBR_code_i386_aux(buffer);
+  }
+  /* Remove Mac signature */
+  if (buffer[0] == 0x45 && buffer[1] == 0x52)
+    buffer[0] = 0;
+  /* Remove Sun signature */
+  if (buffer[0x1fc] == 0xda && buffer[0x1fd] == 0xbe)
+    buffer[0x1fc] = 0;
+  for (const partition_t &element : list_part)
+  {
+    switch (element.status)
+    {
+    case STATUS_PRIM:
+    case STATUS_PRIM_BOOT:
+    case STATUS_EXT:
+      if ((element.order >= 1) && (element.order <= 4))
+      {
+        partition2_i386_entry(disk_car, static_cast<uint64_t>(0), element,
+                              pt_offset(buffer, element.order - 1));
+      }
+      break;
+    case STATUS_LOG:
+      break;
+    default:
+      log_critical("write_mbr_i386: severe error\n");
+      break;
+    }
+  }
+  if (verbose > 1)
+  {
+    int i;
+    for (i = 0; i < 4; i++)
+    {
+      const struct partition_dos *p = pt_offset(buffer, i);
+      log_dos_entry(p);
+    }
+    diff(buffer, buffer_org);
+  }
+  if (ro == 0)
+  {
+    if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+                        static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
+    {
+      delete[] (buffer_org);
+      delete[] (buffer);
+      return 1;
+    }
+  }
+  delete[] (buffer_org);
+  delete[] (buffer);
+  return 0;
+}
+
+static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
+                               const int ro, const int verbose) -> int
+{
+  auto element = list_part.cbegin();
+  auto pos_ext = list_part.cend();
+  uint64_t current_pos;
+  partition_t bloc_nextext;
+  int res = 0;
+  if (verbose > 0)
+    ; // log_trace("write_all_log_i386: starting...\n");
+  for (; element != list_part.cend(); element = std::next(element))
+  {
+    if (element->status == STATUS_EXT)
+    {
+      if (is_extended(element->part_type_i386))
+      {
+        if (pos_ext != list_part.cend())
+          log_critical("write_all_log_i386: pos_ext already defined\n");
+        pos_ext = element;
+      }
+      else
+      {
+        log_critical("write_all_log_i386: STATUS_EXT with bad part_type\n");
+      }
+    }
+  }
+  if (pos_ext == list_part.cend())
+  {
+    log_info(msg_NO_EXT_PART);
+    return 0;
+  }
+  current_pos                 = pos_ext->part_offset;
+  bloc_nextext.part_type_i386 = P_EXTENDED; /* Never P_EXTENDX */
+  if (std::next(pos_ext) == list_part.cend() ||
+      (std::next(pos_ext)->status != STATUS_LOG))
+  {
+    unsigned char buffer[DEFAULT_SECTOR_SIZE];
+    unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
+    if (verbose > 0)
+    {
+      log_info("write_all_log_i386: CHS: {}/{}/{},lba={}\n",
+               offset2cylinder(disk_car, current_pos),
+               offset2head(disk_car, current_pos),
+               offset2sector(disk_car, current_pos),
+               (long unsigned)(current_pos / disk_car.sector_size));
+    }
+    if (disk_car.pread(disk_car, &buffer_org, sizeof(buffer_org),
+                       current_pos) != sizeof(buffer_org))
+    {
+      memset(buffer_org, 0, DEFAULT_SECTOR_SIZE);
+    }
+    memset(buffer, 0, DEFAULT_SECTOR_SIZE);
+    memcpy(buffer, buffer_org, TAB_PART);
+    buffer[0x1FE] = 0x55;
+    buffer[0x1FF] = 0xAA;
+    if (ro)
+    {
+      if (verbose > 1)
+        diff(buffer, buffer_org);
     }
     else
     {
-        for (element = std::next(pos_ext); (element != list_part.cend()) && (element->status == STATUS_LOG);
-             element = std::next(element))
-        {
-            unsigned char buffer[DEFAULT_SECTOR_SIZE];
-            unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
-            if (verbose > 0)
-            {
-                log_info("write_all_log_i386: CHS: {}/{}/{},lba={}\n", offset2cylinder(disk_car, current_pos),
-                         offset2head(disk_car, current_pos), offset2sector(disk_car, current_pos),
-                         (long unsigned)(current_pos / disk_car.sector_size));
-            }
-            if (disk_car.pread(disk_car, &buffer_org, sizeof(buffer_org), current_pos) != sizeof(buffer_org))
-            {
-                memset(buffer_org, 0, DEFAULT_SECTOR_SIZE);
-            }
-            memset(buffer, 0, DEFAULT_SECTOR_SIZE);
-            memcpy(buffer, buffer_org, TAB_PART);
-            buffer[0x1FE] = 0x55;
-            buffer[0x1FF] = 0xAA;
-            partition2_i386_entry(disk_car, current_pos, *element, pt_offset(buffer, 0));
-            if (std::next(element) != list_part.cend() && (std::next(element)->status == STATUS_LOG))
-            { /* Construit le pointeur vers la prochaine partition logique */
-                CHS_t nextext_start;
-                bloc_nextext.part_offset = std::next(element)->part_offset - disk_car.sector_size;
-                offset2CHS(disk_car, bloc_nextext.part_offset, &nextext_start);
-                if (nextext_start.sector != disk_car.geom.sectors_per_head)
-                {
-                    if (nextext_start.head > 0)
-                        nextext_start.head--;
-                    else
-                    {
-                        nextext_start.head = disk_car.geom.heads_per_cylinder - 1;
-                        nextext_start.cylinder--;
-                    }
-                }
-                nextext_start.sector = 1;
-                if (verbose > 1)
-                    ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
-                      // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
-                      //     (long unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
-                //     (long unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
-                if (CHS2offset(disk_car, &nextext_start) <= element->part_offset + element->part_size - 1)
-                {
-                    offset2CHS(disk_car, bloc_nextext.part_offset, &nextext_start);
-                    nextext_start.sector = 1;
-                    if (verbose > 1)
-                        ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
-                          // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
-                          //     (long unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
-                          //     (long
-                    //     unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
-                    if (CHS2offset(disk_car, &nextext_start) <=
-                        element->part_offset + element->part_size - 1)
-                    {
-                        offset2CHS(disk_car, bloc_nextext.part_offset, &nextext_start);
-                    }
-                }
-                if (verbose > 1)
-                    ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
-                      // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
-                      //     (long unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
-                //     (long unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
-                bloc_nextext.part_offset = CHS2offset(disk_car, &nextext_start);
-                /*      log_debug("table[i]->next=%p table[i+1]=%p\n",table[i]->next,table[i+1]); */
-                bloc_nextext.part_size =
-                    std::next(element)->part_offset + std::next(element)->part_size - bloc_nextext.part_offset;
-                partition2_i386_entry(disk_car, pos_ext->part_offset, bloc_nextext, pt_offset(buffer, 1));
-            }
-            if (ro)
-            {
-                if (verbose > 1)
-                {
-                    int j;
-                    for (j = 0; j < 4; j++)
-                    {
-                        const struct partition_dos *p = pt_offset(buffer, j);
-                        if (p->sys_ind != 0)
-                            log_dos_entry(p);
-                    }
-                    diff(buffer, buffer_org);
-                }
-            }
-            else
-            {
-                if (disk_car.pwrite(disk_car, &buffer, sizeof(buffer), current_pos) != sizeof(buffer))
-                {
-                    res = 1;
-                }
-            }
-            current_pos = bloc_nextext.part_offset;
-        }
+      if (disk_car.pwrite(disk_car, &buffer, sizeof(buffer), current_pos) !=
+          sizeof(buffer))
+      {
+        res = 1;
+      }
     }
-    return res;
+  }
+  else
+  {
+    for (element = std::next(pos_ext);
+         (element != list_part.cend()) && (element->status == STATUS_LOG);
+         element = std::next(element))
+    {
+      unsigned char buffer[DEFAULT_SECTOR_SIZE];
+      unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
+      if (verbose > 0)
+      {
+        log_info("write_all_log_i386: CHS: {}/{}/{},lba={}\n",
+                 offset2cylinder(disk_car, current_pos),
+                 offset2head(disk_car, current_pos),
+                 offset2sector(disk_car, current_pos),
+                 (long unsigned)(current_pos / disk_car.sector_size));
+      }
+      if (disk_car.pread(disk_car, &buffer_org, sizeof(buffer_org),
+                         current_pos) != sizeof(buffer_org))
+      {
+        memset(buffer_org, 0, DEFAULT_SECTOR_SIZE);
+      }
+      memset(buffer, 0, DEFAULT_SECTOR_SIZE);
+      memcpy(buffer, buffer_org, TAB_PART);
+      buffer[0x1FE] = 0x55;
+      buffer[0x1FF] = 0xAA;
+      partition2_i386_entry(disk_car, current_pos, *element,
+                            pt_offset(buffer, 0));
+      if (std::next(element) != list_part.cend() &&
+          (std::next(element)->status == STATUS_LOG))
+      { /* Construit le pointeur vers la prochaine partition logique */
+        CHS_t nextext_start;
+        bloc_nextext.part_offset =
+            std::next(element)->part_offset - disk_car.sector_size;
+        offset2CHS(disk_car, bloc_nextext.part_offset, &nextext_start);
+        if (nextext_start.sector != disk_car.geom.sectors_per_head)
+        {
+          if (nextext_start.head > 0)
+            nextext_start.head--;
+          else
+          {
+            nextext_start.head = disk_car.geom.heads_per_cylinder - 1;
+            nextext_start.cylinder--;
+          }
+        }
+        nextext_start.sector = 1;
+        if (verbose > 1)
+          ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
+            // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
+            //     (long
+            //     unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
+        //     (long
+        //     unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
+        if (CHS2offset(disk_car, &nextext_start) <=
+            element->part_offset + element->part_size - 1)
+        {
+          offset2CHS(disk_car, bloc_nextext.part_offset, &nextext_start);
+          nextext_start.sector = 1;
+          if (verbose > 1)
+            ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
+              // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
+              //     (long
+              //     unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
+              //     (long
+          //     unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
+          if (CHS2offset(disk_car, &nextext_start) <=
+              element->part_offset + element->part_size - 1)
+          {
+            offset2CHS(disk_car, bloc_nextext.part_offset, &nextext_start);
+          }
+        }
+        if (verbose > 1)
+          ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
+            // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
+            //     (long
+            //     unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
+        //     (long
+        //     unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
+        bloc_nextext.part_offset = CHS2offset(disk_car, &nextext_start);
+        /*      log_debug("table[i]->next=%p
+         * table[i+1]=%p\n",table[i]->next,table[i+1]); */
+        bloc_nextext.part_size = std::next(element)->part_offset +
+                                 std::next(element)->part_size -
+                                 bloc_nextext.part_offset;
+        partition2_i386_entry(disk_car, pos_ext->part_offset, bloc_nextext,
+                              pt_offset(buffer, 1));
+      }
+      if (ro)
+      {
+        if (verbose > 1)
+        {
+          int j;
+          for (j = 0; j < 4; j++)
+          {
+            const struct partition_dos *p = pt_offset(buffer, j);
+            if (p->sys_ind != 0)
+              log_dos_entry(p);
+          }
+          diff(buffer, buffer_org);
+        }
+      }
+      else
+      {
+        if (disk_car.pwrite(disk_car, &buffer, sizeof(buffer), current_pos) !=
+            sizeof(buffer))
+        {
+          res = 1;
+        }
+      }
+      current_pos = bloc_nextext.part_offset;
+    }
+  }
+  return res;
 }
 
-static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned char buffer_org[DEFAULT_SECTOR_SIZE])
-    -> int
+static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE],
+                 const unsigned char buffer_org[DEFAULT_SECTOR_SIZE]) -> int
 {
-    if (memcmp(buffer, buffer_org, DEFAULT_SECTOR_SIZE))
+  if (memcmp(buffer, buffer_org, DEFAULT_SECTOR_SIZE))
+  {
+    unsigned int j;
+    log_info("\nSectors are different.\n");
+    log_info("buffer_org\n");
+    for (j = 0; j < 4; j++)
     {
-        unsigned int j;
-        log_info("\nSectors are different.\n");
-        log_info("buffer_org\n");
-        for (j = 0; j < 4; j++)
-        {
-            const struct partition_dos *p = pt_offset_const(buffer_org, j);
-            if (p->sys_ind != 0)
-                log_dos_entry(p);
-        }
-        log_info("buffer\n");
-        for (j = 0; j < 4; j++)
-        {
-            const struct partition_dos *p = pt_offset_const(buffer, j);
-            if (p->sys_ind != 0)
-                log_dos_entry(p);
-        }
-        for (j = 0; j < DEFAULT_SECTOR_SIZE; j++)
-            if (buffer_org[j] != buffer[j])
-                log_info("%02X %02X %02X\n", j, buffer_org[j], buffer[j]);
-        log_info("\n");
+      const struct partition_dos *p = pt_offset_const(buffer_org, j);
+      if (p->sys_ind != 0)
+        log_dos_entry(p);
     }
-    return 0;
+    log_info("buffer\n");
+    for (j = 0; j < 4; j++)
+    {
+      const struct partition_dos *p = pt_offset_const(buffer, j);
+      if (p->sys_ind != 0)
+        log_dos_entry(p);
+    }
+    for (j = 0; j < DEFAULT_SECTOR_SIZE; j++)
+      if (buffer_org[j] != buffer[j])
+        log_info("%02X %02X %02X\n", j, buffer_org[j], buffer[j]);
+    log_info("\n");
+  }
+  return 0;
 }
 
 static auto write_MBR_code_i386(disk_t &disk_car) -> int
 {
-    unsigned char buffer[DEFAULT_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
-    {
-        log_error(msg_PART_RD_ERR);
-        memset(buffer, 0, sizeof(buffer));
-    }
-    write_MBR_code_i386_aux(buffer);
-    if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
-    {
-        return 1;
-    }
-    disk_car.sync(disk_car);
-    return 0;
+  unsigned char buffer[DEFAULT_SECTOR_SIZE];
+  if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+                     static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
+  {
+    log_error(msg_PART_RD_ERR);
+    memset(buffer, 0, sizeof(buffer));
+  }
+  write_MBR_code_i386_aux(buffer);
+  if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+                      static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
+  {
+    return 1;
+  }
+  disk_car.sync(disk_car);
+  return 0;
 }
 
 static auto write_MBR_code_i386_aux(unsigned char *buffer) -> int
 {
-    /* od -t x1 -v testdisk.b
-       Thanks to Neil Turton for writing it */
-    const unsigned char mbr_code_testdisk[DEFAULT_SECTOR_SIZE] = {
-        0xfc, 0x31, 0xc0, 0x8e, 0xd0, 0x31, 0xe4, 0x8e, 0xd8, 0x8e, 0xc0, 0xbe, 0x00, 0x7c, 0xbf, 0x00, 0x06, 0xb9,
-        0x00, 0x01, 0xf3, 0xa5, 0xbe, 0xee, 0x07, 0xb0, 0x08, 0xea, 0x20, 0x06, 0x00, 0x00, 0x80, 0x3e, 0xb3, 0x07,
-        0xff, 0x75, 0x04, 0x88, 0x16, 0xb3, 0x07, 0x80, 0x3c, 0x00, 0x74, 0x04, 0x08, 0x06, 0xaf, 0x07, 0x83, 0xee,
-        0x10, 0xd0, 0xe8, 0x73, 0xf0, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-        0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-        0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-        0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-        0xbe, 0xbe, 0x07, 0xb0, 0x00, 0xb9, 0x04, 0x00, 0x80, 0x3c, 0x00, 0x75, 0x6e, 0xfe, 0xc0, 0x83, 0xc6, 0x10,
-        0xe2, 0xf4, 0x31, 0xdb, 0xb4, 0x0e, 0xbe, 0x9d, 0x07, 0x8a, 0x0e, 0xaf, 0x07, 0xac, 0xd0, 0xe9, 0x73, 0x02,
-        0xcd, 0x10, 0x08, 0xc9, 0x75, 0xf5, 0xb0, 0x3a, 0xcd, 0x10, 0x31, 0xc0, 0xcd, 0x16, 0x3c, 0x00, 0x74, 0xf8,
-        0xbe, 0x8b, 0x07, 0xb9, 0x02, 0x00, 0xe8, 0xba, 0x00, 0x3c, 0x0d, 0x74, 0xb4, 0x3c, 0x61, 0x72, 0x06, 0x3c,
-        0x7a, 0x77, 0x02, 0x2c, 0x20, 0x88, 0xc3, 0xbe, 0x9d, 0x07, 0x8a, 0x0e, 0xaf, 0x07, 0xac, 0xd0, 0xe9, 0x73,
-        0x04, 0x38, 0xc3, 0x74, 0x06, 0x08, 0xc9, 0x75, 0xf3, 0xeb, 0xaf, 0xb8, 0x0d, 0x0e, 0x31, 0xdb, 0xcd, 0x10,
-        0x8d, 0x84, 0x62, 0x00, 0x3c, 0x07, 0x75, 0x07, 0xb0, 0x1f, 0xa2, 0xaf, 0x07, 0xeb, 0x99, 0x31, 0xd2, 0xb9,
-        0x01, 0x00, 0x3c, 0x04, 0x74, 0x11, 0x73, 0xf3, 0x30, 0xe4, 0xb1, 0x04, 0xd2, 0xe0, 0xbe, 0xbe, 0x07, 0x01,
-        0xc6, 0x8a, 0x16, 0xb3, 0x07, 0xbf, 0x05, 0x00, 0x56, 0xf6, 0xc2, 0x80, 0x74, 0x31, 0xb4, 0x41, 0xbb, 0xaa,
-        0x55, 0x52, 0xcd, 0x13, 0x5a, 0x5e, 0x56, 0x72, 0x1e, 0x81, 0xfb, 0x55, 0xaa, 0x75, 0x18, 0xf6, 0xc1, 0x01,
-        0x74, 0x13, 0x8b, 0x44, 0x08, 0x8b, 0x5c, 0x0a, 0xbe, 0x8d, 0x07, 0x89, 0x44, 0x08, 0x89, 0x5c, 0x0a, 0xb4,
-        0x42, 0xeb, 0x0c, 0x8a, 0x74, 0x01, 0x8b, 0x4c, 0x02, 0xb8, 0x01, 0x02, 0xbb, 0x00, 0x7c, 0x50, 0xc6, 0x06,
-        0x8f, 0x07, 0x01, 0xcd, 0x13, 0x58, 0x5e, 0x73, 0x05, 0x4f, 0x75, 0xb4, 0xeb, 0x93, 0x81, 0x3e, 0xfe, 0x7d,
-        0x55, 0xaa, 0x75, 0xf6, 0xea, 0x00, 0x7c, 0x00, 0x00, 0xbe, 0x83, 0x07, 0xb9, 0x0a, 0x00, 0x50, 0xb4, 0x0e,
-        0x31, 0xdb, 0xac, 0xcd, 0x10, 0xe2, 0xfb, 0x58, 0xc3, 'T',  'e',  's',  't',  'D',  'i',  's',  'k',  0x0d,
-        0x0a, 0x10, 0x00, 0x01, 0x00, 0x00, 0x7c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, '1',
-        '2',  '3',  '4',  'F',  0x00, 0x00, 0x41, 'N',  'D',  'T',  'm',  'b',  'r',  0x00, 0x02, 0x02, 0x02, 0x1f,
-        0xc7, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa5, 0x01, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xaa};
-    /* don't overwrite the disk signature at 0x1b8 */
-    memcpy(buffer, &mbr_code_testdisk, 0x1b8);
-    buffer[0x1FE] = static_cast<unsigned char>(0x55);
-    buffer[0x1FF] = static_cast<unsigned char>(0xAA);
-    return 0;
+  /* od -t x1 -v testdisk.b
+     Thanks to Neil Turton for writing it */
+  const unsigned char mbr_code_testdisk[DEFAULT_SECTOR_SIZE] = {
+      0xfc, 0x31, 0xc0, 0x8e, 0xd0, 0x31, 0xe4, 0x8e, 0xd8, 0x8e, 0xc0, 0xbe,
+      0x00, 0x7c, 0xbf, 0x00, 0x06, 0xb9, 0x00, 0x01, 0xf3, 0xa5, 0xbe, 0xee,
+      0x07, 0xb0, 0x08, 0xea, 0x20, 0x06, 0x00, 0x00, 0x80, 0x3e, 0xb3, 0x07,
+      0xff, 0x75, 0x04, 0x88, 0x16, 0xb3, 0x07, 0x80, 0x3c, 0x00, 0x74, 0x04,
+      0x08, 0x06, 0xaf, 0x07, 0x83, 0xee, 0x10, 0xd0, 0xe8, 0x73, 0xf0, 0x90,
+      0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+      0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+      0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+      0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+      0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+      0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0xbe, 0xbe, 0x07, 0xb0, 0x00, 0xb9,
+      0x04, 0x00, 0x80, 0x3c, 0x00, 0x75, 0x6e, 0xfe, 0xc0, 0x83, 0xc6, 0x10,
+      0xe2, 0xf4, 0x31, 0xdb, 0xb4, 0x0e, 0xbe, 0x9d, 0x07, 0x8a, 0x0e, 0xaf,
+      0x07, 0xac, 0xd0, 0xe9, 0x73, 0x02, 0xcd, 0x10, 0x08, 0xc9, 0x75, 0xf5,
+      0xb0, 0x3a, 0xcd, 0x10, 0x31, 0xc0, 0xcd, 0x16, 0x3c, 0x00, 0x74, 0xf8,
+      0xbe, 0x8b, 0x07, 0xb9, 0x02, 0x00, 0xe8, 0xba, 0x00, 0x3c, 0x0d, 0x74,
+      0xb4, 0x3c, 0x61, 0x72, 0x06, 0x3c, 0x7a, 0x77, 0x02, 0x2c, 0x20, 0x88,
+      0xc3, 0xbe, 0x9d, 0x07, 0x8a, 0x0e, 0xaf, 0x07, 0xac, 0xd0, 0xe9, 0x73,
+      0x04, 0x38, 0xc3, 0x74, 0x06, 0x08, 0xc9, 0x75, 0xf3, 0xeb, 0xaf, 0xb8,
+      0x0d, 0x0e, 0x31, 0xdb, 0xcd, 0x10, 0x8d, 0x84, 0x62, 0x00, 0x3c, 0x07,
+      0x75, 0x07, 0xb0, 0x1f, 0xa2, 0xaf, 0x07, 0xeb, 0x99, 0x31, 0xd2, 0xb9,
+      0x01, 0x00, 0x3c, 0x04, 0x74, 0x11, 0x73, 0xf3, 0x30, 0xe4, 0xb1, 0x04,
+      0xd2, 0xe0, 0xbe, 0xbe, 0x07, 0x01, 0xc6, 0x8a, 0x16, 0xb3, 0x07, 0xbf,
+      0x05, 0x00, 0x56, 0xf6, 0xc2, 0x80, 0x74, 0x31, 0xb4, 0x41, 0xbb, 0xaa,
+      0x55, 0x52, 0xcd, 0x13, 0x5a, 0x5e, 0x56, 0x72, 0x1e, 0x81, 0xfb, 0x55,
+      0xaa, 0x75, 0x18, 0xf6, 0xc1, 0x01, 0x74, 0x13, 0x8b, 0x44, 0x08, 0x8b,
+      0x5c, 0x0a, 0xbe, 0x8d, 0x07, 0x89, 0x44, 0x08, 0x89, 0x5c, 0x0a, 0xb4,
+      0x42, 0xeb, 0x0c, 0x8a, 0x74, 0x01, 0x8b, 0x4c, 0x02, 0xb8, 0x01, 0x02,
+      0xbb, 0x00, 0x7c, 0x50, 0xc6, 0x06, 0x8f, 0x07, 0x01, 0xcd, 0x13, 0x58,
+      0x5e, 0x73, 0x05, 0x4f, 0x75, 0xb4, 0xeb, 0x93, 0x81, 0x3e, 0xfe, 0x7d,
+      0x55, 0xaa, 0x75, 0xf6, 0xea, 0x00, 0x7c, 0x00, 0x00, 0xbe, 0x83, 0x07,
+      0xb9, 0x0a, 0x00, 0x50, 0xb4, 0x0e, 0x31, 0xdb, 0xac, 0xcd, 0x10, 0xe2,
+      0xfb, 0x58, 0xc3, 'T',  'e',  's',  't',  'D',  'i',  's',  'k',  0x0d,
+      0x0a, 0x10, 0x00, 0x01, 0x00, 0x00, 0x7c, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, '1',  '2',  '3',  '4',  'F',  0x00, 0x00,
+      0x41, 'N',  'D',  'T',  'm',  'b',  'r',  0x00, 0x02, 0x02, 0x02, 0x1f,
+      0xc7, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0xa5, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xaa};
+  /* don't overwrite the disk signature at 0x1b8 */
+  memcpy(buffer, &mbr_code_testdisk, 0x1b8);
+  buffer[0x1FE] = static_cast<unsigned char>(0x55);
+  buffer[0x1FF] = static_cast<unsigned char>(0xAA);
+  return 0;
 }
 
-static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos, const partition_t &partition,
+static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos,
+                                  const partition_t &partition,
                                   struct partition_dos *p)
 {
-    CHS_t start, end;
-    offset2CHS(disk_car, partition.part_offset, &start);
-    offset2CHS(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size, &end);
-    if (partition.status == STATUS_PRIM_BOOT)
-        p->boot_ind = 0x80;
-    else
-        p->boot_ind = 0; /* Non bootable */
-    p->sys_ind = partition.part_type_i386;
-    if (((partition.part_offset - pos) / disk_car.sector_size) <= 0xFFFFFFFF)
-        set_start_sect(p, (partition.part_offset - pos) / disk_car.sector_size);
-    else
-        set_start_sect(p, 0xFFFFFFFF);
-    if (start.cylinder > 1023)
-    { /* Partition Magic 5 uses CHS=(1023,0,1) if extended or last logical *
-       * Linux fdisk and TestDisk use CHS=(1023,lastH,lastS)               */
-        p->head = (disk_car.geom.heads_per_cylinder - 1) & 0xff;
-        p->sector = (disk_car.geom.sectors_per_head | ((1023 >> 8) << 6)) & 0xff;
-        p->cyl = 1023 & 0xff;
-    }
-    else
-    {
-        p->head = start.head & 0xff;
-        p->sector = (start.sector | ((start.cylinder >> 8) << 6)) & 0xff;
-        p->cyl = start.cylinder & 0xff;
-    }
-    if (end.cylinder > 1023)
-    {
-        p->end_head = (disk_car.geom.heads_per_cylinder - 1) & 0xff;
-        p->end_sector = (disk_car.geom.sectors_per_head | ((1023 >> 8) << 6)) & 0xff;
-        p->end_cyl = 1023 & 0xff;
-    }
-    else
-    {
-        p->end_head = end.head & 0xff;
-        p->end_sector = (end.sector | ((end.cylinder >> 8) << 6)) & 0xff;
-        p->end_cyl = end.cylinder & 0xff;
-    }
-    if ((partition.part_size / disk_car.sector_size) <= 0xFFFFFFFF)
-        set_nr_sects(p, partition.part_size / disk_car.sector_size);
-    else
-        set_nr_sects(p, 0xFFFFFFFF);
+  CHS_t start, end;
+  offset2CHS(disk_car, partition.part_offset, &start);
+  offset2CHS(disk_car,
+             partition.part_offset + partition.part_size - disk_car.sector_size,
+             &end);
+  if (partition.status == STATUS_PRIM_BOOT)
+    p->boot_ind = 0x80;
+  else
+    p->boot_ind = 0; /* Non bootable */
+  p->sys_ind = partition.part_type_i386;
+  if (((partition.part_offset - pos) / disk_car.sector_size) <= 0xFFFFFFFF)
+    set_start_sect(p, (partition.part_offset - pos) / disk_car.sector_size);
+  else
+    set_start_sect(p, 0xFFFFFFFF);
+  if (start.cylinder > 1023)
+  { /* Partition Magic 5 uses CHS=(1023,0,1) if extended or last logical *
+     * Linux fdisk and TestDisk use CHS=(1023,lastH,lastS)               */
+    p->head   = (disk_car.geom.heads_per_cylinder - 1) & 0xff;
+    p->sector = (disk_car.geom.sectors_per_head | ((1023 >> 8) << 6)) & 0xff;
+    p->cyl    = 1023 & 0xff;
+  }
+  else
+  {
+    p->head   = start.head & 0xff;
+    p->sector = (start.sector | ((start.cylinder >> 8) << 6)) & 0xff;
+    p->cyl    = start.cylinder & 0xff;
+  }
+  if (end.cylinder > 1023)
+  {
+    p->end_head = (disk_car.geom.heads_per_cylinder - 1) & 0xff;
+    p->end_sector =
+        (disk_car.geom.sectors_per_head | ((1023 >> 8) << 6)) & 0xff;
+    p->end_cyl = 1023 & 0xff;
+  }
+  else
+  {
+    p->end_head   = end.head & 0xff;
+    p->end_sector = (end.sector | ((end.cylinder >> 8) << 6)) & 0xff;
+    p->end_cyl    = end.cylinder & 0xff;
+  }
+  if ((partition.part_size / disk_car.sector_size) <= 0xFFFFFFFF)
+    set_nr_sects(p, partition.part_size / disk_car.sector_size);
+  else
+    set_nr_sects(p, 0xFFFFFFFF);
 }
 
-static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset, partition_t &partition,
-                                 const struct partition_dos *p, const status_type_t status, const unsigned int order,
-                                 const int verbose, const int saveheader) -> int
+static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
+                                 partition_t &partition,
+                                 const struct partition_dos *p,
+                                 const status_type_t status,
+                                 const unsigned int order, const int verbose,
+                                 const int saveheader) -> int
 {
-    CHS_t start, end;
-    CHS_t start_calculated, end_calculated;
-    partition.reset(&arch_i386);
-    partition.part_type_i386 = p->sys_ind;
-    partition.part_offset = offset + get_start_sect(p) * disk_car.sector_size;
-    partition.order = order;
-    partition.part_size = get_nr_sects(p) * disk_car.sector_size;
+  CHS_t start, end;
+  CHS_t start_calculated, end_calculated;
+  partition.reset(&arch_i386);
+  partition.part_type_i386 = p->sys_ind;
+  partition.part_offset    = offset + get_start_sect(p) * disk_car.sector_size;
+  partition.order          = order;
+  partition.part_size      = get_nr_sects(p) * disk_car.sector_size;
 
-    offset2CHS(disk_car, partition.part_offset, &start_calculated);
-    offset2CHS(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size, &end_calculated);
+  offset2CHS(disk_car, partition.part_offset, &start_calculated);
+  offset2CHS(disk_car,
+             partition.part_offset + partition.part_size - disk_car.sector_size,
+             &end_calculated);
 
-    start.cylinder = s_cyl(p);
-    start.head = p->head;
-    start.sector = s_sect(p);
-    end.cylinder = e_cyl(p);
-    end.head = p->end_head;
-    end.sector = e_sect(p);
-    switch (status)
+  start.cylinder = s_cyl(p);
+  start.head     = p->head;
+  start.sector   = s_sect(p);
+  end.cylinder   = e_cyl(p);
+  end.head       = p->end_head;
+  end.sector     = e_sect(p);
+  switch (status)
+  {
+  case STATUS_PRIM:
+    if (is_extended(partition.part_type_i386))
     {
-    case STATUS_PRIM:
-        if (is_extended(partition.part_type_i386))
-        {
-            partition.status = STATUS_EXT;
-            partition.upart_type = UP_EXTENDED;
-        }
-        else if (p->boot_ind != 0)
-            partition.status = STATUS_PRIM_BOOT;
-        else
-            partition.status = status;
-        break;
-    default:
-        partition.status = status;
-        break;
+      partition.status     = STATUS_EXT;
+      partition.upart_type = UP_EXTENDED;
     }
-    /* Check CHS */
-    if (start.sector == 0 || start.sector > disk_car.geom.sectors_per_head)
-    {
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_SS;
-    }
-    if (end.sector == 0 || end.sector > disk_car.geom.sectors_per_head)
-    {
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_ES;
-    }
-    if (start.head >= disk_car.geom.heads_per_cylinder)
-    {
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_SH;
-    }
-    if (start.cylinder >= disk_car.geom.cylinders)
-    {
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_SC;
-    }
-    if (end.head >= disk_car.geom.heads_per_cylinder)
-    {
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_EH;
-    }
-    if (end.cylinder >= disk_car.geom.cylinders)
-    {
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_EC;
-    }
-    if (((start_calculated.cylinder <= 1023) &&
-         (C_H_S2offset(disk_car, start.cylinder, start.head, start.sector) != partition.part_offset)) ||
-        ((start_calculated.cylinder > 1023) && (start.cylinder != 1023) &&
-         (start.cylinder != (start_calculated.cylinder & 1023))))
-    {
-        log_error("BAD_RS LBA={} {}\n", (long unsigned)(partition.part_offset / disk_car.sector_size),
-                  C_H_S2LBA(disk_car, start.cylinder, start.head, start.sector));
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_RS;
-    }
-    if (((end_calculated.cylinder <= 1023) &&
-         (C_H_S2offset(disk_car, end.cylinder, end.head, end.sector) !=
-          partition.part_offset + partition.part_size - disk_car.sector_size)) ||
-        ((end_calculated.cylinder > 1023) && (end.cylinder != 1023) &&
-         (end.cylinder != (end_calculated.cylinder & 1023))))
-    {
-        if (partition.errcode == BAD_NOERR)
-            partition.errcode = BAD_SCOUNT;
-    }
-    /* Check partition and load partition name */
-    check_part_i386(disk_car, verbose, partition, saveheader);
-    return 0;
+    else if (p->boot_ind != 0)
+      partition.status = STATUS_PRIM_BOOT;
+    else
+      partition.status = status;
+    break;
+  default:
+    partition.status = status;
+    break;
+  }
+  /* Check CHS */
+  if (start.sector == 0 || start.sector > disk_car.geom.sectors_per_head)
+  {
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_SS;
+  }
+  if (end.sector == 0 || end.sector > disk_car.geom.sectors_per_head)
+  {
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_ES;
+  }
+  if (start.head >= disk_car.geom.heads_per_cylinder)
+  {
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_SH;
+  }
+  if (start.cylinder >= disk_car.geom.cylinders)
+  {
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_SC;
+  }
+  if (end.head >= disk_car.geom.heads_per_cylinder)
+  {
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_EH;
+  }
+  if (end.cylinder >= disk_car.geom.cylinders)
+  {
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_EC;
+  }
+  if (((start_calculated.cylinder <= 1023) &&
+       (C_H_S2offset(disk_car, start.cylinder, start.head, start.sector) !=
+        partition.part_offset)) ||
+      ((start_calculated.cylinder > 1023) && (start.cylinder != 1023) &&
+       (start.cylinder != (start_calculated.cylinder & 1023))))
+  {
+    log_error("BAD_RS LBA={} {}\n",
+              (long unsigned)(partition.part_offset / disk_car.sector_size),
+              C_H_S2LBA(disk_car, start.cylinder, start.head, start.sector));
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_RS;
+  }
+  if (((end_calculated.cylinder <= 1023) &&
+       (C_H_S2offset(disk_car, end.cylinder, end.head, end.sector) !=
+        partition.part_offset + partition.part_size - disk_car.sector_size)) ||
+      ((end_calculated.cylinder > 1023) && (end.cylinder != 1023) &&
+       (end.cylinder != (end_calculated.cylinder & 1023))))
+  {
+    if (partition.errcode == BAD_NOERR)
+      partition.errcode = BAD_SCOUNT;
+  }
+  /* Check partition and load partition name */
+  check_part_i386(disk_car, verbose, partition, saveheader);
+  return 0;
 }
 
-static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const char *
+static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const
+    char *
 {
-    switch (errcode)
-    {
-    case BAD_SS:
-        return msg_BAD_S_SECT;
-    case BAD_ES:
-        return msg_BAD_E_SECT;
-    case BAD_SH:
-        return msg_BAD_S_HEAD;
-    case BAD_EH:
-        return msg_BAD_E_HEAD;
-    case BAD_EBS:
-        return msg_END_BFR_START;
-    case BAD_RS:
-        return msg_BAD_RS;
-    case BAD_SC:
-        return msg_BAD_S_CYL;
-    case BAD_EC:
-        return msg_BAD_E_CYL;
-    case BAD_SCOUNT:
-        return msg_BAD_SCOUNT;
-    case BAD_NOERR:
-        return "";
-    }
-    log_critical("errmsg_i386_entry2partition: unhandled error\n");
+  switch (errcode)
+  {
+  case BAD_SS:
+    return msg_BAD_S_SECT;
+  case BAD_ES:
+    return msg_BAD_E_SECT;
+  case BAD_SH:
+    return msg_BAD_S_HEAD;
+  case BAD_EH:
+    return msg_BAD_E_HEAD;
+  case BAD_EBS:
+    return msg_END_BFR_START;
+  case BAD_RS:
+    return msg_BAD_RS;
+  case BAD_SC:
+    return msg_BAD_S_CYL;
+  case BAD_EC:
+    return msg_BAD_E_CYL;
+  case BAD_SCOUNT:
+    return msg_BAD_SCOUNT;
+  case BAD_NOERR:
     return "";
+  }
+  log_critical("errmsg_i386_entry2partition: unhandled error\n");
+  return "";
 }
 
 static void log_dos_entry(const struct partition_dos *entree)
 {
-    if (get_partition_typename_i386_aux(entree->sys_ind) != nullptr)
-        log_info(" %-20s ", get_partition_typename_i386_aux(entree->sys_ind));
-    else
-        log_info(" Sys=%02X               ", entree->sys_ind);
-    log_info("%4u %3u %2u"
-             " %4u %3u %2u"
-             " %10lu"
-             " %10lu\n",
-             s_cyl(entree), entree->head, s_sect(entree), e_cyl(entree), entree->end_head, e_sect(entree),
-             (long unsigned)get_start_sect(entree), (long unsigned)get_nr_sects(entree));
+  if (get_partition_typename_i386_aux(entree->sys_ind) != nullptr)
+    log_info(" %-20s ", get_partition_typename_i386_aux(entree->sys_ind));
+  else
+    log_info(" Sys=%02X               ", entree->sys_ind);
+  log_info(
+      "%4u %3u %2u"
+      " %4u %3u %2u"
+      " %10lu"
+      " %10lu\n",
+      s_cyl(entree), entree->head, s_sect(entree), e_cyl(entree),
+      entree->end_head, e_sect(entree), (long unsigned)get_start_sect(entree),
+      (long unsigned)get_nr_sects(entree)
+  );
 }
 
-auto parti386_can_be_ext(const disk_t &disk_car, const partition_t &partition) -> int
+auto parti386_can_be_ext(const disk_t &disk_car, const partition_t &partition)
+    -> int
 {
-    return ((offset2head(disk_car, partition.part_offset) > 0) &&
-            (offset2cylinder(disk_car, partition.part_offset) != 0 ||
-             offset2head(disk_car, partition.part_offset) != 1 ||
-             offset2sector(disk_car, partition.part_offset) != 1));
+  return ((offset2head(disk_car, partition.part_offset) > 0) &&
+          (offset2cylinder(disk_car, partition.part_offset) != 0 ||
+           offset2head(disk_car, partition.part_offset) != 1 ||
+           offset2sector(disk_car, partition.part_offset) != 1));
 }
 
 static auto test_structure_i386(const list_part_t &list_part) -> int
 { /* Return 1 if bad*/
-    int nbr_prim = 0, nbr_prim_boot = 0, nbr_log_block = 0;
-    partition_t const *first_log = nullptr;
-    list_part_t new_list_part;
-    int res;
-    for (const partition_t &element : list_part)
+  int nbr_prim = 0, nbr_prim_boot = 0, nbr_log_block = 0;
+  partition_t const *first_log = nullptr;
+  list_part_t new_list_part;
+  int res;
+  for (const partition_t &element : list_part)
+  {
+    switch (element.status)
     {
-        switch (element.status)
-        {
-        case STATUS_LOG:
-            if (first_log == nullptr)
-            {
-                first_log = &element;
-                nbr_log_block++;
-            }
-            if (is_extended(element.part_type_i386))
-            {
-                return 1;
-            }
-            break;
-        case STATUS_PRIM_BOOT:
-            if (nbr_prim_boot++)
-                return 1;
-            nbr_prim++;
-            first_log = nullptr;
-            break;
-        case STATUS_PRIM:
-            nbr_prim++;
-            first_log = nullptr;
-            break;
-        case STATUS_DELETED:
-            break;
-        default:
-            log_critical("test_structure_i386: severe error\n");
-            break;
-        }
-    }
-    if (nbr_log_block > 1 || nbr_log_block + nbr_prim > 4)
+    case STATUS_LOG:
+      if (first_log == nullptr)
+      {
+        first_log = &element;
+        nbr_log_block++;
+      }
+      if (is_extended(element.part_type_i386))
+      {
         return 1;
-    new_list_part = gen_sorted_partition_list(list_part);
-    res = is_part_overlapping(new_list_part);
-    return res;
+      }
+      break;
+    case STATUS_PRIM_BOOT:
+      if (nbr_prim_boot++)
+        return 1;
+      nbr_prim++;
+      first_log = nullptr;
+      break;
+    case STATUS_PRIM:
+      nbr_prim++;
+      first_log = nullptr;
+      break;
+    case STATUS_DELETED:
+      break;
+    default:
+      log_critical("test_structure_i386: severe error\n");
+      break;
+    }
+  }
+  if (nbr_log_block > 1 || nbr_log_block + nbr_prim > 4)
+    return 1;
+  new_list_part = gen_sorted_partition_list(list_part);
+  res           = is_part_overlapping(new_list_part);
+  return res;
 }
 
 static auto is_extended(const unsigned int part_type) -> int
 {
-    return (part_type == static_cast<const unsigned char>(P_EXTENDX) ||
-            part_type == static_cast<const unsigned char>(P_EXTENDED) ||
-            part_type == static_cast<const unsigned char>(P_LINUXEXTENDX));
+  return (part_type == static_cast<const unsigned char>(P_EXTENDX) ||
+          part_type == static_cast<const unsigned char>(P_EXTENDED) ||
+          part_type == static_cast<const unsigned char>(P_LINUXEXTENDX));
 }
 
-void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd)
+void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part,
+                            char **current_cmd)
 {
-    CHS_t start, end;
-    partition_t new_partition(&arch_i386);
-    assert(current_cmd != nullptr);
-    start.cylinder = 0;
-    start.head = 0;
-    start.sector = 1;
-    end.cylinder = disk_car.geom.cylinders - 1;
-    end.head = disk_car.geom.heads_per_cylinder - 1;
-    end.sector = disk_car.geom.sectors_per_head;
-    /*@
-      @ loop invariant valid_list_part(list_part);
-      @ loop invariant valid_read_string(*current_cmd);
-      @ */
-    while (true)
+  CHS_t start, end;
+  partition_t new_partition(&arch_i386);
+  assert(current_cmd != nullptr);
+  start.cylinder = 0;
+  start.head     = 0;
+  start.sector   = 1;
+  end.cylinder   = disk_car.geom.cylinders - 1;
+  end.head       = disk_car.geom.heads_per_cylinder - 1;
+  end.sector     = disk_car.geom.sectors_per_head;
+  /*@
+    @ loop invariant valid_list_part(list_part);
+    @ loop invariant valid_read_string(*current_cmd);
+    @ */
+  while (true)
+  {
+    skip_comma_in_command(current_cmd);
+    if (check_command(current_cmd, "c,", 2) == 0)
     {
-        skip_comma_in_command(current_cmd);
-        if (check_command(current_cmd, "c,", 2) == 0)
+      start.cylinder = ask_number_cli(current_cmd, start.cylinder, 0,
+                                      disk_car.geom.cylinders - 1,
+                                      "Enter the starting cylinder ");
+    }
+    else if (check_command(current_cmd, "h,", 2) == 0)
+    {
+      start.head = ask_number_cli(current_cmd, start.head, 0,
+                                  disk_car.geom.heads_per_cylinder - 1,
+                                  "Enter the starting head ");
+    }
+    else if (check_command(current_cmd, "s,", 2) == 0)
+    {
+      start.sector = ask_number_cli(current_cmd, start.sector, 1,
+                                    disk_car.geom.sectors_per_head,
+                                    "Enter the starting sector ");
+    }
+    else if (check_command(current_cmd, "C,", 2) == 0)
+    {
+      end.cylinder = ask_number_cli(current_cmd, end.cylinder, start.cylinder,
+                                    disk_car.geom.cylinders - 1,
+                                    "Enter the ending cylinder ");
+    }
+    else if (check_command(current_cmd, "H,", 2) == 0)
+    {
+      end.head = ask_number_cli(current_cmd, end.head, 0,
+                                disk_car.geom.heads_per_cylinder - 1,
+                                "Enter the ending head ");
+    }
+    else if (check_command(current_cmd, "S,", 2) == 0)
+    {
+      end.sector = ask_number_cli(current_cmd, end.sector, 1,
+                                  disk_car.geom.sectors_per_head - 1,
+                                  "Enter the ending sector ");
+    }
+    else if (check_command(current_cmd, "T,", 2) == 0)
+    {
+      change_part_type_cli(disk_car, new_partition, current_cmd);
+    }
+    else if ((CHS2offset(disk_car, &end) > new_partition.part_offset) &&
+             new_partition.part_offset > 0 &&
+             new_partition.part_type_i386 != P_NO_OS)
+    {
+      int insert_error = 0;
+      insert_new_partition(list_part, new_partition, 0, &insert_error);
+      /*@ assert valid_list_part(list_part); */
+      if (insert_error > 0)
+      {
+        /*@ assert valid_read_string(*current_cmd); */
+        /*@ assert valid_list_part(list_part); */
+        return;
+      }
+      if (test_structure_i386(list_part) == 0)
+      { /* Check if the partition can be Logical, Bootable or Primary */
+        if (parti386_can_be_ext(disk_car, new_partition) != 0)
         {
-            start.cylinder = ask_number_cli(current_cmd, start.cylinder, 0, disk_car.geom.cylinders - 1,
-                                            "Enter the starting cylinder ");
-        }
-        else if (check_command(current_cmd, "h,", 2) == 0)
-        {
-            start.head = ask_number_cli(current_cmd, start.head, 0, disk_car.geom.heads_per_cylinder - 1,
-                                        "Enter the starting head ");
-        }
-        else if (check_command(current_cmd, "s,", 2) == 0)
-        {
-            start.sector = ask_number_cli(current_cmd, start.sector, 1, disk_car.geom.sectors_per_head,
-                                          "Enter the starting sector ");
-        }
-        else if (check_command(current_cmd, "C,", 2) == 0)
-        {
-            end.cylinder = ask_number_cli(current_cmd, end.cylinder, start.cylinder, disk_car.geom.cylinders - 1,
-                                          "Enter the ending cylinder ");
-        }
-        else if (check_command(current_cmd, "H,", 2) == 0)
-        {
-            end.head = ask_number_cli(current_cmd, end.head, 0, disk_car.geom.heads_per_cylinder - 1,
-                                      "Enter the ending head ");
-        }
-        else if (check_command(current_cmd, "S,", 2) == 0)
-        {
-            end.sector = ask_number_cli(current_cmd, end.sector, 1, disk_car.geom.sectors_per_head - 1,
-                                        "Enter the ending sector ");
-        }
-        else if (check_command(current_cmd, "T,", 2) == 0)
-        {
-            change_part_type_cli(disk_car, new_partition, current_cmd);
-        }
-        else if ((CHS2offset(disk_car, &end) > new_partition.part_offset) && new_partition.part_offset > 0 &&
-                 new_partition.part_type_i386 != P_NO_OS)
-        {
-            int insert_error = 0;
-            insert_new_partition(list_part, new_partition, 0, &insert_error);
-            /*@ assert valid_list_part(list_part); */
-            if (insert_error > 0)
-            {
-                /*@ assert valid_read_string(*current_cmd); */
-                /*@ assert valid_list_part(list_part); */
-                return;
-            }
-            if (test_structure_i386(list_part) == 0)
-            { /* Check if the partition can be Logical, Bootable or Primary */
-                if (parti386_can_be_ext(disk_car, new_partition) != 0)
-                {
-                    new_partition.status = STATUS_LOG;
-                    if (test_structure_i386(list_part) == 0)
-                    {
-                        /*@ assert valid_read_string(*current_cmd); */
-                        /*@ assert valid_list_part(list_part); */
-                        return;
-                    }
-                }
-                new_partition.status = STATUS_PRIM_BOOT;
-                if (test_structure_i386(list_part) == 0)
-                {
-                    /*@ assert valid_read_string(*current_cmd); */
-                    /*@ assert valid_list_part(list_part); */
-                    return;
-                }
-                new_partition.status = STATUS_PRIM;
-                if (test_structure_i386(list_part) == 0)
-                {
-                    /*@ assert valid_read_string(*current_cmd); */
-                    /*@ assert valid_list_part(list_part); */
-                    return;
-                }
-            }
-            new_partition.status = STATUS_DELETED;
+          new_partition.status = STATUS_LOG;
+          if (test_structure_i386(list_part) == 0)
+          {
             /*@ assert valid_read_string(*current_cmd); */
             /*@ assert valid_list_part(list_part); */
             return;
+          }
         }
-        else
+        new_partition.status = STATUS_PRIM_BOOT;
+        if (test_structure_i386(list_part) == 0)
         {
-            /*@ assert valid_read_string(*current_cmd); */
-            /*@ assert valid_list_part(list_part); */
+          /*@ assert valid_read_string(*current_cmd); */
+          /*@ assert valid_list_part(list_part); */
+          return;
         }
+        new_partition.status = STATUS_PRIM;
+        if (test_structure_i386(list_part) == 0)
+        {
+          /*@ assert valid_read_string(*current_cmd); */
+          /*@ assert valid_list_part(list_part); */
+          return;
+        }
+      }
+      new_partition.status = STATUS_DELETED;
+      /*@ assert valid_read_string(*current_cmd); */
+      /*@ assert valid_list_part(list_part); */
+      return;
     }
+    else
+    {
+      /*@ assert valid_read_string(*current_cmd); */
+      /*@ assert valid_list_part(list_part); */
+    }
+  }
 }
 
 static void set_next_status_i386(const disk_t &disk_car, partition_t &partition)
 {
-    /* STATUS_DELETED, STATUS_PRIM, STATUS_PRIM_BOOT, STATUS_LOG */
-    switch (partition.status)
-    {
-    case STATUS_PRIM_BOOT:
-        if (parti386_can_be_ext(disk_car, partition) != 0)
-            partition.status = STATUS_LOG;
-        else
-            partition.status = STATUS_DELETED;
-        break;
-    case STATUS_LOG:
-        partition.status = STATUS_DELETED;
-        break;
-    case STATUS_DELETED:
-        partition.status = STATUS_PRIM;
-        break;
-    default:
-        partition.status = STATUS_PRIM_BOOT;
-        break;
-    }
+  /* STATUS_DELETED, STATUS_PRIM, STATUS_PRIM_BOOT, STATUS_LOG */
+  switch (partition.status)
+  {
+  case STATUS_PRIM_BOOT:
+    if (parti386_can_be_ext(disk_car, partition) != 0)
+      partition.status = STATUS_LOG;
+    else
+      partition.status = STATUS_DELETED;
+    break;
+  case STATUS_LOG:
+    partition.status = STATUS_DELETED;
+    break;
+  case STATUS_DELETED:
+    partition.status = STATUS_PRIM;
+    break;
+  default:
+    partition.status = STATUS_PRIM_BOOT;
+    break;
+  }
 }
 
 static void set_prev_status_i386(const disk_t &disk_car, partition_t &partition)
 {
-    switch (partition.status)
-    {
-    case STATUS_DELETED:
-        if (parti386_can_be_ext(disk_car, partition) != 0)
-            partition.status = STATUS_LOG;
-        else
-            partition.status = STATUS_PRIM_BOOT;
-        break;
-    case STATUS_LOG:
-        partition.status = STATUS_PRIM_BOOT;
-        break;
-    case STATUS_PRIM_BOOT:
-        partition.status = STATUS_PRIM;
-        break;
-    default:
-        partition.status = STATUS_DELETED;
-        break;
-    }
+  switch (partition.status)
+  {
+  case STATUS_DELETED:
+    if (parti386_can_be_ext(disk_car, partition) != 0)
+      partition.status = STATUS_LOG;
+    else
+      partition.status = STATUS_PRIM_BOOT;
+    break;
+  case STATUS_LOG:
+    partition.status = STATUS_PRIM_BOOT;
+    break;
+  case STATUS_PRIM_BOOT:
+    partition.status = STATUS_PRIM;
+    break;
+  default:
+    partition.status = STATUS_DELETED;
+    break;
+  }
 }
 
-static auto set_part_type_i386(partition_t &partition, unsigned int part_type) -> int
+static auto set_part_type_i386(partition_t &partition, unsigned int part_type)
+    -> int
 {
-    if (part_type != P_NO_OS && part_type <= 255 && is_extended(part_type) == 0)
-    {
-        partition.part_type_i386 = part_type;
-        return 0;
-    }
-    return 1;
+  if (part_type != P_NO_OS && part_type <= 255 && is_extended(part_type) == 0)
+  {
+    partition.part_type_i386 = part_type;
+    return 0;
+  }
+  return 1;
 }
 
 static auto is_part_known_i386(const partition_t &partition) -> int
 {
-    return (partition.part_type_i386 != P_NO_OS && partition.part_type_i386 != P_UNK);
+  return (partition.part_type_i386 != P_NO_OS &&
+          partition.part_type_i386 != P_UNK);
 }
 
-static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part, const int verbose)
+static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part,
+                                const int verbose)
 {
-    unsigned int vista_partition = 0;
-    list_part_t new_list_part;
-    /* Create new list */
-    for (partition_t &element : list_part)
-        element.to_be_removed = 0;
-    for (auto element = list_part.begin(); element != list_part.end(); element = std::next(element))
+  unsigned int vista_partition = 0;
+  list_part_t new_list_part;
+  /* Create new list */
+  for (partition_t &element : list_part)
+    element.to_be_removed = 0;
+  for (auto element = list_part.begin(); element != list_part.end();
+       element      = std::next(element))
+  {
+    if (element->arch != nullptr && element->arch != disk_car.arch)
     {
-        if (element->arch != nullptr && element->arch != disk_car.arch)
+      element->to_be_removed = 1;
+    }
+    else
+    {
+      if (element->part_offset % (2048 * 512) == 0 &&
+          element->part_size % (2048 * 512) == 0)
+        vista_partition = 1;
+      for (auto element2 = std::next(element); element2 != list_part.end();
+           element2      = std::next(element2))
+        if (element->part_offset + element->part_size - 1 >=
+            element2->part_offset)
         {
-            element->to_be_removed = 1;
+          element->to_be_removed  = 1;
+          element2->to_be_removed = 1;
+        }
+    }
+    if (element->to_be_removed == 0)
+    {
+      int insert_error = 0;
+      insert_new_partition(new_list_part, *element, 0, &insert_error);
+    }
+  }
+
+  /* Set primary, extended, logical */
+  if (vista_partition == 0)
+  {
+    /* log_block_size must be 0 or 1 for a valid partition table */
+    unsigned int log_block_size         = 0;
+    unsigned int nbr_log_block          = 0;
+    unsigned int biggest_log_block_size = 0;
+    unsigned int nbr_prim               = 0;
+    auto end_log_block                  = new_list_part.end();
+    auto end_biggest_log_block          = new_list_part.end();
+    /* Verify */
+    for (auto element = new_list_part.begin(); element != new_list_part.end();
+         element      = std::next(element))
+    {
+      if (parti386_can_be_ext(disk_car, (*element)) == 0)
+      {
+        nbr_prim++;
+        if ((end_log_block != new_list_part.end()) &&
+            (std::next(end_log_block) == element))
+        {
+          if (log_block_size > biggest_log_block_size)
+          {
+            biggest_log_block_size = log_block_size;
+            end_biggest_log_block  = end_log_block;
+          }
+          nbr_log_block++;
+          end_log_block = new_list_part.end();
+        }
+      }
+      else
+      {
+        log_block_size++;
+        end_log_block = element;
+      }
+    }
+    /* Verification */
+    if ((end_log_block != new_list_part.end()) &&
+        (std::next(end_log_block) == new_list_part.end()))
+    {
+      if (log_block_size > biggest_log_block_size)
+      {
+        end_biggest_log_block = end_log_block;
+      }
+      nbr_log_block++;
+    }
+    if (verbose > 1)
+      log_info("\nRes: nbr_prim {}, nbr_log_block {}, vista_partition={}\n",
+               nbr_prim, nbr_log_block, vista_partition);
+    if (nbr_prim + nbr_log_block <= 4)
+    {
+      int set_prim_bootable_done = 0;
+      for (auto element = end_biggest_log_block;
+           element != new_list_part.begin() &&
+           parti386_can_be_ext(disk_car, *element);
+           element = std::prev(element))
+      {
+        element->status = STATUS_LOG;
+      }
+      for (partition_t &element : new_list_part)
+      {
+        if (element.status != STATUS_LOG)
+        {
+          /* The first primary partition is bootable unless it's a swap */
+          if (set_prim_bootable_done == 0 && element.upart_type != UP_LINSWAP &&
+              element.upart_type != UP_LVM && element.upart_type != UP_LVM2)
+          {
+            element.status         = STATUS_PRIM_BOOT;
+            set_prim_bootable_done = 1;
+          }
+          else
+            element.status = STATUS_PRIM;
+        }
+      }
+    }
+  }
+  if (vista_partition > 0 || test_structure_i386(new_list_part))
+  { /* Handle Vista partition */
+    unsigned int i{0};
+    int set_prim_bootable_done = 0;
+    for (partition_t &element : new_list_part)
+    {
+      if (i < 3)
+      {
+        /* The first primary partition is bootable unless it's a swap */
+        if (set_prim_bootable_done == 0 && element.upart_type != UP_LINSWAP &&
+            element.upart_type != UP_LVM && element.upart_type != UP_LVM2)
+        {
+          element.status         = STATUS_PRIM_BOOT;
+          set_prim_bootable_done = 1;
         }
         else
-        {
-            if (element->part_offset % (2048 * 512) == 0 && element->part_size % (2048 * 512) == 0)
-                vista_partition = 1;
-            for (auto element2 = std::next(element); element2 != list_part.end(); element2 = std::next(element2))
-                if (element->part_offset + element->part_size - 1 >= element2->part_offset)
-                {
-                    element->to_be_removed = 1;
-                    element2->to_be_removed = 1;
-                }
-        }
-        if (element->to_be_removed == 0)
-        {
-            int insert_error = 0;
-            insert_new_partition(new_list_part, *element, 0, &insert_error);
-        }
+          element.status = STATUS_PRIM;
+      }
+      else
+        element.status = STATUS_LOG;
+      i++;
     }
-
-    /* Set primary, extended, logical */
-    if (vista_partition == 0)
-    {
-        /* log_block_size must be 0 or 1 for a valid partition table */
-        unsigned int log_block_size = 0;
-        unsigned int nbr_log_block = 0;
-        unsigned int biggest_log_block_size = 0;
-        unsigned int nbr_prim = 0;
-        auto end_log_block = new_list_part.end();
-        auto end_biggest_log_block = new_list_part.end();
-        /* Verify */
-        for (auto element = new_list_part.begin(); element != new_list_part.end(); element = std::next(element))
-        {
-            if (parti386_can_be_ext(disk_car, (*element)) == 0)
-            {
-                nbr_prim++;
-                if ((end_log_block != new_list_part.end()) && (std::next(end_log_block) == element))
-                {
-                    if (log_block_size > biggest_log_block_size)
-                    {
-                        biggest_log_block_size = log_block_size;
-                        end_biggest_log_block = end_log_block;
-                    }
-                    nbr_log_block++;
-                    end_log_block = new_list_part.end();
-                }
-            }
-            else
-            {
-                log_block_size++;
-                end_log_block = element;
-            }
-        }
-        /* Verification */
-        if ((end_log_block != new_list_part.end()) && (std::next(end_log_block) == new_list_part.end()))
-        {
-            if (log_block_size > biggest_log_block_size)
-            {
-                end_biggest_log_block = end_log_block;
-            }
-            nbr_log_block++;
-        }
-        if (verbose > 1)
-            log_info("\nRes: nbr_prim {}, nbr_log_block {}, vista_partition={}\n", nbr_prim, nbr_log_block,
-                     vista_partition);
-        if (nbr_prim + nbr_log_block <= 4)
-        {
-            int set_prim_bootable_done = 0;
-            for (auto element = end_biggest_log_block; element != new_list_part.begin() && parti386_can_be_ext(disk_car, *element);
-                 element = std::prev(element))
-            {
-                element->status = STATUS_LOG;
-            }
-            for (partition_t &element : new_list_part)
-            {
-                if (element.status != STATUS_LOG)
-                {
-                    /* The first primary partition is bootable unless it's a swap */
-                    if (set_prim_bootable_done == 0 && element.upart_type != UP_LINSWAP &&
-                        element.upart_type != UP_LVM && element.upart_type != UP_LVM2)
-                    {
-                        element.status = STATUS_PRIM_BOOT;
-                        set_prim_bootable_done = 1;
-                    }
-                    else
-                        element.status = STATUS_PRIM;
-                }
-            }
-        }
-    }
-    if (vista_partition > 0 || test_structure_i386(new_list_part))
-    { /* Handle Vista partition */
-        unsigned int i{0};
-        int set_prim_bootable_done = 0;
-        for (partition_t &element : new_list_part)
-        {
-            if (i < 3)
-            {
-                /* The first primary partition is bootable unless it's a swap */
-                if (set_prim_bootable_done == 0 && element.upart_type != UP_LINSWAP &&
-                    element.upart_type != UP_LVM && element.upart_type != UP_LVM2)
-                {
-                    element.status = STATUS_PRIM_BOOT;
-                    set_prim_bootable_done = 1;
-                }
-                else
-                    element.status = STATUS_PRIM;
-            }
-            else
-                element.status = STATUS_LOG;
-            i++;
-        }
-    }
-    if (test_structure_i386(new_list_part))
-    {
-        for (partition_t &element : new_list_part)
-            element.status = STATUS_DELETED;
-    }
+  }
+  if (test_structure_i386(new_list_part))
+  {
+    for (partition_t &element : new_list_part)
+      element.status = STATUS_DELETED;
+  }
 }
 
 static auto erase_list_part_i386(disk_t &disk) -> int
 {
-    unsigned char buffer[DEFAULT_SECTOR_SIZE];
-    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
+  unsigned char buffer[DEFAULT_SECTOR_SIZE];
+  if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) !=
+      DEFAULT_SECTOR_SIZE)
+  {
+    log_error(msg_PART_RD_ERR);
+    memset(buffer, 0, sizeof(buffer));
+  }
+  memset(buffer + TAB_PART, 0, 0x40);
+  /* Remove Mac signature */
+  if (buffer[0] == 0x45 && buffer[1] == 0x52)
+    buffer[0] = 0;
+  /* Remove Sun signature */
+  if (buffer[0x1fc] == 0xda && buffer[0x1fd] == 0xbe)
+    buffer[0x1fc] = 0;
+  if (disk.pwrite(disk, buffer, DEFAULT_SECTOR_SIZE,
+                  static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
+  {
+    return 1;
+  }
+  {
+    /* Erase XBOX signature if present */
+    auto *xboxlabel =
+        reinterpret_cast<struct xbox_partition *>(new unsigned char[0x800]);
+    if (static_cast<unsigned>(disk.pread(disk, xboxlabel, 0x800, 0)) == 0x800)
     {
-        log_error(msg_PART_RD_ERR);
-        memset(buffer, 0, sizeof(buffer));
+      if (memcmp(xboxlabel->magic, "BRFR", 4) == 0)
+      {
+        memset(xboxlabel->magic, 0, 4);
+        disk.pwrite(disk, xboxlabel, 0x800, 0);
+      }
     }
-    memset(buffer + TAB_PART, 0, 0x40);
-    /* Remove Mac signature */
-    if (buffer[0] == 0x45 && buffer[1] == 0x52)
-        buffer[0] = 0;
-    /* Remove Sun signature */
-    if (buffer[0x1fc] == 0xda && buffer[0x1fd] == 0xbe)
-        buffer[0x1fc] = 0;
-    if (disk.pwrite(disk, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
+    delete[] (xboxlabel);
+  }
+  {
+    /* Erase EFI GPT signature if present */
+    auto *gpt =
+        reinterpret_cast<struct gpt_hdr *>(new unsigned char[disk.sector_size]);
+    if (std::cmp_equal(disk.pread(disk, gpt, disk.sector_size,
+                                  disk.sector_size),
+                       disk.sector_size))
     {
-        return 1;
+      if (memcmp(gpt->hdr_sig, GPT_HDR_SIG, 8) == 0)
+      {
+        memset(gpt->hdr_sig, 0, 8);
+        disk.pwrite(disk, gpt, disk.sector_size, disk.sector_size);
+      }
     }
-    {
-        /* Erase XBOX signature if present */
-        auto *xboxlabel = reinterpret_cast<struct xbox_partition *>(new unsigned char[0x800]);
-        if (static_cast<unsigned>(disk.pread(disk, xboxlabel, 0x800, 0)) == 0x800)
-        {
-            if (memcmp(xboxlabel->magic, "BRFR", 4) == 0)
-            {
-                memset(xboxlabel->magic, 0, 4);
-                disk.pwrite(disk, xboxlabel, 0x800, 0);
-            }
-        }
-        delete[] (xboxlabel);
-    }
-    {
-        /* Erase EFI GPT signature if present */
-        auto *gpt = reinterpret_cast<struct gpt_hdr *>(new unsigned char[disk.sector_size]);
-        if (std::cmp_equal(disk.pread(disk, gpt, disk.sector_size, disk.sector_size), disk.sector_size))
-        {
-            if (memcmp(gpt->hdr_sig, GPT_HDR_SIG, 8) == 0)
-            {
-                memset(gpt->hdr_sig, 0, 8);
-                disk.pwrite(disk, gpt, disk.sector_size, disk.sector_size);
-            }
-        }
-        delete[] (gpt);
-    }
-    disk.sync(disk);
-    return 0;
+    delete[] (gpt);
+  }
+  disk.sync(disk);
+  return 0;
 }
 
-static auto check_part_i386(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int
+static auto check_part_i386(disk_t &disk_car, const int verbose,
+                            partition_t &partition, const int saveheader) -> int
 {
-    int ret = 0;
-    switch (partition.part_type_i386)
+  int ret = 0;
+  switch (partition.part_type_i386)
+  {
+  case P_BEOS:
+    ret = check_BeFS(disk_car, partition);
+    break;
+  case P_12FAT:
+  case P_16FAT:
+  case P_16FATBD:
+  case P_32FAT:
+  case P_32FAT_LBA:
+  case P_16FATBD_LBA:
+  case P_12FATH:
+  case P_16FATH:
+  case P_16FATBDH:
+  case P_32FATH:
+  case P_32FAT_LBAH:
+  case P_16FATBD_LBAH:
+    ret = check_FAT(disk_car, partition, verbose);
+    if (ret != 0)
     {
-    case P_BEOS:
-        ret = check_BeFS(disk_car, partition);
-        break;
-    case P_12FAT:
-    case P_16FAT:
-    case P_16FATBD:
-    case P_32FAT:
-    case P_32FAT_LBA:
-    case P_16FATBD_LBA:
-    case P_12FATH:
-    case P_16FATH:
-    case P_16FATBDH:
-    case P_32FATH:
-    case P_32FAT_LBAH:
-    case P_16FATBD_LBAH:
-        ret = check_FAT(disk_car, partition, verbose);
-        if (ret != 0)
-        {
-            screen_buffer_add("Invalid FAT boot sector\n");
-        }
-        break;
-    case P_FREEBSD:
-        ret = check_BSD(disk_car, partition, verbose, BSD_MAXPARTITIONS);
-        if (ret != 0)
-        {
-            screen_buffer_add("Invalid BSD disklabel\n");
-        }
-        break;
-    case P_HFS:
-        ret = check_HFS(disk_car, partition, verbose);
-        if (ret != 0)
-            ret = check_HFSP(disk_car, partition, verbose);
-        if (ret != 0)
-            screen_buffer_add("No HFS or HFS+ structure\n");
-        break;
-    case P_LINUX:
-        ret = check_linux(disk_car, partition, verbose);
-        if (ret != 0)
-            screen_buffer_add("No ext2, JFS, Reiser, cramfs or XFS marker\n");
-        break;
-    case P_LINSWAP:
-        ret = check_Linux_SWAP(disk_car, partition);
-        break;
-    case P_LVM:
-        ret = check_LVM(disk_car, partition, verbose);
-        if (ret != 0)
-            ret = check_LVM2(disk_car, partition, verbose);
-        if (ret != 0)
-            screen_buffer_add("No LVM or LVM2 structure\n");
-        break;
-    case P_NETBSD:
-        ret = check_BSD(disk_car, partition, verbose, BSD_MAXPARTITIONS);
-        break;
-    case P_NTFS:
-    case P_NTFSH:
-        ret = check_NTFS(disk_car, partition, verbose, 0);
-        if (ret != 0)
-        {
-            ret = check_exFAT(disk_car, partition);
-        }
-        if (ret != 0)
-        {
-            screen_buffer_add("Invalid NTFS or exFAT boot\n");
-        }
-        break;
-    case P_OPENBSD:
-        ret = check_BSD(disk_car, partition, verbose, OPENBSD_MAXPARTITIONS);
-        break;
-    case P_RAID:
-        ret = check_MD(disk_car, partition, verbose);
-        if (ret != 0)
-            screen_buffer_add("Invalid RAID superblock\n");
-        break;
-    case P_SUN:
-        ret = check_sun_i386(disk_car, partition, verbose);
-        break;
-    case P_EXTENDED:
-    case P_EXTENDX:
-    case P_LINUXEXTENDX:
-        break;
-    case P_NETWARE:
-        /* res=check_netware(disk_car, partition); */
-        break;
-    default:
-        if (verbose > 0)
-        {
-            log_warning("check_part_i386 {} type %02X: no test\n", partition.order, partition.part_type_i386);
-        }
-        if (saveheader > 0)
-        {
-            save_header(disk_car, partition, verbose);
-        }
-        break;
+      screen_buffer_add("Invalid FAT boot sector\n");
+    }
+    break;
+  case P_FREEBSD:
+    ret = check_BSD(disk_car, partition, verbose, BSD_MAXPARTITIONS);
+    if (ret != 0)
+    {
+      screen_buffer_add("Invalid BSD disklabel\n");
+    }
+    break;
+  case P_HFS:
+    ret = check_HFS(disk_car, partition, verbose);
+    if (ret != 0)
+      ret = check_HFSP(disk_car, partition, verbose);
+    if (ret != 0)
+      screen_buffer_add("No HFS or HFS+ structure\n");
+    break;
+  case P_LINUX:
+    ret = check_linux(disk_car, partition, verbose);
+    if (ret != 0)
+      screen_buffer_add("No ext2, JFS, Reiser, cramfs or XFS marker\n");
+    break;
+  case P_LINSWAP:
+    ret = check_Linux_SWAP(disk_car, partition);
+    break;
+  case P_LVM:
+    ret = check_LVM(disk_car, partition, verbose);
+    if (ret != 0)
+      ret = check_LVM2(disk_car, partition, verbose);
+    if (ret != 0)
+      screen_buffer_add("No LVM or LVM2 structure\n");
+    break;
+  case P_NETBSD:
+    ret = check_BSD(disk_car, partition, verbose, BSD_MAXPARTITIONS);
+    break;
+  case P_NTFS:
+  case P_NTFSH:
+    ret = check_NTFS(disk_car, partition, verbose, 0);
+    if (ret != 0)
+    {
+      ret = check_exFAT(disk_car, partition);
     }
     if (ret != 0)
     {
-        log_error("check_part_i386 failed for partition type %02X\n", partition.part_type_i386);
-        aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
-        if (saveheader > 0)
-        {
-            save_header(disk_car, partition, verbose);
-        }
+      screen_buffer_add("Invalid NTFS or exFAT boot\n");
     }
-    return ret;
+    break;
+  case P_OPENBSD:
+    ret = check_BSD(disk_car, partition, verbose, OPENBSD_MAXPARTITIONS);
+    break;
+  case P_RAID:
+    ret = check_MD(disk_car, partition, verbose);
+    if (ret != 0)
+      screen_buffer_add("Invalid RAID superblock\n");
+    break;
+  case P_SUN:
+    ret = check_sun_i386(disk_car, partition, verbose);
+    break;
+  case P_EXTENDED:
+  case P_EXTENDX:
+  case P_LINUXEXTENDX:
+    break;
+  case P_NETWARE:
+    /* res=check_netware(disk_car, partition); */
+    break;
+  default:
+    if (verbose > 0)
+    {
+      log_warning("check_part_i386 {} type %02X: no test\n", partition.order,
+                  partition.part_type_i386);
+    }
+    if (saveheader > 0)
+    {
+      save_header(disk_car, partition, verbose);
+    }
+    break;
+  }
+  if (ret != 0)
+  {
+    log_error("check_part_i386 failed for partition type %02X\n",
+              partition.part_type_i386);
+    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    if (saveheader > 0)
+    {
+      save_header(disk_car, partition, verbose);
+    }
+  }
+  return ret;
 }
 
-static auto get_partition_typename_i386_aux(const unsigned int part_type_i386) -> const char *
+static auto get_partition_typename_i386_aux(const unsigned int part_type_i386)
+    -> const char *
 {
-    int i;
-    /*@ loop assigns i; */
-    for (i = 0; i386_sys_types[i].name != nullptr; i++)
-        if (i386_sys_types[i].part_type == part_type_i386)
-            return i386_sys_types[i].name;
-    return nullptr;
+  int i;
+  /*@ loop assigns i; */
+  for (i = 0; i386_sys_types[i].name != nullptr; i++)
+    if (i386_sys_types[i].part_type == part_type_i386)
+      return i386_sys_types[i].name;
+  return nullptr;
 }
 
-static auto get_partition_typename_i386(const partition_t &partition) -> const char *
+static auto get_partition_typename_i386(const partition_t &partition) -> const
+    char *
 {
-    return get_partition_typename_i386_aux(partition.part_type_i386);
+  return get_partition_typename_i386_aux(partition.part_type_i386);
 }
 #endif

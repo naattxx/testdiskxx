@@ -2,7 +2,8 @@
 
     file: swap.h
 
-    Copyright (C) 1998-2004,2006,2008 Christophe GRENIER <grenier@cgsecurity.org>
+    Copyright (C) 1998-2004,2006,2008 Christophe GRENIER
+   <grenier@cgsecurity.org>
 
     this software is free software; you can redistribute it and/or modify
     it under the terms of the gnu general public license as published by
@@ -27,42 +28,43 @@
 #define PAGE_SIZE 0x1000 /* 4k page */
 #define PAGE_8K 0x2000   /* 8K page */
 
-    union swap_header {
-        struct
-        {
-            char reserved[PAGE_SIZE - 10];
-            char magic[10];
-        } magic;
-        struct
-        {
-            char bootbits[1024]; /* Space for disklabel etc. */
-            unsigned int version;
-            unsigned int last_page;
-            unsigned int nr_badpages;
-            /*	char volume_name[16]; */
-            unsigned int padding[125];
-            unsigned int badpages[1];
-        } info;
-        struct
-        {
-            char reserved[PAGE_8K - 10];
-            char magic[10];
-        } magic8k;
-    };
+union swap_header {
+  struct
+  {
+    char reserved[PAGE_SIZE - 10];
+    char magic[10];
+  } magic;
+  struct
+  {
+    char bootbits[1024]; /* Space for disklabel etc. */
+    unsigned int version;
+    unsigned int last_page;
+    unsigned int nr_badpages;
+    /*	char volume_name[16]; */
+    unsigned int padding[125];
+    unsigned int badpages[1];
+  } info;
+  struct
+  {
+    char reserved[PAGE_8K - 10];
+    char magic[10];
+  } magic8k;
+};
 
-    /*@
-      @ requires \valid(disk_car);
-      @ requires \valid(partition);
-      @ requires separation: \separated(disk_car, partition);
-      @ decreases 0;
-      @*/
-    int check_Linux_SWAP(disk_t &disk_car, partition_t &partition);
+/*@
+  @ requires \valid(disk_car);
+  @ requires \valid(partition);
+  @ requires separation: \separated(disk_car, partition);
+  @ decreases 0;
+  @*/
+int check_Linux_SWAP(disk_t &disk_car, partition_t &partition);
 
-    /*@
-      @ requires \valid_read(swap_header);
-      @ requires \valid(partition);
-      @ requires separation: \separated(swap_header, partition);
-      @*/
-    int recover_Linux_SWAP(const union swap_header *swap_header, partition_t &partition);
+/*@
+  @ requires \valid_read(swap_header);
+  @ requires \valid(partition);
+  @ requires separation: \separated(swap_header, partition);
+  @*/
+int recover_Linux_SWAP(const union swap_header *swap_header,
+                       partition_t &partition);
 
 #endif

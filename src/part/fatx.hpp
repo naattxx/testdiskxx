@@ -24,29 +24,29 @@
 #include "src/common.hpp"
 #include <cstdint>
 
-    struct [[gnu::gcc_struct,gnu::packed]] disk_fatx
-    {
-        char magic[4];
-        uint32_t volume_id;
-        uint32_t cluster_size_in_sector;
-        uint16_t fats;
-        uint32_t unknown;
-    };
+struct [[gnu::gcc_struct, gnu::packed]] disk_fatx
+{
+  char magic[4];
+  uint32_t volume_id;
+  uint32_t cluster_size_in_sector;
+  uint16_t fats;
+  uint32_t unknown;
+};
 
-    /*@
-      @ requires \valid(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid(partition);
-      @ requires \separated(disk_car, partition);
-      @ decreases 0;
-      @*/
-    int check_FATX(disk_t &disk_car, partition_t &partition);
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid(partition);
+  @ requires \separated(disk_car, partition);
+  @ decreases 0;
+  @*/
+int check_FATX(disk_t &disk_car, partition_t &partition);
 
-    /*@
-      @ requires \valid_read(fatx_block);
-      @ requires \valid(partition);
-      @ requires \separated(fatx_block, partition);
-      @*/
-    int recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition);
+/*@
+  @ requires \valid_read(fatx_block);
+  @ requires \valid(partition);
+  @ requires \separated(fatx_block, partition);
+  @*/
+int recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition);
 
 #endif

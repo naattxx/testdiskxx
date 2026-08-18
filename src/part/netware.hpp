@@ -24,31 +24,33 @@
 #include "src/common.hpp"
 #include <cstdint>
 
-    struct disk_netware
-    {
-        char unknown;
-        char magic[12];
-        char unknown2[3];
-        char unknown3[3]; /* 0x10 */
-        int32_t nbr_sectors;
-    };
+struct disk_netware
+{
+  char unknown;
+  char magic[12];
+  char unknown2[3];
+  char unknown3[3]; /* 0x10 */
+  int32_t nbr_sectors;
+};
 
-    /*@
-      @ requires \valid(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid(partition);
-      @ requires separation: \separated(disk_car, partition);
-      @ decreases 0;
-      @*/
-    int check_netware(disk_t &disk_car, partition_t &partition);
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid(partition);
+  @ requires separation: \separated(disk_car, partition);
+  @ decreases 0;
+  @*/
+int check_netware(disk_t &disk_car, partition_t &partition);
 
-    /*@
-      @ requires \valid_read(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid_read(netware_block);
-      @ requires \valid(partition);
-      @ requires separation: \separated(disk_car, netware_block, partition);
-      @*/
-    int recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t &partition);
+/*@
+  @ requires \valid_read(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid_read(netware_block);
+  @ requires \valid(partition);
+  @ requires separation: \separated(disk_car, netware_block, partition);
+  @*/
+int recover_netware(const disk_t &disk_car,
+                    const struct disk_netware *netware_block,
+                    partition_t &partition);
 
 #endif

@@ -33,24 +33,25 @@
   @ requires \valid_read(data + (0 .. cnt-1));
   @ assigns  \nothing;
   @*/
-static auto fletcher64(const uint32_t *data, const size_t cnt, const uint64_t init) -> uint64_t
+static auto fletcher64(const uint32_t *data, const size_t cnt,
+                       const uint64_t init) -> uint64_t
 {
-    size_t k;
-    uint64_t sum1 = init & 0xFFFFFFFFU;
-    uint64_t sum2 = (init >> 32);
-    /*@
-      @ loop invariant 0 <= k <= cnt;
-      @ loop assigns k, sum1, sum2;
-      @*/
-    for (k = 0; k < cnt; k++)
-    {
-        /* @assert k < cnt; */
-        sum1 = (sum1 + le32(data[k]));
-        sum2 = (sum2 + sum1);
-    }
-    sum1 = sum1 % 0xFFFFFFFF;
-    sum2 = sum2 % 0xFFFFFFFF;
-    return (sum2 << 32) | sum1;
+  size_t k;
+  uint64_t sum1 = init & 0xFFFFFFFFU;
+  uint64_t sum2 = (init >> 32);
+  /*@
+    @ loop invariant 0 <= k <= cnt;
+    @ loop assigns k, sum1, sum2;
+    @*/
+  for (k = 0; k < cnt; k++)
+  {
+    /* @assert k < cnt; */
+    sum1 = (sum1 + le32(data[k]));
+    sum2 = (sum2 + sum1);
+  }
+  sum1 = sum1 % 0xFFFFFFFF;
+  sum2 = sum2 % 0xFFFFFFFF;
+  return (sum2 << 32) | sum1;
 }
 
 /*@
@@ -60,24 +61,27 @@ static auto fletcher64(const uint32_t *data, const size_t cnt, const uint64_t in
   @*/
 static auto VerifyBlock(const void *block, const size_t size) -> uint64_t
 {
-    uint64_t cs;
-    const auto *data = static_cast<const uint32_t *>(block);
-    const size_t size4 = size / sizeof(uint32_t);
+  uint64_t cs;
+  const auto *data   = static_cast<const uint32_t *>(block);
+  const size_t size4 = size / sizeof(uint32_t);
 
-    cs = fletcher64(data + 2, size4 - 2, 0);
-    cs = fletcher64(data, 2, cs);
-    return cs;
+  cs = fletcher64(data + 2, size4 - 2, 0);
+  cs = fletcher64(data, 2, cs);
+  return cs;
 }
 
 auto test_APFS(const nx_superblock_t *sb, const partition_t &partition) -> int
 {
-    if (le32(sb->nx_magic) != 0x4253584e)
-        return 1;
-    if (static_cast<uint64_t> le32(sb->nx_xp_desc_blocks) + le32(sb->nx_xp_data_blocks) > le64(sb->nx_block_count))
-        return 2;
-    if (le32(sb->nx_block_size) < NX_MINIMUM_BLOCK_SIZE || le32(sb->nx_block_size) > NX_MAXIMUM_BLOCK_SIZE)
-        return 3;
-    if (VerifyBlock(sb, 4096) != 0)
-        return 4;
-    return 0;
+  if (le32(sb->nx_magic) != 0x4253584e)
+    return 1;
+  if (static_cast<uint64_t> le32(sb->nx_xp_desc_blocks) +
+          le32(sb->nx_xp_data_blocks) >
+      le64(sb->nx_block_count))
+    return 2;
+  if (le32(sb->nx_block_size) < NX_MINIMUM_BLOCK_SIZE ||
+      le32(sb->nx_block_size) > NX_MAXIMUM_BLOCK_SIZE)
+    return 3;
+  if (VerifyBlock(sb, 4096) != 0)
+    return 4;
+  return 0;
 }

@@ -23,27 +23,28 @@
 #define _F2FS_H
 #include "src/common.hpp"
 
-    /*@
-      @ requires \valid(disk);
-      @ requires valid_disk(disk);
-      @ requires \valid(partition);
-      @ requires \separated(disk, partition);
-      @ decreases 0;
-      @*/
-    int check_f2fs(disk_t &disk, partition_t &partition);
+/*@
+  @ requires \valid(disk);
+  @ requires valid_disk(disk);
+  @ requires \valid(partition);
+  @ requires \separated(disk, partition);
+  @ decreases 0;
+  @*/
+int check_f2fs(disk_t &disk, partition_t &partition);
 
-    /*@
-      @ requires \valid_read(hdr);
-      @*/
-    int test_f2fs(const struct f2fs_super_block *hdr);
+/*@
+  @ requires \valid_read(hdr);
+  @*/
+int test_f2fs(const struct f2fs_super_block *hdr);
 
-    /*@
-      @ requires \valid(disk);
-      @ requires valid_disk(disk);
-      @ requires \valid_read(hdr);
-      @ requires \valid(partition);
-      @ requires \separated(disk, hdr, partition);
-      @*/
-    int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr, partition_t &partition);
+/*@
+  @ requires \valid(disk);
+  @ requires valid_disk(disk);
+  @ requires \valid_read(hdr);
+  @ requires \valid(partition);
+  @ requires \separated(disk, hdr, partition);
+  @*/
+int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr,
+                 partition_t &partition);
 
 #endif

@@ -30,48 +30,51 @@
 
 static void set_ReFS_info(partition_t &partition)
 {
-    partition.upart_type = UP_ReFS;
-    partition.fsname[0] = '\0';
-    partition.info[0] = '\0';
-    snprintf(partition.info, sizeof(partition.info), "ReFS");
+  partition.upart_type = UP_ReFS;
+  partition.fsname[0]  = '\0';
+  partition.info[0]    = '\0';
+  snprintf(partition.info, sizeof(partition.info), "ReFS");
 }
 
 static auto test_ReFS(const struct ReFS_boot_sector *refs_header) -> int
 {
-    if (refs_header->fsname != be32(0x52654653))
-        return 1;
-    if (refs_header->identifier != be32(0x46535253))
-        return 1;
-    return 0;
+  if (refs_header->fsname != be32(0x52654653))
+    return 1;
+  if (refs_header->identifier != be32(0x46535253))
+    return 1;
+  return 0;
 }
 
 auto check_ReFS(disk_t &disk, partition_t &partition) -> int
 {
-    auto *buffer = new unsigned char[ReFS_BS_SIZE];
-    if (disk.pread(disk, buffer, ReFS_BS_SIZE, partition.part_offset) != ReFS_BS_SIZE)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    if (test_ReFS(reinterpret_cast<struct ReFS_boot_sector *>(buffer)) != 0)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    set_ReFS_info(partition);
+  auto *buffer = new unsigned char[ReFS_BS_SIZE];
+  if (disk.pread(disk, buffer, ReFS_BS_SIZE, partition.part_offset) !=
+      ReFS_BS_SIZE)
+  {
     delete[] (buffer);
-    return 0;
+    return 1;
+  }
+  if (test_ReFS(reinterpret_cast<struct ReFS_boot_sector *>(buffer)) != 0)
+  {
+    delete[] (buffer);
+    return 1;
+  }
+  set_ReFS_info(partition);
+  delete[] (buffer);
+  return 0;
 }
 
-auto recover_ReFS(const disk_t &disk, const struct ReFS_boot_sector *refs_header, partition_t &partition) -> int
+auto recover_ReFS(const disk_t &disk,
+                  const struct ReFS_boot_sector *refs_header,
+                  partition_t &partition) -> int
 {
-    if (test_ReFS(refs_header) != 0)
-        return 1;
-    partition.sborg_offset = 0;
-    partition.sb_size = 0x200;
-    partition.part_type_i386 = P_NTFS;
-    partition.part_type_gpt = GPT_ENT_TYPE_MS_BASIC_DATA;
-    partition.part_size = disk.sector_size;
-    set_ReFS_info(partition);
-    return 0;
+  if (test_ReFS(refs_header) != 0)
+    return 1;
+  partition.sborg_offset   = 0;
+  partition.sb_size        = 0x200;
+  partition.part_type_i386 = P_NTFS;
+  partition.part_type_gpt  = GPT_ENT_TYPE_MS_BASIC_DATA;
+  partition.part_size      = disk.sector_size;
+  set_ReFS_info(partition);
+  return 0;
 }

@@ -28,7 +28,9 @@
   @ requires valid_disk(disk_car);
   @ requires \valid_read(partition);
   @*/
-dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+dir_partition_t dir_partition_ext2_init(disk_t &disk_car,
+                                        const partition_t &partition,
+                                        dir_data_t *dir_data,
                                         const int verbose);
 
 /*@ assigns \nothing; */

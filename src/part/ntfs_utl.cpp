@@ -47,7 +47,7 @@
 #include <machine/endian.h>
 #endif
 #include <cstdarg>
-//#include "types.h"
+// #include "types.h"
 
 #ifdef HAVE_LIBNTFS
 #include <ntfs/attrib.h>
@@ -57,7 +57,8 @@
 #define HAVE_SYS_STAT_H
 #define HAVE_TIME_H
 #define HAVE_STDDEF_H
-extern "C" {
+extern "C"
+{
 #include <ntfs-3g/attrib.h>
 }
 #undef min
@@ -82,17 +83,21 @@ extern "C" {
  * Return:  Pointer  Success, an attribute was found
  *	    NULL     Error, no matching attributes were found
  */
-auto find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx) -> ATTR_RECORD *
+auto find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx)
+    -> ATTR_RECORD *
 {
-  if (!ctx) {
+  if (!ctx)
+  {
     errno = EINVAL;
     return nullptr;
   }
 
-  if (ntfs_attr_lookup(type, nullptr, 0, CASE_SENSITIVE, 0, nullptr, 0, ctx) != 0)
+  if (ntfs_attr_lookup(type, nullptr, 0, CASE_SENSITIVE, 0, nullptr, 0, ctx) !=
+      0)
   {
 #ifdef DEBUG_NTFS
-    log_debug("find_attribute didn't find an attribute of type: 0x%02x.\n", type);
+    log_debug("find_attribute didn't find an attribute of type: 0x%02x.\n",
+              type);
 #endif
     return nullptr; /* None / no more of that type */
   }
@@ -116,18 +121,21 @@ auto find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx) -> ATTR_RE
  * Return:  Pointer  Success, an attribute was found
  *	    NULL     Error, no matching attributes were found
  */
-auto find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft) -> ATTR_RECORD *
+auto find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft)
+    -> ATTR_RECORD *
 {
   ntfs_attr_search_ctx *ctx;
   ATTR_RECORD *rec;
 
-  if (!mft) {
+  if (!mft)
+  {
     errno = EINVAL;
     return nullptr;
   }
 
   ctx = ntfs_attr_get_search_ctx(nullptr, mft);
-  if (!ctx) {
+  if (!ctx)
+  {
     log_error("Couldn't create a search context.\n");
     return nullptr;
   }
@@ -163,25 +171,30 @@ auto find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft) -> ATTR_RECORD
 auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
 {
   static unsigned char buffer[512];
-  static long long bmplcn = -sizeof(buffer) - 1;	/* Which bit of $Bitmap is in the buffer */
+  static long long bmplcn =
+      -sizeof(buffer) - 1; /* Which bit of $Bitmap is in the buffer */
 
   int byte, bit;
 
-  if (!vol) {
+  if (!vol)
+  {
     errno = EINVAL;
     return -1;
   }
 
   /* Does lcn lie in the section of $Bitmap we already have cached? */
   if ((bmplcn < 0) || (std::cmp_less(lcn, bmplcn)) ||
-      (std::cmp_greater_equal(lcn, (static_cast<unsigned>(bmplcn) + (static_cast<unsigned>(sizeof(buffer)) << 3)))))
+      (std::cmp_greater_equal(lcn,
+                              (static_cast<unsigned>(bmplcn) +
+                               (static_cast<unsigned>(sizeof(buffer)) << 3)))))
   {
-      ntfs_attr *attr;
+    ntfs_attr *attr;
 #ifdef DEBUG_NTFS
     log_debug("Bit lies outside cache.\n");
 #endif
     attr = ntfs_attr_open(vol->lcnbmp_ni, AT_DATA, AT_UNNAMED, 0);
-    if (!attr) {
+    if (!attr)
+    {
       log_error("Couldn't open $Bitmap\n");
       return -1;
     }
@@ -190,7 +203,8 @@ auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
     memset(buffer, 0xFF, sizeof(buffer));
     bmplcn = lcn & (~((sizeof(buffer) << 3) - 1));
 
-    if (ntfs_attr_pread(attr, (bmplcn>>3), sizeof(buffer), buffer) < 0) {
+    if (ntfs_attr_pread(attr, (bmplcn >> 3), sizeof(buffer), buffer) < 0)
+    {
       log_error("Couldn't read $Bitmap\n");
       ntfs_attr_close(attr);
       return -1;
@@ -204,7 +218,8 @@ auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
   bit  = 1 << (lcn & 7);
   byte = (lcn >> 3) & (sizeof(buffer) - 1);
 #ifdef DEBUG_NTFS
-  log_debug("cluster = %lld, bmplcn = %lld, byte = %d, bit = %d, in use %d\n", lcn, bmplcn, byte, bit, buffer[byte] & bit);
+  log_debug("cluster = %lld, bmplcn = %lld, byte = %d, bit = %d, in use %d\n",
+            lcn, bmplcn, byte, bit, buffer[byte] & bit);
 #endif
   return (buffer[byte] & bit);
 }

@@ -39,268 +39,293 @@
 #include "tntfs.hpp"
 
 #ifdef HAVE_NCURSES
-static void dump_NTFS_ncurses(disk_t &disk_car, const partition_t &partition, const unsigned char *buffer_bs,
+static void dump_NTFS_ncurses(disk_t &disk_car, const partition_t &partition,
+                              const unsigned char *buffer_bs,
                               const unsigned char *buffer_backup_bs)
 {
-    WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
-    keypad(window, TRUE);                       /* Need it to get arrow key */
-    aff_copy(window);
-    wmove(window, 4, 0);
-    wprintw(window, "%s", disk_car->description(disk_car));
-    wmove(window, 5, 0);
-    aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
-    mvwaddstr(window, 6, 0, "Boot sector                        Backup boot sector");
-    dump2(window, buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE);
-    delwin(window);
-    (void)clearok(stdscr, TRUE);
+  WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
+  keypad(window, TRUE);                       /* Need it to get arrow key */
+  aff_copy(window);
+  wmove(window, 4, 0);
+  wprintw(window, "%s", disk_car->description(disk_car));
+  wmove(window, 5, 0);
+  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  mvwaddstr(window, 6, 0,
+            "Boot sector                        Backup boot sector");
+  dump2(window, buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE);
+  delwin(window);
+  (void)clearok(stdscr, TRUE);
 #ifdef HAVE_TOUCHWIN
-    touchwin(stdscr);
+  touchwin(stdscr);
 #endif
 }
 #endif
 
-static void dump_NTFS(disk_t &disk_car, const partition_t &partition, const unsigned char *buffer_bs,
+static void dump_NTFS(disk_t &disk_car, const partition_t &partition,
+                      const unsigned char *buffer_bs,
                       const unsigned char *buffer_backup_bs)
 {
-    log_info("Boot sector                        Backup boot sector\n");
-    ; // dump2_log(buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE);
+  log_info("Boot sector                        Backup boot sector\n");
+  ; // dump2_log(buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE);
 #ifdef HAVE_NCURSES
-    dump_NTFS_ncurses(disk_car, partition, buffer_bs, buffer_backup_bs);
+  dump_NTFS_ncurses(disk_car, partition, buffer_bs, buffer_backup_bs);
 #endif
 }
 
-static auto ntfs_boot_sector_command(char **current_cmd, const char *options) -> int
+static auto ntfs_boot_sector_command(char **current_cmd, const char *options)
+    -> int
 {
-    skip_comma_in_command(current_cmd);
-    if (check_command(current_cmd, "rebuildbs", 9) == 0)
-    {
-        return 'R';
-    }
-    else if (check_command(current_cmd, "dump", 4) == 0)
-    {
-        return 'D';
-    }
-    else if (check_command(current_cmd, "list", 4) == 0)
-    {
-        return 'L';
-    }
-    else if (check_command(current_cmd, "originalntfs", 12) == 0)
-    {
-        if (strchr(options, 'O') != nullptr)
-            return 'O';
-    }
-    else if (check_command(current_cmd, "backupntfs", 10) == 0)
-    {
-        if (strchr(options, 'B') != nullptr)
-            return 'B';
-    }
-    else if (check_command(current_cmd, "repairmft", 9) == 0)
-    {
-        if (strchr(options, 'M') != nullptr)
-            return 'M';
-    }
-    return 0;
+  skip_comma_in_command(current_cmd);
+  if (check_command(current_cmd, "rebuildbs", 9) == 0)
+  {
+    return 'R';
+  }
+  else if (check_command(current_cmd, "dump", 4) == 0)
+  {
+    return 'D';
+  }
+  else if (check_command(current_cmd, "list", 4) == 0)
+  {
+    return 'L';
+  }
+  else if (check_command(current_cmd, "originalntfs", 12) == 0)
+  {
+    if (strchr(options, 'O') != nullptr)
+      return 'O';
+  }
+  else if (check_command(current_cmd, "backupntfs", 10) == 0)
+  {
+    if (strchr(options, 'B') != nullptr)
+      return 'B';
+  }
+  else if (check_command(current_cmd, "repairmft", 9) == 0)
+  {
+    if (strchr(options, 'M') != nullptr)
+      return 'M';
+  }
+  return 0;
 }
 
 static auto is_no_confirm_command(char **current_cmd) -> int
 {
-    skip_comma_in_command(current_cmd);
-    if (check_command(current_cmd, "noconfirm", 9) == 0)
-    {
-        return 1;
-    }
-    return 0;
+  skip_comma_in_command(current_cmd);
+  if (check_command(current_cmd, "noconfirm", 9) == 0)
+  {
+    return 1;
+  }
+  return 0;
 }
 
-static auto ntfs_boot_sector_scan(disk_t &disk, const partition_t &partition, unsigned char *buffer_bs,
-                                  unsigned char *buffer_backup_bs, unsigned int *menu, const int verbose,
+static auto ntfs_boot_sector_scan(disk_t &disk, const partition_t &partition,
+                                  unsigned char *buffer_bs,
+                                  unsigned char *buffer_backup_bs,
+                                  unsigned int *menu, const int verbose,
                                   const unsigned int expert) -> const char *
 {
-    int identical_sectors;
-    int opt_B = 0;
-    int opt_O = 0;
+  int identical_sectors;
+  int opt_B = 0;
+  int opt_O = 0;
 #ifdef HAVE_NCURSES
-    aff_copy(stdscr);
-    wmove(stdscr, 4, 0);
-    wprintw(stdscr, "%s", disk.description(disk));
-    mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
-    wmove(stdscr, 6, 0);
-    aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+  aff_copy(stdscr);
+  wmove(stdscr, 4, 0);
+  wprintw(stdscr, "%s", disk.description(disk));
+  mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
+  wmove(stdscr, 6, 0);
+  aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
 #endif
-    log_info("\nntfs_boot_sector\n");
-    log_partition(disk, partition);
-    screen_buffer_add("Boot sector\n");
-    if (disk.pread(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE, partition.part_offset) != NTFS_BOOT_SECTOR_SIZE)
-    {
-        screen_buffer_add("ntfs_boot_sector: Can't read boot sector.\n");
-        memset(buffer_bs, 0, NTFS_BOOT_SECTOR_SIZE);
-    }
-    if (test_NTFS(disk, reinterpret_cast<struct ntfs_boot_sector *>(buffer_bs), partition, verbose, 0) == 0)
-    {
-        screen_buffer_add("Status: OK\n");
-        opt_O = 1;
-    }
+  log_info("\nntfs_boot_sector\n");
+  log_partition(disk, partition);
+  screen_buffer_add("Boot sector\n");
+  if (disk.pread(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE,
+                 partition.part_offset) != NTFS_BOOT_SECTOR_SIZE)
+  {
+    screen_buffer_add("ntfs_boot_sector: Can't read boot sector.\n");
+    memset(buffer_bs, 0, NTFS_BOOT_SECTOR_SIZE);
+  }
+  if (test_NTFS(disk, reinterpret_cast<struct ntfs_boot_sector *>(buffer_bs),
+                partition, verbose, 0) == 0)
+  {
+    screen_buffer_add("Status: OK\n");
+    opt_O = 1;
+  }
+  else
+  {
+    screen_buffer_add("Status: Bad\n");
+  }
+  screen_buffer_add("\nBackup boot sector\n");
+  if (disk.pread(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE,
+                 partition.part_offset + partition.part_size -
+                     disk.sector_size) != NTFS_BOOT_SECTOR_SIZE)
+  {
+    screen_buffer_add("ntfs_boot_sector: Can't read backup boot sector.\n");
+    memset(buffer_backup_bs, 0, NTFS_BOOT_SECTOR_SIZE);
+  }
+  if (test_NTFS(disk,
+                reinterpret_cast<struct ntfs_boot_sector *>(buffer_backup_bs),
+                partition, verbose, 0) == 0)
+  {
+    screen_buffer_add("Status: OK\n");
+    opt_B = 1;
+  }
+  else
+  {
+    screen_buffer_add("Status: Bad\n");
+  }
+  screen_buffer_add("\n");
+  if (memcmp(buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE) == 0)
+  {
+    log_ntfs_info(reinterpret_cast<const struct ntfs_boot_sector *>(buffer_bs));
+    screen_buffer_add("Sectors are identical.\n");
+    identical_sectors = 1;
+  }
+  else
+  {
+    log_ntfs2_info(
+        reinterpret_cast<const struct ntfs_boot_sector *>(buffer_bs),
+        reinterpret_cast<const struct ntfs_boot_sector *>(buffer_backup_bs)
+    );
+    screen_buffer_add("Sectors are not identical.\n");
+    identical_sectors = 0;
+  }
+  screen_buffer_add("\n");
+  screen_buffer_add(
+      "A valid NTFS Boot sector must be present in order to access\n"
+  );
+  screen_buffer_add("any data; even if the partition is not bootable.\n");
+  if (opt_B != 0 && opt_O != 0)
+  {
+    if (identical_sectors == 0)
+      return "DOBRL";
     else
-    {
-        screen_buffer_add("Status: Bad\n");
-    }
-    screen_buffer_add("\nBackup boot sector\n");
-    if (disk.pread(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE,
-                    partition.part_offset + partition.part_size - disk.sector_size) != NTFS_BOOT_SECTOR_SIZE)
-    {
-        screen_buffer_add("ntfs_boot_sector: Can't read backup boot sector.\n");
-        memset(buffer_backup_bs, 0, NTFS_BOOT_SECTOR_SIZE);
-    }
-    if (test_NTFS(disk, reinterpret_cast<struct ntfs_boot_sector *>(buffer_backup_bs), partition, verbose, 0) == 0)
-    {
-        screen_buffer_add("Status: OK\n");
-        opt_B = 1;
-    }
+      return "DRML";
+  }
+  else if (opt_B != 0)
+  {
+    *menu = 5;
+    if (expert > 0)
+      return "DBRML";
     else
-    {
-        screen_buffer_add("Status: Bad\n");
-    }
-    screen_buffer_add("\n");
-    if (memcmp(buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE) == 0)
-    {
-        log_ntfs_info(reinterpret_cast<const struct ntfs_boot_sector *>(buffer_bs));
-        screen_buffer_add("Sectors are identical.\n");
-        identical_sectors = 1;
-    }
-    else
-    {
-        log_ntfs2_info(reinterpret_cast<const struct ntfs_boot_sector *>(buffer_bs),
-                       reinterpret_cast<const struct ntfs_boot_sector *>(buffer_backup_bs));
-        screen_buffer_add("Sectors are not identical.\n");
-        identical_sectors = 0;
-    }
-    screen_buffer_add("\n");
-    screen_buffer_add("A valid NTFS Boot sector must be present in order to access\n");
-    screen_buffer_add("any data; even if the partition is not bootable.\n");
-    if (opt_B != 0 && opt_O != 0)
-    {
-        if (identical_sectors == 0)
-            return "DOBRL";
-        else
-            return "DRML";
-    }
-    else if (opt_B != 0)
-    {
-        *menu = 5;
-        if (expert > 0)
-            return "DBRML";
-        else
-            return "DBRL";
-    }
-    else if (opt_O != 0)
-    {
-        *menu = 4;
-        return "DORL";
-    }
-    return "DR";
+      return "DBRL";
+  }
+  else if (opt_O != 0)
+  {
+    *menu = 4;
+    return "DORL";
+  }
+  return "DR";
 }
 
-auto ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose, const unsigned int expert,
-                      char **current_cmd) -> int
+auto ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose,
+                      const unsigned int expert, char **current_cmd) -> int
 {
-    unsigned char *buffer_bs;
-    unsigned char *buffer_backup_bs;
+  unsigned char *buffer_bs;
+  unsigned char *buffer_backup_bs;
 #ifdef HAVE_NCURSES
-    const struct MenuItem menu_ntfs[] = {{'P', "Previous", ""},
-                                         {'N', "Next", ""},
-                                         {'Q', "Quit", "Return to Advanced menu"},
-                                         {'L', "List", "List directories and files, copy data from NTFS"},
-                                         {'O', "Org. BS", "Copy boot sector over backup sector"},
-                                         {'B', "Backup BS", "Copy backup boot sector over boot sector"},
-                                         {'R', "Rebuild BS", "Rebuild boot sector"},
-                                         {'M', "Repair MFT", "Check MFT"},
-                                         {'D', "Dump", "Dump boot sector and backup boot sector"},
-                                         {0, NULL, NULL}};
+  const struct MenuItem menu_ntfs[] = {
+      {'P', "Previous",   ""                                               },
+      {'N', "Next",       ""                                               },
+      {'Q', "Quit",       "Return to Advanced menu"                        },
+      {'L', "List",       "List directories and files, copy data from NTFS"},
+      {'O', "Org. BS",    "Copy boot sector over backup sector"            },
+      {'B', "Backup BS",  "Copy backup boot sector over boot sector"       },
+      {'R', "Rebuild BS", "Rebuild boot sector"                            },
+      {'M', "Repair MFT", "Check MFT"                                      },
+      {'D', "Dump",       "Dump boot sector and backup boot sector"        },
+      {0,   NULL,         NULL                                             }
+  };
 #endif
-    buffer_bs = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
-    buffer_backup_bs = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
+  buffer_bs        = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
+  buffer_backup_bs = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
 
-    while (true)
+  while (true)
+  {
+    unsigned int menu = 0;
+    int no_confirm    = 0;
+    int command;
+    const char *options;
+    screen_buffer_reset();
+    options = ntfs_boot_sector_scan(disk, partition, buffer_bs,
+                                    buffer_backup_bs, &menu, verbose, expert);
+    screen_buffer_to_log();
+    if (*current_cmd != nullptr)
     {
-        unsigned int menu = 0;
-        int no_confirm = 0;
-        int command;
-        const char *options;
-        screen_buffer_reset();
-        options = ntfs_boot_sector_scan(disk, partition, buffer_bs, buffer_backup_bs, &menu, verbose, expert);
-        screen_buffer_to_log();
-        if (*current_cmd != nullptr)
-        {
-            no_confirm = is_no_confirm_command(current_cmd);
-            command = ntfs_boot_sector_command(current_cmd, options);
-        }
-        else
-        {
-            ; // log_flush();
-#ifdef HAVE_NCURSES
-            command = screen_buffer_display_ext(stdscr, options, menu_ntfs, &menu);
-#else
-            command = 0;
-#endif
-        }
-        switch (command)
-        {
-        case 0:
-            delete[] (buffer_bs);
-            delete[] (buffer_backup_bs);
-            return 0;
-        case 'O': /* O : copy original boot sector over backup boot */
-#ifdef HAVE_NCURSES
-            if (no_confirm == 1 ||
-                ask_confirmation("Copy original NTFS boot sector over backup boot, confirm ? (Y/N)") != 0)
-#endif
-            {
-                log_info("copy original boot sector over backup boot\n");
-                if (disk.pwrite(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE,
-                                 partition.part_offset + partition.part_size - disk.sector_size) !=
-                    NTFS_BOOT_SECTOR_SIZE)
-                {
-                    ; // display_message("Write error: Can't overwrite NTFS backup boot sector\n");
-                }
-                disk.sync(disk);
-            }
-            break;
-        case 'B': /* B : copy backup boot sector over boot sector */
-#ifdef HAVE_NCURSES
-            if (no_confirm == 1 ||
-                ask_confirmation("Copy backup NTFS boot sector over boot sector, confirm ? (Y/N)") != 0)
-#endif
-            {
-                log_info("copy backup boot sector over boot sector\n");
-                /* Reset information about backup boot sector */
-                partition.sb_offset = 0;
-                if (disk.pwrite(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE, partition.part_offset) !=
-                    NTFS_BOOT_SECTOR_SIZE)
-                {
-                    ; // display_message("Write error: Can't overwrite NTFS boot sector\n");
-                }
-                disk.sync(disk);
-            }
-            break;
-        case 'L':
-            if (strchr(options, 'O') == nullptr && strchr(options, 'B') != nullptr)
-            {
-                io_redir_add_redir(disk, partition.part_offset, NTFS_BOOT_SECTOR_SIZE, 0, buffer_backup_bs);
-                dir_partition(disk, partition, 0, expert, current_cmd);
-                io_redir_del_redir(disk, partition.part_offset);
-            }
-            else
-                dir_partition(disk, partition, 0, expert, current_cmd);
-            break;
-        case 'M':
-            repair_MFT(disk, partition, verbose, expert, current_cmd);
-            break;
-        case 'R': /* R : rebuild boot sector */
-            rebuild_NTFS_BS(disk, partition, verbose, expert, current_cmd);
-            break;
-        case 'D':
-            dump_NTFS(disk, partition, buffer_bs, buffer_backup_bs);
-            break;
-        }
+      no_confirm = is_no_confirm_command(current_cmd);
+      command    = ntfs_boot_sector_command(current_cmd, options);
     }
+    else
+    {
+      ; // log_flush();
+#ifdef HAVE_NCURSES
+      command = screen_buffer_display_ext(stdscr, options, menu_ntfs, &menu);
+#else
+      command = 0;
+#endif
+    }
+    switch (command)
+    {
+    case 0:
+      delete[] (buffer_bs);
+      delete[] (buffer_backup_bs);
+      return 0;
+    case 'O': /* O : copy original boot sector over backup boot */
+#ifdef HAVE_NCURSES
+      if (no_confirm == 1 ||
+          ask_confirmation(
+              "Copy original NTFS boot sector over backup boot, confirm ? (Y/N)"
+          ) != 0)
+#endif
+      {
+        log_info("copy original boot sector over backup boot\n");
+        if (disk.pwrite(disk, buffer_bs, NTFS_BOOT_SECTOR_SIZE,
+                        partition.part_offset + partition.part_size -
+                            disk.sector_size) != NTFS_BOOT_SECTOR_SIZE)
+        {
+          ; // display_message("Write error: Can't overwrite NTFS backup boot
+            // sector\n");
+        }
+        disk.sync(disk);
+      }
+      break;
+    case 'B': /* B : copy backup boot sector over boot sector */
+#ifdef HAVE_NCURSES
+      if (no_confirm == 1 ||
+          ask_confirmation(
+              "Copy backup NTFS boot sector over boot sector, confirm ? (Y/N)"
+          ) != 0)
+#endif
+      {
+        log_info("copy backup boot sector over boot sector\n");
+        /* Reset information about backup boot sector */
+        partition.sb_offset = 0;
+        if (disk.pwrite(disk, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE,
+                        partition.part_offset) != NTFS_BOOT_SECTOR_SIZE)
+        {
+          ; // display_message("Write error: Can't overwrite NTFS boot
+            // sector\n");
+        }
+        disk.sync(disk);
+      }
+      break;
+    case 'L':
+      if (strchr(options, 'O') == nullptr && strchr(options, 'B') != nullptr)
+      {
+        io_redir_add_redir(disk, partition.part_offset, NTFS_BOOT_SECTOR_SIZE,
+                           0, buffer_backup_bs);
+        dir_partition(disk, partition, 0, expert, current_cmd);
+        io_redir_del_redir(disk, partition.part_offset);
+      }
+      else
+        dir_partition(disk, partition, 0, expert, current_cmd);
+      break;
+    case 'M':
+      repair_MFT(disk, partition, verbose, expert, current_cmd);
+      break;
+    case 'R': /* R : rebuild boot sector */
+      rebuild_NTFS_BS(disk, partition, verbose, expert, current_cmd);
+      break;
+    case 'D':
+      dump_NTFS(disk, partition, buffer_bs, buffer_backup_bs);
+      break;
+    }
+  }
 }

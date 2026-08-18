@@ -48,114 +48,114 @@
 #define LVM_MIN_PE_SIZE (8L * 2)                  /* 8 KB in sectors */
 #define LVM_MAX_PE_SIZE (16L * 1024L * 1024L * 2) /* 16GB in sectors */
 
-    /* disk stored pe information */
-    typedef struct
-    {
-        uint16_t lv_num;
-        uint16_t le_num;
-    } disk_pe_t;
+/* disk stored pe information */
+typedef struct
+{
+  uint16_t lv_num;
+  uint16_t le_num;
+} disk_pe_t;
 
-    /* disk stored PV, VG, LV and PE size and offset information */
-    typedef struct
-    {
-        uint32_t base;
-        uint32_t size;
-    } lvm_disk_data_t;
+/* disk stored PV, VG, LV and PE size and offset information */
+typedef struct
+{
+  uint32_t base;
+  uint32_t size;
+} lvm_disk_data_t;
 
-    /*
-     * Structure Physical Volume (PV) Version 2
-     */
+/*
+ * Structure Physical Volume (PV) Version 2
+ */
 
-    /* disk */
-    typedef struct
-    {
-        uint8_t id[2];    /* Identifier */
-        uint16_t version; /* HM lvm version */
-        lvm_disk_data_t pv_on_disk;
-        lvm_disk_data_t vg_on_disk;
-        lvm_disk_data_t pv_uuidlist_on_disk;
-        lvm_disk_data_t lv_on_disk;
-        lvm_disk_data_t pe_on_disk;
-        uint8_t pv_uuid[NAME_LEN];
-        uint8_t vg_name[NAME_LEN];
-        uint8_t system_id[NAME_LEN]; /* for vgexport/vgimport */
-        uint32_t pv_major;
-        uint32_t pv_number;
-        uint32_t pv_status;
-        uint32_t pv_allocatable;
-        uint32_t pv_size; /* HM */
-        uint32_t lv_cur;
-        uint32_t pe_size;
-        uint32_t pe_total;
-        uint32_t pe_allocated;
-    } pv_disk_v2_t;
+/* disk */
+typedef struct
+{
+  uint8_t id[2];    /* Identifier */
+  uint16_t version; /* HM lvm version */
+  lvm_disk_data_t pv_on_disk;
+  lvm_disk_data_t vg_on_disk;
+  lvm_disk_data_t pv_uuidlist_on_disk;
+  lvm_disk_data_t lv_on_disk;
+  lvm_disk_data_t pe_on_disk;
+  uint8_t pv_uuid[NAME_LEN];
+  uint8_t vg_name[NAME_LEN];
+  uint8_t system_id[NAME_LEN]; /* for vgexport/vgimport */
+  uint32_t pv_major;
+  uint32_t pv_number;
+  uint32_t pv_status;
+  uint32_t pv_allocatable;
+  uint32_t pv_size; /* HM */
+  uint32_t lv_cur;
+  uint32_t pe_size;
+  uint32_t pe_total;
+  uint32_t pe_allocated;
+} pv_disk_v2_t;
 
 #define pv_disk_t pv_disk_v2_t
-    /*@
-      @ requires \valid(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid(partition);
-      @ requires \separated(disk_car, partition);
-      @ decreases 0;
-      @*/
-    int check_LVM(disk_t &disk_car, partition_t &partition, const int verbose);
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid(partition);
+  @ requires \separated(disk_car, partition);
+  @ decreases 0;
+  @*/
+int check_LVM(disk_t &disk_car, partition_t &partition, const int verbose);
 
-    /*@
-      @ requires \valid_read(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid_read(pv);
-      @ requires \valid(partition);
-      @ requires \separated(disk_car, partition);
-      @*/
-    int recover_LVM(const disk_t &disk_car, const pv_disk_t *pv, partition_t &partition, const int verbose,
-                    const int dump_ind);
+/*@
+  @ requires \valid_read(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid_read(pv);
+  @ requires \valid(partition);
+  @ requires \separated(disk_car, partition);
+  @*/
+int recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
+                partition_t &partition, const int verbose, const int dump_ind);
 
 #define LVM2_LABEL "LVM2 001"
 #define LABEL_ID "LABELONE"
 
-    struct [[gnu::packed]] lvm2_label_header
-    {
-        uint8_t id[8];      /* 0x00 LABELONE */
-        uint64_t sector_xl; /* 0x08 Sector number of this label */
-        uint32_t crc_xl;    /* 0x10 From next field to end of sector */
-        uint32_t offset_xl; /* 0x14 Offset from start of struct to contents */
-        uint8_t type[8];    /* 0x18 LVM2 001 */
-    };
+struct [[gnu::packed]] lvm2_label_header
+{
+  uint8_t id[8];      /* 0x00 LABELONE */
+  uint64_t sector_xl; /* 0x08 Sector number of this label */
+  uint32_t crc_xl;    /* 0x10 From next field to end of sector */
+  uint32_t offset_xl; /* 0x14 Offset from start of struct to contents */
+  uint8_t type[8];    /* 0x18 LVM2 001 */
+};
 
-    struct [[gnu::packed]] lvm2_disk_locn
-    {
-        uint64_t offset; /* Offset in bytes to start sector */
-        uint64_t size;   /* Bytes */
-    };
+struct [[gnu::packed]] lvm2_disk_locn
+{
+  uint64_t offset; /* Offset in bytes to start sector */
+  uint64_t size;   /* Bytes */
+};
 
-    struct [[gnu::packed]] lvm2_pv_header
-    {
-        uint8_t pv_uuid[32];
-        uint64_t device_size_xl; /* Bytes */
-                                 /* NULL-terminated list of data areas followed by */
-                                 /* NULL-terminated list of metadata area headers */
+struct [[gnu::packed]] lvm2_pv_header
+{
+  uint8_t pv_uuid[32];
+  uint64_t device_size_xl; /* Bytes */
+                           /* NULL-terminated list of data areas followed by */
+                           /* NULL-terminated list of metadata area headers */
 #if !defined(__FRAMAC__)
-        struct lvm2_disk_locn disk_areas_xl[0]; /* Two lists */
+  struct lvm2_disk_locn disk_areas_xl[0]; /* Two lists */
 #endif
-    };
+};
 
-    /*@
-      @ requires \valid(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid(partition);
-      @ requires separation: \separated(disk_car, partition);
-      @ decreases 0;
-      @*/
-    int check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose);
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid(partition);
+  @ requires separation: \separated(disk_car, partition);
+  @ decreases 0;
+  @*/
+int check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose);
 
-    /*@
-      @ requires \valid_read(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid_read(buf);
-      @ requires \valid(partition);
-      @ requires separation: \separated(disk_car, buf, partition);
-      @*/
-    int recover_LVM2(const disk_t &disk_car, const unsigned char *buf, partition_t &partition, const int verbose,
-                     const int dump_ind);
+/*@
+  @ requires \valid_read(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid_read(buf);
+  @ requires \valid(partition);
+  @ requires separation: \separated(disk_car, buf, partition);
+  @*/
+int recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
+                 partition_t &partition, const int verbose, const int dump_ind);
 
 #endif /* _LVM_H */

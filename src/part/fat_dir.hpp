@@ -29,7 +29,8 @@
   @ requires \valid(dir_list);
   @ requires \separated(dir_list, buffer+(..));
   @*/
-int dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsigned int param, dir_list_t &dir_list);
+int dir_fat_aux(const unsigned char *buffer, const unsigned int size,
+                const unsigned int param, dir_list_t &dir_list);
 
 /*@
   @ requires \valid(disk_car);
@@ -40,7 +41,8 @@ int dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsi
   @ requires \separated(disk_car, partition, dir_data);
   @ decreases 0;
   @*/
-dir_partition_t dir_partition_fat_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                                       const int verbose);
+dir_partition_t dir_partition_fat_init(disk_t &disk_car,
+                                       const partition_t &partition,
+                                       dir_data_t *dir_data, const int verbose);
 
 #endif

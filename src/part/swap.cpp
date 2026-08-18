@@ -27,7 +27,8 @@
 // #include "types.h"
 #include "src/common.hpp"
 #include "swap.hpp"
-static void set_Linux_SWAP_info(const union swap_header *swap_header, partition_t &partition);
+static void set_Linux_SWAP_info(const union swap_header *swap_header,
+                                partition_t &partition);
 static auto test_Linux_SWAP(const union swap_header *swap_header) -> int;
 
 /* Page size can be 4k or 8k */
@@ -35,140 +36,156 @@ static auto test_Linux_SWAP(const union swap_header *swap_header) -> int;
 
 auto check_Linux_SWAP(disk_t &disk_car, partition_t &partition) -> int
 {
-    auto *buffer = new unsigned char[MAX_PAGE_SIZE];
-    if (disk_car.pread(disk_car, buffer, MAX_PAGE_SIZE, partition.part_offset) != MAX_PAGE_SIZE)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    if (test_Linux_SWAP(reinterpret_cast<union swap_header *>(buffer)) != 0)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    set_Linux_SWAP_info(reinterpret_cast<union swap_header *>(buffer), partition);
+  auto *buffer = new unsigned char[MAX_PAGE_SIZE];
+  if (disk_car.pread(disk_car, buffer, MAX_PAGE_SIZE, partition.part_offset) !=
+      MAX_PAGE_SIZE)
+  {
     delete[] (buffer);
-    return 0;
+    return 1;
+  }
+  if (test_Linux_SWAP(reinterpret_cast<union swap_header *>(buffer)) != 0)
+  {
+    delete[] (buffer);
+    return 1;
+  }
+  set_Linux_SWAP_info(reinterpret_cast<union swap_header *>(buffer), partition);
+  delete[] (buffer);
+  return 0;
 }
 
-static void set_Linux_SWAP_info(const union swap_header *swap_header, partition_t &partition)
+static void set_Linux_SWAP_info(const union swap_header *swap_header,
+                                partition_t &partition)
 {
-    partition.fsname[0] = '\0';
-    if (memcmp(swap_header->magic.magic, "SWAP-SPACE", 10) == 0)
+  partition.fsname[0] = '\0';
+  if (memcmp(swap_header->magic.magic, "SWAP-SPACE", 10) == 0)
+  {
+    partition.upart_type = UP_LINSWAP;
+    partition.blocksize  = 4096;
+    snprintf(partition.info, sizeof(partition.info),
+             "SWAP version %u, pagesize=%u", le32(swap_header->info.version),
+             partition.blocksize);
+  }
+  else if (memcmp(swap_header->magic.magic, "SWAPSPACE2", 10) == 0)
+  {
+    partition.upart_type = UP_LINSWAP2;
+    partition.blocksize  = 4096;
+    snprintf(partition.info, sizeof(partition.info),
+             "SWAP2 version %u, pagesize=%u", le32(swap_header->info.version),
+             partition.blocksize);
+    /* set_part_name(partition,swap_header->info.volume_name,16); */
+  }
+  else if (memcmp(swap_header->magic8k.magic, "SWAP-SPACE", 10) == 0)
+  {
+    partition.upart_type = UP_LINSWAP_8K;
+    partition.blocksize  = 8192;
+    snprintf(partition.info, sizeof(partition.info),
+             "SWAP version %u, pagesize=%u", le32(swap_header->info.version),
+             partition.blocksize);
+  }
+  else if (memcmp(swap_header->magic8k.magic, "SWAPSPACE2", 10) == 0)
+  {
+    partition.blocksize = 8192;
+    if (le32(swap_header->info.version) <= be32(swap_header->info.version))
     {
-        partition.upart_type = UP_LINSWAP;
-        partition.blocksize = 4096;
-        snprintf(partition.info, sizeof(partition.info), "SWAP version %u, pagesize=%u",
-                 le32(swap_header->info.version), partition.blocksize);
+      partition.upart_type = UP_LINSWAP2_8K;
+      snprintf(partition.info, sizeof(partition.info),
+               "SWAP2 version %u, pagesize=%u", le32(swap_header->info.version),
+               partition.blocksize);
     }
-    else if (memcmp(swap_header->magic.magic, "SWAPSPACE2", 10) == 0)
+    else
     {
-        partition.upart_type = UP_LINSWAP2;
-        partition.blocksize = 4096;
-        snprintf(partition.info, sizeof(partition.info), "SWAP2 version %u, pagesize=%u",
-                 le32(swap_header->info.version), partition.blocksize);
-        /* set_part_name(partition,swap_header->info.volume_name,16); */
+      partition.upart_type = UP_LINSWAP2_8KBE;
+      snprintf(partition.info, sizeof(partition.info),
+               "SWAP2 version %u, pagesize=%u",
+               static_cast<unsigned int>(be32(swap_header->info.version)),
+               partition.blocksize);
     }
-    else if (memcmp(swap_header->magic8k.magic, "SWAP-SPACE", 10) == 0)
-    {
-        partition.upart_type = UP_LINSWAP_8K;
-        partition.blocksize = 8192;
-        snprintf(partition.info, sizeof(partition.info), "SWAP version %u, pagesize=%u",
-                 le32(swap_header->info.version), partition.blocksize);
-    }
-    else if (memcmp(swap_header->magic8k.magic, "SWAPSPACE2", 10) == 0)
-    {
-        partition.blocksize = 8192;
-        if (le32(swap_header->info.version) <= be32(swap_header->info.version))
-        {
-            partition.upart_type = UP_LINSWAP2_8K;
-            snprintf(partition.info, sizeof(partition.info), "SWAP2 version %u, pagesize=%u",
-                     le32(swap_header->info.version), partition.blocksize);
-        }
-        else
-        {
-            partition.upart_type = UP_LINSWAP2_8KBE;
-            snprintf(partition.info, sizeof(partition.info), "SWAP2 version %u, pagesize=%u",
-                     static_cast<unsigned int>(be32(swap_header->info.version)), partition.blocksize);
-        }
-    }
+  }
 }
 
 static auto test_Linux_SWAP(const union swap_header *swap_header) -> int
 {
-    if (memcmp(swap_header->magic.magic, "SWAP-SPACE", 10) == 0 ||
-        memcmp(swap_header->magic.magic, "SWAPSPACE2", 10) == 0 ||
-        memcmp(swap_header->magic8k.magic, "SWAP-SPACE", 10) == 0 ||
-        memcmp(swap_header->magic8k.magic, "SWAPSPACE2", 10) == 0)
-        return 0;
-    return 1;
+  if (memcmp(swap_header->magic.magic, "SWAP-SPACE", 10) == 0 ||
+      memcmp(swap_header->magic.magic, "SWAPSPACE2", 10) == 0 ||
+      memcmp(swap_header->magic8k.magic, "SWAP-SPACE", 10) == 0 ||
+      memcmp(swap_header->magic8k.magic, "SWAPSPACE2", 10) == 0)
+    return 0;
+  return 1;
 }
 
-auto recover_Linux_SWAP(const union swap_header *swap_header, partition_t &partition) -> int
+auto recover_Linux_SWAP(const union swap_header *swap_header,
+                        partition_t &partition) -> int
 {
-    if (test_Linux_SWAP(swap_header) != 0)
-        return 1;
-    set_Linux_SWAP_info(swap_header, partition);
-    partition.part_type_i386 = P_LINSWAP;
-    partition.part_type_sun = PSUN_LINSWAP;
-    partition.part_type_mac = PMAC_SWAP;
-    partition.part_type_gpt = GPT_ENT_TYPE_LINUX_SWAP;
-    switch (partition.upart_type)
+  if (test_Linux_SWAP(swap_header) != 0)
+    return 1;
+  set_Linux_SWAP_info(swap_header, partition);
+  partition.part_type_i386 = P_LINSWAP;
+  partition.part_type_sun  = PSUN_LINSWAP;
+  partition.part_type_mac  = PMAC_SWAP;
+  partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_SWAP;
+  switch (partition.upart_type)
+  {
+  case UP_LINSWAP: {
+    int i;
+    for (i = PAGE_SIZE - 10 - 1; i >= 0; i--)
+      if (swap_header->magic.reserved[i] != static_cast<char>(0))
+        break;
+    if (i >= 0)
     {
-    case UP_LINSWAP: {
-        int i;
-        for (i = PAGE_SIZE - 10 - 1; i >= 0; i--)
-            if (swap_header->magic.reserved[i] != static_cast<char>(0))
-                break;
-        if (i >= 0)
-        {
-            int j;
-            for (j = 7; j >= 0; j--)
-                if ((swap_header->magic.reserved[i] & (1 << j)) != static_cast<char>(0))
-                    break;
-            partition.part_size = static_cast<uint64_t>(8 * i + j + 1) * PAGE_SIZE;
-        }
-        else
-            partition.part_size = PAGE_SIZE;
+      int j;
+      for (j = 7; j >= 0; j--)
+        if ((swap_header->magic.reserved[i] & (1 << j)) != static_cast<char>(0))
+          break;
+      partition.part_size = static_cast<uint64_t>(8 * i + j + 1) * PAGE_SIZE;
     }
+    else
+      partition.part_size = PAGE_SIZE;
+  }
+  break;
+  case UP_LINSWAP2:
+    if (swap_header->info.last_page == 0)
+      partition.part_size = PAGE_SIZE;
+    else
+      partition.part_size =
+          static_cast<uint64_t>(le32(swap_header->info.last_page) - 1) *
+          PAGE_SIZE;
     break;
-    case UP_LINSWAP2:
-        if (swap_header->info.last_page == 0)
-            partition.part_size = PAGE_SIZE;
-        else
-            partition.part_size = static_cast<uint64_t>(le32(swap_header->info.last_page) - 1) * PAGE_SIZE;
+  case UP_LINSWAP_8K: {
+    int i;
+    for (i = PAGE_8K - 10 - 1; i >= 0; i--)
+      if (swap_header->magic8k.reserved[i] != static_cast<char>(0))
         break;
-    case UP_LINSWAP_8K: {
-        int i;
-        for (i = PAGE_8K - 10 - 1; i >= 0; i--)
-            if (swap_header->magic8k.reserved[i] != static_cast<char>(0))
-                break;
-        if (i >= 0)
-        {
-            int j;
-            for (j = 7; j >= 0; j--)
-                if ((swap_header->magic8k.reserved[i] & (1 << j)) != static_cast<char>(0))
-                    break;
-            partition.part_size = static_cast<uint64_t>(8 * i + j + 1) * PAGE_8K;
-        }
-        else
-            partition.part_size = PAGE_8K;
+    if (i >= 0)
+    {
+      int j;
+      for (j = 7; j >= 0; j--)
+        if ((swap_header->magic8k.reserved[i] & (1 << j)) !=
+            static_cast<char>(0))
+          break;
+      partition.part_size = static_cast<uint64_t>(8 * i + j + 1) * PAGE_8K;
     }
+    else
+      partition.part_size = PAGE_8K;
+  }
+  break;
+  case UP_LINSWAP2_8K:
+    if (swap_header->info.last_page == 0)
+      partition.part_size = PAGE_8K;
+    else
+      partition.part_size =
+          static_cast<uint64_t>(le32(swap_header->info.last_page) - 1) *
+          PAGE_8K;
     break;
-    case UP_LINSWAP2_8K:
-        if (swap_header->info.last_page == 0)
-            partition.part_size = PAGE_8K;
-        else
-            partition.part_size = static_cast<uint64_t>(le32(swap_header->info.last_page) - 1) * PAGE_8K;
-        break;
-    case UP_LINSWAP2_8KBE:
-        if (swap_header->info.last_page == 0)
-            partition.part_size = PAGE_8K;
-        else
-            partition.part_size = static_cast<uint64_t>(be32(swap_header->info.last_page) - 1) * PAGE_8K;
-        break;
-    default:
-        return 1;
-    }
-    return 0;
+  case UP_LINSWAP2_8KBE:
+    if (swap_header->info.last_page == 0)
+      partition.part_size = PAGE_8K;
+    else
+      partition.part_size =
+          static_cast<uint64_t>(be32(swap_header->info.last_page) - 1) *
+          PAGE_8K;
+    break;
+  default:
+    return 1;
+  }
+  return 0;
 }

@@ -31,56 +31,64 @@
 
 static void set_VMFS_info(const struct vmfs_volume *sb, partition_t &partition)
 {
-    partition.upart_type = UP_VMFS;
-    sprintf(partition.info, "VMFS %lu", static_cast<long unsigned> le32(sb->version));
+  partition.upart_type = UP_VMFS;
+  sprintf(partition.info, "VMFS %lu",
+          static_cast<long unsigned> le32(sb->version));
 }
 
-static auto test_VMFS(const disk_t &disk, const struct vmfs_volume *sb, const partition_t &partition,
-                      const int dump_ind) -> int
+static auto test_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
+                      const partition_t &partition, const int dump_ind) -> int
 {
-    if (le32(sb->magic) != 0xc001d00d || le32(sb->version) > 20)
-        return 1;
-    if (dump_ind != 0)
-    {
-        log_info("\nVMFS magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
-                    offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
-        ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
-    }
-    return 0;
+  if (le32(sb->magic) != 0xc001d00d || le32(sb->version) > 20)
+    return 1;
+  if (dump_ind != 0)
+  {
+    log_info("\nVMFS magic value at {}/{}/{}\n",
+             offset2cylinder(disk, partition.part_offset),
+             offset2head(disk, partition.part_offset),
+             offset2sector(disk, partition.part_offset));
+    ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
+  }
+  return 0;
 }
 auto check_VMFS(disk_t &disk, partition_t &partition) -> int
 {
-    auto *buffer = new unsigned char[2 * DEFAULT_SECTOR_SIZE];
-    if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition.part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    if (test_VMFS(disk, reinterpret_cast<struct vmfs_volume *>(buffer), partition, 0) != 0)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    set_VMFS_info(reinterpret_cast<struct vmfs_volume *>(buffer), partition);
+  auto *buffer = new unsigned char[2 * DEFAULT_SECTOR_SIZE];
+  if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE,
+                 partition.part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
+  {
     delete[] (buffer);
-    return 0;
+    return 1;
+  }
+  if (test_VMFS(disk, reinterpret_cast<struct vmfs_volume *>(buffer), partition,
+                0) != 0)
+  {
+    delete[] (buffer);
+    return 1;
+  }
+  set_VMFS_info(reinterpret_cast<struct vmfs_volume *>(buffer), partition);
+  delete[] (buffer);
+  return 0;
 }
 
-auto recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb, partition_t &partition, const int verbose,
-                  const int dump_ind) -> int
+auto recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
+                  partition_t &partition, const int verbose, const int dump_ind)
+    -> int
 {
-    const auto *lvm = reinterpret_cast<const struct vmfs_lvm *>((reinterpret_cast<const char *>(sb)) + 0x200);
-    if (test_VMFS(disk, sb, partition, dump_ind) != 0)
-        return 1;
-    set_VMFS_info(sb, partition);
-    partition.part_type_i386 = P_VMFS;
-    partition.part_size = le64(lvm->size);
-    partition.blocksize = 0;
-    partition.sborg_offset = 0;
-    partition.sb_offset = 0;
-    if (verbose > 0)
-    {
-        log_info("\n");
-    }
-    return 0;
+  const auto *lvm = reinterpret_cast<const struct vmfs_lvm *>(
+      (reinterpret_cast<const char *>(sb)) + 0x200
+  );
+  if (test_VMFS(disk, sb, partition, dump_ind) != 0)
+    return 1;
+  set_VMFS_info(sb, partition);
+  partition.part_type_i386 = P_VMFS;
+  partition.part_size      = le64(lvm->size);
+  partition.blocksize      = 0;
+  partition.sborg_offset   = 0;
+  partition.sb_offset      = 0;
+  if (verbose > 0)
+  {
+    log_info("\n");
+  }
+  return 0;
 }

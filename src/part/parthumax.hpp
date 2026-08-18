@@ -23,17 +23,19 @@
 #define _PARTHUMAX_H
 #include "src/common.hpp"
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_HUMAX)
-    /*@
-      @ requires valid_disk(disk_car);
-      @ requires \valid_read(disk_car);
-      @ requires valid_list_part(list_part);
-      @ requires \valid(current_cmd);
-      @ requires separation: \separated(disk_car, list_part, current_cmd, *current_cmd);
-      @ requires valid_read_string(*current_cmd);
-      @*/
-    // ensures  valid_list_part(\result);
-    // ensures  valid_read_string(*current_cmd);
-    void add_partition_humax_cli(const disk_t &disk_car, list_part_t &list_part, char **current_cmd);
+/*@
+  @ requires valid_disk(disk_car);
+  @ requires \valid_read(disk_car);
+  @ requires valid_list_part(list_part);
+  @ requires \valid(current_cmd);
+  @ requires separation: \separated(disk_car, list_part, current_cmd,
+  *current_cmd);
+  @ requires valid_read_string(*current_cmd);
+  @*/
+// ensures  valid_list_part(\result);
+// ensures  valid_read_string(*current_cmd);
+void add_partition_humax_cli(const disk_t &disk_car, list_part_t &list_part,
+                             char **current_cmd);
 
 #endif
 #endif

@@ -23,13 +23,14 @@
 #define _FAT1X_H
 #include "src/common.hpp"
 
-    /*@
-      @ requires \valid(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid(partition);
-      @ requires \separated(disk_car, partition);
-      @*/
-    int fat1x_boot_sector(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind,
-                          const unsigned int expert, char **current_cmd);
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid(partition);
+  @ requires \separated(disk_car, partition);
+  @*/
+int fat1x_boot_sector(disk_t &disk_car, partition_t &partition,
+                      const int verbose, const int dump_ind,
+                      const unsigned int expert, char **current_cmd);
 
 #endif

@@ -23,6 +23,6 @@
 #define _TEXFAT_H
 #include "src/common.hpp"
 
-    int exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd);
+int exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd);
 
 #endif

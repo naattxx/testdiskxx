@@ -77,34 +77,42 @@
   @ requires \valid(disk_car);
   @ requires \valid(partition);
   @*/
-static auto check_part_none(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int;
+static auto check_part_none(disk_t &disk_car, const int verbose,
+                            partition_t &partition, const int saveheader)
+    -> int;
 
 /*@
   @ requires \valid_read(buffer + (0 .. 0x200-1));
   @ requires \valid(geometry);
   @ requires \separated(buffer + (0 .. 0x200-1), geometry);
-  @ assigns geometry->sectors_per_head, geometry->heads_per_cylinder, geometry->bytes_per_sector;
+  @ assigns geometry->sectors_per_head, geometry->heads_per_cylinder,
+  geometry->bytes_per_sector;
   @*/
-static auto get_geometry_from_nonembr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry) -> int;
+static auto get_geometry_from_nonembr(const unsigned char *buffer,
+                                      const int verbose,
+                                      CHSgeometry_t *geometry) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static auto read_part_none(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t;
+static auto read_part_none(disk_t &disk_car, const int verbose,
+                           const int saveheader) -> list_part_t;
 
 /*@
   @ requires \valid_read(disk_car);
   @ assigns \nothing;
   @*/
-static void init_part_order_none(const disk_t &disk_car, list_part_t &list_part);
+static void init_part_order_none(const disk_t &disk_car,
+                                 list_part_t &list_part);
 
 /*@
   @ requires \valid_read(disk_car);
   @ assigns \nothing;
   @*/
-static void set_next_status_none(const disk_t &disk_car, partition_t &partition);
+static void set_next_status_none(const disk_t &disk_car,
+                                 partition_t &partition);
 
 /*@
   @ requires list_part == \null || \valid_read(list_part);
@@ -116,7 +124,8 @@ static auto test_structure_none(const list_part_t &list_part) -> int;
   @ requires \valid(partition);
   @ assigns partition.upart_type;
   @*/
-static auto set_part_type_none(partition_t &partition, unsigned int part_type) -> int;
+static auto set_part_type_none(partition_t &partition, unsigned int part_type)
+    -> int;
 
 /*@
   @ requires \valid_read(partition);
@@ -128,7 +137,8 @@ static auto is_part_known_none(const partition_t &partition) -> int;
   @ requires \valid_read(disk_car);
   @ requires list_part==\null || \valid(list_part);
   @*/
-static void init_structure_none(const disk_t &disk_car, list_part_t &list_part, const int verbose);
+static void init_structure_none(const disk_t &disk_car, list_part_t &list_part,
+                                const int verbose);
 
 /*@
   @ requires \valid_read(partition);
@@ -140,231 +150,247 @@ static auto get_part_type_none(const partition_t &partition) -> unsigned int;
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_none(const partition_t &partition) -> const char *;
+static auto get_partition_typename_none(const partition_t &partition) -> const
+    char *;
 
-static const struct systypes none_sys_types[] = {{.part_type = UP_APFS, .name = "APFS"},
-                                                 {.part_type = UP_BEOS, .name = "BeFS"},
-                                                 {.part_type = UP_BTRFS, .name = "btrfs"},
-                                                 {.part_type = UP_CRAMFS, .name = "CramFS"},
-                                                 {.part_type = UP_EXT2, .name = "ext2"},
-                                                 {.part_type = UP_EXT3, .name = "ext3"},
-                                                 {.part_type = UP_EXT4, .name = "ext4"},
-                                                 /*  {UP_EXTENDED,	"Extended"}, */
-                                                 {.part_type = UP_EXFAT, .name = "exFAT"},
-                                                 {.part_type = UP_FAT12, .name = "FAT12"},
-                                                 {.part_type = UP_FAT16, .name = "FAT16"},
-                                                 {.part_type = UP_FAT32, .name = "FAT32"},
-                                                 {.part_type = UP_FREEBSD, .name = "FreeBSD"},
-                                                 {.part_type = UP_F2FS, .name = "f2fs"},
-                                                 {.part_type = UP_GFS2, .name = "GFS2"},
-                                                 {.part_type = UP_HFS, .name = "HFS"},
-                                                 {.part_type = UP_HFSP, .name = "HFS+"},
-                                                 {.part_type = UP_HFSX, .name = "HFSX"},
-                                                 {.part_type = UP_HPFS, .name = "HPFS"},
-                                                 {.part_type = UP_ISO, .name = "ISO"},
-                                                 {.part_type = UP_JFS, .name = "JFS"},
-                                                 {.part_type = UP_LINSWAP, .name = "Linux SWAP"},
-                                                 {.part_type = UP_LINSWAP2, .name = "Linux SWAP 2"},
-                                                 {.part_type = UP_LINSWAP_8K, .name = "Linux SWAP"},
-                                                 {.part_type = UP_LINSWAP2_8K, .name = "Linux SWAP 2"},
-                                                 {.part_type = UP_LINSWAP2_8KBE, .name = "Linux SWAP 2"},
-                                                 {.part_type = UP_LUKS, .name = "Linux LUKS"},
-                                                 {.part_type = UP_LVM, .name = "Linux LVM"},
-                                                 {.part_type = UP_LVM2, .name = "Linux LVM2"},
-                                                 {.part_type = UP_MD, .name = "Linux md 0.9 RAID"},
-                                                 {.part_type = UP_MD1, .name = "Linux md 1.x RAID"},
-                                                 {.part_type = UP_NETWARE, .name = "Netware"},
-                                                 {.part_type = UP_NTFS, .name = "NTFS"},
-                                                 {.part_type = UP_OPENBSD, .name = "OpenBSD"},
-                                                 {.part_type = UP_OS2MB, .name = "OS2 Multiboot"},
-                                                 {.part_type = UP_ReFS, .name = "ReFS"},
-                                                 {.part_type = UP_RFS, .name = "ReiserFS 3.5"},
-                                                 {.part_type = UP_RFS2, .name = "ReiserFS 3.6"},
-                                                 {.part_type = UP_RFS3, .name = "ReiserFS 3.x"},
-                                                 {.part_type = UP_RFS4, .name = "ReiserFS 4"},
-                                                 {.part_type = UP_SUN, .name = "Sun"},
-                                                 {.part_type = UP_SYSV4, .name = "SysV 4"},
-                                                 {.part_type = UP_UFS, .name = "UFS"},
-                                                 {.part_type = UP_UFS2, .name = "UFS 2"},
-                                                 {.part_type = UP_UFS_LE, .name = "UFS - Little Endian"},
-                                                 {.part_type = UP_UFS2_LE, .name = "UFS 2 - Little Endian"},
-                                                 {.part_type = UP_UNK, .name = "Unknown"},
-                                                 {.part_type = UP_VMFS, .name = "VMFS"},
-                                                 {.part_type = UP_WBFS, .name = "WBFS"},
-                                                 {.part_type = UP_XFS, .name = "XFS"},
-                                                 {.part_type = UP_XFS2, .name = "XFS 2"},
-                                                 {.part_type = UP_XFS3, .name = "XFS 3"},
-                                                 {.part_type = UP_XFS4, .name = "XFS 4"},
-                                                 {.part_type = UP_XFS5, .name = "XFS 5"},
-                                                 {.part_type = UP_ZFS, .name = "ZFS"},
-                                                 {.part_type = 0, .name = nullptr}};
+static const struct systypes none_sys_types[] = {
+    {.part_type = UP_APFS,          .name = "APFS"                 },
+    {.part_type = UP_BEOS,          .name = "BeFS"                 },
+    {.part_type = UP_BTRFS,         .name = "btrfs"                },
+    {.part_type = UP_CRAMFS,        .name = "CramFS"               },
+    {.part_type = UP_EXT2,          .name = "ext2"                 },
+    {.part_type = UP_EXT3,          .name = "ext3"                 },
+    {.part_type = UP_EXT4,          .name = "ext4"                 },
+    /*  {UP_EXTENDED,	"Extended"}, */
+    {.part_type = UP_EXFAT,         .name = "exFAT"                },
+    {.part_type = UP_FAT12,         .name = "FAT12"                },
+    {.part_type = UP_FAT16,         .name = "FAT16"                },
+    {.part_type = UP_FAT32,         .name = "FAT32"                },
+    {.part_type = UP_FREEBSD,       .name = "FreeBSD"              },
+    {.part_type = UP_F2FS,          .name = "f2fs"                 },
+    {.part_type = UP_GFS2,          .name = "GFS2"                 },
+    {.part_type = UP_HFS,           .name = "HFS"                  },
+    {.part_type = UP_HFSP,          .name = "HFS+"                 },
+    {.part_type = UP_HFSX,          .name = "HFSX"                 },
+    {.part_type = UP_HPFS,          .name = "HPFS"                 },
+    {.part_type = UP_ISO,           .name = "ISO"                  },
+    {.part_type = UP_JFS,           .name = "JFS"                  },
+    {.part_type = UP_LINSWAP,       .name = "Linux SWAP"           },
+    {.part_type = UP_LINSWAP2,      .name = "Linux SWAP 2"         },
+    {.part_type = UP_LINSWAP_8K,    .name = "Linux SWAP"           },
+    {.part_type = UP_LINSWAP2_8K,   .name = "Linux SWAP 2"         },
+    {.part_type = UP_LINSWAP2_8KBE, .name = "Linux SWAP 2"         },
+    {.part_type = UP_LUKS,          .name = "Linux LUKS"           },
+    {.part_type = UP_LVM,           .name = "Linux LVM"            },
+    {.part_type = UP_LVM2,          .name = "Linux LVM2"           },
+    {.part_type = UP_MD,            .name = "Linux md 0.9 RAID"    },
+    {.part_type = UP_MD1,           .name = "Linux md 1.x RAID"    },
+    {.part_type = UP_NETWARE,       .name = "Netware"              },
+    {.part_type = UP_NTFS,          .name = "NTFS"                 },
+    {.part_type = UP_OPENBSD,       .name = "OpenBSD"              },
+    {.part_type = UP_OS2MB,         .name = "OS2 Multiboot"        },
+    {.part_type = UP_ReFS,          .name = "ReFS"                 },
+    {.part_type = UP_RFS,           .name = "ReiserFS 3.5"         },
+    {.part_type = UP_RFS2,          .name = "ReiserFS 3.6"         },
+    {.part_type = UP_RFS3,          .name = "ReiserFS 3.x"         },
+    {.part_type = UP_RFS4,          .name = "ReiserFS 4"           },
+    {.part_type = UP_SUN,           .name = "Sun"                  },
+    {.part_type = UP_SYSV4,         .name = "SysV 4"               },
+    {.part_type = UP_UFS,           .name = "UFS"                  },
+    {.part_type = UP_UFS2,          .name = "UFS 2"                },
+    {.part_type = UP_UFS_LE,        .name = "UFS - Little Endian"  },
+    {.part_type = UP_UFS2_LE,       .name = "UFS 2 - Little Endian"},
+    {.part_type = UP_UNK,           .name = "Unknown"              },
+    {.part_type = UP_VMFS,          .name = "VMFS"                 },
+    {.part_type = UP_WBFS,          .name = "WBFS"                 },
+    {.part_type = UP_XFS,           .name = "XFS"                  },
+    {.part_type = UP_XFS2,          .name = "XFS 2"                },
+    {.part_type = UP_XFS3,          .name = "XFS 3"                },
+    {.part_type = UP_XFS4,          .name = "XFS 4"                },
+    {.part_type = UP_XFS5,          .name = "XFS 5"                },
+    {.part_type = UP_ZFS,           .name = "ZFS"                  },
+    {.part_type = 0,                .name = nullptr                }
+};
 
-arch_fnct_t arch_none = {.part_name = "None",
-                         .part_name_option = "partition_none",
-                         .msg_part_type = nullptr,
-                         .read_part = &read_part_none,
-                         .write_part = nullptr,
-                         .init_part_order = &init_part_order_none,
-                         .get_geometry_from_mbr = &get_geometry_from_nonembr,
-                         .check_part = &check_part_none,
-                         .write_MBR_code = nullptr,
-                         .set_prev_status = &set_next_status_none,
-                         .set_next_status = &set_next_status_none,
-                         .test_structure = &test_structure_none,
-                         .get_part_type = &get_part_type_none,
-                         .set_part_type = &set_part_type_none,
-                         .init_structure = &init_structure_none,
-                         .erase_list_part = nullptr,
+arch_fnct_t arch_none = {.part_name              = "None",
+                         .part_name_option       = "partition_none",
+                         .msg_part_type          = nullptr,
+                         .read_part              = &read_part_none,
+                         .write_part             = nullptr,
+                         .init_part_order        = &init_part_order_none,
+                         .get_geometry_from_mbr  = &get_geometry_from_nonembr,
+                         .check_part             = &check_part_none,
+                         .write_MBR_code         = nullptr,
+                         .set_prev_status        = &set_next_status_none,
+                         .set_next_status        = &set_next_status_none,
+                         .test_structure         = &test_structure_none,
+                         .get_part_type          = &get_part_type_none,
+                         .set_part_type          = &set_part_type_none,
+                         .init_structure         = &init_structure_none,
+                         .erase_list_part        = nullptr,
                          .get_partition_typename = &get_partition_typename_none,
-                         .is_part_known = &is_part_known_none};
+                         .is_part_known          = &is_part_known_none};
 
 static auto get_part_type_none(const partition_t &partition) -> unsigned int
 {
-    return partition.upart_type;
+  return partition.upart_type;
 }
 
-static auto get_geometry_from_nonembr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry) -> int
+static auto get_geometry_from_nonembr(const unsigned char *buffer,
+                                      const int verbose,
+                                      CHSgeometry_t *geometry) -> int
 {
+  {
+    /* Ugly hack to get geometry from FAT and NTFS */
+    const auto *fat_header =
+        reinterpret_cast<const struct fat_boot_sector *>(buffer);
+    /*@ assert \valid_read(fat_header); */
+    if (le16(fat_header->marker) == 0xAA55)
     {
-        /* Ugly hack to get geometry from FAT and NTFS */
-        const auto *fat_header = reinterpret_cast<const struct fat_boot_sector *>(buffer);
-        /*@ assert \valid_read(fat_header); */
-        if (le16(fat_header->marker) == 0xAA55)
-        {
-            if (le16(fat_header->secs_track) > 0 && le16(fat_header->secs_track) <= 63 && le16(fat_header->heads) > 0 &&
-                le16(fat_header->heads) <= 255 && fat_sector_size(fat_header) > 0 &&
-                fat_sector_size(fat_header) % 512 == 0)
-            {
-                geometry->sectors_per_head = le16(fat_header->secs_track);
-                geometry->heads_per_cylinder = le16(fat_header->heads);
-                geometry->bytes_per_sector = fat_sector_size(fat_header);
-            }
-        }
+      if (le16(fat_header->secs_track) > 0 &&
+          le16(fat_header->secs_track) <= 63 && le16(fat_header->heads) > 0 &&
+          le16(fat_header->heads) <= 255 && fat_sector_size(fat_header) > 0 &&
+          fat_sector_size(fat_header) % 512 == 0)
+      {
+        geometry->sectors_per_head   = le16(fat_header->secs_track);
+        geometry->heads_per_cylinder = le16(fat_header->heads);
+        geometry->bytes_per_sector   = fat_sector_size(fat_header);
+      }
     }
-    return 0;
+  }
+  return 0;
 }
 
-static auto read_part_none(disk_t &disk, const int verbose, const int saveheader) -> list_part_t
+static auto read_part_none(disk_t &disk, const int verbose,
+                           const int saveheader) -> list_part_t
 {
-    int _insert_error = 0;
-    unsigned char *buffer_disk;
-    list_part_t list_part;
-    partition_t partition(&arch_none);
-    int res = 0;
-    buffer_disk = new unsigned char[16 * DEFAULT_SECTOR_SIZE];
-    partition.part_size = disk.disk_size;
+  int _insert_error = 0;
+  unsigned char *buffer_disk;
+  list_part_t list_part;
+  partition_t partition(&arch_none);
+  int res             = 0;
+  buffer_disk         = new unsigned char[16 * DEFAULT_SECTOR_SIZE];
+  partition.part_size = disk.disk_size;
 #if !defined(DISABLED_FOR_FRAMAC)
-    if (recover_MD_from_partition(disk, partition, verbose) == 0)
-        res = 1;
-    else
-        partition.reset(&arch_none);
-    if (res <= 0)
+  if (recover_MD_from_partition(disk, partition, verbose) == 0)
+    res = 1;
+  else
+    partition.reset(&arch_none);
+  if (res <= 0)
+  {
+    if (disk.pread(disk, buffer_disk, 16 * DEFAULT_SECTOR_SIZE,
+                   partition.part_offset) == 16 * DEFAULT_SECTOR_SIZE)
+      res = search_type_2(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  {
+    res = search_type_1(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  {
+    res = search_type_0(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  {
+    res = search_type_8(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  {
+    if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE,
+                   partition.part_offset + 16 * 512) == 3 * DEFAULT_SECTOR_SIZE)
+      res = search_type_16(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  {
+    if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE,
+                   partition.part_offset + 63 * 512) == 3 * DEFAULT_SECTOR_SIZE)
+      res = search_type_64(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+    res = (recover_ISO(reinterpret_cast<const struct iso_primary_descriptor *>(
+                           buffer_disk + 0x200
+                       ),
+                       partition) == 0);
+  if (res <= 0)
+  {
+    /* 64k offset */
+    if (disk.pread(disk, buffer_disk, 11 * DEFAULT_SECTOR_SIZE,
+                   partition.part_offset + 126 * 512) ==
+        11 * DEFAULT_SECTOR_SIZE)
+      res = search_type_128(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  {
+    res = search_type_2048(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  { /* Search FAT32 backup */
+    partition.part_offset = 6 * 512;
+    res = search_FAT_backup(buffer_disk, disk, partition, verbose, 0);
+  }
+  if (res <= 0)
+  { /* Search exFAT backup */
+    partition.part_offset = 12 * disk.sector_size;
+    res                   = search_exFAT_backup(buffer_disk, disk, partition);
+  }
+  if (res <= 0)
+  { /* Search NTFS backup */
+    if (disk.disk_size > disk.sector_size)
     {
-        if (disk.pread(disk, buffer_disk, 16 * DEFAULT_SECTOR_SIZE, partition.part_offset) ==
-            16 * DEFAULT_SECTOR_SIZE)
-            res = search_type_2(buffer_disk, disk, partition, verbose, 0);
+      partition.part_offset = disk.disk_size - disk.sector_size;
+      res = search_NTFS_backup(buffer_disk, disk, partition, verbose, 0);
+      if (res > 0 && partition.part_offset != 0)
+        res = 0;
     }
-    if (res <= 0)
+  }
+  if (res <= 0)
+  {
+    int s_log_block_size;
+    for (s_log_block_size = 0; s_log_block_size <= 2 && res <= 0;
+         s_log_block_size++)
     {
-        res = search_type_1(buffer_disk, disk, partition, verbose, 0);
+      /* sparse superblock feature: The groups chosen are 0, 1 and powers of 3,
+       * 5 and 7. */
+      /* Checking group 3 */
+      const uint64_t hd_offset =
+          3 * (EXT2_MIN_BLOCK_SIZE << s_log_block_size) * 8 *
+              (EXT2_MIN_BLOCK_SIZE << s_log_block_size) +
+          (s_log_block_size == 0 ? 2 * DEFAULT_SECTOR_SIZE : 0);
+      if (disk.pread(disk, buffer_disk, 1024, hd_offset) == 1024)
+      {
+        const auto *sb =
+            reinterpret_cast<const struct ext2_super_block *>(buffer_disk);
+        partition.part_offset = hd_offset;
+        if (le16(sb->s_block_group_nr) > 0 &&
+            le16(sb->s_magic) == EXT2_SUPER_MAGIC &&
+            recover_EXT2(disk, sb, partition, 0, 0) == 0)
+          res = 1;
+        if (res > 0 && partition.part_offset != 0)
+          res = 0;
+      }
     }
-    if (res <= 0)
-    {
-        res = search_type_0(buffer_disk, disk, partition, verbose, 0);
-    }
-    if (res <= 0)
-    {
-        res = search_type_8(buffer_disk, disk, partition, verbose, 0);
-    }
-    if (res <= 0)
-    {
-        if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE, partition.part_offset + 16 * 512) ==
-            3 * DEFAULT_SECTOR_SIZE)
-            res = search_type_16(buffer_disk, disk, partition, verbose, 0);
-    }
-    if (res <= 0)
-    {
-        if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE, partition.part_offset + 63 * 512) ==
-            3 * DEFAULT_SECTOR_SIZE)
-            res = search_type_64(buffer_disk, disk, partition, verbose, 0);
-    }
-    if (res <= 0)
-        res =
-            (recover_ISO(reinterpret_cast<const struct iso_primary_descriptor *>(buffer_disk + 0x200), partition) == 0);
-    if (res <= 0)
-    {
-        /* 64k offset */
-        if (disk.pread(disk, buffer_disk, 11 * DEFAULT_SECTOR_SIZE, partition.part_offset + 126 * 512) ==
-            11 * DEFAULT_SECTOR_SIZE)
-            res = search_type_128(buffer_disk, disk, partition, verbose, 0);
-    }
-    if (res <= 0)
-    {
-        res = search_type_2048(buffer_disk, disk, partition, verbose, 0);
-    }
-    if (res <= 0)
-    { /* Search FAT32 backup */
-        partition.part_offset = 6 * 512;
-        res = search_FAT_backup(buffer_disk, disk, partition, verbose, 0);
-    }
-    if (res <= 0)
-    { /* Search exFAT backup */
-        partition.part_offset = 12 * disk.sector_size;
-        res = search_exFAT_backup(buffer_disk, disk, partition);
-    }
-    if (res <= 0)
-    { /* Search NTFS backup */
-        if (disk.disk_size > disk.sector_size)
-        {
-            partition.part_offset = disk.disk_size - disk.sector_size;
-            res = search_NTFS_backup(buffer_disk, disk, partition, verbose, 0);
-            if (res > 0 && partition.part_offset != 0)
-                res = 0;
-        }
-    }
-    if (res <= 0)
-    {
-        int s_log_block_size;
-        for (s_log_block_size = 0; s_log_block_size <= 2 && res <= 0; s_log_block_size++)
-        {
-            /* sparse superblock feature: The groups chosen are 0, 1 and powers of 3, 5 and 7. */
-            /* Checking group 3 */
-            const uint64_t hd_offset =
-                3 * (EXT2_MIN_BLOCK_SIZE << s_log_block_size) * 8 * (EXT2_MIN_BLOCK_SIZE << s_log_block_size) +
-                (s_log_block_size == 0 ? 2 * DEFAULT_SECTOR_SIZE : 0);
-            if (disk.pread(disk, buffer_disk, 1024, hd_offset) == 1024)
-            {
-                const auto *sb = reinterpret_cast<const struct ext2_super_block *>(buffer_disk);
-                partition.part_offset = hd_offset;
-                if (le16(sb->s_block_group_nr) > 0 && le16(sb->s_magic) == EXT2_SUPER_MAGIC &&
-                    recover_EXT2(disk, sb, partition, 0, 0) == 0)
-                    res = 1;
-                if (res > 0 && partition.part_offset != 0)
-                    res = 0;
-            }
-        }
-    }
+  }
 #endif
-    delete[] (buffer_disk);
-    if (res <= 0)
-        partition.reset(&arch_none);
-    partition.part_offset = 0;
-    partition.part_size = disk.disk_size;
-    partition.order = NO_ORDER;
-    partition.status = STATUS_PRIM;
-    screen_buffer_reset();
-    check_part_none(disk, verbose, partition, saveheader);
+  delete[] (buffer_disk);
+  if (res <= 0)
+    partition.reset(&arch_none);
+  partition.part_offset = 0;
+  partition.part_size   = disk.disk_size;
+  partition.order       = NO_ORDER;
+  partition.status      = STATUS_PRIM;
+  screen_buffer_reset();
+  check_part_none(disk, verbose, partition, saveheader);
 #ifndef DISABLED_FOR_FRAMAC
-    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+  aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
 #endif
-    insert_new_partition(list_part, partition, 0, &_insert_error);
-    /*@ assert valid_list_part(list_part); */
-    return list_part;
+  insert_new_partition(list_part, partition, 0, &_insert_error);
+  /*@ assert valid_list_part(list_part); */
+  return list_part;
 }
 
 static void init_part_order_none(const disk_t &disk_car, list_part_t &list_part)
 {
-    ;
+  ;
 }
 
 static void set_next_status_none(const disk_t &disk_car, partition_t &partition)
@@ -373,197 +399,202 @@ static void set_next_status_none(const disk_t &disk_car, partition_t &partition)
 
 static auto test_structure_none(const list_part_t &list_part) -> int
 {
-    return 0;
+  return 0;
 }
 
-static auto set_part_type_none(partition_t &partition, unsigned int part_type) -> int
+static auto set_part_type_none(partition_t &partition, unsigned int part_type)
+    -> int
 {
-    partition.upart_type = static_cast<upart_type_t>(part_type);
-    return 0;
+  partition.upart_type = static_cast<upart_type_t>(part_type);
+  return 0;
 }
 
 static auto is_part_known_none(const partition_t &partition) -> int
 {
-    return 1;
+  return 1;
 }
 
-static void init_structure_none(const disk_t &disk_car, list_part_t &list_part, const int verbose)
+static void init_structure_none(const disk_t &disk_car, list_part_t &list_part,
+                                const int verbose)
 {
-    for (partition_t &element : list_part)
-    {
-        /*@ assert \valid_read(element); */
-        element.status = STATUS_PRIM;
-    }
+  for (partition_t &element : list_part)
+  {
+    /*@ assert \valid_read(element); */
+    element.status = STATUS_PRIM;
+  }
 }
 
-static auto check_part_none(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int
+static auto check_part_none(disk_t &disk_car, const int verbose,
+                            partition_t &partition, const int saveheader) -> int
 {
-    int ret = 0;
+  int ret = 0;
 #if !defined(DISABLED_FOR_FRAMAC)
-    switch (partition.upart_type)
+  switch (partition.upart_type)
+  {
+  case UP_APFS:
+    ret = check_APFS(disk_car, partition);
+    break;
+  case UP_BEOS:
+    ret = check_BeFS(disk_car, partition);
+    break;
+  case UP_BTRFS:
+    ret = check_btrfs(disk_car, partition);
+    break;
+  case UP_CRAMFS:
+    ret = check_cramfs(disk_car, partition, verbose);
+    break;
+  case UP_EXT2:
+  case UP_EXT3:
+  case UP_EXT4:
+    ret = check_EXT2(disk_car, partition, verbose);
+    break;
+  case UP_EXTENDED:
+    break;
+  case UP_EXFAT:
+    ret = check_exFAT(disk_car, partition);
+    break;
+  case UP_FAT12:
+  case UP_FAT16:
+  case UP_FAT32:
+    ret = check_FAT(disk_car, partition, verbose);
+    break;
+  case UP_FATX:
+    ret = check_FATX(disk_car, partition);
+    break;
+  case UP_FREEBSD:
+    ret = check_BSD(disk_car, partition, verbose, BSD_MAXPARTITIONS);
+    break;
+  case UP_F2FS:
+    ret = check_f2fs(disk_car, partition);
+    break;
+  case UP_GFS2:
+    ret = check_gfs2(disk_car, partition);
+    break;
+  case UP_HFS:
+    ret = check_HFS(disk_car, partition, verbose);
+    break;
+  case UP_HFSP:
+  case UP_HFSX:
+    ret = check_HFSP(disk_car, partition, verbose);
+    break;
+  case UP_HPFS:
+    ret = check_HPFS(disk_car, partition, verbose);
+    break;
+  case UP_ISO:
+    ret = check_ISO(disk_car, partition);
+    break;
+  case UP_JFS:
+    ret = check_JFS(disk_car, partition);
+    break;
+  case UP_LINSWAP:
+  case UP_LINSWAP2:
+  case UP_LINSWAP_8K:
+  case UP_LINSWAP2_8K:
+  case UP_LINSWAP2_8KBE:
+    ret = check_Linux_SWAP(disk_car, partition);
+    break;
+  case UP_LUKS:
+    ret = check_LUKS(disk_car, partition);
+    break;
+  case UP_LVM:
+    ret = check_LVM(disk_car, partition, verbose);
+    break;
+  case UP_LVM2:
+    ret = check_LVM2(disk_car, partition, verbose);
+    break;
+  case UP_NETWARE:
+    ret = check_netware(disk_car, partition);
+    break;
+  case UP_NTFS:
+    ret = check_NTFS(disk_car, partition, verbose, 0);
+    if (ret != 0)
     {
-    case UP_APFS:
-        ret = check_APFS(disk_car, partition);
-        break;
-    case UP_BEOS:
-        ret = check_BeFS(disk_car, partition);
-        break;
-    case UP_BTRFS:
-        ret = check_btrfs(disk_car, partition);
-        break;
-    case UP_CRAMFS:
-        ret = check_cramfs(disk_car, partition, verbose);
-        break;
-    case UP_EXT2:
-    case UP_EXT3:
-    case UP_EXT4:
-        ret = check_EXT2(disk_car, partition, verbose);
-        break;
-    case UP_EXTENDED:
-        break;
-    case UP_EXFAT:
-        ret = check_exFAT(disk_car, partition);
-        break;
-    case UP_FAT12:
-    case UP_FAT16:
-    case UP_FAT32:
-        ret = check_FAT(disk_car, partition, verbose);
-        break;
-    case UP_FATX:
-        ret = check_FATX(disk_car, partition);
-        break;
-    case UP_FREEBSD:
-        ret = check_BSD(disk_car, partition, verbose, BSD_MAXPARTITIONS);
-        break;
-    case UP_F2FS:
-        ret = check_f2fs(disk_car, partition);
-        break;
-    case UP_GFS2:
-        ret = check_gfs2(disk_car, partition);
-        break;
-    case UP_HFS:
-        ret = check_HFS(disk_car, partition, verbose);
-        break;
-    case UP_HFSP:
-    case UP_HFSX:
-        ret = check_HFSP(disk_car, partition, verbose);
-        break;
-    case UP_HPFS:
-        ret = check_HPFS(disk_car, partition, verbose);
-        break;
-    case UP_ISO:
-        ret = check_ISO(disk_car, partition);
-        break;
-    case UP_JFS:
-        ret = check_JFS(disk_car, partition);
-        break;
-    case UP_LINSWAP:
-    case UP_LINSWAP2:
-    case UP_LINSWAP_8K:
-    case UP_LINSWAP2_8K:
-    case UP_LINSWAP2_8KBE:
-        ret = check_Linux_SWAP(disk_car, partition);
-        break;
-    case UP_LUKS:
-        ret = check_LUKS(disk_car, partition);
-        break;
-    case UP_LVM:
-        ret = check_LVM(disk_car, partition, verbose);
-        break;
-    case UP_LVM2:
-        ret = check_LVM2(disk_car, partition, verbose);
-        break;
-    case UP_NETWARE:
-        ret = check_netware(disk_car, partition);
-        break;
-    case UP_NTFS:
-        ret = check_NTFS(disk_car, partition, verbose, 0);
-        if (ret != 0)
-        {
-            screen_buffer_add("Invalid NTFS boot\n");
-        }
-        break;
-    case UP_OPENBSD:
-        ret = check_BSD(disk_car, partition, verbose, OPENBSD_MAXPARTITIONS);
-        break;
-    case UP_OS2MB:
-        ret = check_OS2MB(disk_car, partition, verbose);
-        break;
-    case UP_MD:
-    case UP_MD1:
-        ret = check_MD(disk_car, partition, verbose);
-        if (ret != 0)
-        {
-            screen_buffer_add("Invalid RAID superblock\n");
-        }
-        break;
-    case UP_ReFS:
-        ret = check_ReFS(disk_car, partition);
-        break;
-    case UP_RFS:
-    case UP_RFS2:
-    case UP_RFS3:
-    case UP_RFS4:
-        ret = check_rfs(disk_car, partition, verbose);
-        break;
-    case UP_SUN:
-        ret = check_sun_i386(disk_car, partition, verbose);
-        break;
-    case UP_SYSV4:
-        ret = check_sysv(disk_car, partition, verbose);
-        break;
-    case UP_UFS:
-    case UP_UFS2:
-    case UP_UFS_LE:
-    case UP_UFS2_LE:
-        ret = check_ufs(disk_car, partition, verbose);
-        break;
-    case UP_VMFS:
-        ret = check_VMFS(disk_car, partition);
-        break;
-    case UP_WBFS:
-        ret = check_WBFS(disk_car, partition);
-        break;
-    case UP_XFS:
-    case UP_XFS2:
-    case UP_XFS3:
-    case UP_XFS4:
-    case UP_XFS5:
-        ret = check_xfs(disk_car, partition, verbose);
-        break;
-    case UP_ZFS:
-        ret = check_ZFS(disk_car, partition);
-        break;
-    case UP_UNK:
-        break;
+      screen_buffer_add("Invalid NTFS boot\n");
     }
+    break;
+  case UP_OPENBSD:
+    ret = check_BSD(disk_car, partition, verbose, OPENBSD_MAXPARTITIONS);
+    break;
+  case UP_OS2MB:
+    ret = check_OS2MB(disk_car, partition, verbose);
+    break;
+  case UP_MD:
+  case UP_MD1:
+    ret = check_MD(disk_car, partition, verbose);
+    if (ret != 0)
+    {
+      screen_buffer_add("Invalid RAID superblock\n");
+    }
+    break;
+  case UP_ReFS:
+    ret = check_ReFS(disk_car, partition);
+    break;
+  case UP_RFS:
+  case UP_RFS2:
+  case UP_RFS3:
+  case UP_RFS4:
+    ret = check_rfs(disk_car, partition, verbose);
+    break;
+  case UP_SUN:
+    ret = check_sun_i386(disk_car, partition, verbose);
+    break;
+  case UP_SYSV4:
+    ret = check_sysv(disk_car, partition, verbose);
+    break;
+  case UP_UFS:
+  case UP_UFS2:
+  case UP_UFS_LE:
+  case UP_UFS2_LE:
+    ret = check_ufs(disk_car, partition, verbose);
+    break;
+  case UP_VMFS:
+    ret = check_VMFS(disk_car, partition);
+    break;
+  case UP_WBFS:
+    ret = check_WBFS(disk_car, partition);
+    break;
+  case UP_XFS:
+  case UP_XFS2:
+  case UP_XFS3:
+  case UP_XFS4:
+  case UP_XFS5:
+    ret = check_xfs(disk_car, partition, verbose);
+    break;
+  case UP_ZFS:
+    ret = check_ZFS(disk_car, partition);
+    break;
+  case UP_UNK:
+    break;
+  }
 #endif
-    return ret;
+  return ret;
 }
 
 /*@
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_none_aux(const unsigned int part_type_none) -> const char *
+static auto get_partition_typename_none_aux(const unsigned int part_type_none)
+    -> const char *
 {
-    unsigned int i;
-    /*@
-      @ loop assigns i;
-      @ loop variant sizeof(none_sys_types)/sizeof(struct systypes) - i;
-      @*/
-    for (i = 0; none_sys_types[i].name != nullptr; i++)
-    {
-        if (none_sys_types[i].part_type == part_type_none)
-            return none_sys_types[i].name;
-    }
-    return nullptr;
+  unsigned int i;
+  /*@
+    @ loop assigns i;
+    @ loop variant sizeof(none_sys_types)/sizeof(struct systypes) - i;
+    @*/
+  for (i = 0; none_sys_types[i].name != nullptr; i++)
+  {
+    if (none_sys_types[i].part_type == part_type_none)
+      return none_sys_types[i].name;
+  }
+  return nullptr;
 }
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_none(const partition_t &partition) -> const char *
+static auto get_partition_typename_none(const partition_t &partition) -> const
+    char *
 {
-    return get_partition_typename_none_aux(partition.upart_type);
+  return get_partition_typename_none_aux(partition.upart_type);
 }

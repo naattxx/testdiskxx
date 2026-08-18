@@ -30,61 +30,68 @@
 #include "src/log.hpp"
 #include "zfs.hpp"
 
-static void set_ZFS_info(const struct vdev_boot_header *sb, partition_t &partition)
+static void set_ZFS_info(const struct vdev_boot_header *sb,
+                         partition_t &partition)
 {
-    partition.upart_type = UP_ZFS;
-    sprintf(partition.info, "ZFS %lu (Data size unknown)", static_cast<long unsigned> le64(sb->vb_version));
+  partition.upart_type = UP_ZFS;
+  sprintf(partition.info, "ZFS %lu (Data size unknown)",
+          static_cast<long unsigned> le64(sb->vb_version));
 }
 
-static auto test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, const partition_t &partition,
-                     const int dump_ind) -> int
+static auto test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,
+                     const partition_t &partition, const int dump_ind) -> int
 {
-    if (le64(sb->vb_magic) != VDEV_BOOT_MAGIC)
-        return 1;
-    if (dump_ind != 0)
-    {
-        log_info("\nZFS magic value at {}/{}/{}\n", offset2cylinder(disk, partition.part_offset),
-                offset2head(disk, partition.part_offset), offset2sector(disk, partition.part_offset));
-        ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
-    }
-    return 0;
+  if (le64(sb->vb_magic) != VDEV_BOOT_MAGIC)
+    return 1;
+  if (dump_ind != 0)
+  {
+    log_info("\nZFS magic value at {}/{}/{}\n",
+             offset2cylinder(disk, partition.part_offset),
+             offset2head(disk, partition.part_offset),
+             offset2sector(disk, partition.part_offset));
+    ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
+  }
+  return 0;
 }
 
 auto check_ZFS(disk_t &disk, partition_t &partition) -> int
 {
-    auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    if (test_ZFS(disk, reinterpret_cast<struct vdev_boot_header *>(buffer), partition, 0) != 0)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    set_ZFS_info(reinterpret_cast<struct vdev_boot_header *>(buffer), partition);
+  auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
+  if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE,
+                 partition.part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
+  {
     delete[] (buffer);
-    return 0;
+    return 1;
+  }
+  if (test_ZFS(disk, reinterpret_cast<struct vdev_boot_header *>(buffer),
+               partition, 0) != 0)
+  {
+    delete[] (buffer);
+    return 1;
+  }
+  set_ZFS_info(reinterpret_cast<struct vdev_boot_header *>(buffer), partition);
+  delete[] (buffer);
+  return 0;
 }
 
-auto recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, partition_t &partition, const int verbose,
-                 const int dump_ind) -> int
+auto recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,
+                 partition_t &partition, const int verbose, const int dump_ind)
+    -> int
 {
-    if (test_ZFS(disk, sb, partition, dump_ind) != 0)
-        return 1;
-    set_ZFS_info(sb, partition);
-    partition.part_type_i386 = P_LINUX;
-    partition.part_type_mac = PMAC_LINUX;
-    partition.part_type_sun = PSUN_LINUX;
-    partition.part_type_gpt = GPT_ENT_TYPE_SOLARIS_USR;
-    partition.part_size = le64(sb->vb_offset);
-    partition.blocksize = 0;
-    partition.sborg_offset = 0;
-    partition.sb_offset = 0;
-    if (verbose > 0)
-    {
-        log_info("\n");
-    }
-    return 0;
+  if (test_ZFS(disk, sb, partition, dump_ind) != 0)
+    return 1;
+  set_ZFS_info(sb, partition);
+  partition.part_type_i386 = P_LINUX;
+  partition.part_type_mac  = PMAC_LINUX;
+  partition.part_type_sun  = PSUN_LINUX;
+  partition.part_type_gpt  = GPT_ENT_TYPE_SOLARIS_USR;
+  partition.part_size      = le64(sb->vb_offset);
+  partition.blocksize      = 0;
+  partition.sborg_offset   = 0;
+  partition.sb_offset      = 0;
+  if (verbose > 0)
+  {
+    log_info("\n");
+  }
+  return 0;
 }

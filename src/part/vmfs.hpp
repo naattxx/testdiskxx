@@ -29,21 +29,21 @@
 #define VDEV_BOOT_VERSION 1 /* version number       */
 #define VDEV_BOOT_HEADER_SIZE (8 << 10)
 
-    struct [[gnu::gcc_struct,gnu::packed]] vmfs_volume
-    {
-        uint32_t magic;
-        uint32_t version;
-    };
-    struct [[gnu::gcc_struct,gnu::packed]] vmfs_lvm
-    {
-        uint64_t size;
-        uint64_t blocks;
-    };
+struct [[gnu::gcc_struct, gnu::packed]] vmfs_volume
+{
+  uint32_t magic;
+  uint32_t version;
+};
+struct [[gnu::gcc_struct, gnu::packed]] vmfs_lvm
+{
+  uint64_t size;
+  uint64_t blocks;
+};
 
-    /*@
-      @ decreases 0;
-      @*/
-    int check_VMFS(disk_t &disk, partition_t &partition);
-    int recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb, partition_t &partition, const int verbose,
-                     const int dump_ind);
+/*@
+  @ decreases 0;
+  @*/
+int check_VMFS(disk_t &disk, partition_t &partition);
+int recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
+                 partition_t &partition, const int verbose, const int dump_ind);
 #endif

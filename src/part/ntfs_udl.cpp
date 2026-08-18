@@ -79,7 +79,8 @@
 #endif
 
 #ifdef HAVE_LIBNTFS3G
-extern "C" {
+extern "C"
+{
 #include <ntfs-3g/attrib.h>
 #include <ntfs-3g/bootsect.h>
 #include <ntfs-3g/debug.h>
@@ -95,66 +96,66 @@ extern "C" {
 #if __has_include(<iconv.h>)
 #include <iconv.h>
 #endif
-#include "src/askloc.hpp"
-#include "src/dir.hpp"
 #include "ntfs_dir.hpp"
 #include "ntfs_inc.hpp"
 #include "ntfs_utl.hpp"
+#include "src/askloc.hpp"
+#include "src/dir.hpp"
 #include "src/setdate.hpp"
 
 struct options
 {
-    char *dest; /* Save file to this directory */
+  char *dest; /* Save file to this directory */
 };
 
 struct filename
 {
-    ntfschar *uname;          /* Filename in unicode */
-    int uname_len;            /* and its length */
-    uint64_t size_alloc;      /* Allocated size (multiple of cluster size) */
-    uint64_t size_data;       /* Actual size of data */
-    FILE_ATTR_FLAGS flags;
-    time_t date_c; /* Time created */
-    time_t date_a; /*	altered */
-    time_t date_m; /*	mft record changed */
-    time_t date_r; /*	read */
-    char *name;    /* Filename in current locale */
-    FILE_NAME_TYPE_FLAGS name_space;
-    uint64_t parent_mref;
-    char *parent_name;
+  ntfschar *uname;     /* Filename in unicode */
+  int uname_len;       /* and its length */
+  uint64_t size_alloc; /* Allocated size (multiple of cluster size) */
+  uint64_t size_data;  /* Actual size of data */
+  FILE_ATTR_FLAGS flags;
+  time_t date_c; /* Time created */
+  time_t date_a; /*	altered */
+  time_t date_m; /*	mft record changed */
+  time_t date_r; /*	read */
+  char *name;    /* Filename in current locale */
+  FILE_NAME_TYPE_FLAGS name_space;
+  uint64_t parent_mref;
+  char *parent_name;
 };
 using filename_list_t = std::list<filename *>;
 
 struct data
 {
-    char *name;               /* Stream name in current locale */
-    ntfschar *uname;          /* Unicode stream name */
-    int uname_len;            /* and its length */
-    int resident;             /* Stream is resident */
-    int compressed;           /* Stream is compressed */
-    int encrypted;            /* Stream is encrypted */
-    uint64_t size_alloc;      /* Allocated size (multiple of cluster size) */
-    uint64_t size_data;       /* Actual size of data */
-    uint64_t size_init;       /* Initialised size, may be less than data size */
-    uint64_t size_vcn;        /* Highest VCN in the data runs */
-    runlist_element *runlist; /* Decoded data runs */
-    unsigned int percent;     /* Amount potentially recoverable */
-    void *data;               /* If resident, a pointer to the data */
+  char *name;               /* Stream name in current locale */
+  ntfschar *uname;          /* Unicode stream name */
+  int uname_len;            /* and its length */
+  int resident;             /* Stream is resident */
+  int compressed;           /* Stream is compressed */
+  int encrypted;            /* Stream is encrypted */
+  uint64_t size_alloc;      /* Allocated size (multiple of cluster size) */
+  uint64_t size_data;       /* Actual size of data */
+  uint64_t size_init;       /* Initialised size, may be less than data size */
+  uint64_t size_vcn;        /* Highest VCN in the data runs */
+  runlist_element *runlist; /* Decoded data runs */
+  unsigned int percent;     /* Amount potentially recoverable */
+  void *data;               /* If resident, a pointer to the data */
 };
 using data_list_t = std::list<data *>;
 
 struct ufile
 {
-    uint64_t inode;           /* MFT record number */
-    time_t date;              /* Last modification date/time */
-    filename_list_t name;     /* A list of filenames */
-    data_list_t data;         /* A list of data streams */
-    char *pref_name;          /* Preferred filename */
-    char *pref_pname;         /*	     parent filename */
-    uint64_t max_size;        /* Largest size we find */
-    int attr_list;            /* MFT record may be one of many */
-    int directory;            /* MFT record represents a directory */
-    MFT_RECORD *mft;          /* Raw MFT record */
+  uint64_t inode;       /* MFT record number */
+  time_t date;          /* Last modification date/time */
+  filename_list_t name; /* A list of filenames */
+  data_list_t data;     /* A list of data streams */
+  char *pref_name;      /* Preferred filename */
+  char *pref_pname;     /*	     parent filename */
+  uint64_t max_size;    /* Largest size we find */
+  int attr_list;        /* MFT record may be one of many */
+  int directory;        /* MFT record represents a directory */
+  MFT_RECORD *mft;      /* Raw MFT record */
 };
 
 static const char *UNKNOWN = "unknown";
@@ -171,25 +172,25 @@ static struct options opts;
  */
 static void free_file(struct ufile *file)
 {
-    if (!file)
-        return;
+  if (!file)
+    return;
 
-    for (filename *f : file->name)
-    { /* List of filenames */
-        delete (f->name);
-        delete (f->parent_name);
-        delete (f);
-    }
+  for (filename *f : file->name)
+  { /* List of filenames */
+    delete (f->name);
+    delete (f->parent_name);
+    delete (f);
+  }
 
-    for (data *d : file->data)
-    { /* List of data streams */
-        delete (d->name);
-        delete (d->runlist);
-        delete (d);
-    }
+  for (data *d : file->data)
+  { /* List of data streams */
+    delete (d->name);
+    delete (d->runlist);
+    delete (d);
+  }
 
-    delete (file->mft);
-    delete (file);
+  delete (file->mft);
+  delete (file);
 }
 
 /**
@@ -204,68 +205,71 @@ static void free_file(struct ufile *file)
  * Return:	@rec's filename, either same name space as @name or lowest space.
  *		NULL if can't determine parenthood or on error.
  */
-static auto verify_parent(const struct filename *name, MFT_RECORD *rec) -> FILE_NAME_ATTR *
+static auto verify_parent(const struct filename *name, MFT_RECORD *rec)
+    -> FILE_NAME_ATTR *
 {
-    ATTR_RECORD *attr30;
-    FILE_NAME_ATTR *filename_attr = nullptr, *lowest_space_name = nullptr;
-    ntfs_attr_search_ctx *ctx;
-    int found_same_space = 1;
+  ATTR_RECORD *attr30;
+  FILE_NAME_ATTR *filename_attr = nullptr, *lowest_space_name = nullptr;
+  ntfs_attr_search_ctx *ctx;
+  int found_same_space = 1;
 
-    if (!name || !rec)
-        return nullptr;
+  if (!name || !rec)
+    return nullptr;
 
-    if (!(rec->flags & MFT_RECORD_IS_DIRECTORY))
+  if (!(rec->flags & MFT_RECORD_IS_DIRECTORY))
+  {
+    return nullptr;
+  }
+
+  ctx = ntfs_attr_get_search_ctx(nullptr, rec);
+  if (!ctx)
+  {
+    log_error("ERROR: Couldn't create a search context.\n");
+    return nullptr;
+  }
+
+  attr30 = find_attribute(AT_FILE_NAME, ctx);
+  if (!attr30)
+  {
+    return nullptr;
+  }
+
+  filename_attr =
+      reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(attr30) +
+                                         le16_to_cpu(attr30->value_offset));
+  /* if name is older than this dir -> can't determine */
+  if (td_ntfs2utc(filename_attr->creation_time) > name->date_c)
+  {
+    return nullptr;
+  }
+  if (filename_attr->file_name_type != name->name_space)
+  {
+    found_same_space  = 0;
+    lowest_space_name = filename_attr;
+
+    while (!found_same_space && (attr30 = find_attribute(AT_FILE_NAME, ctx)))
     {
-        return nullptr;
-    }
+      filename_attr =
+          reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(attr30) +
+                                             le16_to_cpu(attr30->value_offset));
 
-    ctx = ntfs_attr_get_search_ctx(nullptr, rec);
-    if (!ctx)
-    {
-        log_error("ERROR: Couldn't create a search context.\n");
-        return nullptr;
-    }
-
-    attr30 = find_attribute(AT_FILE_NAME, ctx);
-    if (!attr30)
-    {
-        return nullptr;
-    }
-
-    filename_attr =
-        reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(attr30) + le16_to_cpu(attr30->value_offset));
-    /* if name is older than this dir -> can't determine */
-    if (td_ntfs2utc(filename_attr->creation_time) > name->date_c)
-    {
-        return nullptr;
-    }
-    if (filename_attr->file_name_type != name->name_space)
-    {
-        found_same_space = 0;
-        lowest_space_name = filename_attr;
-
-        while (!found_same_space && (attr30 = find_attribute(AT_FILE_NAME, ctx)))
+      if (filename_attr->file_name_type == name->name_space)
+      {
+        found_same_space = 1;
+      }
+      else
+      {
+        if (filename_attr->file_name_type < lowest_space_name->file_name_type)
         {
-            filename_attr = reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(attr30) +
-                                                               le16_to_cpu(attr30->value_offset));
-
-            if (filename_attr->file_name_type == name->name_space)
-            {
-                found_same_space = 1;
-            }
-            else
-            {
-                if (filename_attr->file_name_type < lowest_space_name->file_name_type)
-                {
-                    lowest_space_name = filename_attr;
-                }
-            }
+          lowest_space_name = filename_attr;
         }
+      }
     }
+  }
 
-    ntfs_attr_put_search_ctx(ctx);
+  ntfs_attr_put_search_ctx(ctx);
 
-    return (found_same_space ? filename_attr : lowest_space_name);
+  return (found_same_space ? filename_attr : lowest_space_name);
 }
 
 /**
@@ -274,81 +278,86 @@ static auto verify_parent(const struct filename *name, MFT_RECORD *rec) -> FILE_
  */
 static void get_parent_name(struct filename *name, ntfs_volume *vol)
 {
-    ntfs_attr *mft_data;
-    MFT_RECORD *rec;
+  ntfs_attr *mft_data;
+  MFT_RECORD *rec;
 
-    if (!name || !vol)
-        return;
+  if (!name || !vol)
+    return;
 
-    mft_data = ntfs_attr_open(vol->mft_ni, AT_DATA, AT_UNNAMED, 0);
-    if (!mft_data)
-    {
-        log_error("ERROR: Couldn't open $MFT/$DATA\n");
-        return;
-    }
-    rec = new MFT_RECORD;
-    if (!rec)
-    {
-        log_error("ERROR: Couldn't allocate memory in get_parent_name()\n");
-        ntfs_attr_close(mft_data);
-        return;
-    }
-
-    {
-        uint64_t inode_num;
-        int ok;
-        inode_num = MREF(name->parent_mref);
-        name->parent_name = nullptr;
-        do
-        {
-            FILE_NAME_ATTR *filename_attr;
-            ok = 0;
-            if (ntfs_attr_pread(mft_data, vol->mft_record_size * inode_num, vol->mft_record_size, rec) < 1)
-            {
-                log_error("ERROR: Couldn't read MFT Record {}.\n", (long long unsigned)inode_num);
-            }
-            else if ((filename_attr = verify_parent(name, rec)))
-            {
-                char *parent_name = nullptr;
-                if (ntfs_ucstombs(filename_attr->file_name, filename_attr->file_name_length, &parent_name, 0) < 0)
-                {
-                    log_error("ERROR: Couldn't translate filename to current locale.\n");
-                    parent_name = nullptr;
-                }
-                else
-                {
-                    if (name->parent_name == nullptr || parent_name == nullptr)
-                        name->parent_name = parent_name;
-                    else
-                    {
-                        char *npn;
-                        if (inode_num == 5 && strcmp(parent_name, ".") == 0)
-                        {
-                            /* root directory */
-                            npn = new char[strlen(name->parent_name) + 2];
-                            sprintf(npn, "/%s", name->parent_name);
-                        }
-                        else
-                        {
-                            npn = new char[strlen(parent_name) + strlen(name->parent_name) + 2];
-                            sprintf(npn, "%s/%s", parent_name, name->parent_name);
-                        }
-                        delete (name->parent_name);
-                        name->parent_name = npn;
-                        delete (parent_name);
-                    }
-                    if (static_cast<unsigned>(inode_num) != MREF(filename_attr->parent_directory))
-                    {
-                        inode_num = MREF(filename_attr->parent_directory);
-                        ok = 1;
-                    }
-                }
-            }
-        } while (ok);
-    }
-    delete rec;
+  mft_data = ntfs_attr_open(vol->mft_ni, AT_DATA, AT_UNNAMED, 0);
+  if (!mft_data)
+  {
+    log_error("ERROR: Couldn't open $MFT/$DATA\n");
+    return;
+  }
+  rec = new MFT_RECORD;
+  if (!rec)
+  {
+    log_error("ERROR: Couldn't allocate memory in get_parent_name()\n");
     ntfs_attr_close(mft_data);
     return;
+  }
+
+  {
+    uint64_t inode_num;
+    int ok;
+    inode_num         = MREF(name->parent_mref);
+    name->parent_name = nullptr;
+    do
+    {
+      FILE_NAME_ATTR *filename_attr;
+      ok = 0;
+      if (ntfs_attr_pread(mft_data, vol->mft_record_size * inode_num,
+                          vol->mft_record_size, rec) < 1)
+      {
+        log_error("ERROR: Couldn't read MFT Record {}.\n",
+                  (long long unsigned)inode_num);
+      }
+      else if ((filename_attr = verify_parent(name, rec)))
+      {
+        char *parent_name = nullptr;
+        if (ntfs_ucstombs(filename_attr->file_name,
+                          filename_attr->file_name_length, &parent_name, 0) < 0)
+        {
+          log_error("ERROR: Couldn't translate filename to current locale.\n");
+          parent_name = nullptr;
+        }
+        else
+        {
+          if (name->parent_name == nullptr || parent_name == nullptr)
+            name->parent_name = parent_name;
+          else
+          {
+            char *npn;
+            if (inode_num == 5 && strcmp(parent_name, ".") == 0)
+            {
+              /* root directory */
+              npn = new char[strlen(name->parent_name) + 2];
+              sprintf(npn, "/%s", name->parent_name);
+            }
+            else
+            {
+              npn =
+                  new char[strlen(parent_name) + strlen(name->parent_name) + 2];
+              sprintf(npn, "%s/%s", parent_name, name->parent_name);
+            }
+            delete (name->parent_name);
+            name->parent_name = npn;
+            delete (parent_name);
+          }
+          if (static_cast<unsigned>(inode_num) !=
+              MREF(filename_attr->parent_directory))
+          {
+            inode_num = MREF(filename_attr->parent_directory);
+            ok        = 1;
+          }
+        }
+      }
+    } while (ok);
+  }
+  delete rec;
+  ntfs_attr_close(mft_data);
+  return;
 }
 
 /**
@@ -372,71 +381,72 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
  */
 static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
 {
-    ATTR_RECORD *rec;
-    ntfs_attr_search_ctx *ctx;
-    int count = 0;
-    int space = 4;
+  ATTR_RECORD *rec;
+  ntfs_attr_search_ctx *ctx;
+  int count = 0;
+  int space = 4;
 
-    if (!file)
-        return -1;
+  if (!file)
+    return -1;
 
-    ctx = ntfs_attr_get_search_ctx(nullptr, file->mft);
-    if (!ctx)
-        return -1;
+  ctx = ntfs_attr_get_search_ctx(nullptr, file->mft);
+  if (!ctx)
+    return -1;
 
-    while ((rec = find_attribute(AT_FILE_NAME, ctx)))
+  while ((rec = find_attribute(AT_FILE_NAME, ctx)))
+  {
+    struct filename *name;
+    FILE_NAME_ATTR *attr;
+    /* We know this will always be resident. */
+    attr = reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(rec) +
+                                              le16_to_cpu(rec->value_offset));
+
+    name = static_cast<struct filename *>(calloc(1, sizeof(*name)));
+    if (!name)
     {
-        struct filename *name;
-        FILE_NAME_ATTR *attr;
-        /* We know this will always be resident. */
-        attr = reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(rec) + le16_to_cpu(rec->value_offset));
-
-        name = static_cast<struct filename *>(calloc(1, sizeof(*name)));
-        if (!name)
-        {
-            log_error("ERROR: Couldn't allocate memory in get_filenames().\n");
-            count = -1;
-            break;
-        }
-
-        name->uname = attr->file_name;
-        name->uname_len = attr->file_name_length;
-        name->name_space = attr->file_name_type;
-        name->size_alloc = sle64_to_cpu(attr->allocated_size);
-        name->size_data = sle64_to_cpu(attr->data_size);
-        name->flags = attr->file_attributes;
-
-        name->date_c = td_ntfs2utc(attr->creation_time);
-        name->date_a = td_ntfs2utc(attr->last_data_change_time);
-        name->date_m = td_ntfs2utc(attr->last_mft_change_time);
-        name->date_r = td_ntfs2utc(attr->last_access_time);
-
-        if (ntfs_ucstombs(name->uname, name->uname_len, &name->name, 0) < 0)
-        {
-            log_error("ERROR: Couldn't translate filename to current locale.\n");
-        }
-
-        name->parent_name = nullptr;
-        name->parent_mref = attr->parent_directory;
-        get_parent_name(name, vol);
-
-        if (name->name_space < space)
-        {
-            file->pref_name = name->name;
-            file->pref_pname = name->parent_name;
-            space = name->name_space;
-        }
-
-        file->max_size = max(file->max_size, name->size_alloc);
-        file->max_size = max(file->max_size, name->size_data);
-
-        file->name.push_back(name);
-        count++;
+      log_error("ERROR: Couldn't allocate memory in get_filenames().\n");
+      count = -1;
+      break;
     }
 
-    ntfs_attr_put_search_ctx(ctx);
-    log_debug("File has %d names.\n", count);
-    return count;
+    name->uname      = attr->file_name;
+    name->uname_len  = attr->file_name_length;
+    name->name_space = attr->file_name_type;
+    name->size_alloc = sle64_to_cpu(attr->allocated_size);
+    name->size_data  = sle64_to_cpu(attr->data_size);
+    name->flags      = attr->file_attributes;
+
+    name->date_c = td_ntfs2utc(attr->creation_time);
+    name->date_a = td_ntfs2utc(attr->last_data_change_time);
+    name->date_m = td_ntfs2utc(attr->last_mft_change_time);
+    name->date_r = td_ntfs2utc(attr->last_access_time);
+
+    if (ntfs_ucstombs(name->uname, name->uname_len, &name->name, 0) < 0)
+    {
+      log_error("ERROR: Couldn't translate filename to current locale.\n");
+    }
+
+    name->parent_name = nullptr;
+    name->parent_mref = attr->parent_directory;
+    get_parent_name(name, vol);
+
+    if (name->name_space < space)
+    {
+      file->pref_name  = name->name;
+      file->pref_pname = name->parent_name;
+      space            = name->name_space;
+    }
+
+    file->max_size = max(file->max_size, name->size_alloc);
+    file->max_size = max(file->max_size, name->size_data);
+
+    file->name.push_back(name);
+    count++;
+  }
+
+  ntfs_attr_put_search_ctx(ctx);
+  log_debug("File has %d names.\n", count);
+  return count;
 }
 
 /**
@@ -456,72 +466,74 @@ static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
  */
 static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
 {
-    ATTR_RECORD *rec;
-    ntfs_attr_search_ctx *ctx;
-    int count = 0;
+  ATTR_RECORD *rec;
+  ntfs_attr_search_ctx *ctx;
+  int count = 0;
 
-    if (!file)
-        return -1;
+  if (!file)
+    return -1;
 
-    ctx = ntfs_attr_get_search_ctx(nullptr, file->mft);
-    if (!ctx)
-        return -1;
+  ctx = ntfs_attr_get_search_ctx(nullptr, file->mft);
+  if (!ctx)
+    return -1;
 
-    while ((rec = find_attribute(AT_DATA, ctx)))
+  while ((rec = find_attribute(AT_DATA, ctx)))
+  {
+    struct data *data;
+    data = static_cast<struct data *>(calloc(1, sizeof(*data)));
+    if (!data)
     {
-        struct data *data;
-        data = static_cast<struct data *>(calloc(1, sizeof(*data)));
-        if (!data)
-        {
-            log_error("ERROR: Couldn't allocate memory in get_data().\n");
-            count = -1;
-            break;
-        }
-
-        data->resident = !rec->non_resident;
-        data->compressed = rec->flags & ATTR_IS_COMPRESSED;
-        data->encrypted = rec->flags & ATTR_IS_ENCRYPTED;
-
-        if (rec->name_length)
-        {
-            data->uname = reinterpret_cast<ntfschar *>(reinterpret_cast<char *>(rec) + le16_to_cpu(rec->name_offset));
-            data->uname_len = rec->name_length;
-
-            if (ntfs_ucstombs(data->uname, data->uname_len, &data->name, 0) < 0)
-            {
-                log_error("ERROR: Cannot translate name into current locale.\n");
-            }
-        }
-
-        if (data->resident)
-        {
-            data->size_data = le32_to_cpu(rec->value_length);
-            data->data = (reinterpret_cast<char *>(rec)) + le16_to_cpu(rec->value_offset);
-        }
-        else
-        {
-            data->size_alloc = sle64_to_cpu(rec->allocated_size);
-            data->size_data = sle64_to_cpu(rec->data_size);
-            data->size_init = sle64_to_cpu(rec->initialized_size);
-            data->size_vcn = sle64_to_cpu(rec->highest_vcn) + 1;
-        }
-
-        data->runlist = ntfs_mapping_pairs_decompress(vol, rec, nullptr);
-        if (!data->runlist)
-        {
-            log_debug("Couldn't decompress the data runs.\n");
-        }
-
-        file->max_size = max(file->max_size, data->size_data);
-        file->max_size = max(file->max_size, data->size_init);
-
-        file->data.push_front(data);
-        count++;
+      log_error("ERROR: Couldn't allocate memory in get_data().\n");
+      count = -1;
+      break;
     }
 
-    ntfs_attr_put_search_ctx(ctx);
-    log_debug("File has %d data streams.\n", count);
-    return count;
+    data->resident   = !rec->non_resident;
+    data->compressed = rec->flags & ATTR_IS_COMPRESSED;
+    data->encrypted  = rec->flags & ATTR_IS_ENCRYPTED;
+
+    if (rec->name_length)
+    {
+      data->uname = reinterpret_cast<ntfschar *>(reinterpret_cast<char *>(rec) +
+                                                 le16_to_cpu(rec->name_offset));
+      data->uname_len = rec->name_length;
+
+      if (ntfs_ucstombs(data->uname, data->uname_len, &data->name, 0) < 0)
+      {
+        log_error("ERROR: Cannot translate name into current locale.\n");
+      }
+    }
+
+    if (data->resident)
+    {
+      data->size_data = le32_to_cpu(rec->value_length);
+      data->data =
+          (reinterpret_cast<char *>(rec)) + le16_to_cpu(rec->value_offset);
+    }
+    else
+    {
+      data->size_alloc = sle64_to_cpu(rec->allocated_size);
+      data->size_data  = sle64_to_cpu(rec->data_size);
+      data->size_init  = sle64_to_cpu(rec->initialized_size);
+      data->size_vcn   = sle64_to_cpu(rec->highest_vcn) + 1;
+    }
+
+    data->runlist = ntfs_mapping_pairs_decompress(vol, rec, nullptr);
+    if (!data->runlist)
+    {
+      log_debug("Couldn't decompress the data runs.\n");
+    }
+
+    file->max_size = max(file->max_size, data->size_data);
+    file->max_size = max(file->max_size, data->size_init);
+
+    file->data.push_front(data);
+    count++;
+  }
+
+  ntfs_attr_put_search_ctx(ctx);
+  log_debug("File has %d data streams.\n", count);
+  return count;
 }
 
 /**
@@ -537,72 +549,77 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
  */
 static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
 {
-    ATTR_RECORD *attr10, *attr20, *attr90;
-    struct ufile *file;
-    ntfs_attr *mft;
+  ATTR_RECORD *attr10, *attr20, *attr90;
+  struct ufile *file;
+  ntfs_attr *mft;
 
-    if (!vol)
-        return nullptr;
+  if (!vol)
+    return nullptr;
 
-    file = static_cast<struct ufile *>(calloc(1, sizeof(*file)));
-    if (!file)
-    {
-        log_error("ERROR: Couldn't allocate memory in read_record()\n");
-        return nullptr;
-    }
+  file = static_cast<struct ufile *>(calloc(1, sizeof(*file)));
+  if (!file)
+  {
+    log_error("ERROR: Couldn't allocate memory in read_record()\n");
+    return nullptr;
+  }
 
-    file->inode = record;
+  file->inode = record;
 
-    file->mft = reinterpret_cast<MFT_RECORD *>(new unsigned char[vol->mft_record_size]);
+  file->mft =
+      reinterpret_cast<MFT_RECORD *>(new unsigned char[vol->mft_record_size]);
 
-    mft = ntfs_attr_open(vol->mft_ni, AT_DATA, AT_UNNAMED, 0);
-    if (!mft)
-    {
-        log_error("ERROR: Couldn't open $MFT/$DATA\n");
-        free_file(file);
-        return nullptr;
-    }
+  mft = ntfs_attr_open(vol->mft_ni, AT_DATA, AT_UNNAMED, 0);
+  if (!mft)
+  {
+    log_error("ERROR: Couldn't open $MFT/$DATA\n");
+    free_file(file);
+    return nullptr;
+  }
 
-    if (ntfs_attr_mst_pread(mft, vol->mft_record_size * record, 1, vol->mft_record_size, file->mft) < 1)
-    {
-        log_error("ERROR: Couldn't read MFT Record {}.\n", (long long unsigned)record);
-        ntfs_attr_close(mft);
-        free_file(file);
-        return nullptr;
-    }
-
+  if (ntfs_attr_mst_pread(mft, vol->mft_record_size * record, 1,
+                          vol->mft_record_size, file->mft) < 1)
+  {
+    log_error("ERROR: Couldn't read MFT Record {}.\n",
+              (long long unsigned)record);
     ntfs_attr_close(mft);
-    mft = nullptr;
+    free_file(file);
+    return nullptr;
+  }
 
-    attr10 = find_first_attribute(AT_STANDARD_INFORMATION, file->mft);
-    attr20 = find_first_attribute(AT_ATTRIBUTE_LIST, file->mft);
-    attr90 = find_first_attribute(AT_INDEX_ROOT, file->mft);
+  ntfs_attr_close(mft);
+  mft = nullptr;
 
-    log_debug("Attributes present: %s %s %s.\n", attr10 ? "0x10" : "", attr20 ? "0x20" : "", attr90 ? "0x90" : "");
+  attr10 = find_first_attribute(AT_STANDARD_INFORMATION, file->mft);
+  attr20 = find_first_attribute(AT_ATTRIBUTE_LIST, file->mft);
+  attr90 = find_first_attribute(AT_INDEX_ROOT, file->mft);
 
-    if (attr10)
-    {
-        STANDARD_INFORMATION *si;
-        si = reinterpret_cast<STANDARD_INFORMATION *>(reinterpret_cast<char *>(attr10) +
-                                                      le16_to_cpu(attr10->value_offset));
-        file->date = td_ntfs2utc(si->last_data_change_time);
-    }
+  log_debug("Attributes present: %s %s %s.\n", attr10 ? "0x10" : "",
+            attr20 ? "0x20" : "", attr90 ? "0x90" : "");
 
-    if (attr20 || !attr10)
-        file->attr_list = 1;
-    if (attr90)
-        file->directory = 1;
+  if (attr10)
+  {
+    STANDARD_INFORMATION *si;
+    si = reinterpret_cast<STANDARD_INFORMATION *>(
+        reinterpret_cast<char *>(attr10) + le16_to_cpu(attr10->value_offset)
+    );
+    file->date = td_ntfs2utc(si->last_data_change_time);
+  }
 
-    if (get_filenames(file, vol) < 0)
-    {
-        log_error("ERROR: Couldn't get filenames.\n");
-    }
-    if (get_data(file, vol) < 0)
-    {
-        log_error("ERROR: Couldn't get data streams.\n");
-    }
+  if (attr20 || !attr10)
+    file->attr_list = 1;
+  if (attr90)
+    file->directory = 1;
 
-    return file;
+  if (get_filenames(file, vol) < 0)
+  {
+    log_error("ERROR: Couldn't get filenames.\n");
+  }
+  if (get_data(file, vol) < 0)
+  {
+    log_error("ERROR: Couldn't get data streams.\n");
+  }
+
+  return file;
 }
 
 /**
@@ -627,112 +644,117 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
  * Return:  n  The percentage of the file that _could_ be recovered
  *	   -1  Error
  */
-static auto calc_percentage(struct ufile *file, ntfs_volume *vol) -> unsigned int
+static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
+    -> unsigned int
 {
-    unsigned int percent = 0;
+  unsigned int percent = 0;
 
-    if (!file || !vol)
-        return -1;
+  if (!file || !vol)
+    return -1;
 
-    if (file->directory)
+  if (file->directory)
+  {
+    return 0;
+  }
+
+  if (file->data.empty())
+  {
+    return 0;
+  }
+
+  for (data *data : file->data)
+  {
+    runlist_element *rl = nullptr;
+    uint64_t i;
+    unsigned int clusters_inuse, clusters_free;
+    clusters_inuse = 0;
+    clusters_free  = 0;
+
+    if (data->encrypted)
     {
-        return 0;
+      log_debug("File is encrypted, recovery is impossible.\n");
+      continue;
     }
 
-    if (file->data.empty())
+    if (data->compressed)
     {
-        return 0;
+      log_debug("File is compressed, recovery not yet implemented.\n");
+      continue;
     }
 
-    for (data *data : file->data)
+    if (data->resident)
     {
-        runlist_element *rl = nullptr;
-        uint64_t i;
-        unsigned int clusters_inuse, clusters_free;
-        clusters_inuse = 0;
-        clusters_free = 0;
-
-        if (data->encrypted)
-        {
-            log_debug("File is encrypted, recovery is impossible.\n");
-            continue;
-        }
-
-        if (data->compressed)
-        {
-            log_debug("File is compressed, recovery not yet implemented.\n");
-            continue;
-        }
-
-        if (data->resident)
-        {
-            percent = 100;
-            data->percent = 100;
-            continue;
-        }
-
-        rl = data->runlist;
-        if (!rl)
-        {
-            log_debug("File has no runlist, hence no data.\n");
-            continue;
-        }
-
-        if (rl[0].length <= 0)
-        {
-            log_debug("File has an empty runlist, hence no data.\n");
-            continue;
-        }
-
-        if (rl[0].lcn == LCN_RL_NOT_MAPPED)
-        { /* extended mft record */
-            log_debug("Missing segment at beginning, %lld clusters\n", (long long)rl[0].length);
-            clusters_inuse += rl[0].length;
-            rl++;
-        }
-
-        for (i = 0; rl[i].length > 0; i++)
-        {
-            uint64_t start, end;
-            uint64_t j;
-            if (rl[i].lcn == LCN_RL_NOT_MAPPED)
-            {
-                log_debug("Missing segment at end, %lld clusters\n", (long long)rl[i].length);
-                clusters_inuse += rl[i].length;
-                continue;
-            }
-
-            if (rl[i].lcn == LCN_HOLE)
-            {
-                clusters_free += rl[i].length;
-                continue;
-            }
-
-            start = rl[i].lcn;
-            end = rl[i].lcn + rl[i].length;
-
-            for (j = start; j < end; j++)
-            {
-                if (utils_cluster_in_use(vol, j))
-                    clusters_inuse++;
-                else
-                    clusters_free++;
-            }
-        }
-
-        if ((clusters_inuse + clusters_free) == 0)
-        {
-            log_error("ERROR: Unexpected error whilst "
-                      "calculating percentage for inode {}\n",
-                      (long long unsigned)file->inode);
-            continue;
-        }
-
-        data->percent = (clusters_free * 100) / (clusters_inuse + clusters_free);
-
-        percent = max(percent, data->percent);
+      percent       = 100;
+      data->percent = 100;
+      continue;
     }
-    return percent;
+
+    rl = data->runlist;
+    if (!rl)
+    {
+      log_debug("File has no runlist, hence no data.\n");
+      continue;
+    }
+
+    if (rl[0].length <= 0)
+    {
+      log_debug("File has an empty runlist, hence no data.\n");
+      continue;
+    }
+
+    if (rl[0].lcn == LCN_RL_NOT_MAPPED)
+    { /* extended mft record */
+      log_debug("Missing segment at beginning, %lld clusters\n",
+                (long long)rl[0].length);
+      clusters_inuse += rl[0].length;
+      rl++;
+    }
+
+    for (i = 0; rl[i].length > 0; i++)
+    {
+      uint64_t start, end;
+      uint64_t j;
+      if (rl[i].lcn == LCN_RL_NOT_MAPPED)
+      {
+        log_debug("Missing segment at end, %lld clusters\n",
+                  (long long)rl[i].length);
+        clusters_inuse += rl[i].length;
+        continue;
+      }
+
+      if (rl[i].lcn == LCN_HOLE)
+      {
+        clusters_free += rl[i].length;
+        continue;
+      }
+
+      start = rl[i].lcn;
+      end   = rl[i].lcn + rl[i].length;
+
+      for (j = start; j < end; j++)
+      {
+        if (utils_cluster_in_use(vol, j))
+          clusters_inuse++;
+        else
+          clusters_free++;
+      }
+    }
+
+    if ((clusters_inuse + clusters_free) == 0)
+    {
+      log_error(
+          "ERROR: Unexpected error whilst "
+          "calculating percentage for inode {}\n",
+          (long long unsigned)file->inode
+      );
+      continue;
+    }
+
+    data->percent = (clusters_free * 100) / (clusters_inuse + clusters_free);
+
+    percent = max(percent, data->percent);
+  }
+  return percent;
 }
 
 /**
@@ -746,29 +768,30 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol) -> unsigned in
  * Return:  -1  Error, something went wrong
  *	     0  Success, all the data was written
  */
-static auto write_data(int fd, const char *buffer, unsigned int bufsize) -> unsigned int
+static auto write_data(int fd, const char *buffer, unsigned int bufsize)
+    -> unsigned int
 {
-    ssize_t result1, result2;
+  ssize_t result1, result2;
 
-    if (!buffer)
-    {
-        errno = EINVAL;
-        return -1;
-    }
+  if (!buffer)
+  {
+    errno = EINVAL;
+    return -1;
+  }
 
-    result1 = write(fd, buffer, bufsize);
-    if ((std::cmp_equal(result1, bufsize)) || (result1 < 0))
-        return result1;
+  result1 = write(fd, buffer, bufsize);
+  if ((std::cmp_equal(result1, bufsize)) || (result1 < 0))
+    return result1;
 
-    /* Try again with the rest of the buffer */
-    buffer += result1;
-    bufsize -= result1;
+  /* Try again with the rest of the buffer */
+  buffer += result1;
+  bufsize -= result1;
 
-    result2 = write(fd, buffer, bufsize);
-    if (result2 < 0)
-        return result1;
+  result2 = write(fd, buffer, bufsize);
+  if (result2 < 0)
+    return result1;
 
-    return result1 + result2;
+  return result1 + result2;
 }
 
 /**
@@ -795,39 +818,40 @@ static auto write_data(int fd, const char *buffer, unsigned int bufsize) -> unsi
  *
  * Return:  n  Length of the allocated name
  */
-static auto create_pathname(const char *dir, const char *dir2, const char *name, const char *stream, char *buffer,
-                            int bufsize) -> int
+static auto create_pathname(const char *dir, const char *dir2, const char *name,
+                            const char *stream, char *buffer, int bufsize)
+    -> int
 {
-    char *namel;
-    if (name == nullptr)
-        name = UNKNOWN;
-    namel = gen_local_filename(name);
-    if (dir2)
+  char *namel;
+  if (name == nullptr)
+    name = UNKNOWN;
+  namel = gen_local_filename(name);
+  if (dir2)
+  {
+    char *dir2l = gen_local_filename(dir2);
+    if (stream)
     {
-        char *dir2l = gen_local_filename(dir2);
-        if (stream)
-        {
-            char *streaml = gen_local_filename(stream);
-            snprintf(buffer, bufsize, "%s/%s/%s:%s", dir, dir2l, namel, streaml);
-            delete (streaml);
-        }
-        else
-            snprintf(buffer, bufsize, "%s/%s/%s", dir, dir2l, namel);
-        delete (dir2l);
+      char *streaml = gen_local_filename(stream);
+      snprintf(buffer, bufsize, "%s/%s/%s:%s", dir, dir2l, namel, streaml);
+      delete (streaml);
     }
     else
+      snprintf(buffer, bufsize, "%s/%s/%s", dir, dir2l, namel);
+    delete (dir2l);
+  }
+  else
+  {
+    if (stream)
     {
-        if (stream)
-        {
-            char *streaml = gen_local_filename(stream);
-            snprintf(buffer, bufsize, "%s/%s:%s", dir, namel, streaml);
-            delete (streaml);
-        }
-        else
-            snprintf(buffer, bufsize, "%s/%s", dir, namel);
+      char *streaml = gen_local_filename(stream);
+      snprintf(buffer, bufsize, "%s/%s:%s", dir, namel, streaml);
+      delete (streaml);
     }
-    delete (namel);
-    return strlen(buffer);
+    else
+      snprintf(buffer, bufsize, "%s/%s", dir, namel);
+  }
+  delete (namel);
+  return strlen(buffer);
 }
 
 /**
@@ -843,12 +867,12 @@ static auto create_pathname(const char *dir, const char *dir2, const char *name,
  */
 static auto open_file(const char *pathname) -> int
 {
-    int fh;
-    fh = open(pathname, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (fh != -1 || errno != ENOENT)
-        return fh;
-    mkdir_local_for_file(pathname);
-    return open(pathname, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  int fh;
+  fh = open(pathname, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  if (fh != -1 || errno != ENOENT)
+    return fh;
+  mkdir_local_for_file(pathname);
+  return open(pathname, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 }
 
 /**
@@ -875,181 +899,190 @@ static auto open_file(const char *pathname) -> int
  */
 static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
 {
-    char *buffer = nullptr;
-    unsigned int bufsize;
-    struct ufile *file;
+  char *buffer = nullptr;
+  unsigned int bufsize;
+  struct ufile *file;
 
-    if (!vol)
-        return -2;
+  if (!vol)
+    return -2;
 
-    /* try to get record */
-    file = read_record(vol, inode);
-    if (!file || !file->mft)
+  /* try to get record */
+  file = read_record(vol, inode);
+  if (!file || !file->mft)
+  {
+    log_error("Can't read info from mft record {}.\n",
+              (long long unsigned)inode);
+    return -2;
+  }
+
+  bufsize = vol->cluster_size;
+  buffer  = new char[bufsize];
+
+  /* calc_percentage() must be called before
+   * list_record(). Otherwise, when undeleting, a file will always be
+   * listed as 0% recoverable even if successfully undeleted. +mabs
+   */
+  if (file->mft->flags & MFT_RECORD_IN_USE)
+  {
+    log_error("Record is in use by the mft\n");
+    delete[] (buffer);
+    free_file(file);
+    return -2;
+  }
+
+  if (calc_percentage(file, vol) == 0)
+  {
+    log_error("File has no recoverable data.\n");
+    goto free;
+  }
+
+  if (file->data.empty())
+  {
+    log_warning("File has no data.  There is nothing to recover.\n");
+    goto free;
+  }
+
+  for (data *d : file->data)
+  {
+    char pathname[256];
+    char defname[64];
+    char *name;
+    if (file->pref_name)
     {
-        log_error("Can't read info from mft record {}.\n", (long long unsigned)inode);
-        return -2;
+      name = file->pref_name;
+    }
+    else
+    {
+      sprintf(defname, "inode_%llu",
+              static_cast<long long unsigned>(file->inode));
+      name = defname;
     }
 
-    bufsize = vol->cluster_size;
-    buffer = new char[bufsize];
-
-    /* calc_percentage() must be called before
-     * list_record(). Otherwise, when undeleting, a file will always be
-     * listed as 0% recoverable even if successfully undeleted. +mabs
-     */
-    if (file->mft->flags & MFT_RECORD_IN_USE)
+    // dir_data->local_dir;
+    create_pathname(opts.dest, file->pref_pname, name, d->name, pathname,
+                    sizeof(pathname));
+    if (d->resident)
     {
-        log_error("Record is in use by the mft\n");
-        delete[] (buffer);
-        free_file(file);
-        return -2;
-    }
-
-    if (calc_percentage(file, vol) == 0)
-    {
-        log_error("File has no recoverable data.\n");
+      int fd;
+      fd = open_file(pathname);
+      if (fd < 0)
+      {
+        log_error("Couldn't create file %s\n", pathname);
         goto free;
-    }
+      }
 
-    if (file->data.empty())
-    {
-        log_warning("File has no data.  There is nothing to recover.\n");
+      // log_verbose("File has resident data.\n");
+      if (write_data(fd, static_cast<const char *>(d->data), d->size_data) <
+          d->size_data)
+      {
+        log_error("Write failed\n");
+        close(fd);
         goto free;
+      }
+
+      if (close(fd) < 0)
+      {
+        log_error("Close failed\n");
+      }
     }
-
-    for (data *d : file->data)
+    else
     {
-        char pathname[256];
-        char defname[64];
-        char *name;
-        if (file->pref_name)
+      int i;
+      int fd;
+      uint64_t cluster_count; /* I'll need this variable (see below). +mabs */
+      runlist_element *rl;
+      rl = d->runlist;
+      if (!rl)
+      {
+        ; // log_verbose("File has no runlist, hence no data.\n");
+        continue;
+      }
+
+      if (rl[0].length <= 0)
+      {
+        ; // log_verbose("File has an empty runlist, hence no data.\n");
+        continue;
+      }
+
+      fd = open_file(pathname);
+      if (fd < 0)
+      {
+        log_error("Couldn't create output file %s\n", pathname);
+        goto free;
+      }
+
+      if (rl[0].lcn == LCN_RL_NOT_MAPPED)
+      { /* extended mft record */
+        uint64_t k;
+        ; // log_verbose("Missing segment at beginning, %lld "
+        //            "clusters.\n",
+        //            (long long)rl[0].length);
+        memset(buffer, 0, bufsize);
+        for (k = 0; k < static_cast<uint64_t>(rl[0].length) * vol->cluster_size;
+             k += bufsize)
         {
-            name = file->pref_name;
+          if (write_data(fd, buffer, bufsize) < bufsize)
+          {
+            log_error("Write failed\n");
+            close(fd);
+            goto free;
+          }
         }
-        else
+      }
+
+      cluster_count = 0;
+      for (i = 0; rl[i].length > 0; i++)
+      {
+        uint64_t start, end;
+        uint64_t j;
+
+        if (rl[i].lcn == LCN_RL_NOT_MAPPED)
         {
-            sprintf(defname, "inode_%llu", static_cast<long long unsigned>(file->inode));
-            name = defname;
+          uint64_t k;
+          // log_verbose("Missing segment at end, "
+          //             "%lld clusters.\n",
+          //             (long long)rl[i].length);
+          memset(buffer, 0, bufsize);
+          for (k = 0;
+               k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size;
+               k += bufsize)
+          {
+            if (write_data(fd, buffer, bufsize) < bufsize)
+            {
+              log_error("Write failed\n");
+              close(fd);
+              goto free;
+            }
+            cluster_count++;
+          }
+          continue;
         }
 
-        // dir_data->local_dir;
-        create_pathname(opts.dest, file->pref_pname, name, d->name, pathname, sizeof(pathname));
-        if (d->resident)
+        if (rl[i].lcn == LCN_HOLE)
         {
-            int fd;
-            fd = open_file(pathname);
-            if (fd < 0)
+          uint64_t k;
+          // log_verbose("File has a sparse section.\n");
+          memset(buffer, 0, bufsize);
+          for (k = 0;
+               k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size;
+               k += bufsize)
+          {
+            if (write_data(fd, buffer, bufsize) < bufsize)
             {
-                log_error("Couldn't create file %s\n", pathname);
-                goto free;
+              log_error("Write failed\n");
+              close(fd);
+              goto free;
             }
-
-            //log_verbose("File has resident data.\n");
-            if (write_data(fd, static_cast<const char *>(d->data), d->size_data) < d->size_data)
-            {
-                log_error("Write failed\n");
-                close(fd);
-                goto free;
-            }
-
-            if (close(fd) < 0)
-            {
-                log_error("Close failed\n");
-            }
+          }
+          continue;
         }
-        else
+
+        start = rl[i].lcn;
+        end   = rl[i].lcn + rl[i].length;
+
+        for (j = start; j < end; j++)
         {
-            int i;
-            int fd;
-            uint64_t cluster_count; /* I'll need this variable (see below). +mabs */
-            runlist_element *rl;
-            rl = d->runlist;
-            if (!rl)
-            {
-                ;//log_verbose("File has no runlist, hence no data.\n");
-                continue;
-            }
-
-            if (rl[0].length <= 0)
-            {
-                ;//log_verbose("File has an empty runlist, hence no data.\n");
-                continue;
-            }
-
-            fd = open_file(pathname);
-            if (fd < 0)
-            {
-                log_error("Couldn't create output file %s\n", pathname);
-                goto free;
-            }
-
-            if (rl[0].lcn == LCN_RL_NOT_MAPPED)
-            { /* extended mft record */
-                uint64_t k;
-                ;//log_verbose("Missing segment at beginning, %lld "
-                //            "clusters.\n",
-                //            (long long)rl[0].length);
-                memset(buffer, 0, bufsize);
-                for (k = 0; k < static_cast<uint64_t>(rl[0].length) * vol->cluster_size; k += bufsize)
-                {
-                    if (write_data(fd, buffer, bufsize) < bufsize)
-                    {
-                        log_error("Write failed\n");
-                        close(fd);
-                        goto free;
-                    }
-                }
-            }
-
-            cluster_count = 0;
-            for (i = 0; rl[i].length > 0; i++)
-            {
-                uint64_t start, end;
-                uint64_t j;
-
-                if (rl[i].lcn == LCN_RL_NOT_MAPPED)
-                {
-                    uint64_t k;
-                    // log_verbose("Missing segment at end, "
-                    //             "%lld clusters.\n",
-                    //             (long long)rl[i].length);
-                    memset(buffer, 0, bufsize);
-                    for (k = 0; k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size; k += bufsize)
-                    {
-                        if (write_data(fd, buffer, bufsize) < bufsize)
-                        {
-                            log_error("Write failed\n");
-                            close(fd);
-                            goto free;
-                        }
-                        cluster_count++;
-                    }
-                    continue;
-                }
-
-                if (rl[i].lcn == LCN_HOLE)
-                {
-                    uint64_t k;
-                    // log_verbose("File has a sparse section.\n");
-                    memset(buffer, 0, bufsize);
-                    for (k = 0; k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size; k += bufsize)
-                    {
-                        if (write_data(fd, buffer, bufsize) < bufsize)
-                        {
-                            log_error("Write failed\n");
-                            close(fd);
-                            goto free;
-                        }
-                    }
-                    continue;
-                }
-
-                start = rl[i].lcn;
-                end = rl[i].lcn + rl[i].length;
-
-                for (j = start; j < end; j++)
-                {
-                    /* Don't check if clusters are in used or not */
+          /* Don't check if clusters are in used or not */
 #if 0
 	  if (utils_cluster_in_use(vol, j) && !opts.optimistic)
 	  {
@@ -1063,84 +1096,96 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
 	  }
 	  else
 #endif
-                    {
-                        if (ntfs_cluster_read(vol, j, 1, buffer) < 1)
-                        {
-                            log_error("Read failed\n");
-                            close(fd);
-                            goto free;
-                        }
-                        if (write_data(fd, buffer, bufsize) < bufsize)
-                        {
-                            log_error("Write failed\n");
-                            close(fd);
-                            goto free;
-                        }
-                        cluster_count++;
-                    }
-                }
-            }
-
-            /*
-             * IF data stream currently being recovered is
-             * non-resident AND data stream has no holes (100% recoverability) AND
-             * 0 <= (data->size_alloc - data->size_data) <= vol->cluster_size AND
-             * cluster_count * vol->cluster_size == data->size_alloc THEN file
-             * currently being written is truncated to data->size_data bytes before
-             * it's closed.
-             * This multiple checks try to ensure that only files with consistent
-             * values of size/occupied clusters are eligible for truncation. Note
-             * that resident streams need not be truncated, since the original code
-             * already recovers their exact length.                           +mabs
-             */
-            if (d->percent == 100 && d->size_alloc >= d->size_data &&
-                (d->size_alloc - d->size_data) <= static_cast<uint64_t>(vol->cluster_size) &&
-                cluster_count * static_cast<uint64_t>(vol->cluster_size) == d->size_alloc)
+          {
+            if (ntfs_cluster_read(vol, j, 1, buffer) < 1)
             {
-                if (ftruncate(fd, static_cast<off_t>(d->size_data)))
-                    log_error("Truncation failed\n");
+              log_error("Read failed\n");
+              close(fd);
+              goto free;
             }
-            else
-                log_warning("Truncation not performed because file has an "
-                            "inconsistent $MFT record.\n");
-
-            if (close(fd) < 0)
+            if (write_data(fd, buffer, bufsize) < bufsize)
             {
-                log_error("Close failed\n");
+              log_error("Write failed\n");
+              close(fd);
+              goto free;
             }
+            cluster_count++;
+          }
         }
-        set_date(pathname, file->date, file->date);
+      }
+
+      /*
+       * IF data stream currently being recovered is
+       * non-resident AND data stream has no holes (100% recoverability) AND
+       * 0 <= (data->size_alloc - data->size_data) <= vol->cluster_size AND
+       * cluster_count * vol->cluster_size == data->size_alloc THEN file
+       * currently being written is truncated to data->size_data bytes before
+       * it's closed.
+       * This multiple checks try to ensure that only files with consistent
+       * values of size/occupied clusters are eligible for truncation. Note
+       * that resident streams need not be truncated, since the original code
+       * already recovers their exact length.                           +mabs
+       */
+      if (d->percent == 100 && d->size_alloc >= d->size_data &&
+          (d->size_alloc - d->size_data) <=
+              static_cast<uint64_t>(vol->cluster_size) &&
+          cluster_count * static_cast<uint64_t>(vol->cluster_size) ==
+              d->size_alloc)
+      {
+        if (ftruncate(fd, static_cast<off_t>(d->size_data)))
+          log_error("Truncation failed\n");
+      }
+      else
+        log_warning(
+            "Truncation not performed because file has an "
+            "inconsistent $MFT record.\n"
+        );
+
+      if (close(fd) < 0)
+      {
+        log_error("Close failed\n");
+      }
     }
-    delete[] (buffer);
-    free_file(file);
-    return 0;
+    set_date(pathname, file->date, file->date);
+  }
+  delete[] (buffer);
+  free_file(file);
+  return 0;
 free:
-    delete[] (buffer);
-    free_file(file);
-    return -2;
+  delete[] (buffer);
+  free_file(file);
+  return -2;
 }
 
-static auto ufile_to_file_data(const struct ufile *file, const struct data *d) -> file_info_t
+static auto ufile_to_file_data(const struct ufile *file, const struct data *d)
+    -> file_info_t
 {
-    file_info_t new_file;
-    char inode_name[32];
-    const unsigned int len = (file->pref_pname == nullptr ? 0 : strlen(file->pref_pname)) +
-                             (file->pref_name == nullptr ? sizeof(inode_name) : strlen(file->pref_name) + 1) +
-                             (d->name == nullptr ? 0 : strlen(d->name) + 1) + 1;
-    sprintf(inode_name, "inode_%llu", static_cast<long long unsigned>(file->inode));
-    new_file.name = new char[len];
-    sprintf(new_file.name, "%s%s%s%s%s", (file->pref_pname ? file->pref_pname : ""), (file->pref_pname ? "/" : ""),
-            (file->pref_name ? file->pref_name : inode_name), (d->name ? ":" : ""), (d->name ? d->name : ""));
-    new_file.st_ino = file->inode;
-    new_file.st_mode =
-        (file->directory ? LINUX_S_IFDIR | LINUX_S_IRUGO | LINUX_S_IXUGO : LINUX_S_IFREG | LINUX_S_IRUGO);
-    new_file.st_uid = 0;
-    new_file.st_gid = 0;
+  file_info_t new_file;
+  char inode_name[32];
+  const unsigned int len =
+      (file->pref_pname == nullptr ? 0 : strlen(file->pref_pname)) +
+      (file->pref_name == nullptr ? sizeof(inode_name)
+                                  : strlen(file->pref_name) + 1) +
+      (d->name == nullptr ? 0 : strlen(d->name) + 1) + 1;
+  sprintf(inode_name, "inode_%llu",
+          static_cast<long long unsigned>(file->inode));
+  new_file.name = new char[len];
+  sprintf(new_file.name, "%s%s%s%s%s",
+          (file->pref_pname ? file->pref_pname : ""),
+          (file->pref_pname ? "/" : ""),
+          (file->pref_name ? file->pref_name : inode_name),
+          (d->name ? ":" : ""), (d->name ? d->name : ""));
+  new_file.st_ino = file->inode;
+  new_file.st_mode =
+      (file->directory ? LINUX_S_IFDIR | LINUX_S_IRUGO | LINUX_S_IXUGO
+                       : LINUX_S_IFREG | LINUX_S_IRUGO);
+  new_file.st_uid = 0;
+  new_file.st_gid = 0;
 
-    new_file.st_size = max(d->size_init, d->size_data);
-    new_file.td_atime = new_file.td_ctime = new_file.td_mtime = file->date;
-    new_file.status = 0;
-    return new_file;
+  new_file.st_size  = max(d->size_init, d->size_data);
+  new_file.td_atime = new_file.td_ctime = new_file.td_mtime = file->date;
+  new_file.status                                           = 0;
+  return new_file;
 }
 
 /**
@@ -1155,603 +1200,572 @@ static auto ufile_to_file_data(const struct ufile *file, const struct data *d) -
  */
 static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
 {
-    uint64_t nr_mft_records;
-    const unsigned int BUFSIZE = 8192;
-    char *buffer = nullptr;
-    unsigned int results = 0;
-    ntfs_attr *attr;
-    uint64_t bmpsize;
-    uint64_t i;
-    struct ufile *file;
-    if (!vol)
-        return;
+  uint64_t nr_mft_records;
+  const unsigned int BUFSIZE = 8192;
+  char *buffer               = nullptr;
+  unsigned int results       = 0;
+  ntfs_attr *attr;
+  uint64_t bmpsize;
+  uint64_t i;
+  struct ufile *file;
+  if (!vol)
+    return;
 #ifdef NTFS_LOG_LEVEL_VERBOSE
-    ntfs_log_set_levels(NTFS_LOG_LEVEL_QUIET);
-    ntfs_log_set_handler(ntfs_log_handler_stderr);
+  ntfs_log_set_levels(NTFS_LOG_LEVEL_QUIET);
+  ntfs_log_set_handler(ntfs_log_handler_stderr);
 #endif
 
-    attr = ntfs_attr_open(vol->mft_ni, AT_BITMAP, AT_UNNAMED, 0);
-    if (!attr)
+  attr = ntfs_attr_open(vol->mft_ni, AT_BITMAP, AT_UNNAMED, 0);
+  if (!attr)
+  {
+    log_error("ERROR: Couldn't open $MFT/$BITMAP\n");
+    return;
+  }
+  bmpsize = attr->initialized_size;
+
+  buffer = new char[BUFSIZE];
+
+  nr_mft_records = vol->mft_na->initialized_size >> vol->mft_record_size_bits;
+
+  for (i = 0; i < bmpsize; i += BUFSIZE)
+  {
+    int64_t size;
+    unsigned int j;
+    uint64_t read_count = min((bmpsize - i), BUFSIZE);
+    size                = ntfs_attr_pread(attr, i, read_count, buffer);
+    if (size < 0)
+      break;
+
+    for (j = 0; std::cmp_less(j, size); j++)
     {
-        log_error("ERROR: Couldn't open $MFT/$BITMAP\n");
-        return;
-    }
-    bmpsize = attr->initialized_size;
-
-    buffer = new char[BUFSIZE];
-
-    nr_mft_records = vol->mft_na->initialized_size >> vol->mft_record_size_bits;
-
-    for (i = 0; i < bmpsize; i += BUFSIZE)
-    {
-        int64_t size;
-        unsigned int j;
-        uint64_t read_count = min((bmpsize - i), BUFSIZE);
-        size = ntfs_attr_pread(attr, i, read_count, buffer);
-        if (size < 0)
-            break;
-
-        for (j = 0; std::cmp_less(j, size); j++)
+      unsigned int k;
+      unsigned int b;
+      b = buffer[j];
+      for (k = 0; k < 8; k++, b >>= 1)
+      {
+        unsigned int percent;
+        if (((i + j) * 8 + k) >= nr_mft_records)
+          goto done;
+        if (b & 1)
+          continue;
+        file = read_record(vol, (i + j) * 8 + k);
+        if (!file)
         {
-            unsigned int k;
-            unsigned int b;
-            b = buffer[j];
-            for (k = 0; k < 8; k++, b >>= 1)
-            {
-                unsigned int percent;
-                if (((i + j) * 8 + k) >= nr_mft_records)
-                    goto done;
-                if (b & 1)
-                    continue;
-                file = read_record(vol, (i + j) * 8 + k);
-                if (!file)
-                {
-                    log_error("Couldn't read MFT Record {}.\n", (long long unsigned)(i + j) * 8 + k);
-                    continue;
-                }
-
-                percent = calc_percentage(file, vol);
-                if (percent > 0)
-                {
-                    for (const data *d : file->data)
-                    {
-                        file_info_t new_file = ufile_to_file_data(file, d);
-                        dir_list.push_front(new_file);
-                        results++;
-                    }
-                }
-                free_file(file);
-            }
+          log_error("Couldn't read MFT Record {}.\n",
+                    (long long unsigned)(i + j) * 8 + k);
+          continue;
         }
+
+        percent = calc_percentage(file, vol);
+        if (percent > 0)
+        {
+          for (const data *d : file->data)
+          {
+            file_info_t new_file = ufile_to_file_data(file, d);
+            dir_list.push_front(new_file);
+            results++;
+          }
+        }
+        free_file(file);
+      }
     }
+  }
 done:
-    log_info("\nFiles with potentially recoverable content: {}\n", results);
-    delete[] (buffer);
-    ntfs_attr_close(attr);
-    dir_list.sort(filesort);
+  log_info("\nFiles with potentially recoverable content: {}\n", results);
+  delete[] (buffer);
+  ntfs_attr_close(attr);
+  dir_list.sort(filesort);
 }
 
 #ifdef HAVE_NCURSES
 #define INTER_DIR (LINES - 25 + 16)
 
-static struct td_list_head *ntfs_next_non_deleted(struct td_list_head *current_file, const struct td_list_head *end)
+static struct td_list_head *ntfs_next_non_deleted(
+    struct td_list_head *current_file, const struct td_list_head *end
+)
 {
-    struct td_list_head *walker = current_file;
-    while (walker->next != end)
-    {
-        const file_info_t *file_info;
-        walker = walker->next;
-        file_info = td_list_entry_const(walker, const file_info_t, list);
-        if ((file_info->status & FILE_STATUS_DELETED) == 0)
-            return walker;
-    }
-    return current_file;
+  struct td_list_head *walker = current_file;
+  while (walker->next != end)
+  {
+    const file_info_t *file_info;
+    walker    = walker->next;
+    file_info = td_list_entry_const(walker, const file_info_t, list);
+    if ((file_info->status & FILE_STATUS_DELETED) == 0)
+      return walker;
+  }
+  return current_file;
 }
 
-static struct td_list_head *ntfs_prev_non_deleted(struct td_list_head *current_file, const struct td_list_head *start)
+static struct td_list_head *ntfs_prev_non_deleted(
+    struct td_list_head *current_file, const struct td_list_head *start
+)
 {
-    struct td_list_head *walker = current_file;
-    while (walker->prev != start)
-    {
-        const file_info_t *file_info;
-        walker = walker->prev;
-        file_info = td_list_entry_const(walker, const file_info_t, list);
-        if ((file_info->status & FILE_STATUS_DELETED) == 0)
-            return walker;
-    }
-    return current_file;
+  struct td_list_head *walker = current_file;
+  while (walker->prev != start)
+  {
+    const file_info_t *file_info;
+    walker    = walker->prev;
+    file_info = td_list_entry_const(walker, const file_info_t, list);
+    if ((file_info->status & FILE_STATUS_DELETED) == 0)
+      return walker;
+  }
+  return current_file;
 }
 
-static void ntfs_undelete_menu_ncurses(const disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
+                                       const partition_t &partition,
+                                       dir_data_t *dir_data,
                                        file_info_t *dir_list)
 {
-    struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)dir_data->private_dir_data;
-    WINDOW *window = (WINDOW *)dir_data->display;
-    while (1)
+  struct ntfs_dir_struct *ls =
+      (struct ntfs_dir_struct *)dir_data->private_dir_data;
+  WINDOW *window = (WINDOW *)dir_data->display;
+  while (1)
+  {
+    struct td_list_head *current_file = dir_list->list.next;
+    int offset                        = 0;
+    int pos_num                       = 0;
+    int old_LINES                     = LINES;
+    aff_copy(window);
+    wmove(window, 3, 0);
+    aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    wmove(window, 4, 0);
+    wprintw(window, "Deleted files\n");
+    do
     {
-        struct td_list_head *current_file = dir_list->list.next;
-        int offset = 0;
-        int pos_num = 0;
-        int old_LINES = LINES;
-        aff_copy(window);
-        wmove(window, 3, 0);
-        aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
-        wmove(window, 4, 0);
-        wprintw(window, "Deleted files\n");
-        do
+      struct td_list_head *file_walker = NULL;
+      int i;
+      int car;
+      for (i = 5; i <= 6 + INTER_DIR; i++)
+      {
+        wmove(window, i, 0);
+        wclrtoeol(window); /* before addstr for BSD compatibility */
+      }
+      i = 0;
+      td_list_for_each(file_walker, &dir_list->list)
+      {
+        char datestr[80];
+        file_info_t *file_info;
+        file_info = td_list_entry(file_walker, file_info_t, list);
+        if ((file_info->status & FILE_STATUS_DELETED) != 0)
+          continue;
+        if (i++ < offset)
+          continue;
+        wmove(window, 6 - 1 + i - offset, 0);
+        wclrtoeol(window); /* before addstr for BSD compatibility */
+        if (file_walker == current_file)
         {
-            struct td_list_head *file_walker = NULL;
-            int i;
-            int car;
-            for (i = 5; i <= 6 + INTER_DIR; i++)
-            {
-                wmove(window, i, 0);
-                wclrtoeol(window); /* before addstr for BSD compatibility */
-            }
-            i = 0;
-            td_list_for_each(file_walker, &dir_list->list)
-            {
-                char datestr[80];
-                file_info_t *file_info;
-                file_info = td_list_entry(file_walker, file_info_t, list);
-                if ((file_info->status & FILE_STATUS_DELETED) != 0)
-                    continue;
-                if (i++ < offset)
-                    continue;
-                wmove(window, 6 - 1 + i - offset, 0);
-                wclrtoeol(window); /* before addstr for BSD compatibility */
-                if (file_walker == current_file)
-                {
-                    wattrset(window, A_REVERSE);
-                    waddstr(window, ">");
-                }
-                else
-                    waddstr(window, " ");
-                if ((file_info->status & FILE_STATUS_MARKED) != 0 && has_colors())
-                    wbkgdset(window, ' ' | COLOR_PAIR(2));
-                set_datestr((char *)&datestr, sizeof(datestr), file_info->td_mtime);
-                if (COLS <= 1 + 17 + 1 + 9 + 1)
-                    wprintw(window, "%s", file_info->name);
-                else
-                {
-                    const unsigned int nbr = COLS - (1 + 17 + 1 + 11 + 1);
-                    if (strlen(file_info->name) < nbr)
-                        wprintw(window, "%-*s", nbr, file_info->name);
-                    else
-                        wprintw(window, "%-*s", nbr, &file_info->name[strlen(file_info->name) - nbr]);
-                }
-                wprintw(window, " %s ", datestr);
-                wprintw(window, "%11llu", (long long unsigned int)file_info->st_size);
-                if ((file_info->status & FILE_STATUS_MARKED) != 0 && has_colors())
-                    wbkgdset(window, ' ' | COLOR_PAIR(0));
-                if (file_walker == current_file)
-                    wattroff(window, A_REVERSE);
-                if (offset + INTER_DIR <= i)
-                    break;
-            }
-            wmove(window, 6 - 1, 51);
-            wclrtoeol(window);
-            if (offset > 0)
-                wprintw(window, "Previous");
-            /* Clear the last line, useful if overlapping */
-            wmove(window, 6 + i - offset, 0);
-            wclrtoeol(window);
-            wmove(window, 6 + INTER_DIR, 51);
-            wclrtoeol(window);
-            if (file_walker != &dir_list->list && file_walker->next != &dir_list->list)
-                wprintw(window, "Next");
-            if (td_list_empty(&dir_list->list))
-            {
-                wmove(window, 6, 0);
-                wprintw(window, "No deleted file found.");
-            }
-            /* Redraw the bottom of the screen everytime because very long filenames may have corrupt it*/
-            mvwaddstr(window, LINES - 2, 0, "Use ");
-            if (!td_list_empty(&dir_list->list))
-            {
-                if (has_colors())
-                    wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-                waddstr(window, ":");
-                if (has_colors())
-                    wbkgdset(window, ' ' | COLOR_PAIR(0));
-                waddstr(window, " to select the current file, ");
-                if (has_colors())
-                    wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-                waddstr(window, "a");
-                if (has_colors())
-                    wbkgdset(window, ' ' | COLOR_PAIR(0));
-                waddstr(window, " to select/deselect all files, ");
-                if (has_colors())
-                    wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-                mvwaddstr(window, LINES - 1, 4, "C");
-                if (has_colors())
-                    wbkgdset(window, ' ' | COLOR_PAIR(0));
-                waddstr(window, " to copy the selected files, ");
-                if (has_colors())
-                    wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-                waddstr(window, "c");
-                if (has_colors())
-                    wbkgdset(window, ' ' | COLOR_PAIR(0));
-                waddstr(window, " to copy the current file, ");
-            }
-            if (has_colors())
-                wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-            waddstr(window, "q");
-            if (has_colors())
-                wbkgdset(window, ' ' | COLOR_PAIR(0));
-            waddstr(window, " to quit");
-            wrefresh(window);
-            /* Using gnome terminal under FC3, TERM=xterm, the screen is not always correct */
-            wredrawln(window, 0, getmaxy(window)); /* redrawwin def is boggus in pdcur24 */
-            car = wgetch(window);
+          wattrset(window, A_REVERSE);
+          waddstr(window, ">");
+        }
+        else
+          waddstr(window, " ");
+        if ((file_info->status & FILE_STATUS_MARKED) != 0 && has_colors())
+          wbkgdset(window, ' ' | COLOR_PAIR(2));
+        set_datestr((char *)&datestr, sizeof(datestr), file_info->td_mtime);
+        if (COLS <= 1 + 17 + 1 + 9 + 1)
+          wprintw(window, "%s", file_info->name);
+        else
+        {
+          const unsigned int nbr = COLS - (1 + 17 + 1 + 11 + 1);
+          if (strlen(file_info->name) < nbr)
+            wprintw(window, "%-*s", nbr, file_info->name);
+          else
+            wprintw(window, "%-*s", nbr,
+                    &file_info->name[strlen(file_info->name) - nbr]);
+        }
+        wprintw(window, " %s ", datestr);
+        wprintw(window, "%11llu", (long long unsigned int)file_info->st_size);
+        if ((file_info->status & FILE_STATUS_MARKED) != 0 && has_colors())
+          wbkgdset(window, ' ' | COLOR_PAIR(0));
+        if (file_walker == current_file)
+          wattroff(window, A_REVERSE);
+        if (offset + INTER_DIR <= i)
+          break;
+      }
+      wmove(window, 6 - 1, 51);
+      wclrtoeol(window);
+      if (offset > 0)
+        wprintw(window, "Previous");
+      /* Clear the last line, useful if overlapping */
+      wmove(window, 6 + i - offset, 0);
+      wclrtoeol(window);
+      wmove(window, 6 + INTER_DIR, 51);
+      wclrtoeol(window);
+      if (file_walker != &dir_list->list &&
+          file_walker->next != &dir_list->list)
+        wprintw(window, "Next");
+      if (td_list_empty(&dir_list->list))
+      {
+        wmove(window, 6, 0);
+        wprintw(window, "No deleted file found.");
+      }
+      /* Redraw the bottom of the screen everytime because very long filenames
+       * may have corrupt it*/
+      mvwaddstr(window, LINES - 2, 0, "Use ");
+      if (!td_list_empty(&dir_list->list))
+      {
+        if (has_colors())
+          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
+        waddstr(window, ":");
+        if (has_colors())
+          wbkgdset(window, ' ' | COLOR_PAIR(0));
+        waddstr(window, " to select the current file, ");
+        if (has_colors())
+          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
+        waddstr(window, "a");
+        if (has_colors())
+          wbkgdset(window, ' ' | COLOR_PAIR(0));
+        waddstr(window, " to select/deselect all files, ");
+        if (has_colors())
+          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
+        mvwaddstr(window, LINES - 1, 4, "C");
+        if (has_colors())
+          wbkgdset(window, ' ' | COLOR_PAIR(0));
+        waddstr(window, " to copy the selected files, ");
+        if (has_colors())
+          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
+        waddstr(window, "c");
+        if (has_colors())
+          wbkgdset(window, ' ' | COLOR_PAIR(0));
+        waddstr(window, " to copy the current file, ");
+      }
+      if (has_colors())
+        wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
+      waddstr(window, "q");
+      if (has_colors())
+        wbkgdset(window, ' ' | COLOR_PAIR(0));
+      waddstr(window, " to quit");
+      wrefresh(window);
+      /* Using gnome terminal under FC3, TERM=xterm, the screen is not always
+       * correct */
+      wredrawln(window, 0,
+                getmaxy(window)); /* redrawwin def is boggus in pdcur24 */
+      car = wgetch(window);
+      wmove(window, 5, 0);
+      wclrtoeol(window);
+      switch (car)
+      {
+      case key_ESC:
+      case 'q':
+      case 'M':
+        return;
+      }
+      switch (car)
+      {
+      case KEY_UP:
+      case '8':
+        file_walker = ntfs_prev_non_deleted(current_file, &dir_list->list);
+        if (current_file != file_walker)
+        {
+          current_file = file_walker;
+          pos_num--;
+        }
+        break;
+      case KEY_DOWN:
+      case '2':
+        file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
+        if (current_file != file_walker)
+        {
+          current_file = file_walker;
+          pos_num++;
+        }
+        break;
+      case KEY_PPAGE:
+        for (i = 0; i < INTER_DIR - 1; i++)
+        {
+          file_walker = ntfs_prev_non_deleted(current_file, &dir_list->list);
+          if (current_file != file_walker)
+          {
+            current_file = file_walker;
+            pos_num--;
+          }
+          else
+            i = INTER_DIR;
+        }
+        break;
+      case KEY_NPAGE:
+        for (i = 0; i < INTER_DIR - 1; i++)
+        {
+          file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
+          if (current_file != file_walker)
+          {
+            current_file = file_walker;
+            pos_num++;
+          }
+          else
+            i = INTER_DIR;
+        }
+        break;
+      case 'a': {
+        unsigned int status;
+        file_info_t *file_info;
+        file_info = td_list_entry(current_file, file_info_t, list);
+        status = (file_info->status ^ FILE_STATUS_MARKED) & FILE_STATUS_MARKED;
+        td_list_for_each(file_walker, &dir_list->list)
+        {
+          file_info = td_list_entry(file_walker, file_info_t, list);
+          if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
+              (file_info->status & FILE_STATUS_MARKED) != status)
+            file_info->status ^= FILE_STATUS_MARKED;
+        }
+      }
+      break;
+      case 'f': {
+        const char *needle = ask_string_ncurses("Filename filter ");
+        if (needle != NULL && needle[0] != '\0')
+        {
+          td_list_for_each(file_walker, &dir_list->list)
+          {
+            file_info_t *file_info;
+            file_info = td_list_entry(file_walker, file_info_t, list);
+            if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
+                strcasestr(file_info->name, needle) == NULL)
+              file_info->status |= FILE_STATUS_DELETED;
+          }
+          pos_num = 0;
+          current_file =
+              ntfs_next_non_deleted(&dir_list->list, &dir_list->list);
+        }
+      }
+      break;
+      case 'r':
+        td_list_for_each(file_walker, &dir_list->list)
+        {
+          file_info_t *file_info;
+          file_info = td_list_entry(file_walker, file_info_t, list);
+          file_info->status &= ~FILE_STATUS_DELETED;
+        }
+        pos_num      = 0;
+        current_file = dir_list->list.next;
+        break;
+      case 's': {
+        uint64_t min_size = ask_int_ncurses("Minimum file size ");
+        if (min_size > 0)
+        {
+          td_list_for_each(file_walker, &dir_list->list)
+          {
+            file_info_t *file_info;
+            file_info = td_list_entry(file_walker, file_info_t, list);
+            if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
+                file_info->st_size < min_size)
+              file_info->status |= FILE_STATUS_DELETED;
+          }
+          pos_num = 0;
+          current_file =
+              ntfs_next_non_deleted(&dir_list->list, &dir_list->list);
+        }
+      }
+      break;
+      case ':': {
+        file_info_t *file_info;
+        file_info = td_list_entry(current_file, file_info_t, list);
+        file_info->status ^= FILE_STATUS_MARKED;
+        file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
+        if (current_file != file_walker)
+        {
+          current_file = file_walker;
+          pos_num++;
+        }
+      }
+      break;
+      case 'c': {
+        file_info_t *file_info;
+        file_info = td_list_entry(current_file, file_info_t, list);
+        if (current_file != &dir_list->list &&
+            LINUX_S_ISDIR(file_info->st_mode) == 0)
+        {
+          if (dir_data->local_dir == NULL)
+          {
+            char dst_directory[4096];
+            dst_directory[0] = '\0';
+            if (LINUX_S_ISDIR(file_info->st_mode) != 0)
+              ask_location(dst_directory, sizeof(dst_directory),
+                           "Please select a destination where %s and any files "
+                           "below will be copied.",
+                           file_info->name);
+            else
+              ask_location(
+                  dst_directory, sizeof(dst_directory),
+                  "Please select a destination where %s will be copied.",
+                  file_info->name
+              );
+            if (dst_directory[0] != '\0')
+              dir_data->local_dir = strdup(dst_directory);
+            opts.dest = dir_data->local_dir;
+          }
+          if (dir_data->local_dir != NULL)
+          {
+            int res = -1;
             wmove(window, 5, 0);
             wclrtoeol(window);
-            switch (car)
+            if (has_colors())
+              wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
+            wprintw(window, "Copying, please wait...");
+            if (has_colors())
+              wbkgdset(window, ' ' | COLOR_PAIR(0));
+            wrefresh(window);
+            res = undelete_file(ls->vol, file_info->st_ino);
+            wmove(window, 5, 0);
+            wclrtoeol(window);
+            if (res < -1)
             {
-            case key_ESC:
-            case 'q':
-            case 'M':
-                return;
+              if (has_colors())
+                wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
+              wprintw(window, "Copy failed!");
             }
-            switch (car)
+            else
             {
-            case KEY_UP:
-            case '8':
-                file_walker = ntfs_prev_non_deleted(current_file, &dir_list->list);
-                if (current_file != file_walker)
-                {
-                    current_file = file_walker;
-                    pos_num--;
-                }
-                break;
-            case KEY_DOWN:
-            case '2':
-                file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
-                if (current_file != file_walker)
-                {
-                    current_file = file_walker;
-                    pos_num++;
-                }
-                break;
-            case KEY_PPAGE:
-                for (i = 0; i < INTER_DIR - 1; i++)
-                {
-                    file_walker = ntfs_prev_non_deleted(current_file, &dir_list->list);
-                    if (current_file != file_walker)
-                    {
-                        current_file = file_walker;
-                        pos_num--;
-                    }
-                    else
-                        i = INTER_DIR;
-                }
-                break;
-            case KEY_NPAGE:
-                for (i = 0; i < INTER_DIR - 1; i++)
-                {
-                    file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
-                    if (current_file != file_walker)
-                    {
-                        current_file = file_walker;
-                        pos_num++;
-                    }
-                    else
-                        i = INTER_DIR;
-                }
-                break;
-            case 'a': {
-                unsigned int status;
-                file_info_t *file_info;
-                file_info = td_list_entry(current_file, file_info_t, list);
-                status = (file_info->status ^ FILE_STATUS_MARKED) & FILE_STATUS_MARKED;
-                td_list_for_each(file_walker, &dir_list->list)
-                {
-                    file_info = td_list_entry(file_walker, file_info_t, list);
-                    if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
-                        (file_info->status & FILE_STATUS_MARKED) != status)
-                        file_info->status ^= FILE_STATUS_MARKED;
-                }
+              if (has_colors())
+                wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(2));
+              if (res < 0)
+                wprintw(window, "Copy done! (Failed to copy some files)");
+              else
+                wprintw(window, "Copy done!");
             }
-            break;
-            case 'f': {
-                const char *needle = ask_string_ncurses("Filename filter ");
-                if (needle != NULL && needle[0] != '\0')
-                {
-                    td_list_for_each(file_walker, &dir_list->list)
-                    {
-                        file_info_t *file_info;
-                        file_info = td_list_entry(file_walker, file_info_t, list);
-                        if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
-                            strcasestr(file_info->name, needle) == NULL)
-                            file_info->status |= FILE_STATUS_DELETED;
-                    }
-                    pos_num = 0;
-                    current_file = ntfs_next_non_deleted(&dir_list->list, &dir_list->list);
-                }
-            }
-            break;
-            case 'r':
-                td_list_for_each(file_walker, &dir_list->list)
-                {
-                    file_info_t *file_info;
-                    file_info = td_list_entry(file_walker, file_info_t, list);
-                    file_info->status &= ~FILE_STATUS_DELETED;
-                }
-                pos_num = 0;
-                current_file = dir_list->list.next;
-                break;
-            case 's': {
-                uint64_t min_size = ask_int_ncurses("Minimum file size ");
-                if (min_size > 0)
-                {
-                    td_list_for_each(file_walker, &dir_list->list)
-                    {
-                        file_info_t *file_info;
-                        file_info = td_list_entry(file_walker, file_info_t, list);
-                        if ((file_info->status & FILE_STATUS_DELETED) == 0 && file_info->st_size < min_size)
-                            file_info->status |= FILE_STATUS_DELETED;
-                    }
-                    pos_num = 0;
-                    current_file = ntfs_next_non_deleted(&dir_list->list, &dir_list->list);
-                }
-            }
-            break;
-            case ':': {
-                file_info_t *file_info;
-                file_info = td_list_entry(current_file, file_info_t, list);
+            if (has_colors())
+              wbkgdset(window, ' ' | COLOR_PAIR(0));
+          }
+        }
+      }
+      break;
+      case 'C':
+        if (dir_data->local_dir == NULL)
+        {
+          char dst_directory[4096];
+          dst_directory[0] = '\0';
+          ask_location(dst_directory, sizeof(dst_directory),
+                       "Please select a destination where the marked files "
+                       "will be copied.",
+                       NULL);
+          if (dst_directory[0] != '\0')
+            dir_data->local_dir = strdup(dst_directory);
+          opts.dest = dir_data->local_dir;
+        }
+        if (dir_data->local_dir != NULL)
+        {
+          unsigned int file_ok  = 0;
+          unsigned int file_bad = 0;
+          if (has_colors())
+            wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
+          wmove(window, 5, 0);
+          wclrtoeol(window);
+          wprintw(window, "Copying, please wait...");
+          wrefresh(window);
+          td_list_for_each(file_walker, &dir_list->list)
+          {
+            file_info_t *file_info;
+            file_info = td_list_entry(file_walker, file_info_t, list);
+            if ((file_info->status & FILE_STATUS_MARKED) != 0)
+            {
+              if (undelete_file(ls->vol, file_info->st_ino) < 0)
+                file_bad++;
+              else
+              {
                 file_info->status ^= FILE_STATUS_MARKED;
-                file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
-                if (current_file != file_walker)
-                {
-                    current_file = file_walker;
-                    pos_num++;
-                }
+                file_ok++;
+                wmove(window, 5, 0);
+                wclrtoeol(window);
+                wprintw(window, "Copying, please wait... %u files done",
+                        file_ok);
+                wrefresh(window);
+              }
             }
-            break;
-            case 'c': {
-                file_info_t *file_info;
-                file_info = td_list_entry(current_file, file_info_t, list);
-                if (current_file != &dir_list->list && LINUX_S_ISDIR(file_info->st_mode) == 0)
-                {
-                    if (dir_data->local_dir == NULL)
-                    {
-                        char dst_directory[4096];
-                        dst_directory[0] = '\0';
-                        if (LINUX_S_ISDIR(file_info->st_mode) != 0)
-                            ask_location(dst_directory, sizeof(dst_directory),
-                                         "Please select a destination where %s and any files below will be copied.",
-                                         file_info->name);
-                        else
-                            ask_location(dst_directory, sizeof(dst_directory),
-                                         "Please select a destination where %s will be copied.", file_info->name);
-                        if (dst_directory[0] != '\0')
-                            dir_data->local_dir = strdup(dst_directory);
-                        opts.dest = dir_data->local_dir;
-                    }
-                    if (dir_data->local_dir != NULL)
-                    {
-                        int res = -1;
-                        wmove(window, 5, 0);
-                        wclrtoeol(window);
-                        if (has_colors())
-                            wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-                        wprintw(window, "Copying, please wait...");
-                        if (has_colors())
-                            wbkgdset(window, ' ' | COLOR_PAIR(0));
-                        wrefresh(window);
-                        res = undelete_file(ls->vol, file_info->st_ino);
-                        wmove(window, 5, 0);
-                        wclrtoeol(window);
-                        if (res < -1)
-                        {
-                            if (has_colors())
-                                wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-                            wprintw(window, "Copy failed!");
-                        }
-                        else
-                        {
-                            if (has_colors())
-                                wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(2));
-                            if (res < 0)
-                                wprintw(window, "Copy done! (Failed to copy some files)");
-                            else
-                                wprintw(window, "Copy done!");
-                        }
-                        if (has_colors())
-                            wbkgdset(window, ' ' | COLOR_PAIR(0));
-                    }
-                }
-            }
-            break;
-            case 'C':
-                if (dir_data->local_dir == NULL)
-                {
-                    char dst_directory[4096];
-                    dst_directory[0] = '\0';
-                    ask_location(dst_directory, sizeof(dst_directory),
-                                 "Please select a destination where the marked files will be copied.", NULL);
-                    if (dst_directory[0] != '\0')
-                        dir_data->local_dir = strdup(dst_directory);
-                    opts.dest = dir_data->local_dir;
-                }
-                if (dir_data->local_dir != NULL)
-                {
-                    unsigned int file_ok = 0;
-                    unsigned int file_bad = 0;
-                    if (has_colors())
-                        wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-                    wmove(window, 5, 0);
-                    wclrtoeol(window);
-                    wprintw(window, "Copying, please wait...");
-                    wrefresh(window);
-                    td_list_for_each(file_walker, &dir_list->list)
-                    {
-                        file_info_t *file_info;
-                        file_info = td_list_entry(file_walker, file_info_t, list);
-                        if ((file_info->status & FILE_STATUS_MARKED) != 0)
-                        {
-                            if (undelete_file(ls->vol, file_info->st_ino) < 0)
-                                file_bad++;
-                            else
-                            {
-                                file_info->status ^= FILE_STATUS_MARKED;
-                                file_ok++;
-                                wmove(window, 5, 0);
-                                wclrtoeol(window);
-                                wprintw(window, "Copying, please wait... %u files done", file_ok);
-                                wrefresh(window);
-                            }
-                        }
-                    }
-                    if (has_colors())
-                        wbkgdset(window, ' ' | COLOR_PAIR(0));
-                    wmove(window, 5, 0);
-                    wclrtoeol(window);
-                    if (file_ok == 0)
-                    {
-                        if (has_colors())
-                            wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-                        wprintw(window, "Copy failed!");
-                    }
-                    else
-                    {
-                        if (has_colors())
-                            wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(2));
-                        wprintw(window, "Copy done! (%u/%u)", file_ok, (file_ok + file_bad));
-                    }
-                    if (has_colors())
-                        wbkgdset(window, ' ' | COLOR_PAIR(0));
-                }
-                break;
-            }
-            if (pos_num < offset)
-                offset = pos_num;
-            if (pos_num >= offset + INTER_DIR)
-                offset = pos_num - INTER_DIR + 1;
-        } while (old_LINES == LINES);
-    }
+          }
+          if (has_colors())
+            wbkgdset(window, ' ' | COLOR_PAIR(0));
+          wmove(window, 5, 0);
+          wclrtoeol(window);
+          if (file_ok == 0)
+          {
+            if (has_colors())
+              wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
+            wprintw(window, "Copy failed!");
+          }
+          else
+          {
+            if (has_colors())
+              wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(2));
+            wprintw(window, "Copy done! (%u/%u)", file_ok,
+                    (file_ok + file_bad));
+          }
+          if (has_colors())
+            wbkgdset(window, ' ' | COLOR_PAIR(0));
+        }
+        break;
+      }
+      if (pos_num < offset)
+        offset = pos_num;
+      if (pos_num >= offset + INTER_DIR)
+        offset = pos_num - INTER_DIR + 1;
+    } while (old_LINES == LINES);
+  }
 }
 #endif
 
 static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
 {
-    unsigned int file_ok = 0;
-    unsigned int file_bad = 0;
-    const auto *ls = static_cast<const struct ntfs_dir_struct *>(dir_data->private_dir_data);
-    char *dst_path;
-    dst_path = get_default_location();
-    dir_data->local_dir = dst_path;
-    opts.dest = dst_path;
-    for (const file_info_t &file_info : dir_list)
-    {
-        if (undelete_file(ls->vol, file_info.st_ino) < 0)
-            file_bad++;
-        else
-            file_ok++;
-    }
-    log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
-    delete (dst_path);
-    dir_data->local_dir = nullptr;
-    opts.dest = nullptr;
+  unsigned int file_ok  = 0;
+  unsigned int file_bad = 0;
+  const auto *ls =
+      static_cast<const struct ntfs_dir_struct *>(dir_data->private_dir_data);
+  char *dst_path;
+  dst_path            = get_default_location();
+  dir_data->local_dir = dst_path;
+  opts.dest           = dst_path;
+  for (const file_info_t &file_info : dir_list)
+  {
+    if (undelete_file(ls->vol, file_info.st_ino) < 0)
+      file_bad++;
+    else
+      file_ok++;
+  }
+  log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
+  delete (dst_path);
+  dir_data->local_dir = nullptr;
+  opts.dest           = nullptr;
 }
 
-static void ntfs_undelete_menu(const disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                               dir_list_t &dir_list, char **current_cmd)
+static void ntfs_undelete_menu(const disk_t &disk_car,
+                               const partition_t &partition,
+                               dir_data_t *dir_data, dir_list_t &dir_list,
+                               char **current_cmd)
 {
-    log_list_file(disk_car, partition, dir_data, dir_list);
-    if (*current_cmd != nullptr)
+  log_list_file(disk_car, partition, dir_data, dir_list);
+  if (*current_cmd != nullptr)
+  {
+    skip_comma_in_command(current_cmd);
+    if (check_command(current_cmd, "allundelete", 11) == 0)
     {
-        skip_comma_in_command(current_cmd);
-        if (check_command(current_cmd, "allundelete", 11) == 0)
-        {
-            ntfs_undelete_cli(dir_data, dir_list);
-        }
-        return; /* Quit */
+      ntfs_undelete_cli(dir_data, dir_list);
     }
+    return; /* Quit */
+  }
 #ifdef HAVE_NCURSES
-    ntfs_undelete_menu_ncurses(disk_car, partition, dir_data, dir_list);
+  ntfs_undelete_menu_ncurses(disk_car, partition, dir_data, dir_list);
 #endif
 }
 
-auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd) -> int
+auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
+                        const int verbose, char **current_cmd) -> int
 {
-    dir_data_t dir_data;
+  dir_data_t dir_data;
 #ifdef HAVE_NCURSES
-    WINDOW *window;
+  WINDOW *window;
 #endif
-    dir_partition_t res = dir_partition_ntfs_init(disk_car, partition, &dir_data, verbose, 0);
+  dir_partition_t res =
+      dir_partition_ntfs_init(disk_car, partition, &dir_data, verbose, 0);
 #ifdef HAVE_NCURSES
-    window = newwin(LINES, COLS, 0, 0); /* full screen */
-    dir_data.display = window;
-    aff_copy(window);
+  window           = newwin(LINES, COLS, 0, 0); /* full screen */
+  dir_data.display = window;
+  aff_copy(window);
 #else
-    dir_data.display = nullptr;
+  dir_data.display = nullptr;
 #endif
-    log_info("\n");
-    switch (res)
-    {
-    case DIR_PART_ENOSYS:
-        screen_buffer_reset();
-#ifdef HAVE_NCURSES
-        aff_copy(window);
-        wmove(window, 4, 0);
-        aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
-#endif
-        log_partition(disk_car, partition);
-        screen_buffer_add("Support for this filesystem wasn't enabled during compilation.\n");
-        screen_buffer_to_log();
-        if (*current_cmd == nullptr)
-        {
-#ifdef HAVE_NCURSES
-            screen_buffer_display(window, "", NULL);
-#endif
-        }
-        break;
-    case DIR_PART_EIO:
-        screen_buffer_reset();
-#ifdef HAVE_NCURSES
-        aff_copy(window);
-        wmove(window, 4, 0);
-        aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
-#endif
-        log_partition(disk_car, partition);
-        screen_buffer_add("Can't open filesystem. Filesystem seems damaged.\n");
-        screen_buffer_to_log();
-        if (*current_cmd == nullptr)
-        {
-#ifdef HAVE_NCURSES
-            screen_buffer_display(window, "", NULL);
-#endif
-        }
-        break;
-    default: {
-        auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
-        dir_list_t dir_list;
-        scan_disk(ls->vol, dir_list);
-        ntfs_undelete_menu(disk_car, partition, &dir_data, dir_list, current_cmd);
-        delete_list_file(dir_list);
-        dir_data.close(&dir_data);
-    }
-    break;
-    }
-#ifdef HAVE_NCURSES
-    delwin(window);
-    (void)clearok(stdscr, TRUE);
-#ifdef HAVE_TOUCHWIN
-    touchwin(stdscr);
-#endif
-#endif
-    return res;
-}
-#else
-int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd)
-{
-#ifdef HAVE_NCURSES
-    WINDOW *window;
-    window = newwin(LINES, COLS, 0, 0); /* full screen */
-    aff_copy(window);
-#endif
-    log_info("\n");
+  log_info("\n");
+  switch (res)
+  {
+  case DIR_PART_ENOSYS:
     screen_buffer_reset();
 #ifdef HAVE_NCURSES
     aff_copy(window);
@@ -1759,19 +1773,85 @@ int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int
     aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
 #endif
     log_partition(disk_car, partition);
-    screen_buffer_add("Support for this filesystem wasn't enabled during compilation.\n");
+    screen_buffer_add(
+        "Support for this filesystem wasn't enabled during compilation.\n"
+    );
     screen_buffer_to_log();
-#ifdef HAVE_NCURSES
-    if (*current_cmd == NULL)
+    if (*current_cmd == nullptr)
     {
-        screen_buffer_display(window, "", NULL);
+#ifdef HAVE_NCURSES
+      screen_buffer_display(window, "", NULL);
+#endif
     }
-    delwin(window);
-    (void)clearok(stdscr, TRUE);
+    break;
+  case DIR_PART_EIO:
+    screen_buffer_reset();
+#ifdef HAVE_NCURSES
+    aff_copy(window);
+    wmove(window, 4, 0);
+    aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+#endif
+    log_partition(disk_car, partition);
+    screen_buffer_add("Can't open filesystem. Filesystem seems damaged.\n");
+    screen_buffer_to_log();
+    if (*current_cmd == nullptr)
+    {
+#ifdef HAVE_NCURSES
+      screen_buffer_display(window, "", NULL);
+#endif
+    }
+    break;
+  default: {
+    auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
+    dir_list_t dir_list;
+    scan_disk(ls->vol, dir_list);
+    ntfs_undelete_menu(disk_car, partition, &dir_data, dir_list, current_cmd);
+    delete_list_file(dir_list);
+    dir_data.close(&dir_data);
+  }
+  break;
+  }
+#ifdef HAVE_NCURSES
+  delwin(window);
+  (void)clearok(stdscr, TRUE);
 #ifdef HAVE_TOUCHWIN
-    touchwin(stdscr);
+  touchwin(stdscr);
 #endif
 #endif
-    return -2;
+  return res;
+}
+#else
+int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
+                       const int verbose, char **current_cmd)
+{
+#ifdef HAVE_NCURSES
+  WINDOW *window;
+  window = newwin(LINES, COLS, 0, 0); /* full screen */
+  aff_copy(window);
+#endif
+  log_info("\n");
+  screen_buffer_reset();
+#ifdef HAVE_NCURSES
+  aff_copy(window);
+  wmove(window, 4, 0);
+  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+#endif
+  log_partition(disk_car, partition);
+  screen_buffer_add(
+      "Support for this filesystem wasn't enabled during compilation.\n"
+  );
+  screen_buffer_to_log();
+#ifdef HAVE_NCURSES
+  if (*current_cmd == NULL)
+  {
+    screen_buffer_display(window, "", NULL);
+  }
+  delwin(window);
+  (void)clearok(stdscr, TRUE);
+#ifdef HAVE_TOUCHWIN
+  touchwin(stdscr);
+#endif
+#endif
+  return -2;
 }
 #endif

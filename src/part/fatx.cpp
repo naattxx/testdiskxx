@@ -29,38 +29,41 @@ static void set_FATX_info(partition_t &partition);
 
 static auto test_fatx(const struct disk_fatx *fatx_block) -> int
 {
-    if (memcmp(fatx_block->magic, "FATX", 4) != 0)
-        return 1;
-    return 0;
+  if (memcmp(fatx_block->magic, "FATX", 4) != 0)
+    return 1;
+  return 0;
 }
 
 auto check_FATX(disk_t &disk_car, partition_t &partition) -> int
 {
-    unsigned char buffer[8 * DEFAULT_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, &buffer, sizeof(buffer), partition.part_offset) != sizeof(buffer))
-    {
-        return 1;
-    }
-    if (test_fatx(reinterpret_cast<const struct disk_fatx *>(&buffer)) != 0)
-        return 1;
-    set_FATX_info(partition);
-    return 0;
+  unsigned char buffer[8 * DEFAULT_SECTOR_SIZE];
+  if (disk_car.pread(disk_car, &buffer, sizeof(buffer),
+                     partition.part_offset) != sizeof(buffer))
+  {
+    return 1;
+  }
+  if (test_fatx(reinterpret_cast<const struct disk_fatx *>(&buffer)) != 0)
+    return 1;
+  set_FATX_info(partition);
+  return 0;
 }
 
-auto recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition) -> int
+auto recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition)
+    -> int
 {
-    if (test_fatx(fatx_block) != 0)
-        return 1;
-    set_FATX_info(partition);
-    partition.part_type_xbox = PXBOX_FATX;
-    /* FIXME: Locate the partition but cannot get the part_size unfortunatly */
-    partition.part_size = static_cast<uint64_t> le32(fatx_block->cluster_size_in_sector) * 512;
-    return 0;
+  if (test_fatx(fatx_block) != 0)
+    return 1;
+  set_FATX_info(partition);
+  partition.part_type_xbox = PXBOX_FATX;
+  /* FIXME: Locate the partition but cannot get the part_size unfortunatly */
+  partition.part_size =
+      static_cast<uint64_t> le32(fatx_block->cluster_size_in_sector) * 512;
+  return 0;
 }
 
 static void set_FATX_info(partition_t &partition)
 {
-    partition.upart_type = UP_FATX;
-    partition.fsname[0] = '\0';
-    strncpy(partition.info, "FATX", sizeof(partition.info));
+  partition.upart_type = UP_FATX;
+  partition.fsname[0]  = '\0';
+  strncpy(partition.info, "FATX", sizeof(partition.info));
 }

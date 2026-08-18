@@ -32,124 +32,141 @@
 
 static void set_HFSP_info(partition_t &partition, const struct hfsp_vh *vh)
 {
-    partition.blocksize = be32(vh->blocksize);
-    partition.fsname[0] = '\0';
-    if (be16(vh->version) == 4)
-    {
-        partition.upart_type = UP_HFSP;
-        snprintf(partition.info, sizeof(partition.info), "HFS+ blocksize=%u", partition.blocksize);
-    }
-    else if (be16(vh->version) == 5)
-    {
-        partition.upart_type = UP_HFSX;
-        snprintf(partition.info, sizeof(partition.info), "HFSX blocksize=%u", partition.blocksize);
-    }
+  partition.blocksize = be32(vh->blocksize);
+  partition.fsname[0] = '\0';
+  if (be16(vh->version) == 4)
+  {
+    partition.upart_type = UP_HFSP;
+    snprintf(partition.info, sizeof(partition.info), "HFS+ blocksize=%u",
+             partition.blocksize);
+  }
+  else if (be16(vh->version) == 5)
+  {
+    partition.upart_type = UP_HFSX;
+    snprintf(partition.info, sizeof(partition.info), "HFSX blocksize=%u",
+             partition.blocksize);
+  }
 }
 
-auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose) -> int
+auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int
 {
+  auto *buffer = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
+  if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
+                     partition.part_offset + 0x400) != HFSP_BOOT_SECTOR_SIZE)
+  {
+    delete[] (buffer);
+    return 1;
+  }
+  if (test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition,
+                verbose, 0) != 0)
+  {
+    delete[] (buffer);
+    return 1;
+  }
+  set_HFSP_info(partition, reinterpret_cast<const struct hfsp_vh *>(buffer));
+  if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
+                     partition.part_offset + partition.part_size - 0x400) ==
+          HFSP_BOOT_SECTOR_SIZE &&
+      test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition,
+                verbose, 0) == 0)
+  {
+    strcat(partition.info, " + Backup");
+  }
+  delete[] (buffer);
+  return 0;
+}
+
+auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
+                  partition_t &partition, const int verbose, const int dump_ind,
+                  const int backup) -> int
+{
+  uint64_t part_size;
+  if (test_HFSP(disk_car, vh, partition, verbose, dump_ind) != 0)
+    return 1;
+  part_size =
+      static_cast<uint64_t>(be32(vh->total_blocks)) * be32(vh->blocksize);
+  partition.sborg_offset = 0x400;
+  partition.sb_size      = HFSP_BOOT_SECTOR_SIZE;
+  if (backup > 0)
+  {
+    if (partition.part_offset + 2 * disk_car.sector_size < part_size)
+      return 1;
+    /* backup is at total_blocks-2 */
+    partition.sb_offset = part_size - 0x400;
+    partition.part_offset -= partition.sb_offset;
+  }
+  partition.part_size = part_size;
+  set_HFSP_info(partition, vh);
+  if (backup == 0)
+  {
     auto *buffer = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE, partition.part_offset + 0x400) !=
-        HFSP_BOOT_SECTOR_SIZE)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    if (test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition, verbose, 0) != 0)
-    {
-        delete[] (buffer);
-        return 1;
-    }
-    set_HFSP_info(partition, reinterpret_cast<const struct hfsp_vh *>(buffer));
-    if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE, partition.part_offset + partition.part_size - 0x400) ==
+    if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
+                       partition.part_offset + partition.part_size - 0x400) ==
             HFSP_BOOT_SECTOR_SIZE &&
-        test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition, verbose, 0) == 0)
+        test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer),
+                  partition, verbose, 0) == 0)
     {
-        strcat(partition.info, " + Backup");
+      strcat(partition.info, " + Backup");
     }
     delete[] (buffer);
-    return 0;
+  }
+  partition.part_type_i386 = P_HFSP;
+  partition.part_type_mac  = PMAC_HFS;
+  partition.part_type_gpt  = GPT_ENT_TYPE_MAC_HFS;
+  if (verbose > 0)
+  {
+    log_info("part_size {}\n",
+             (long unsigned)(partition.part_size / disk_car.sector_size));
+  }
+  return 0;
 }
 
-auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh, partition_t &partition, const int verbose,
-                  const int dump_ind, const int backup) -> int
-{
-    uint64_t part_size;
-    if (test_HFSP(disk_car, vh, partition, verbose, dump_ind) != 0)
-        return 1;
-    part_size = static_cast<uint64_t>(be32(vh->total_blocks)) * be32(vh->blocksize);
-    partition.sborg_offset = 0x400;
-    partition.sb_size = HFSP_BOOT_SECTOR_SIZE;
-    if (backup > 0)
-    {
-        if (partition.part_offset + 2 * disk_car.sector_size < part_size)
-            return 1;
-        /* backup is at total_blocks-2 */
-        partition.sb_offset = part_size - 0x400;
-        partition.part_offset -= partition.sb_offset;
-    }
-    partition.part_size = part_size;
-    set_HFSP_info(partition, vh);
-    if (backup == 0)
-    {
-        auto *buffer = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
-        if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
-                           partition.part_offset + partition.part_size - 0x400) == HFSP_BOOT_SECTOR_SIZE &&
-            test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition, verbose, 0) == 0)
-        {
-            strcat(partition.info, " + Backup");
-        }
-        delete[] (buffer);
-    }
-    partition.part_type_i386 = P_HFSP;
-    partition.part_type_mac = PMAC_HFS;
-    partition.part_type_gpt = GPT_ENT_TYPE_MAC_HFS;
-    if (verbose > 0)
-    {
-        log_info("part_size {}\n", (long unsigned)(partition.part_size / disk_car.sector_size));
-    }
-    return 0;
-}
-
-auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh, const partition_t &partition, const int verbose,
+auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
+               const partition_t &partition, const int verbose,
                const int dump_ind) -> int
 {
-    if (be32(vh->free_blocks) > be32(vh->total_blocks))
-        return 1;
-    /* Blocksize must be a multiple of 512 */
-    if (be32(vh->blocksize) < 512 || ((be32(vh->blocksize) - 1) & be32(vh->blocksize)) != 0)
-        return 1;
-    /* http://developer.apple.com/technotes/tn/tn1150.html */
-    if (be16(vh->version) == 4 && vh->signature == be16(HFSP_VOLHEAD_SIG))
+  if (be32(vh->free_blocks) > be32(vh->total_blocks))
+    return 1;
+  /* Blocksize must be a multiple of 512 */
+  if (be32(vh->blocksize) < 512 ||
+      ((be32(vh->blocksize) - 1) & be32(vh->blocksize)) != 0)
+    return 1;
+  /* http://developer.apple.com/technotes/tn/tn1150.html */
+  if (be16(vh->version) == 4 && vh->signature == be16(HFSP_VOLHEAD_SIG))
+  {
+    if (verbose > 0 || dump_ind != 0)
     {
-        if (verbose > 0 || dump_ind != 0)
-        {
-            log_info("\nHFS+ magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
-                     offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
-        }
+      log_info("\nHFS+ magic value at {}/{}/{}\n",
+               offset2cylinder(disk_car, partition.part_offset),
+               offset2head(disk_car, partition.part_offset),
+               offset2sector(disk_car, partition.part_offset));
     }
-    else if (be16(vh->version) == 5 && vh->signature == be16(HFSX_VOLHEAD_SIG))
+  }
+  else if (be16(vh->version) == 5 && vh->signature == be16(HFSX_VOLHEAD_SIG))
+  {
+    if (verbose > 0 || dump_ind != 0)
     {
-        if (verbose > 0 || dump_ind != 0)
-        {
-            log_info("\nHFSX magic value at {}/{}/{}\n", offset2cylinder(disk_car, partition.part_offset),
-                     offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset));
-        }
+      log_info("\nHFSX magic value at {}/{}/{}\n",
+               offset2cylinder(disk_car, partition.part_offset),
+               offset2head(disk_car, partition.part_offset),
+               offset2sector(disk_car, partition.part_offset));
     }
-    else
-    {
-        return 1;
-    }
-    if (dump_ind != 0)
-    {
-        /* There is a little offset ... */
-        ; // dump_log(vh,DEFAULT_SECTOR_SIZE);
-    }
-    if (verbose > 1)
-    {
-        log_info("blocksize {}\n", (unsigned)be32(vh->blocksize));
-        log_info("total_blocks {}\n", (unsigned)be32(vh->total_blocks));
-        log_info("free_blocks  {}\n", (unsigned)be32(vh->free_blocks));
-    }
-    return 0;
+  }
+  else
+  {
+    return 1;
+  }
+  if (dump_ind != 0)
+  {
+    /* There is a little offset ... */
+    ; // dump_log(vh,DEFAULT_SECTOR_SIZE);
+  }
+  if (verbose > 1)
+  {
+    log_info("blocksize {}\n", (unsigned)be32(vh->blocksize));
+    log_info("total_blocks {}\n", (unsigned)be32(vh->total_blocks));
+    log_info("free_blocks  {}\n", (unsigned)be32(vh->free_blocks));
+  }
+  return 0;
 }

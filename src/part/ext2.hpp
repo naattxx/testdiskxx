@@ -23,23 +23,23 @@
 #define _EXT2_H
 #include "ext2_common.hpp"
 #include "src/common.hpp"
-    /*@
-      @ requires \valid(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid(partition);
-      @ requires \separated(disk_car, partition);
-      @ decreases 0;
-      @*/
-    int check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose);
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid(partition);
+  @ requires \separated(disk_car, partition);
+  @ decreases 0;
+  @*/
+int check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose);
 
-    /*@
-      @ requires \valid(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid_read(sb);
-      @ requires \valid(partition);
-      @ requires \separated(disk_car, partition);
-      @*/
-    int recover_EXT2(const disk_t &disk_car, const struct ext2_super_block *sb, partition_t &partition,
-                     const int verbose, const int dump_ind);
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid_read(sb);
+  @ requires \valid(partition);
+  @ requires \separated(disk_car, partition);
+  @*/
+int recover_EXT2(const disk_t &disk_car, const struct ext2_super_block *sb,
+                 partition_t &partition, const int verbose, const int dump_ind);
 
 #endif

@@ -27,14 +27,15 @@
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
 #include "src/dir_common.hpp"
 
-struct ntfs_dir_struct {
-	dir_list_t dir_list;
-	ntfs_volume *vol;
-	my_data_t *my_data;
-	dir_data_t *dir_data;
-	unsigned long int inode;
+struct ntfs_dir_struct
+{
+  dir_list_t dir_list;
+  ntfs_volume *vol;
+  my_data_t *my_data;
+  dir_data_t *dir_data;
+  unsigned long int inode;
 #ifdef HAVE_ICONV
-        iconv_t cd;
+  iconv_t cd;
 #endif
 };
 #endif
