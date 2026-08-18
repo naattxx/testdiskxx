@@ -69,7 +69,7 @@ void log_CHS_from_LBA(const disk_t &disk_car, const unsigned long int pos_LBA);
   @ requires valid_partition(partition);
   @ requires \separated(disk_car, partition);
   @*/
-const char *aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition);
+auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition) -> const char *;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -84,7 +84,7 @@ void aff_part_buffer(const unsigned int newline, const disk_t &disk_car, const p
   @ requires valid_read_string(nptr);
   @ assigns \nothing;
   @*/
-uint64_t atouint64(const char *nptr);
+auto atouint64(const char *nptr) -> uint64_t;
 
 /*@
   @ requires \valid(current_cmd);
@@ -93,12 +93,12 @@ uint64_t atouint64(const char *nptr);
   @ assigns  *current_cmd;
   @*/
 [[gnu::format(printf, 5, 6)]]
-uint64_t ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t val_min, const uint64_t val_max,
-                        const char *_format, ...);
-void screen_buffer_reset(void);
+auto ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t val_min, const uint64_t val_max,
+                        const char *_format, ...) -> uint64_t;
+void screen_buffer_reset();
 [[gnu::format(printf, 1, 2)]]
-int screen_buffer_add(const char *_format, ...);
-void screen_buffer_to_log(void);
+auto screen_buffer_add(const char *_format, ...) -> int;
+void screen_buffer_to_log();
 
 /*@
   @ requires \valid_read(partition);
@@ -106,6 +106,6 @@ void screen_buffer_to_log(void);
   @ terminates \true;
   @ assigns \nothing;
   @*/
-char get_partition_status(const partition_t &partition);
+auto get_partition_status(const partition_t &partition) -> char;
 
 #endif

@@ -5,4 +5,4 @@
 
 using namespace cpptui;
 
-TD_LOG ask_testdisk_log_creation(App &app);
+auto ask_testdisk_log_creation(App &app) -> TD_LOG;

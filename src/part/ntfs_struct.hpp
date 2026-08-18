@@ -77,9 +77,9 @@ struct [[gnu::gcc_struct, gnu::packed]] ntfs_mft_record
   uint32_t mft_record_number; /* NTFS 3.1+ */
 };
 
-typedef struct ntfs_mft_record ntfs_recordheader;
+using ntfs_recordheader = struct ntfs_mft_record;
 
-typedef struct _ntfs_attribheader
+using ntfs_attribheader = struct _ntfs_attribheader
 {
   uint32_t type;        /* Attribute Type (e.g. 0x10, 0x60) */
   uint32_t cbAttribute; /* Length (including this header) */
@@ -88,18 +88,18 @@ typedef struct _ntfs_attribheader
   uint16_t offName;     /* Offset to the Attribute */
   uint16_t flags;       /* Flags */
   uint16_t idAttribute; /* Attribute Id (a) */
-} ntfs_attribheader;
+};
 
-typedef struct _ntfs_attribresident
+using ntfs_attribresident = struct _ntfs_attribresident
 {
   ntfs_attribheader header;
   uint32_t cbAttribData;  /* Length of the Attribute */
   uint16_t offAttribData; /* Offset to the Attribute */
   uint8_t bIndexed;       /* Indexed flag */
   uint8_t padding;        /* 0x00 Padding */
-} ntfs_attribresident;
+};
 
-typedef struct _ntfs_attribnonresident
+using ntfs_attribnonresident = struct _ntfs_attribnonresident
 {
   ntfs_attribheader header;
   uint64_t startVCN;     /* Starting VCN */
@@ -110,7 +110,7 @@ typedef struct _ntfs_attribnonresident
   uint64_t cbAllocated;  /* Allocated size of the attribute (c) */
   uint64_t cbAttribData; /* Real size of the attribute */
   uint64_t cbInitData;   /* Initialized data size of the stream (d) */
-} ntfs_attribnonresident;
+};
 
 /* The original definitions come from ntfs-3g/layout.h */
 /**
@@ -124,7 +124,7 @@ typedef struct _ntfs_attribnonresident
  * relative to the start of the index header structure and not relative to the
  * start of the index root or index allocation structures themselves.
  */
-typedef struct [[gnu::gcc_struct, gnu::packed]]
+using TD_INDEX_HEADER = struct [[gnu::gcc_struct, gnu::packed]]
 {
   /*  0*/ uint32_t
       entries_offset;              /* Byte offset from the INDEX_HEADER to first
@@ -133,19 +133,19 @@ typedef struct [[gnu::gcc_struct, gnu::packed]]
                                       including the INDEX_HEADER, aligned to 8. */
   /*  8*/ uint32_t allocated_size; /* Allocated byte size of this index (block),
                                       multiple of 8 bytes. See more below. */
-  /*
-     For the index root attribute, the above two numbers are always
-     equal, as the attribute is resident and it is resized as needed.
-
-     For the index allocation attribute, the attribute is not resident
-     and the allocated_size is equal to the index_block_size specified
-     by the corresponding INDEX_ROOT attribute minus the INDEX_BLOCK
-     size not counting the INDEX_HEADER part (i.e. minus -24).
-   */
-  /* 12*/ uint8_t ih_flags;    /* Bit field of INDEX_HEADER_FLAGS.  */
-  /* 13*/ uint8_t reserved[3]; /* Reserved/align to 8-byte boundary.*/
-                               /* sizeof() == 16 */
-} TD_INDEX_HEADER;
+                                   /*
+                                      For the index root attribute, the above two numbers are always
+                                      equal, as the attribute is resident and it is resized as needed.
+                                 
+                                      For the index allocation attribute, the attribute is not resident
+                                      and the allocated_size is equal to the index_block_size specified
+                                      by the corresponding INDEX_ROOT attribute minus the INDEX_BLOCK
+                                      size not counting the INDEX_HEADER part (i.e. minus -24).
+                                    */
+  /* 12*/ uint8_t ih_flags;        /* Bit field of INDEX_HEADER_FLAGS.  */
+  /* 13*/ uint8_t reserved[3];     /* Reserved/align to 8-byte boundary.*/
+                                   /* sizeof() == 16 */
+};
 
 /**
  * struct FILE_NAME_ATTR - Attribute: Filename (0x30).
@@ -160,7 +160,7 @@ typedef struct [[gnu::gcc_struct, gnu::packed]]
  *	 correct by practical experimentation on Windows NT4 SP6a and is hence
  *	 assumed to be the one and only correct interpretation.
  */
-typedef struct [[gnu::gcc_struct, gnu::packed]]
+using TD_FILE_NAME_ATTR = struct [[gnu::gcc_struct, gnu::packed]]
 {
   /*hex ofs*/
   /*  0*/ uint64_t parent_directory;     /* Directory this filename is
@@ -203,7 +203,7 @@ typedef struct [[gnu::gcc_struct, gnu::packed]]
 #if !defined(__FRAMAC__)
   /* 42*/ char *file_name[0]; /* File name in Unicode. */
 #endif
-} TD_FILE_NAME_ATTR;
+};
 
 /**
  * struct INDEX_ROOT - Attribute: Index root (0x90).
@@ -224,7 +224,7 @@ typedef struct [[gnu::gcc_struct, gnu::packed]]
  * NOTE: The root directory (FILE_root) contains an entry for itself. Other
  * directories do not contain entries for themselves, though.
  */
-typedef struct [[gnu::gcc_struct, gnu::packed]]
+using TD_INDEX_ROOT = struct [[gnu::gcc_struct, gnu::packed]]
 {
   /*  0*/ uint32_t type;             /* Type of the indexed attribute. Is
                             $FILE_NAME for directories, zero
@@ -244,6 +244,6 @@ typedef struct [[gnu::gcc_struct, gnu::packed]]
   /* 16*/ TD_INDEX_HEADER index; /* Index header describing the
                     following index entries. */
                                  /* sizeof()= 32 bytes */
-} TD_INDEX_ROOT;
+};
 
 #endif

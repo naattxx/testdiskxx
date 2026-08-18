@@ -21,4 +21,4 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
   @ ensures  \result!=\null ==> (0 < \result->geom.sectors_per_head <= 63);
   @ ensures  \result==\null || valid_disk(\result);
   @*/
-std::optional<disk_t> file_test_availability(const char *device, const int verbose, const int testdisk_mode);
+auto file_test_availability(const char *device, const int verbose, const int testdisk_mode) -> std::optional<disk_t>;

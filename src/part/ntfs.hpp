@@ -31,25 +31,25 @@
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
-               const int dump_ind);
+auto check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
+                const int dump_ind) -> int;
 
 /*@
   @ requires \valid_read(ntfs_header);
   @*/
-int log_ntfs_info(const struct ntfs_boot_sector *ntfs_header);
+auto log_ntfs_info(const struct ntfs_boot_sector *ntfs_header) -> int;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-int is_ntfs(const partition_t &partition);
+auto is_ntfs(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-int is_part_ntfs(const partition_t &partition);
+auto is_part_ntfs(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -58,9 +58,9 @@ int is_part_ntfs(const partition_t &partition);
   @ requires \valid(partition);
   @ requires \separated(disk_car, ntfs_header, partition);
   @*/
-int recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header,
-                 partition_t &partition, const int verbose, const int dump_ind,
-                 const int backup);
+auto recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header,
+                  partition_t &partition, const int verbose, const int dump_ind,
+                  const int backup) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -68,10 +68,10 @@ int recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header,
   @ requires \valid_read(partition);
   @ requires \separated(disk_car, ntfs_header, partition);
   @*/
-int test_NTFS(const disk_t &disk_car,
-              const struct ntfs_boot_sector *ntfs_header,
-              const partition_t &partition, const int verbose,
-              const int dump_ind);
+auto test_NTFS(const disk_t &disk_car,
+               const struct ntfs_boot_sector *ntfs_header,
+               const partition_t &partition, const int verbose,
+               const int dump_ind) -> int;
 
 #define NTFS_GETU8(p) (*(const uint8_t *)(p))
 #define NTFS_GETU16(p) (le16(*(const uint16_t *)(p)))
@@ -82,25 +82,26 @@ int test_NTFS(const disk_t &disk_car,
   @ requires \valid_read(ntfs_header);
   @ assigns  \nothing;
   @*/
-unsigned int ntfs_sector_size(const struct ntfs_boot_sector *ntfs_header);
+auto ntfs_sector_size(const struct ntfs_boot_sector *ntfs_header)
+    -> unsigned int;
 
 /*@
   @ requires \valid_read(record);
   @*/
-const ntfs_attribheader *ntfs_findattribute(const ntfs_recordheader *record,
-                                            uint32_t attrType, const char *end);
+auto ntfs_findattribute(const ntfs_recordheader *record, uint32_t attrType,
+                        const char *end) -> const ntfs_attribheader *;
 
 /*@
   @ requires \valid_read(attrib);
   @ assigns  \nothing;
   @*/
-const char *ntfs_getattributedata(const ntfs_attribresident *attrib,
-                                  const char *end);
+auto ntfs_getattributedata(const ntfs_attribresident *attrib, const char *end)
+    -> const char *;
 
 /*@
   @ requires \valid_read(attrnr);
   @*/
-long int ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
-                                   const char *end);
+auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
+                               const char *end) -> long int;
 
 #endif

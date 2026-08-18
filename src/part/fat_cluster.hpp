@@ -23,8 +23,8 @@
 #define _FAT_CLUSTER_H
 #include "src/common.hpp"
 
-typedef struct sector_cluster_struct sector_cluster_t;
-typedef struct cluster_offset_struct cluster_offset_t;
+using sector_cluster_t = struct sector_cluster_struct;
+using cluster_offset_t = struct cluster_offset_struct;
 
 struct sector_cluster_struct
 {
@@ -50,15 +50,17 @@ struct cluster_offset_struct
   @ requires \separated(disk_car, partition, sectors_per_cluster, offset);
   @ decreases 0;
   @*/
-int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
-                             const int verbose, const int dump_ind,
-                             unsigned int *sectors_per_cluster,
-                             uint64_t *offset, const upart_type_t upart_type);
+auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
+                              const int verbose, const int dump_ind,
+                              unsigned int *sectors_per_cluster,
+                              uint64_t *offset, const upart_type_t upart_type)
+    -> int;
 
 /*@
   @ assigns \nothing;
   @*/
-upart_type_t no_of_cluster2part_type(const unsigned long int no_of_cluster);
+auto no_of_cluster2part_type(const unsigned long int no_of_cluster)
+    -> upart_type_t;
 
 /*@
   @ requires \valid_read(sector_cluster + (0 .. nbr_sector_cluster-1));
@@ -66,11 +68,11 @@ upart_type_t no_of_cluster2part_type(const unsigned long int no_of_cluster);
   @ requires \valid(offset);
   @ requires \separated(sector_cluster + (..), sectors_per_cluster, offset);
   @*/
-int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster,
-                                 const unsigned int nbr_sector_cluster,
-                                 unsigned int *sectors_per_cluster,
-                                 uint64_t *offset, const int verbose,
-                                 const unsigned long int part_size_in_sectors,
-                                 const upart_type_t upart_type);
+auto find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster,
+                                  const unsigned int nbr_sector_cluster,
+                                  unsigned int *sectors_per_cluster,
+                                  uint64_t *offset, const int verbose,
+                                  const unsigned long int part_size_in_sectors,
+                                  const upart_type_t upart_type) -> int;
 
 #endif

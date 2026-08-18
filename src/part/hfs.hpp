@@ -34,7 +34,7 @@ struct [[gnu::gcc_struct, gnu::packed]] hfs_extent
 };
 typedef struct hfs_extent hfs_extent_rec[3];
 
-typedef struct hfs_mdb hfs_mdb_t;
+using hfs_mdb_t = struct hfs_mdb;
 struct [[gnu::gcc_struct, gnu::packed]] hfs_mdb
 {
   uint16_t drSigWord;        /* 0x00 Signature word indicating fs type */
@@ -84,7 +84,8 @@ struct [[gnu::gcc_struct, gnu::packed]] hfs_mdb
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_HFS(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_HFS(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -93,9 +94,9 @@ int check_HFS(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, hfs_mdb, partition);
   @*/
-int test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
-             const partition_t &partition, const int verbose,
-             const int dump_ind);
+auto test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
+              const partition_t &partition, const int verbose,
+              const int dump_ind) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -104,8 +105,8 @@ int test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, hfs_mdb, partition);
   @*/
-int recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
-                partition_t &partition, const int verbose, const int dump_ind,
-                const int backup);
+auto recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
+                 partition_t &partition, const int verbose, const int dump_ind,
+                 const int backup) -> int;
 
 #endif /* _HFS_H */

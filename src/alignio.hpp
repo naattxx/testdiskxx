@@ -22,6 +22,8 @@
 
 #ifndef _ALIGNIO_H
 #define _ALIGNIO_H
+#include <utility>
+
 #include "common.hpp"
 #include "log.hpp"
 
@@ -38,9 +40,9 @@
   @ decreases 0;
   @ ensures  valid_disk(disk_car);
   @*/
-static int align_pread(int (*fnct_pread)(const disk_t &disk_car, void *buf, const unsigned int count,
+static auto align_pread(int (*fnct_pread)(const disk_t &disk_car, void *buf, const unsigned int count,
                                          const uint64_t offset),
-                       disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset)
+                       disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     const uint64_t offset_new = offset + disk_car.offset;
     const unsigned int count_new = ((offset_new % disk_car.sector_size) + count + disk_car.sector_size - 1) /
@@ -56,9 +58,9 @@ static int align_pread(int (*fnct_pread)(const disk_t &disk_car, void *buf, cons
         if (disk_car.rbuffer_size < count_new)
         {
             delete[] (disk_car.rbuffer);
-            disk_car.rbuffer = NULL;
+            disk_car.rbuffer = nullptr;
         }
-        if (disk_car.rbuffer == NULL)
+        if (disk_car.rbuffer == nullptr)
         {
             disk_car.rbuffer_size = 128 * 512;
             /*@ loop assigns disk_car.rbuffer_size; */
@@ -74,10 +76,10 @@ static int align_pread(int (*fnct_pread)(const disk_t &disk_car, void *buf, cons
         /*@ assert valid_disk(disk_car); */
         res = fnct_pread(disk_car, disk_car.rbuffer, count_new,
                          offset_new / disk_car.sector_size * disk_car.sector_size);
-        memcpy(buf, (char *)disk_car.rbuffer + (offset_new % disk_car.sector_size), count);
+        memcpy(buf, disk_car.rbuffer + (offset_new % disk_car.sector_size), count);
         /*@ assert \freeable(disk_car.rbuffer) && disk_car.rbuffer_size > 0; */
         /*@ assert valid_disk(disk_car); */
-        return (res < (signed)count ? res : (signed)count);
+        return (std::cmp_less(res ,count) ? res : static_cast<signed>(count));
     }
     /*@ assert valid_disk(disk_car); */
     return fnct_pread(disk_car, buf, count, offset_new);
@@ -97,11 +99,11 @@ static int align_pread(int (*fnct_pread)(const disk_t &disk_car, void *buf, cons
   @ decreases 0;
   @ ensures  valid_disk(disk_car);
   @*/
-static int align_pwrite(int (*fnct_pread)(const disk_t &disk_car, void *buf, const unsigned int count,
+static auto align_pwrite(int (*fnct_pread)(const disk_t &disk_car, void *buf, const unsigned int count,
                                           const uint64_t offset),
                         int (*fnct_pwrite)(disk_t &disk_car, const void *buf, const unsigned int count,
                                            const uint64_t offset),
-                        disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
+                        disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     const uint64_t offset_new = offset + disk_car.offset;
     const unsigned int count_new = ((offset_new % disk_car.sector_size) + count + disk_car.sector_size - 1) /
@@ -113,9 +115,9 @@ static int align_pwrite(int (*fnct_pread)(const disk_t &disk_car, void *buf, con
         if (disk_car.wbuffer_size < count_new)
         {
             delete[] (disk_car.wbuffer);
-            disk_car.wbuffer = NULL;
+            disk_car.wbuffer = nullptr;
         }
-        if (disk_car.wbuffer == NULL)
+        if (disk_car.wbuffer == nullptr)
         {
             disk_car.wbuffer_size = 128 * 512;
             /*@ loop assigns disk_car.wbuffer_size; */
@@ -135,12 +137,12 @@ static int align_pwrite(int (*fnct_pread)(const disk_t &disk_car, void *buf, con
             log_error("read failed but trying to write anyway");
             memset(disk_car.wbuffer, 0, disk_car.wbuffer_size);
         }
-        memcpy((char *)disk_car.wbuffer + (offset_new % disk_car.sector_size), buf, count);
+        memcpy(disk_car.wbuffer + (offset_new % disk_car.sector_size), buf, count);
         tmp = fnct_pwrite(disk_car, disk_car.wbuffer, count_new,
                           offset_new / disk_car.sector_size * disk_car.sector_size);
         /*@ assert \freeable(disk_car.wbuffer) && disk_car.wbuffer_size > 0; */
         /*@ assert valid_disk(disk_car); */
-        return (tmp < (signed)count ? tmp : (signed)count);
+        return (std::cmp_less(tmp ,count) ? tmp : static_cast<signed>(count));
     }
     /*@ assert valid_disk(disk_car); */
     return fnct_pwrite(disk_car, buf, count, offset_new);

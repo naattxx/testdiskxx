@@ -35,9 +35,9 @@
   @ requires valid_read_string(device);
   @ ensures  valid_disk(\result);
   @*/
-std::optional<disk_t> fewf_init(const char *device, const int testdisk_mode);
+auto fewf_init(const char *device, const int testdisk_mode) -> std::optional<disk_t>;
 #endif
 /*@ assigns \nothing; */
-const char*td_ewf_version(void);
+auto td_ewf_version() -> const char*;
 
 #endif

@@ -27,5 +27,5 @@
       @ requires valid_read_string(pathname);
       @ assigns \nothing;
       @*/
-    int set_date(const char *pathname, time_t actime, time_t modtime);
+    auto set_date(const char *pathname, time_t actime, time_t modtime) -> int;
 #endif

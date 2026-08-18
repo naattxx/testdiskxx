@@ -44,7 +44,7 @@ struct Block0
   uint16_t sbDrvrCount; /* driver descriptor count */
   uint16_t sbMap[247];  /* descriptor map */
 };
-typedef struct Block0 mac_Block0;
+using mac_Block0 = struct Block0;
 
 // Where &sbMap[0] is actually an array DDMap[sbDrvrCount]
 // kludge to get around alignment junk
@@ -54,7 +54,7 @@ struct DDMap
   uint16_t ddSize;  /* size of 1st driver (512-byte blks) */
   uint16_t ddType;  /* system type (1 for Mac+) */
 };
-typedef struct DDMap mac_DDMap;
+using mac_DDMap = struct DDMap;
 
 // Each partition map entry (blocks 1 through n) has this format
 struct [[gnu::gcc_struct, gnu::packed]] dpme
@@ -92,12 +92,12 @@ struct [[gnu::gcc_struct, gnu::packed]] dpme
   uint32_t dpme_boot_args[32];
   uint32_t dpme_reserved_3[62];
 };
-typedef struct dpme mac_DPME;
+using mac_DPME = struct dpme;
 
 /*@
   @ requires valid_list_part(list_part);
   @*/
-int test_structure_mac(const list_part_t &list_part);
+auto test_structure_mac(const list_part_t &list_part) -> int;
 
 /*@
   @ requires valid_disk(disk_car);

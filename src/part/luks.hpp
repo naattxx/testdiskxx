@@ -32,7 +32,7 @@
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_LUKS(disk_t &disk_car, partition_t &partition);
+auto check_LUKS(disk_t &disk_car, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -41,7 +41,8 @@ int check_LUKS(disk_t &disk_car, partition_t &partition);
   @ requires \valid(partition);
   @ requires \separated(disk_car, sb, partition);
   @*/
-int recover_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
-                 partition_t &partition, const int verbose, const int dump_ind);
+auto recover_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
+                  partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 #endif

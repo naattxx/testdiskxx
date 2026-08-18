@@ -30,7 +30,7 @@
       @ terminates \true;
       @ assigns to[0 .. len-1];
       @*/
-    unsigned int UCSle2str(char *to, const uint16_t *from, const unsigned int len);
+    auto UCSle2str(char *to, const uint16_t *from, const unsigned int len) -> unsigned int;
 
     /*@
       @ requires \valid(to + ( 0 .. len-1));
@@ -39,6 +39,6 @@
       @ terminates \true;
       @ assigns to[0 .. len-1];
       @*/
-    unsigned int str2UCSle(uint16_t *to, const char *from, const unsigned int len);
+    auto str2UCSle(uint16_t *to, const char *from, const unsigned int len) -> unsigned int;
 
 #endif

@@ -23,8 +23,8 @@
 #define _TNTFS_H
 #include "src/common.hpp"
 
-int ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
-                     const int verbose, const unsigned int expert,
-                     char **current_cmd);
+auto ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
+                      const int verbose, const unsigned int expert,
+                      char **current_cmd) -> int;
 
 #endif

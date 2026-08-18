@@ -49,25 +49,25 @@
 #define LVM_MAX_PE_SIZE (16L * 1024L * 1024L * 2) /* 16GB in sectors */
 
 /* disk stored pe information */
-typedef struct
+using disk_pe_t = struct
 {
   uint16_t lv_num;
   uint16_t le_num;
-} disk_pe_t;
+};
 
 /* disk stored PV, VG, LV and PE size and offset information */
-typedef struct
+using lvm_disk_data_t = struct
 {
   uint32_t base;
   uint32_t size;
-} lvm_disk_data_t;
+};
 
 /*
  * Structure Physical Volume (PV) Version 2
  */
 
 /* disk */
-typedef struct
+struct pv_disk_t
 {
   uint8_t id[2];    /* Identifier */
   uint16_t version; /* HM lvm version */
@@ -88,9 +88,8 @@ typedef struct
   uint32_t pe_size;
   uint32_t pe_total;
   uint32_t pe_allocated;
-} pv_disk_v2_t;
+};
 
-#define pv_disk_t pv_disk_v2_t
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
@@ -98,7 +97,8 @@ typedef struct
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_LVM(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_LVM(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -107,8 +107,9 @@ int check_LVM(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid(partition);
   @ requires \separated(disk_car, partition);
   @*/
-int recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
-                partition_t &partition, const int verbose, const int dump_ind);
+auto recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
+                 partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 #define LVM2_LABEL "LVM2 001"
 #define LABEL_ID "LABELONE"
@@ -146,7 +147,8 @@ struct [[gnu::packed]] lvm2_pv_header
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -155,7 +157,8 @@ int check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, buf, partition);
   @*/
-int recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
-                 partition_t &partition, const int verbose, const int dump_ind);
+auto recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
+                  partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 #endif /* _LVM_H */

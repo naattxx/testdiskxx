@@ -1,3 +1,3 @@
 #pragma once
 
-bool isAdmin();
+auto isAdmin() -> bool;

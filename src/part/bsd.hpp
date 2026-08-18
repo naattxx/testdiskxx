@@ -179,8 +179,8 @@ struct disklabel
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
-              const unsigned int max_partitions);
+auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
+               const unsigned int max_partitions) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -189,7 +189,8 @@ int check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, bsd_header, partition);
   @*/
-int recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
-                partition_t &partition, const int verbose, const int dump_ind);
+auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
+                 partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 #endif

@@ -142,13 +142,14 @@ struct msdos_dir_slot
   @ terminates \true;
   @ assigns \nothing;
   @ */
-unsigned int fat_get_cluster_from_entry(const struct msdos_dir_entry *entry);
+auto fat_get_cluster_from_entry(const struct msdos_dir_entry *entry)
+    -> unsigned int;
 
 /*@
   @ requires \valid_read(buffer + (0 .. 0x40-1));
   @ assigns \nothing;
   @ */
-int is_fat_directory(const unsigned char *buffer);
+auto is_fat_directory(const unsigned char *buffer) -> int;
 
 /*@
   @ requires \valid_read(fat_header);
@@ -157,7 +158,7 @@ int is_fat_directory(const unsigned char *buffer);
   @ ensures \result <= 65535;
   @ assigns \nothing;
   @ */
-unsigned int get_dir_entries(const struct fat_boot_sector *fat_header);
+auto get_dir_entries(const struct fat_boot_sector *fat_header) -> unsigned int;
 
 /*@
   @ requires \valid_read(fat_header);
@@ -166,7 +167,7 @@ unsigned int get_dir_entries(const struct fat_boot_sector *fat_header);
   @ ensures \result <= 65535;
   @ assigns \nothing;
   @ */
-unsigned int fat_sector_size(const struct fat_boot_sector *fat_header);
+auto fat_sector_size(const struct fat_boot_sector *fat_header) -> unsigned int;
 
 /*@
   @ requires \valid_read(fat_header);
@@ -175,6 +176,6 @@ unsigned int fat_sector_size(const struct fat_boot_sector *fat_header);
   @ ensures \result <= 65535;
   @ assigns \nothing;
   @ */
-unsigned int fat_sectors(const struct fat_boot_sector *fat_header);
+auto fat_sectors(const struct fat_boot_sector *fat_header) -> unsigned int;
 
 #endif

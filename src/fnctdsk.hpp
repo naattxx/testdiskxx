@@ -29,8 +29,8 @@
       @ requires valid_disk(disk_car);
       @ assigns \nothing;
       @*/
-    unsigned long int C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H,
-                                const unsigned int S);
+    auto C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H,
+                                const unsigned int S) -> unsigned long int;
 
     /*@
       @ requires \valid_read(disk_car);
@@ -38,7 +38,7 @@
       @ requires \valid_read(CHS);
       @ assigns \nothing;
       @*/
-    uint64_t CHS2offset(const disk_t &disk_car, const CHS_t *CHS);
+    auto CHS2offset(const disk_t &disk_car, const CHS_t *CHS) -> uint64_t;
 
     /*@
       @ requires \valid_read(disk_car);
@@ -48,7 +48,7 @@
       @ assigns \nothing;
       @ ensures 0 < \result <= disk_car->geom.sectors_per_head;
       @*/
-    unsigned int offset2sector(const disk_t &disk_car, const uint64_t offset);
+    auto offset2sector(const disk_t &disk_car, const uint64_t offset) -> unsigned int;
 
     /*@
       @ requires \valid_read(disk_car);
@@ -59,7 +59,7 @@
       @ assigns \nothing;
       @ ensures \result <= disk_car->geom.heads_per_cylinder;
       @*/
-    unsigned int offset2head(const disk_t &disk_car, const uint64_t offset);
+    auto offset2head(const disk_t &disk_car, const uint64_t offset) -> unsigned int;
 
     /*@
       @ requires \valid_read(disk_car);
@@ -69,7 +69,7 @@
       @ requires disk_car->geom.heads_per_cylinder > 0;
       @ assigns \nothing;
       @*/
-    unsigned int offset2cylinder(const disk_t &disk_car, const uint64_t offset);
+    auto offset2cylinder(const disk_t &disk_car, const uint64_t offset) -> unsigned int;
 
     /*@
       @ requires \valid_read(disk_car);
@@ -133,7 +133,7 @@
       @ requires valid_list_part(list_part);
       @ ensures  valid_list_part(\result);
       @*/
-    list_part_t gen_sorted_partition_list(const list_part_t &list_part);
+    auto gen_sorted_partition_list(const list_part_t &list_part) -> list_part_t;
 
     /*@
       @ requires \valid_read(disk_car);
@@ -142,7 +142,7 @@
       @ requires valid_list_part(list_part);
       @*/
     // assigns \nothing;
-    unsigned int get_geometry_from_list_part(const disk_t &disk_car, const list_part_t &list_part, const int verbose);
+    auto get_geometry_from_list_part(const disk_t &disk_car, const list_part_t &list_part, const int verbose) -> unsigned int;
 
     /*@
       @ requires valid_list_disk(list_disk);
@@ -157,7 +157,7 @@
       @ requires list_disk==\null || (list_disk->disk->wbuffer == \null || \freeable(list_disk->disk->wbuffer));
       @ decreases 0;
       @*/
-    int delete_list_disk(list_disk_t &list_disk);
+    auto delete_list_disk(list_disk_t &list_disk) -> int;
 
     /*@
       @ requires \valid(buffer + (0..99));
@@ -171,7 +171,7 @@
       @ requires valid_list_part(list_part);
       @ assigns \nothing;
       @*/
-    int is_part_overlapping(const list_part_t &list_part);
+    auto is_part_overlapping(const list_part_t &list_part) -> int;
 
     /*@
       @ requires valid_list_disk(list_disk);

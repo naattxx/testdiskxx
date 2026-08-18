@@ -30,7 +30,8 @@
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -39,9 +40,9 @@ int check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid_read(partition);
   @ requires \separated(disk_car, vh, partition);
   @*/
-int test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
-              const partition_t &partition, const int verbose,
-              const int dump_ind);
+auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
+               const partition_t &partition, const int verbose,
+               const int dump_ind) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -51,8 +52,8 @@ int test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
   @ requires \separated(disk_car, vh, partition);
   @ decreases 0;
   @*/
-int recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
-                 partition_t &partition, const int verbose, const int dump_ind,
-                 const int backup);
+auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
+                  partition_t &partition, const int verbose, const int dump_ind,
+                  const int backup) -> int;
 
 #endif

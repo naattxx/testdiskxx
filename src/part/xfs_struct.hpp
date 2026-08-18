@@ -41,13 +41,13 @@
 #define XFS_SB_VERSION_5 5       /* CRC enabled filesystem */
 #define XFS_SB_VERSION_NUMBITS 0x000f
 
-typedef uint32_t xfs_extlen_t;   /* extent length in blocks */
-typedef uint64_t xfs_drfsbno_t;  /* blockno in filesystem (raw) */
-typedef uint64_t xfs_drtbno_t;   /* extent (block) in realtime area */
-typedef uint64_t xfs_ino_t;      /* <inode> type */
-typedef uint32_t xfs_agblock_t;  /* blockno in alloc. group */
-typedef uint32_t xfs_agnumber_t; /* allocation group number */
-typedef uint64_t xfs_dfsbno_t;
+using xfs_extlen_t   = uint32_t; /* extent length in blocks */
+using xfs_drfsbno_t  = uint64_t; /* blockno in filesystem (raw) */
+using xfs_drtbno_t   = uint64_t; /* extent (block) in realtime area */
+using xfs_ino_t      = uint64_t; /* <inode> type */
+using xfs_agblock_t  = uint32_t; /* blockno in alloc. group */
+using xfs_agnumber_t = uint32_t; /* allocation group number */
+using xfs_dfsbno_t   = uint64_t;
 
 struct [[gnu::gcc_struct, gnu::packed]] xfs_sb
 {

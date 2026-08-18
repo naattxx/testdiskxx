@@ -13,15 +13,15 @@
 #define NX_MINIMUM_BLOCK_SIZE 4096
 #define NX_TX_MIN_CHECKPOINT_COUNT 4
 
-typedef enum
+using nx_counter_id_t = enum
 {
   NX_CNTR_OBJ_CKSUM_SET  = 0,
   NX_CNTR_OBJ_CKSUM_FAIL = 1,
   NX_NUM_COUNTERS        = 32
-} nx_counter_id_t;
+};
 
-typedef uint64_t oid_t;
-typedef uint64_t xid_t;
+using oid_t = uint64_t;
+using xid_t = uint64_t;
 
 struct [[gnu::gcc_struct, gnu::packed]] obj_phys
 {
@@ -32,9 +32,9 @@ struct [[gnu::gcc_struct, gnu::packed]] obj_phys
   uint32_t o_subtype;
 };
 
-typedef struct obj_phys obj_phys_t;
+using obj_phys_t = struct obj_phys;
 #if HAVE_PADDR_T == 0
-typedef int64_t paddr_t;
+using paddr_t = int64_t;
 #endif
 
 struct [[gnu::gcc_struct, gnu::packed]] prange
@@ -42,7 +42,7 @@ struct [[gnu::gcc_struct, gnu::packed]] prange
   paddr_t pr_start_paddr;
   uint64_t pr_block_count;
 };
-typedef struct prange prange_t;
+using prange_t = struct prange;
 
 typedef unsigned char apfs_uuid_t[16];
 
@@ -89,7 +89,7 @@ struct nx_superblock
   uint64_t nx_newest_mounted_version;
   prange_t nx_mkb_locker;
 };
-typedef struct nx_superblock nx_superblock_t;
+using nx_superblock_t = struct nx_superblock;
 
 // #define APFS_SUPERBLOCK_SIZE (sizeof(nx_superblock_t))
 #define APFS_SUPERBLOCK_SIZE 4096
@@ -100,6 +100,6 @@ typedef struct nx_superblock nx_superblock_t;
   @ requires \separated(sb, partition);
   @ assigns  \nothing;
   @ */
-int test_APFS(const nx_superblock_t *sb, const partition_t &partition);
+auto test_APFS(const nx_superblock_t *sb, const partition_t &partition) -> int;
 
 #endif

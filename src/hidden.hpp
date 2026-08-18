@@ -28,6 +28,6 @@
   @ requires valid_disk(disk);
   @ assigns  \nothing;
   @*/
-int is_hpa_or_dco(const disk_t &disk);
+auto is_hpa_or_dco(const disk_t &disk) -> int;
 
 #endif

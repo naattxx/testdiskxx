@@ -31,15 +31,14 @@ extern "C"
     @ requires \valid_read(partition);
     @ requires \separated(disk_car, partition);
     @*/
-  dir_partition_t dir_partition_ntfs_init(disk_t &disk_car,
-                                          const partition_t &partition,
-                                          dir_data_t *dir_data,
-                                          const int verbose, const int expert);
+  auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
+                               dir_data_t *dir_data, const int verbose,
+                               const int expert) -> dir_partition_t;
 }
 
 /*@
   @ assigns \nothing;
   @*/
-const char *td_ntfs_version(void);
+auto td_ntfs_version() -> const char *;
 
 #endif

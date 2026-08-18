@@ -23,7 +23,7 @@
 #define _THFS_H
 #include "src/common.hpp"
 
-int HFS_HFSP_boot_sector(disk_t &disk_car, partition_t &partition,
-                         const int verbose, char **current_cmd);
+auto HFS_HFSP_boot_sector(disk_t &disk_car, partition_t &partition,
+                          const int verbose, char **current_cmd) -> int;
 
 #endif

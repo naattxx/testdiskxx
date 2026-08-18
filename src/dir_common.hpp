@@ -36,7 +36,7 @@
 #define CAPA_LIST_DELETED 1
 #define CAPA_LIST_ADS 2
 
-typedef enum
+using copy_file_t = enum
 {
     CP_OK = 0,
     CP_STAT_FAILED = -1,
@@ -46,15 +46,15 @@ typedef enum
     CP_NOSPACE = -5,
     CP_CLOSE_FAILED = -6,
     CP_NOMEM = -7
-} copy_file_t;
-typedef enum
+};
+using dir_partition_t = enum
 {
     DIR_PART_ENOIMP = -3,
     DIR_PART_ENOSYS = -2,
     DIR_PART_EIO = -1,
     DIR_PART_OK = 0
-} dir_partition_t;
-typedef struct dir_data dir_data_t;
+};
+using dir_data_t = struct dir_data;
 
 struct file_info_t
 {
@@ -69,7 +69,7 @@ struct file_info_t
     time_t td_ctime; /* time of last status change */
     unsigned int status;
 };
-typedef std::list<file_info_t> dir_list_t;
+using dir_list_t = std::list<file_info_t>;
 
 struct dir_data
 {

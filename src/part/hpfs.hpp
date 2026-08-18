@@ -31,9 +31,9 @@
   @ requires \valid(partition);
   @ requires \separated(disk_car, hpfs_header, partition);
   @*/
-int recover_HPFS(const disk_t &disk_car,
-                 const struct fat_boot_sector *hpfs_header,
-                 partition_t &partition, const int verbose);
+auto recover_HPFS(const disk_t &disk_car,
+                  const struct fat_boot_sector *hpfs_header,
+                  partition_t &partition, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -42,6 +42,7 @@ int recover_HPFS(const disk_t &disk_car,
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 #endif

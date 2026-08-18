@@ -27,14 +27,14 @@
 /*@
   @ requires \valid(datestr + (0 .. 17));
   @*/
-int set_datestr(char *datestr, size_t n, const time_t timev);
+auto set_datestr(char *datestr, size_t n, const time_t timev) -> int;
 
 /*@
   @ requires dir_data==\null || \valid_read(dir_data);
   @ requires \valid_read(dir_list);
   @ requires \separated(dir_data, dir_list);
   @*/
-int dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list);
+auto dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -50,7 +50,7 @@ void log_list_file(const disk_t &disk_car, const partition_t &partition, const d
 /*@
   @ requires \valid(list);
   @*/
-unsigned int delete_list_file(dir_list_t &list);
+auto delete_list_file(dir_list_t &list) -> unsigned int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -60,8 +60,8 @@ unsigned int delete_list_file(dir_list_t &list);
   @ requires \valid_read(dir_data);
   @ requires \separated(disk_car, partition, dir_data);
   @*/
-int dir_whole_partition_log(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                            const unsigned long int inode);
+auto dir_whole_partition_log(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+                            const unsigned long int inode) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -83,24 +83,24 @@ void mode_string(const unsigned int mode, char *str);
 /*@
   @ requires valid_read_string(pathname);
   @*/
-int set_mode(const char *pathname, unsigned int mode);
+auto set_mode(const char *pathname, unsigned int mode) -> int;
 
 /*@
   @ requires valid_read_string(filename);
   @ requires \separated(localfilename, localroot, filename);
   @*/
-FILE *fopen_local(char **localfilename, const char *localroot, const char *filename);
+auto fopen_local(char **localfilename, const char *localroot, const char *filename) -> FILE *;
 
 /*@
   @ requires valid_read_string(filename);
   @*/
-char *gen_local_filename(const char *filename);
+auto gen_local_filename(const char *filename) -> char *;
 
 /*@
   @ requires valid_read_string(localroot);
   @ requires valid_read_string(pathname);
   @*/
-char *mkdir_local(const char *localroot, const char *pathname);
+auto mkdir_local(const char *localroot, const char *pathname) -> char *;
 
 /*@
   @ requires valid_read_string(filename);
@@ -111,6 +111,6 @@ void mkdir_local_for_file(const char *filename);
   @ requires \valid_read(a);
   @ requires \valid_read(b);
   @*/
-bool filesort(const struct file_info_t &a, const struct file_info_t &b);
+auto filesort(const struct file_info_t &a, const struct file_info_t &b) -> bool;
 
 #endif

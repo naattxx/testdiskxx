@@ -79,9 +79,9 @@ struct [[gnu::gcc_struct, gnu::packed]] reiserfs_super_block
   /* 84 */ unsigned char s_uuid[16];  /* filesystem unique identifier */
   /*100 */ unsigned char s_label[16]; /* filesystem volume label */
   /*116 */ char s_unused[88];         /* zero filled by mkreiserfs and
-                                       * reiserfs_convert_objectid_map_v1()         so any
-                                       * additions must be updated there as well. */
-                                      /*204*/
+                                       * reiserfs_convert_objectid_map_v1()         so
+                                       * any         additions must be updated there as well. */
+  /*204*/
 };
 
 #define SB_SIZE (sizeof(struct reiserfs_super_block))
@@ -125,7 +125,8 @@ struct [[gnu::packed]] format40_super
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_rfs(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_rfs(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -133,7 +134,8 @@ int check_rfs(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, sb, partition);
   @*/
-int recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
-                partition_t &partition, const int verbose, const int dump_ind);
+auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
+                 partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 #endif

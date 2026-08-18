@@ -34,18 +34,18 @@
   @ requires separation: \separated(disk, partition);
   @ decreases 0;
   @*/
-int comp_FAT(disk_t &disk, const partition_t &partition,
-             const unsigned long int fat_size,
-             const unsigned long int sect_res);
+auto comp_FAT(disk_t &disk, const partition_t &partition,
+              const unsigned long int fat_size,
+              const unsigned long int sect_res) -> int;
 
 /*@
   @ requires \valid_read(fh1);
   @ requires \valid_read(fh2);
   @*/
-int log_fat2_info(const struct fat_boot_sector *fh1,
-                  const struct fat_boot_sector *fh2,
-                  const upart_type_t upart_type,
-                  const unsigned int sector_size);
+auto log_fat2_info(const struct fat_boot_sector *fh1,
+                   const struct fat_boot_sector *fh2,
+                   const upart_type_t upart_type,
+                   const unsigned int sector_size) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -54,57 +54,9 @@ int log_fat2_info(const struct fat_boot_sector *fh1,
   @ requires valid_partition(partition);
   @ requires separation: \separated(disk, partition);
   @*/
-unsigned int get_next_cluster(disk_t &disk, const partition_t &partition,
-                              const upart_type_t upart_type, const int offset,
-                              const unsigned int cluster);
-
-/*@
-  @ requires \valid(disk);
-  @ requires valid_disk(disk);
-  @ requires \valid_read(partition);
-  @ requires valid_partition(partition);
-  @ requires separation: \separated(disk, partition);
-  @ decreases 0;
-  @*/
-int set_next_cluster(disk_t &disk, const partition_t &partition,
-                     const upart_type_t upart_type, const int offset,
-                     const unsigned int cluster,
-                     const unsigned int next_cluster);
-
-/*@
-  @ requires \valid_read(partition);
-  @ terminates \true;
-  @ assigns  \nothing;
-  @*/
-int is_fat(const partition_t &partition);
-
-/*@
-  @ requires \valid_read(partition);
-  @ terminates \true;
-  @ assigns  \nothing;
-  @*/
-int is_part_fat(const partition_t &partition);
-
-/*@
-  @ requires \valid_read(partition);
-  @ terminates \true;
-  @ assigns  \nothing;
-  @*/
-int is_part_fat12(const partition_t &partition);
-
-/*@
-  @ requires \valid_read(partition);
-  @ terminates \true;
-  @ assigns  \nothing;
-  @*/
-int is_part_fat16(const partition_t &partition);
-
-/*@
-  @ requires \valid_read(partition);
-  @ terminates \true;
-  @ assigns  \nothing;
-  @*/
-int is_part_fat32(const partition_t &partition);
+auto get_next_cluster(disk_t &disk, const partition_t &partition,
+                      const upart_type_t upart_type, const int offset,
+                      const unsigned int cluster) -> unsigned int;
 
 /*@
   @ requires \valid(disk);
@@ -114,10 +66,58 @@ int is_part_fat32(const partition_t &partition);
   @ requires separation: \separated(disk, partition);
   @ decreases 0;
   @*/
-unsigned int fat32_get_prev_cluster(disk_t &disk, const partition_t &partition,
-                                    const unsigned int fat_offset,
-                                    const unsigned int cluster,
-                                    const unsigned int no_of_cluster);
+auto set_next_cluster(disk_t &disk, const partition_t &partition,
+                      const upart_type_t upart_type, const int offset,
+                      const unsigned int cluster,
+                      const unsigned int next_cluster) -> int;
+
+/*@
+  @ requires \valid_read(partition);
+  @ terminates \true;
+  @ assigns  \nothing;
+  @*/
+auto is_fat(const partition_t &partition) -> int;
+
+/*@
+  @ requires \valid_read(partition);
+  @ terminates \true;
+  @ assigns  \nothing;
+  @*/
+auto is_part_fat(const partition_t &partition) -> int;
+
+/*@
+  @ requires \valid_read(partition);
+  @ terminates \true;
+  @ assigns  \nothing;
+  @*/
+auto is_part_fat12(const partition_t &partition) -> int;
+
+/*@
+  @ requires \valid_read(partition);
+  @ terminates \true;
+  @ assigns  \nothing;
+  @*/
+auto is_part_fat16(const partition_t &partition) -> int;
+
+/*@
+  @ requires \valid_read(partition);
+  @ terminates \true;
+  @ assigns  \nothing;
+  @*/
+auto is_part_fat32(const partition_t &partition) -> int;
+
+/*@
+  @ requires \valid(disk);
+  @ requires valid_disk(disk);
+  @ requires \valid_read(partition);
+  @ requires valid_partition(partition);
+  @ requires separation: \separated(disk, partition);
+  @ decreases 0;
+  @*/
+auto fat32_get_prev_cluster(disk_t &disk, const partition_t &partition,
+                            const unsigned int fat_offset,
+                            const unsigned int cluster,
+                            const unsigned int no_of_cluster) -> unsigned int;
 
 /*@
   @ requires \valid(disk);
@@ -129,26 +129,26 @@ unsigned int fat32_get_prev_cluster(disk_t &disk, const partition_t &partition,
   @ requires \valid(free_count);
   @ decreases 0;
   @*/
-int fat32_free_info(disk_t &disk, const partition_t &partition,
-                    const unsigned int fat_offset,
-                    const unsigned int no_of_cluster, unsigned int *next_free,
-                    unsigned int *free_count);
+auto fat32_free_info(disk_t &disk, const partition_t &partition,
+                     const unsigned int fat_offset,
+                     const unsigned int no_of_cluster, unsigned int *next_free,
+                     unsigned int *free_count) -> int;
 
 /*@
   @ requires \valid_read(boot_fat32 + (0 .. sector_size + 512 -1));
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-unsigned long int fat32_get_free_count(const unsigned char *boot_fat32,
-                                       const unsigned int sector_size);
+auto fat32_get_free_count(const unsigned char *boot_fat32,
+                          const unsigned int sector_size) -> unsigned long int;
 
 /*@
   @ requires \valid_read(boot_fat32 + (0 .. sector_size + 512 -1));
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-unsigned long int fat32_get_next_free(const unsigned char *boot_fat32,
-                                      const unsigned int sector_size);
+auto fat32_get_next_free(const unsigned char *boot_fat32,
+                         const unsigned int sector_size) -> unsigned long int;
 
 /*@
   @ requires \valid(disk);
@@ -158,9 +158,9 @@ unsigned long int fat32_get_next_free(const unsigned char *boot_fat32,
   @ requires valid_partition(partition);
   @ requires separation: \separated(disk, partition, fat_header);
   @*/
-int recover_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
-                partition_t &partition, const int verbose, const int dump_ind,
-                const int backup);
+auto recover_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
+                 partition_t &partition, const int verbose, const int dump_ind,
+                 const int backup) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -170,7 +170,7 @@ int recover_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
   @ requires separation: \separated(disk, partition);
   @ decreases 0;
   @*/
-int check_FAT(disk_t &disk, partition_t &partition, const int verbose);
+auto check_FAT(disk_t &disk, partition_t &partition, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -180,9 +180,9 @@ int check_FAT(disk_t &disk, partition_t &partition, const int verbose);
   @ requires valid_partition(partition);
   @ requires separation: \separated(disk, partition, fat_header);
   @*/
-int test_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
-             const partition_t &partition, const int verbose,
-             const int dump_ind);
+auto test_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
+              const partition_t &partition, const int verbose,
+              const int dump_ind) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -192,9 +192,9 @@ int test_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
   @ requires valid_partition(partition);
   @ requires separation: \separated(disk, partition, fat_header);
   @*/
-int recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header,
-                  partition_t &partition, const int verbose,
-                  const int dump_ind);
+auto recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header,
+                   partition_t &partition, const int verbose,
+                   const int dump_ind) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -204,13 +204,15 @@ int recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header,
   @ requires separation: \separated(disk, partition);
   @ decreases 0;
   @*/
-int check_OS2MB(disk_t &disk, partition_t &partition, const int verbose);
+auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(name);
   @ terminates \true;
   @ assigns \nothing;
   @*/
-int check_VFAT_volume_name(const char *name, const unsigned int max_size);
+auto check_VFAT_volume_name(const char *name, const unsigned int max_size)
+    -> int;
 
 #endif

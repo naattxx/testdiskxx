@@ -100,7 +100,7 @@
 #define MD_DISK_SYNC 2    /* disk is in sync with the raid set */
 #define MD_DISK_REMOVED 3 /* disk is in sync with the raid set */
 
-typedef struct mdp_device_descriptor_s
+using mdp_disk_t = struct mdp_device_descriptor_s
 {
   uint32_t number;    /* 0 Device number in the entire set	      */
   uint32_t major;     /* 1 Device major number		      */
@@ -108,7 +108,7 @@ typedef struct mdp_device_descriptor_s
   uint32_t raid_disk; /* 3 The role of the device in the raid set   */
   uint32_t state;     /* 4 Operational state			      */
   uint32_t reserved[MD_SB_DESCRIPTOR_WORDS - 5];
-} mdp_disk_t;
+};
 
 #define MD_SB_MAGIC 0xa92b4efc
 
@@ -118,7 +118,7 @@ typedef struct mdp_device_descriptor_s
 #define MD_SB_CLEAN 0
 #define MD_SB_ERRORS 1
 
-typedef struct mdp_superblock_s
+using mdp_super_t = struct mdp_superblock_s
 {
   /*
    * Constant generic information
@@ -183,8 +183,7 @@ typedef struct mdp_superblock_s
    * Active descriptor
    */
   mdp_disk_t this_disk;
-
-} mdp_super_t;
+};
 
 /*
  * The version-1 superblock :
@@ -274,7 +273,8 @@ static inline uint64_t md_event(mdp_super_t *sb) {
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, partition);
   @*/
-int check_MD(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -283,8 +283,9 @@ int check_MD(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, sb, partition);
   @*/
-int recover_MD(const disk_t &disk_car, const struct mdp_superblock_s *sb,
-               partition_t &partition, const int verbose, const int dump_ind);
+auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_s *sb,
+                partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -292,7 +293,7 @@ int recover_MD(const disk_t &disk_car, const struct mdp_superblock_s *sb,
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, partition);
   @*/
-int recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
-                              const int verbose);
+auto recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
+                               const int verbose) -> int;
 
 #endif

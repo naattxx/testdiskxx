@@ -40,13 +40,14 @@ struct [[gnu::gcc_struct, gnu::packed]] disk_fatx
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_FATX(disk_t &disk_car, partition_t &partition);
+auto check_FATX(disk_t &disk_car, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(fatx_block);
   @ requires \valid(partition);
   @ requires \separated(fatx_block, partition);
   @*/
-int recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition);
+auto recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition)
+    -> int;
 
 #endif

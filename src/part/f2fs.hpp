@@ -30,12 +30,12 @@
   @ requires \separated(disk, partition);
   @ decreases 0;
   @*/
-int check_f2fs(disk_t &disk, partition_t &partition);
+auto check_f2fs(disk_t &disk, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(hdr);
   @*/
-int test_f2fs(const struct f2fs_super_block *hdr);
+auto test_f2fs(const struct f2fs_super_block *hdr) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -44,7 +44,7 @@ int test_f2fs(const struct f2fs_super_block *hdr);
   @ requires \valid(partition);
   @ requires \separated(disk, hdr, partition);
   @*/
-int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr,
-                 partition_t &partition);
+auto recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr,
+                  partition_t &partition) -> int;
 
 #endif

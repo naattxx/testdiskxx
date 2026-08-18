@@ -34,6 +34,6 @@ unsigned int get_crc32_gen(const unsigned char *s, const unsigned int len, const
       @ terminates \true;
       @ assigns \nothing;
       @*/
-    unsigned int get_crc32(const void *s, const unsigned int len, const uint32_t seed);
+    auto get_crc32(const void *s, const unsigned int len, const uint32_t seed) -> unsigned int;
 
 #endif

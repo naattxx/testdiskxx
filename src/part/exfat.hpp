@@ -98,8 +98,8 @@ struct [[gnu::gcc_struct, gnu::packed]] exfat_alloc_bitmap_entry
   @ requires \valid_read(exfat_header);
   @ assigns \nothing;
   @*/
-uint64_t exfat_cluster_to_offset(const struct exfat_super_block *exfat_header,
-                                 const unsigned int cluster);
+auto exfat_cluster_to_offset(const struct exfat_super_block *exfat_header,
+                             const unsigned int cluster) -> uint64_t;
 
 /*@
   @ requires \valid(disk);
@@ -109,9 +109,9 @@ uint64_t exfat_cluster_to_offset(const struct exfat_super_block *exfat_header,
   @ requires \separated(disk, partition, exfat_header, (char *)buffer);
   @ decreases 0;
   @*/
-int exfat_read_cluster(disk_t &disk, const partition_t &partition,
-                       const struct exfat_super_block *exfat_header,
-                       void *buffer, const unsigned int cluster);
+auto exfat_read_cluster(disk_t &disk, const partition_t &partition,
+                        const struct exfat_super_block *exfat_header,
+                        void *buffer, const unsigned int cluster) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -120,7 +120,7 @@ int exfat_read_cluster(disk_t &disk, const partition_t &partition,
   @ requires \separated(disk, partition);
   @ decreases 0;
   @*/
-int check_exFAT(disk_t &disk, partition_t &partition);
+auto check_exFAT(disk_t &disk, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk);
@@ -129,14 +129,14 @@ int check_exFAT(disk_t &disk, partition_t &partition);
   @ requires valid_partition(partition);
   @ requires \separated(disk, exfat_header, partition);
   @*/
-int recover_exFAT(const disk_t &disk,
-                  const struct exfat_super_block *exfat_header,
-                  partition_t &partition);
+auto recover_exFAT(const disk_t &disk,
+                   const struct exfat_super_block *exfat_header,
+                   partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(exfat_header);
   @ assigns \nothing;
   @*/
-int test_exFAT(const struct exfat_super_block *exfat_header);
+auto test_exFAT(const struct exfat_super_block *exfat_header) -> int;
 
 #endif

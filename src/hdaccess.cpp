@@ -2015,18 +2015,7 @@ void hd_update_all_geometry(list_disk_t &list_disk, const int verbose)
 }
 
 disk_t::disk_t():
-    description_txt("\0"),
-    disk_size(0),
-    user_max(0),
-    native_max(0),
-    dco(0),
-    offset(0), /* Note, some Raid reserve the first 1024 512-sectors */
-    rbuffer(nullptr),
-    wbuffer(nullptr),
-    rbuffer_size(0),
-    wbuffer_size(0),
-    write_used(0),
-    autodetect(0),
-    unit(UNIT::CHS)
+    description_txt("\0")
+    
 {
 }

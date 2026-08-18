@@ -85,8 +85,8 @@ void add_partition_gpt_cli(const disk_t &disk_car, list_part_t &list_part,
   @ requires valid_list_part(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-int write_part_gpt(disk_t &disk_car, const list_part_t &list_part, const int ro,
-                   const int verbose);
+auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
+                    const int ro, const int verbose) -> int;
 
 #endif
 #endif /* _PARTGPT_H */

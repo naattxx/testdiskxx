@@ -32,7 +32,7 @@
       @ ensures  valid_string(buf);
       @ ensures  \result == buf;
       @*/
-    char *td_getcwd(char *buf, unsigned long size);
+    auto td_getcwd(char *buf, unsigned long size) -> char *;
 
 #ifdef HAVE_NCURSES
     /*@
@@ -45,6 +45,6 @@
 #endif
 
     // ensures \result == \null || (\freeable(\result) && valid_string(\result));
-    char *get_default_location(void);
+    auto get_default_location() -> char *;
 
 #endif

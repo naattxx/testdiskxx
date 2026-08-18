@@ -40,7 +40,7 @@ struct disk_netware
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_netware(disk_t &disk_car, partition_t &partition);
+auto check_netware(disk_t &disk_car, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -49,8 +49,8 @@ int check_netware(disk_t &disk_car, partition_t &partition);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, netware_block, partition);
   @*/
-int recover_netware(const disk_t &disk_car,
-                    const struct disk_netware *netware_block,
-                    partition_t &partition);
+auto recover_netware(const disk_t &disk_car,
+                     const struct disk_netware *netware_block,
+                     partition_t &partition) -> int;
 
 #endif

@@ -27,14 +27,14 @@
 /* real size is 164 */
 #define BFS_SUPERBLOCK_SIZE 512
 
-typedef struct block_run
+using block_run = struct block_run
 {
   uint32_t allocation_group;
   uint16_t start;
   uint16_t len; /* in blocks */
-} block_run;
+};
 
-typedef block_run inode_addr;
+using inode_addr = block_run;
 
 #define B_OS_NAME_LENGTH 32
 
@@ -89,7 +89,7 @@ struct disk_super_block /* super block as it is on disk */
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_BeFS(disk_t &disk_car, partition_t &partition);
+auto check_BeFS(disk_t &disk_car, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -98,8 +98,8 @@ int check_BeFS(disk_t &disk_car, partition_t &partition);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, beos_block, partition);
   @*/
-int recover_BeFS(const disk_t &disk_car,
-                 const struct disk_super_block *beos_block,
-                 partition_t &partition, const int dump_ind);
+auto recover_BeFS(const disk_t &disk_car,
+                  const struct disk_super_block *beos_block,
+                  partition_t &partition, const int dump_ind) -> int;
 
 #endif

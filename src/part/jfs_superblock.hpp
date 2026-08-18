@@ -32,12 +32,12 @@
 /*
  *	physical xd (pxd)
  */
-typedef struct
+using pxd_t = struct
 {
   unsigned len   : 24;
   unsigned addr1 : 8;
   uint32_t addr2;
-} pxd_t;
+};
 
 /*
  * Almost identical to Linux's timespec, but not quite

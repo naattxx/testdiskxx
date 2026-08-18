@@ -29,7 +29,8 @@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-int parti386_can_be_ext(const disk_t &disk_car, const partition_t &partition);
+auto parti386_can_be_ext(const disk_t &disk_car, const partition_t &partition)
+    -> int;
 
 /*@
   @ requires valid_disk(disk_car);
@@ -51,8 +52,8 @@ void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part,
   @ requires \valid(partition);
   @ requires separation: \separated(disk, buffer + (0 .. 512-1), partition);
   @*/
-int recover_i386_logical(disk_t &disk, const unsigned char *buffer,
-                         partition_t &partition);
+auto recover_i386_logical(disk_t &disk, const unsigned char *buffer,
+                          partition_t &partition) -> int;
 
 #endif
 #endif

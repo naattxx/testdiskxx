@@ -24,5 +24,5 @@ enum class TD_LOG
 #define log_debug(...) (file_logger ? file_logger->debug(__VA_ARGS__) : (void)0)
 #define log_trace(...) (file_logger ? file_logger->trace(__VA_ARGS__) : (void)0)
 
-bool log_open(std::string &logfile, TD_LOG create_log);
+auto log_open(std::string &logfile, TD_LOG create_log) -> bool;
 void log_close();

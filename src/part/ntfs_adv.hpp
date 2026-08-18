@@ -26,8 +26,8 @@
   @ requires \valid_read(nh1);
   @ requires \valid_read(nh2);
   @*/
-int log_ntfs2_info(const struct ntfs_boot_sector *nh1,
-                   const struct ntfs_boot_sector *nh2);
+auto log_ntfs2_info(const struct ntfs_boot_sector *nh1,
+                    const struct ntfs_boot_sector *nh2) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -35,7 +35,8 @@ int log_ntfs2_info(const struct ntfs_boot_sector *nh1,
   @ requires \valid(partition);
   @ requires \separated(disk_car, partition);
   @*/
-int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose,
-                    const unsigned int expert, char **current_cmd);
+auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
+                     const int verbose, const unsigned int expert,
+                     char **current_cmd) -> int;
 
 #endif

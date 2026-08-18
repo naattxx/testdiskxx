@@ -30,26 +30,26 @@ struct backup_disk_t
     char description[128];
     list_part_t list_part;
 };
-typedef std::list<backup_disk_t *> backup_disk_list_t;
+using backup_disk_list_t = std::list<backup_disk_t *>;
 
 /*@
   @ requires valid_disk(disk_car);
   @ requires valid_partition(partition);
   @ decreases 0;
   @*/
-int save_header(disk_t &disk_car, const partition_t &partition, const int verbose);
+auto save_header(disk_t &disk_car, const partition_t &partition, const int verbose) -> int;
 
 /*@
   @ requires valid_disk(disk_car);
   @ requires valid_list_part(list_part);
   @ decreases 0;
   @*/
-int partition_save(disk_t &disk_car, const list_part_t &list_part, const int verbose);
+auto partition_save(disk_t &disk_car, const list_part_t &list_part, const int verbose) -> int;
 
 /*@
   @ requires valid_disk(disk_car);
   @ decreases 0;
   @*/
-backup_disk_list_t partition_load(const disk_t &disk_car, const int verbose);
+auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_list_t;
 
 #endif

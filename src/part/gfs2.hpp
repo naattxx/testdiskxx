@@ -88,7 +88,7 @@ struct gfs2_sb
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_gfs2(disk_t &disk_car, partition_t &partition);
+auto check_gfs2(disk_t &disk_car, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -97,7 +97,7 @@ int check_gfs2(disk_t &disk_car, partition_t &partition);
   @ requires \valid(partition);
   @ requires \separated(disk_car, sb, partition);
   @*/
-int recover_gfs2(const disk_t &disk_car, const struct gfs2_sb *sb,
-                 partition_t &partition, const int dump_ind);
+auto recover_gfs2(const disk_t &disk_car, const struct gfs2_sb *sb,
+                  partition_t &partition, const int dump_ind) -> int;
 
 #endif

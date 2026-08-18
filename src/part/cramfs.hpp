@@ -91,7 +91,8 @@ struct cramfs_super
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -100,8 +101,8 @@ int check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \separated(disk_car, partition, sb);
   @ requires \valid_read(sb);
   @*/
-int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb,
-                   partition_t &partition, const int verbose,
-                   const int dump_ind);
+auto recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb,
+                    partition_t &partition, const int verbose,
+                    const int dump_ind) -> int;
 
 #endif

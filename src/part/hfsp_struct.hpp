@@ -45,20 +45,20 @@
 /* HFS+ includes POSIX permissions , although marked as reserved they will be
  * used as such. Is ignored by MacOS 8-9 but probably not by MacOS X.
  */
-typedef struct
+using hfsp_perm = struct
 {
   uint32_t owner;
   uint32_t group;
   uint32_t mode;
   uint32_t dev;
-} hfsp_perm;
+};
 
 /* A single contiguous area (fragment) of a file */
-typedef struct
+using hfsp_extent = struct
 {
   uint32_t start_block;
   uint32_t block_count;
-} hfsp_extent;
+};
 
 /* A file may contain up to 8 normale extents, all other
    are found in some extra extent area */
@@ -68,19 +68,19 @@ typedef hfsp_extent hfsp_extent_rec[8];
  * Forks are the "usual" DATA and RSRC forks or special files
  * (e.g. the Volume Bitmap)
  */
-typedef struct
+using hfsp_fork_raw = struct
 {
   uint64_t total_size; // logical size
   uint32_t clump_size; // number of bytes to preallocate
   uint32_t total_blocks;
   hfsp_extent_rec extents; // initial (8) extents
-} hfsp_fork_raw;
+};
 
 /* HFS+ Volume Header
  * Always found at block 2 of the disk, a copy is stored
  * at the second to last block of the disk.
  */
-typedef struct hfsp_vh
+using hfsp_vh = struct hfsp_vh
 {
   uint16_t signature;       // 00: must be HFSPLUS_VOLHEAD_SIG 'H+'
   uint16_t version;         // 02: 4 for HFS+, 5 for HFSX
@@ -88,7 +88,7 @@ typedef struct hfsp_vh
   uint32_t last_mount_vers; // 08
                             // Use a registered creator code here (See
                             // libhfsp.h) Mac OS uses '8.10' well
-  uint32_t reserved; // 0C
+  uint32_t reserved;        // 0C
 
   uint32_t create_date;  // 10 local time !
   uint32_t modify_date;  // 14 GMT (?)
@@ -131,7 +131,7 @@ typedef struct hfsp_vh
   hfsp_fork_raw attr_file;
   hfsp_fork_raw start_file;
   // a special startup file may be described here (used by ?)
-} hfsp_vh;
+};
 
 /* HFS+ volume attributes */
 /* 0-6 reserved, may be used in memory only */

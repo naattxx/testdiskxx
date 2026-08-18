@@ -209,14 +209,15 @@ struct ext2_super_block
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-uint64_t td_ext2fs_blocks_count(const struct ext2_super_block *super);
+auto td_ext2fs_blocks_count(const struct ext2_super_block *super) -> uint64_t;
 
 /*@
   @ requires \valid_read(super);
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-uint64_t td_ext2fs_free_blocks_count(const struct ext2_super_block *super);
+auto td_ext2fs_free_blocks_count(const struct ext2_super_block *super)
+    -> uint64_t;
 
 /*@
   @ requires \valid_read(sb);
@@ -229,6 +230,7 @@ uint64_t td_ext2fs_free_blocks_count(const struct ext2_super_block *super);
   @ ensures  \result == 7 ==> le32(sb->s_log_block_size) > 6;
   @ ensures  \result == 0 ==> le32(sb->s_log_block_size) <= 6;
   @ */
-int test_EXT2(const struct ext2_super_block *sb, const partition_t &partition);
+auto test_EXT2(const struct ext2_super_block *sb, const partition_t &partition)
+    -> int;
 
 #endif

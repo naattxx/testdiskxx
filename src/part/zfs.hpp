@@ -44,7 +44,7 @@ struct vdev_boot_header
   @ requires separation: \separated(disk, partition);
   @ decreases 0;
   @*/
-int check_ZFS(disk_t &disk, partition_t &partition);
+auto check_ZFS(disk_t &disk, partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk);
@@ -52,6 +52,7 @@ int check_ZFS(disk_t &disk, partition_t &partition);
   @ requires \valid(partition);
   @ requires separation: \separated(disk, ZFS_header, partition);
   @*/
-int recover_ZFS(const disk_t &disk, const struct vdev_boot_header *ZFS_header,
-                partition_t &partition, const int verbose, const int dump_ind);
+auto recover_ZFS(const disk_t &disk, const struct vdev_boot_header *ZFS_header,
+                 partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 #endif

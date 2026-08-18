@@ -486,7 +486,8 @@ struct [[gnu::gcc_struct, gnu::packed]] ufs_super_block
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_ufs(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_ufs(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -494,7 +495,8 @@ int check_ufs(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, sb, partition);
   @*/
-int recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
-                partition_t &partition, const int verbose, const int dump_ind);
+auto recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
+                 partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 #endif

@@ -41,8 +41,9 @@ struct [[gnu::gcc_struct, gnu::packed]] ReFS_boot_sector
 /*@
   @ decreases 0;
   @*/
-int check_ReFS(disk_t &disk, partition_t &partition);
-int recover_ReFS(const disk_t &disk, const struct ReFS_boot_sector *refs_header,
-                 partition_t &partition);
+auto check_ReFS(disk_t &disk, partition_t &partition) -> int;
+auto recover_ReFS(const disk_t &disk,
+                  const struct ReFS_boot_sector *refs_header,
+                  partition_t &partition) -> int;
 
 #endif

@@ -29,9 +29,8 @@
   @ requires \valid_read(partition);
   @ requires \separated(disk_car, partition, dir_data);
   @*/
-dir_partition_t dir_partition_exfat_init(disk_t &disk_car,
-                                         const partition_t &partition,
-                                         dir_data_t *dir_data,
-                                         const int verbose);
+auto dir_partition_exfat_init(disk_t &disk_car, const partition_t &partition,
+                              dir_data_t *dir_data, const int verbose)
+    -> dir_partition_t;
 
 #endif

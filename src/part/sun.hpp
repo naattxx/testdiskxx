@@ -24,7 +24,7 @@
 #include "src/common.hpp"
 #include <cstdint>
 
-typedef struct
+using sun_disklabel = struct
 {
   unsigned char info[128]; /* Informative text string */
   unsigned char spare0[14];
@@ -53,7 +53,7 @@ typedef struct
   } partitions[8];
   uint16_t magic; /* Magic number */
   uint16_t csum;  /* Label xor'd checksum */
-} sun_disklabel;
+};
 
 #define SUN_PARTITION_I386_SIZE 512
 
@@ -79,7 +79,7 @@ struct [[gnu::gcc_struct, gnu::packed]] struct_sun_partition_i386
   uint16_t magic;         /* Magic number */
   uint16_t csum;          /* Label xor'd checksum */
 };
-typedef struct struct_sun_partition_i386 sun_partition_i386;
+using sun_partition_i386 = struct struct_sun_partition_i386;
 #define SUN_LABEL_MAGIC 0xDABE
 #define SUN_LABEL_MAGIC_START 0x600DDEEE
 
@@ -89,9 +89,10 @@ typedef struct struct_sun_partition_i386 sun_partition_i386;
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, sunlabel, partition);
   @*/
-int recover_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel,
-                     partition_t &partition, const int verbose,
-                     const int dump_ind);
+auto recover_sun_i386(const disk_t &disk_car,
+                      const sun_partition_i386 *sunlabel,
+                      partition_t &partition, const int verbose,
+                      const int dump_ind) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -99,6 +100,7 @@ int recover_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel,
   @ requires separation: \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_sun_i386(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_sun_i386(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 #endif

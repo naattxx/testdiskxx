@@ -30,7 +30,8 @@
   @ requires \separated(disk_car, partition);
   @ decreases 0;
   @*/
-int check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose);
+auto check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose)
+    -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -39,7 +40,8 @@ int check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose);
   @ requires \valid(partition);
   @ requires \separated(disk_car, partition);
   @*/
-int recover_EXT2(const disk_t &disk_car, const struct ext2_super_block *sb,
-                 partition_t &partition, const int verbose, const int dump_ind);
+auto recover_EXT2(const disk_t &disk_car, const struct ext2_super_block *sb,
+                  partition_t &partition, const int verbose, const int dump_ind)
+    -> int;
 
 #endif
