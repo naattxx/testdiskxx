@@ -2,4 +2,23 @@
 Language: Cpp
 BasedOnStyle: Microsoft
 AlignAfterOpenBracket: true
+AlignArrayOfStructures: Left
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignEscapedNewlines: LeftWithLastLine
+AlignOperands: AlignAfterOperator
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseExpressionOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakBeforeMultilineStrings: true
+BreakAfterReturnType: Automatic
+BreakBeforeCloseBracketFunction: true
+ColumnLimit: 80
+IndentWidth: 2
+InsertNewlineAtEOF: true
+SortIncludes:
+  Enabled: true
+  IgnoreCase: true
+SortUsingDeclarations: LexicographicNumeric
+UseTab: Never
 ...
