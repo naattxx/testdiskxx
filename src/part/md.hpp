@@ -100,7 +100,7 @@
 #define MD_DISK_SYNC 2    /* disk is in sync with the raid set */
 #define MD_DISK_REMOVED 3 /* disk is in sync with the raid set */
 
-using mdp_disk_t = struct mdp_device_descriptor_s
+struct mdp_disk_t
 {
   uint32_t number;    /* 0 Device number in the entire set	      */
   uint32_t major;     /* 1 Device major number		      */
@@ -118,7 +118,7 @@ using mdp_disk_t = struct mdp_device_descriptor_s
 #define MD_SB_CLEAN 0
 #define MD_SB_ERRORS 1
 
-using mdp_super_t = struct mdp_superblock_s
+struct mdp_superblock_t
 {
   /*
    * Constant generic information
@@ -260,7 +260,7 @@ struct mdp_superblock_1
 };
 
 #if 0
-static inline uint64_t md_event(mdp_super_t *sb) {
+static inline uint64_t md_event(mdp_superblock_t *sb) {
 	uint64_t ev = sb->events_hi;
 	return (ev<<32)| sb->events_lo;
 }
@@ -283,7 +283,7 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, sb, partition);
   @*/
-auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_s *sb,
+auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
                 partition_t &partition, const int verbose, const int dump_ind)
     -> int;
 

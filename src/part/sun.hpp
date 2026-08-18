@@ -24,7 +24,7 @@
 #include "src/common.hpp"
 #include <cstdint>
 
-using sun_disklabel = struct
+struct sun_disklabel
 {
   unsigned char info[128]; /* Informative text string */
   unsigned char spare0[14];
@@ -57,7 +57,7 @@ using sun_disklabel = struct
 
 #define SUN_PARTITION_I386_SIZE 512
 
-struct [[gnu::gcc_struct, gnu::packed]] struct_sun_partition_i386
+struct [[gnu::gcc_struct, gnu::packed]] sun_partition_i386
 {
   unsigned char bootinfo[12];
   uint32_t magic_start; /* Magic number */
@@ -79,7 +79,6 @@ struct [[gnu::gcc_struct, gnu::packed]] struct_sun_partition_i386
   uint16_t magic;         /* Magic number */
   uint16_t csum;          /* Label xor'd checksum */
 };
-using sun_partition_i386 = struct struct_sun_partition_i386;
 #define SUN_LABEL_MAGIC 0xDABE
 #define SUN_LABEL_MAGIC_START 0x600DDEEE
 

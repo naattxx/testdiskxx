@@ -58,9 +58,7 @@
 #define INTER_FATBS_X 0
 #define INTER_FATBS_Y 22
 
-using info_offset_t = struct info_offset_struct;
-
-struct info_offset_struct
+struct info_offset_t
 {
   unsigned long int offset;
   unsigned int nbr;

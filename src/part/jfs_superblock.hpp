@@ -32,7 +32,7 @@
 /*
  *	physical xd (pxd)
  */
-using pxd_t = struct
+struct pxd_t
 {
   unsigned len   : 24;
   unsigned addr1 : 8;

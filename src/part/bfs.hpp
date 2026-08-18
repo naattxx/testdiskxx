@@ -27,7 +27,7 @@
 /* real size is 164 */
 #define BFS_SUPERBLOCK_SIZE 512
 
-using block_run = struct block_run
+struct block_run
 {
   uint32_t allocation_group;
   uint16_t start;

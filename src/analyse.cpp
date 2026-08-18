@@ -200,7 +200,7 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
         return 1;
     /* MD 1.1 */
     if (le32(sb1->major_version) == 1 &&
-        recover_MD(disk, reinterpret_cast<const struct mdp_superblock_s *>(buffer), partition, verbose, dump_ind) == 0)
+        recover_MD(disk, reinterpret_cast<const struct mdp_superblock_t *>(buffer), partition, verbose, dump_ind) == 0)
     {
         partition.part_offset -= le64(sb1->super_offset) * 512;
         return 1;
@@ -302,7 +302,7 @@ auto search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, 
     { /* MD 1.2 */
         const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
         if (le32(sb1->major_version) == 1 &&
-            recover_MD(disk, reinterpret_cast<const struct mdp_superblock_s *>(buffer), partition, verbose, dump_ind) == 0)
+            recover_MD(disk, reinterpret_cast<const struct mdp_superblock_t *>(buffer), partition, verbose, dump_ind) == 0)
         {
             partition.part_offset -= le64(sb1->super_offset) * 512 - 4096;
             return 1;

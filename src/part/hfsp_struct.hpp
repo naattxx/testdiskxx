@@ -45,7 +45,7 @@
 /* HFS+ includes POSIX permissions , although marked as reserved they will be
  * used as such. Is ignored by MacOS 8-9 but probably not by MacOS X.
  */
-using hfsp_perm = struct
+struct hfsp_perm
 {
   uint32_t owner;
   uint32_t group;
@@ -54,7 +54,7 @@ using hfsp_perm = struct
 };
 
 /* A single contiguous area (fragment) of a file */
-using hfsp_extent = struct
+struct hfsp_extent
 {
   uint32_t start_block;
   uint32_t block_count;
@@ -68,7 +68,7 @@ typedef hfsp_extent hfsp_extent_rec[8];
  * Forks are the "usual" DATA and RSRC forks or special files
  * (e.g. the Volume Bitmap)
  */
-using hfsp_fork_raw = struct
+struct hfsp_fork_raw
 {
   uint64_t total_size; // logical size
   uint32_t clump_size; // number of bytes to preallocate
@@ -80,7 +80,7 @@ using hfsp_fork_raw = struct
  * Always found at block 2 of the disk, a copy is stored
  * at the second to last block of the disk.
  */
-using hfsp_vh = struct hfsp_vh
+struct hfsp_vh
 {
   uint16_t signature;       // 00: must be HFSPLUS_VOLHEAD_SIG 'H+'
   uint16_t version;         // 02: 4 for HFS+, 5 for HFSX

@@ -1039,7 +1039,7 @@ static auto read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file
 #endif
 
 #if defined(__linux__) && defined(INQUIRY) && defined(SG_GET_VERSION_NUM)
-using scsi_inquiry_data_t = struct [[gnu::gcc_struct,gnu::packed]] _scsi_inquiry_data
+struct [[gnu::gcc_struct,gnu::packed]] scsi_inquiry_data_t
 {
     uint8_t peripheral_info;
     uint8_t device_info;

@@ -79,7 +79,7 @@ struct [[gnu::gcc_struct, gnu::packed]] ntfs_mft_record
 
 using ntfs_recordheader = struct ntfs_mft_record;
 
-using ntfs_attribheader = struct _ntfs_attribheader
+struct ntfs_attribheader
 {
   uint32_t type;        /* Attribute Type (e.g. 0x10, 0x60) */
   uint32_t cbAttribute; /* Length (including this header) */
@@ -90,7 +90,7 @@ using ntfs_attribheader = struct _ntfs_attribheader
   uint16_t idAttribute; /* Attribute Id (a) */
 };
 
-using ntfs_attribresident = struct _ntfs_attribresident
+struct ntfs_attribresident
 {
   ntfs_attribheader header;
   uint32_t cbAttribData;  /* Length of the Attribute */
@@ -99,7 +99,7 @@ using ntfs_attribresident = struct _ntfs_attribresident
   uint8_t padding;        /* 0x00 Padding */
 };
 
-using ntfs_attribnonresident = struct _ntfs_attribnonresident
+struct ntfs_attribnonresident
 {
   ntfs_attribheader header;
   uint64_t startVCN;     /* Starting VCN */
@@ -124,7 +124,7 @@ using ntfs_attribnonresident = struct _ntfs_attribnonresident
  * relative to the start of the index header structure and not relative to the
  * start of the index root or index allocation structures themselves.
  */
-using TD_INDEX_HEADER = struct [[gnu::gcc_struct, gnu::packed]]
+struct [[gnu::gcc_struct, gnu::packed]] TD_INDEX_HEADER
 {
   /*  0*/ uint32_t
       entries_offset;              /* Byte offset from the INDEX_HEADER to first
@@ -136,7 +136,7 @@ using TD_INDEX_HEADER = struct [[gnu::gcc_struct, gnu::packed]]
                                    /*
                                       For the index root attribute, the above two numbers are always
                                       equal, as the attribute is resident and it is resized as needed.
-                                 
+
                                       For the index allocation attribute, the attribute is not resident
                                       and the allocated_size is equal to the index_block_size specified
                                       by the corresponding INDEX_ROOT attribute minus the INDEX_BLOCK
@@ -160,7 +160,7 @@ using TD_INDEX_HEADER = struct [[gnu::gcc_struct, gnu::packed]]
  *	 correct by practical experimentation on Windows NT4 SP6a and is hence
  *	 assumed to be the one and only correct interpretation.
  */
-using TD_FILE_NAME_ATTR = struct [[gnu::gcc_struct, gnu::packed]]
+struct [[gnu::gcc_struct, gnu::packed]] TD_FILE_NAME_ATTR
 {
   /*hex ofs*/
   /*  0*/ uint64_t parent_directory;     /* Directory this filename is
@@ -224,7 +224,7 @@ using TD_FILE_NAME_ATTR = struct [[gnu::gcc_struct, gnu::packed]]
  * NOTE: The root directory (FILE_root) contains an entry for itself. Other
  * directories do not contain entries for themselves, though.
  */
-using TD_INDEX_ROOT = struct [[gnu::gcc_struct, gnu::packed]]
+struct [[gnu::gcc_struct, gnu::packed]] TD_INDEX_ROOT
 {
   /*  0*/ uint32_t type;             /* Type of the indexed attribute. Is
                             $FILE_NAME for directories, zero

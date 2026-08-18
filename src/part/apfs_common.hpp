@@ -23,7 +23,7 @@ using nx_counter_id_t = enum
 using oid_t = uint64_t;
 using xid_t = uint64_t;
 
-struct [[gnu::gcc_struct, gnu::packed]] obj_phys
+struct [[gnu::gcc_struct, gnu::packed]] obj_phys_t
 {
   uint8_t o_cksum[MAX_CKSUM_SIZE];
   oid_t o_oid;
@@ -32,21 +32,19 @@ struct [[gnu::gcc_struct, gnu::packed]] obj_phys
   uint32_t o_subtype;
 };
 
-using obj_phys_t = struct obj_phys;
 #if HAVE_PADDR_T == 0
 using paddr_t = int64_t;
 #endif
 
-struct [[gnu::gcc_struct, gnu::packed]] prange
+struct [[gnu::gcc_struct, gnu::packed]] prange_t
 {
   paddr_t pr_start_paddr;
   uint64_t pr_block_count;
 };
-using prange_t = struct prange;
 
 typedef unsigned char apfs_uuid_t[16];
 
-struct nx_superblock
+struct nx_superblock_t
 {
   obj_phys_t nx_o;
   uint32_t nx_magic;
@@ -89,7 +87,6 @@ struct nx_superblock
   uint64_t nx_newest_mounted_version;
   prange_t nx_mkb_locker;
 };
-using nx_superblock_t = struct nx_superblock;
 
 // #define APFS_SUPERBLOCK_SIZE (sizeof(nx_superblock_t))
 #define APFS_SUPERBLOCK_SIZE 4096

@@ -32,8 +32,7 @@
 #define LUKS_NUMKEYS 8
 #define LUKS_MAGIC_L 6
 #define UUID_STRING_L 40
-using luks_keyslot_t = struct luks_keyslot;
-struct luks_keyslot
+struct luks_keyslot_t
 {
   uint32_t active;
   uint32_t passwordIterations;

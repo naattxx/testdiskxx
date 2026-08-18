@@ -31,8 +31,7 @@
 
 // #define DEBUG_IO_REDIR 1
 
-using list_redir_t = struct struclist_redir_t;
-struct struclist_redir_t
+struct list_redir_t
 {
     uint64_t org_offset;
     uint64_t new_offset;

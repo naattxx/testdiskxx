@@ -34,8 +34,7 @@ struct [[gnu::gcc_struct, gnu::packed]] hfs_extent
 };
 typedef struct hfs_extent hfs_extent_rec[3];
 
-using hfs_mdb_t = struct hfs_mdb;
-struct [[gnu::gcc_struct, gnu::packed]] hfs_mdb
+struct [[gnu::gcc_struct, gnu::packed]] hfs_mdb_t
 {
   uint16_t drSigWord;        /* 0x00 Signature word indicating fs type */
   uint32_t drCrDate;         /* 0x02 fs creation date/time */

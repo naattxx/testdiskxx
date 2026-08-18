@@ -36,7 +36,7 @@
 #define CAPA_LIST_DELETED 1
 #define CAPA_LIST_ADS 2
 
-using copy_file_t = enum
+enum copy_file_t
 {
     CP_OK = 0,
     CP_STAT_FAILED = -1,
@@ -47,14 +47,13 @@ using copy_file_t = enum
     CP_CLOSE_FAILED = -6,
     CP_NOMEM = -7
 };
-using dir_partition_t = enum
+enum dir_partition_t
 {
     DIR_PART_ENOIMP = -3,
     DIR_PART_ENOSYS = -2,
     DIR_PART_EIO = -1,
     DIR_PART_OK = 0
 };
-using dir_data_t = struct dir_data;
 
 struct file_info_t
 {
@@ -71,7 +70,7 @@ struct file_info_t
 };
 using dir_list_t = std::list<file_info_t>;
 
-struct dir_data
+struct dir_data_t
 {
     void *display;
     char current_directory[DIR_NAME_LEN];

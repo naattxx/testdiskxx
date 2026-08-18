@@ -49,14 +49,14 @@
 #define LVM_MAX_PE_SIZE (16L * 1024L * 1024L * 2) /* 16GB in sectors */
 
 /* disk stored pe information */
-using disk_pe_t = struct
+struct disk_pe_t
 {
   uint16_t lv_num;
   uint16_t le_num;
 };
 
 /* disk stored PV, VG, LV and PE size and offset information */
-using lvm_disk_data_t = struct
+struct lvm_disk_data_t
 {
   uint32_t base;
   uint32_t size;

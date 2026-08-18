@@ -23,16 +23,13 @@
 #define _FAT_CLUSTER_H
 #include "src/common.hpp"
 
-using sector_cluster_t = struct sector_cluster_struct;
-using cluster_offset_t = struct cluster_offset_struct;
-
-struct sector_cluster_struct
+struct sector_cluster_t
 {
   unsigned int sector;
   unsigned int cluster;
 };
 
-struct cluster_offset_struct
+struct cluster_offset_t
 {
   unsigned int sectors_per_cluster;
   unsigned long int offset;

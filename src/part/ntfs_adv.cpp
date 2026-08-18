@@ -44,8 +44,7 @@
 #define MAX_INFO_MFT 10
 #define NTFS_SECTOR_SIZE 0x200
 
-using info_mft_t = struct s_info_mft;
-struct s_info_mft
+struct info_mft_t
 {
   uint64_t sector;
   uint64_t mft_lcn;
