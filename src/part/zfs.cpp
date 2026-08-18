@@ -20,9 +20,9 @@
 
  */
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -33,11 +33,11 @@
 static void set_ZFS_info(const struct vdev_boot_header *sb, partition_t &partition)
 {
     partition.upart_type = UP_ZFS;
-    sprintf(partition.info, "ZFS %lu (Data size unknown)", (long unsigned)le64(sb->vb_version));
+    sprintf(partition.info, "ZFS %lu (Data size unknown)", static_cast<long unsigned> le64(sb->vb_version));
 }
 
-static int test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, const partition_t &partition,
-                    const int dump_ind)
+static auto test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, const partition_t &partition,
+                     const int dump_ind) -> int
 {
     if (le64(sb->vb_magic) != VDEV_BOOT_MAGIC)
         return 1;
@@ -50,26 +50,26 @@ static int test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, const
     return 0;
 }
 
-int check_ZFS(disk_t &disk, partition_t &partition)
+auto check_ZFS(disk_t &disk, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
+    auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
     if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_ZFS(disk, (struct vdev_boot_header *)buffer, partition, 0) != 0)
+    if (test_ZFS(disk, reinterpret_cast<struct vdev_boot_header *>(buffer), partition, 0) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_ZFS_info((struct vdev_boot_header *)buffer, partition);
+    set_ZFS_info(reinterpret_cast<struct vdev_boot_header *>(buffer), partition);
     delete[] (buffer);
     return 0;
 }
 
-int recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, partition_t &partition, const int verbose,
-                const int dump_ind)
+auto recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, partition_t &partition, const int verbose,
+                 const int dump_ind) -> int
 {
     if (test_ZFS(disk, sb, partition, dump_ind) != 0)
         return 1;
@@ -78,7 +78,7 @@ int recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb, partition
     partition.part_type_mac = PMAC_LINUX;
     partition.part_type_sun = PSUN_LINUX;
     partition.part_type_gpt = GPT_ENT_TYPE_SOLARIS_USR;
-    partition.part_size = (uint64_t)le64(sb->vb_offset);
+    partition.part_size = le64(sb->vb_offset);
     partition.blocksize = 0;
     partition.sborg_offset = 0;
     partition.sb_offset = 0;

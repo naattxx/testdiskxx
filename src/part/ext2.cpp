@@ -21,10 +21,10 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 // #include "types.h"
 #include "ext2.hpp"
 #include "src/common.hpp"
@@ -34,20 +34,20 @@
 
 static void set_EXT2_info(const struct ext2_super_block *sb, partition_t &partition, const int verbose);
 
-int check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose)
+auto check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose) -> int
 {
-    unsigned char *buffer = new unsigned char[EXT2_SUPERBLOCK_SIZE];
+    auto *buffer = new unsigned char[EXT2_SUPERBLOCK_SIZE];
     if (disk_car.pread(disk_car, buffer, EXT2_SUPERBLOCK_SIZE, partition.part_offset + 0x400) != EXT2_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_EXT2((struct ext2_super_block *)buffer, partition) != 0)
+    if (test_EXT2(reinterpret_cast<struct ext2_super_block *>(buffer), partition) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_EXT2_info((struct ext2_super_block *)buffer, partition, verbose);
+    set_EXT2_info(reinterpret_cast<struct ext2_super_block *>(buffer), partition, verbose);
     delete[] (buffer);
     return 0;
 }
@@ -102,8 +102,8 @@ static void set_EXT2_info(const struct ext2_super_block *sb, partition_t &partit
 Primary superblock is at 1024 (SUPERBLOCK_OFFSET)
 Group 0 begin at s_first_data_block
 */
-int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partition_t &partition, const int verbose,
-                 const int dump_ind)
+auto recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partition_t &partition, const int verbose,
+                  const int dump_ind) -> int
 {
     if (test_EXT2(sb, partition) != 0)
         return 1;
@@ -120,7 +120,7 @@ int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partitio
     partition.part_type_sun = PSUN_LINUX;
     partition.part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
     partition.part_size = td_ext2fs_blocks_count(sb) * EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size);
-    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&sb->s_uuid);
+    guid_cpy(&partition.part_uuid, reinterpret_cast<const efi_guid_t *>(&sb->s_uuid));
     if (verbose > 0)
     {
         log_info("\n");
@@ -131,12 +131,13 @@ int recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb, partitio
     {
         const unsigned long int block_nr =
             (le32(sb->s_first_data_block) + le16(sb->s_block_group_nr) * le32(sb->s_blocks_per_group));
-        if (partition.part_offset < (uint64_t)block_nr * (EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size)))
+        if (partition.part_offset <
+            static_cast<uint64_t>(block_nr) * (EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size)))
         {
             log_error("recover_EXT2: part_offset problem\n");
             return 1;
         }
-        partition.sb_offset = (uint64_t)block_nr * (EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
+        partition.sb_offset = static_cast<uint64_t>(block_nr) * (EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
         partition.part_offset -= partition.sb_offset;
         log_warning("recover_EXT2: \"e2fsck -b {} -B {} device\" may be needed\n", block_nr, partition.blocksize);
     }

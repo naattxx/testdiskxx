@@ -27,9 +27,9 @@
 #undef HAVE_LIBEXT2FS
 #endif
 
-#include <stdio.h>
-#include <string.h>
 #include <cerrno>
+#include <cstdio>
+#include <cstring>
 
 #if defined(HAVE_LIBEXT2FS)
 #if __has_include("ext2fs/ext2_fs.h")
@@ -61,18 +61,18 @@
 /*
  * I/O Manager routine prototypes
  */
-static errcode_t my_open(const char *dev, int flags, io_channel *channel);
-static errcode_t my_close(io_channel channel);
-static errcode_t my_set_blksize(io_channel channel, int blksize);
-static errcode_t my_read_blk(io_channel channel, unsigned long block, int count, void *buf);
-static errcode_t my_write_blk(io_channel channel, unsigned long block, int count, const void *buf);
-static errcode_t my_flush(io_channel channel);
-static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int count, void *buf);
-static errcode_t my_write_blk64(io_channel channel, unsigned long long block, int count, const void *buf);
+static auto my_open(const char *dev, int flags, io_channel *channel) -> errcode_t;
+static auto my_close(io_channel channel) -> errcode_t;
+static auto my_set_blksize(io_channel channel, int blksize) -> errcode_t;
+static auto my_read_blk(io_channel channel, unsigned long block, int count, void *buf) -> errcode_t;
+static auto my_write_blk(io_channel channel, unsigned long block, int count, const void *buf) -> errcode_t;
+static auto my_flush(io_channel channel) -> errcode_t;
+static auto my_read_blk64(io_channel channel, unsigned long long block, int count, void *buf) -> errcode_t;
+static auto my_write_blk64(io_channel channel, unsigned long long block, int count, const void *buf) -> errcode_t;
 
 static void dir_partition_ext2_close(dir_data_t *dir_data);
-static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                             const file_info_t *file);
+static auto ext2_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const file_info_t *file)
+    -> copy_file_t;
 
 static struct struct_io_manager my_struct_manager = {
     .magic = EXT2_ET_MAGIC_IO_MANAGER,
@@ -83,7 +83,7 @@ static struct struct_io_manager my_struct_manager = {
     .read_blk = &my_read_blk,
     .write_blk = &my_write_blk,
     .flush = &my_flush,
-    .write_byte = NULL,
+    .write_byte = nullptr,
 #ifdef HAVE_STRUCT_STRUCT_IO_MANAGER_SET_OPTION
     .set_option = NULL,
 #endif
@@ -95,7 +95,7 @@ static struct struct_io_manager my_struct_manager = {
 #endif
 };
 
-static io_channel shared_ioch = NULL;
+static io_channel shared_ioch = nullptr;
 /*
  * Macro taken from unix_io.c
  * For checking structure magic numbers...
@@ -108,35 +108,35 @@ static io_channel shared_ioch = NULL;
 /*
  * Allocate libext2fs structures associated with I/O manager
  */
-static io_channel alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
+static auto alloc_io_channel(const disk_t &disk_car, my_data_t *my_data) -> io_channel
 {
     io_channel ioch;
 #ifdef DEBUG_EXT2
     log_info("alloc_io_channel start\n");
 #endif
-    ioch = (io_channel) new struct struct_io_channel;
-    if (ioch == NULL)
-        return NULL;
+    ioch = static_cast<io_channel>(new struct struct_io_channel);
+    if (ioch == nullptr)
+        return nullptr;
     memset(ioch, 0, sizeof(struct struct_io_channel));
     ioch->magic = EXT2_ET_MAGIC_IO_CHANNEL;
     ioch->manager = &my_struct_manager;
     ioch->name = strdup(my_data->partition.fsname);
-    if (ioch->name == NULL)
+    if (ioch->name == nullptr)
     {
         delete (ioch);
-        return NULL;
+        return nullptr;
     }
     ioch->private_data = my_data;
     ioch->block_size = 1024; /* The smallest ext2fs block size */
-    ioch->read_error = 0;
-    ioch->write_error = 0;
+    ioch->read_error = nullptr;
+    ioch->write_error = nullptr;
 #ifdef DEBUG_EXT2
     log_info("alloc_io_channel end\n");
 #endif
     return ioch;
 }
 
-static errcode_t my_open(const char *dev, int flags, io_channel *channel)
+static auto my_open(const char *dev, int flags, io_channel *channel) -> errcode_t
 {
     *channel = shared_ioch;
 #ifdef DEBUG_EXT2
@@ -145,9 +145,9 @@ static errcode_t my_open(const char *dev, int flags, io_channel *channel)
     return 0;
 }
 
-static errcode_t my_close(io_channel channel)
+static auto my_close(io_channel channel) -> errcode_t
 {
-    delete (my_data_t *)channel->private_data;
+    delete static_cast<my_data_t *>(channel->private_data);
     delete (channel->name);
     delete (channel);
 #ifdef DEBUG_EXT2
@@ -156,7 +156,7 @@ static errcode_t my_close(io_channel channel)
     return 0;
 }
 
-static errcode_t my_set_blksize(io_channel channel, int blksize)
+static auto my_set_blksize(io_channel channel, int blksize) -> errcode_t
 {
     channel->block_size = blksize;
 #ifdef DEBUG_EXT2
@@ -165,10 +165,10 @@ static errcode_t my_set_blksize(io_channel channel, int blksize)
     return 0;
 }
 
-static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int count, void *buf)
+static auto my_read_blk64(io_channel channel, unsigned long long block, int count, void *buf) -> errcode_t
 {
     ssize_t size;
-    const my_data_t *my_data = (const my_data_t *)channel->private_data;
+    const auto *my_data = static_cast<const my_data_t *>(channel->private_data);
     EXT2_CHECK_MAGIC(channel, EXT2_ET_MAGIC_IO_CHANNEL);
 
     size = (count < 0) ? -count : count * channel->block_size;
@@ -177,7 +177,8 @@ static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int
              (unsigned long)(block * channel->block_size), my_data->partition.fsname, block, count, buf);
 #endif
     if (my_data->disk_car->pread(*my_data->disk_car, buf, size,
-                                 my_data->partition.part_offset + (uint64_t)block * channel->block_size) != size)
+                                 my_data->partition.part_offset + static_cast<uint64_t>(block) * channel->block_size) !=
+        size)
         return 1;
 #ifdef DEBUG_EXT2
     log_info("my_read_blk done\n");
@@ -185,19 +186,20 @@ static errcode_t my_read_blk64(io_channel channel, unsigned long long block, int
     return 0;
 }
 
-static errcode_t my_read_blk(io_channel channel, unsigned long block, int count, void *buf)
+static auto my_read_blk(io_channel channel, unsigned long block, int count, void *buf) -> errcode_t
 {
     return my_read_blk64(channel, block, count, buf);
 }
 
-static errcode_t my_write_blk64(io_channel channel, unsigned long long block, int count, const void *buf)
+static auto my_write_blk64(io_channel channel, unsigned long long block, int count, const void *buf) -> errcode_t
 {
     EXT2_CHECK_MAGIC(channel, EXT2_ET_MAGIC_IO_CHANNEL);
 #if 1
     {
-        const my_data_t *my_data = (const my_data_t *)channel;
+        const auto *my_data = reinterpret_cast<const my_data_t *>(channel);
         if (my_data->disk_car->pwrite(*my_data->disk_car, buf, count * channel->block_size,
-                                      my_data->partition.part_offset + (uint64_t)block * channel->block_size) !=
+                                      my_data->partition.part_offset +
+                                          static_cast<uint64_t>(block) * channel->block_size) !=
             count * channel->block_size)
             return 1;
         return 0;
@@ -207,22 +209,22 @@ static errcode_t my_write_blk64(io_channel channel, unsigned long long block, in
 #endif
 }
 
-static errcode_t my_write_blk(io_channel channel, unsigned long block, int count, const void *buf)
+static auto my_write_blk(io_channel channel, unsigned long block, int count, const void *buf) -> errcode_t
 {
     return my_write_blk64(channel, block, count, buf);
 }
 
-static errcode_t my_flush(io_channel channel)
+static auto my_flush(io_channel channel) -> errcode_t
 {
     return 0;
 }
 
-static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dirent, int offset, int blocksize,
-                          char *buf, void *privateinfo)
+static auto list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dirent, int offset, int blocksize,
+                           char *buf, void *privateinfo) -> int
 {
     struct ext2_inode inode;
     ext2_ino_t ino;
-    struct ext2_dir_struct *ls = (struct ext2_dir_struct *)privateinfo;
+    auto *ls = static_cast<struct ext2_dir_struct *>(privateinfo);
     file_info_t new_file;
     errcode_t retval;
     if (entry == DIRENT_DELETED_FILE && (ls->dir_data->param & FLAG_LIST_DELETED) == 0)
@@ -253,7 +255,8 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     //  new_file->st_nlink=inode.i_links_count;
     new_file.st_uid = inode.i_uid;
     new_file.st_gid = inode.i_gid;
-    new_file.st_size = LINUX_S_ISDIR(inode.i_mode) ? inode.i_size : inode.i_size | ((uint64_t)inode.i_size_high << 32);
+    new_file.st_size =
+        LINUX_S_ISDIR(inode.i_mode) ? inode.i_size : inode.i_size | (static_cast<uint64_t>(inode.i_size_high) << 32);
     //  new_file->st_blksize=blocksize;
     //  new_file->st_blocks=inode.i_blocks;
     new_file.td_atime = inode.i_atime;
@@ -263,13 +266,13 @@ static int list_dir_proc2(ext2_ino_t dir, int entry, struct ext2_dir_entry *dire
     return 0;
 }
 
-static int ext2_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                    const unsigned long int cluster, dir_list_t &dir_list)
+static auto ext2_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+                     const unsigned long int cluster, dir_list_t &dir_list) -> int
 {
     errcode_t retval;
-    struct ext2_dir_struct *ls = (struct ext2_dir_struct *)dir_data->private_dir_data;
+    auto *ls = static_cast<struct ext2_dir_struct *>(dir_data->private_dir_data);
     ls->dir_list = dir_list;
-    if ((retval = ext2fs_dir_iterate2(ls->current_fs, cluster, ls->flags, 0, list_dir_proc2, ls)) != 0)
+    if ((retval = ext2fs_dir_iterate2(ls->current_fs, cluster, ls->flags, nullptr, list_dir_proc2, ls)) != 0)
     {
         log_error("ext2fs_dir_iterate failed with error {}.", (long)retval);
         return -1;
@@ -279,18 +282,18 @@ static int ext2_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *
 
 static void dir_partition_ext2_close(dir_data_t *dir_data)
 {
-    struct ext2_dir_struct *ls = (struct ext2_dir_struct *)dir_data->private_dir_data;
+    auto *ls = static_cast<struct ext2_dir_struct *>(dir_data->private_dir_data);
     ext2fs_close(ls->current_fs);
     /* ext2fs_close call the close function that freed my_data */
     delete (ls);
 }
 
-static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                             const file_info_t &file)
+static auto ext2_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const file_info_t &file)
+    -> copy_file_t
 {
     copy_file_t error = CP_OK;
     FILE *f_out;
-    const struct ext2_dir_struct *ls = (const struct ext2_dir_struct *)dir_data->private_dir_data;
+    const auto *ls = static_cast<const struct ext2_dir_struct *>(dir_data->private_dir_data);
     char *new_file;
     f_out = fopen_local(&new_file, dir_data->local_dir, dir_data->current_directory);
     if (!f_out)
@@ -333,7 +336,7 @@ static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir
             if (got == 0)
                 break;
             nbytes = fwrite(buffer, 1, got, f_out);
-            if ((unsigned)nbytes != got)
+            if (std::cmp_not_equal(nbytes, got))
             {
                 log_error("Error while writing file %s\n", new_file);
                 error = CP_NOSPACE;
@@ -354,17 +357,17 @@ static copy_file_t ext2_copy(disk_t &disk_car, const partition_t &partition, dir
 }
 #endif
 
-dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                                        const int verbose)
+auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const int verbose)
+    -> dir_partition_t
 {
 #if defined(HAVE_LIBEXT2FS)
-    struct ext2_dir_struct *ls = new struct ext2_dir_struct;
+    auto *ls = new struct ext2_dir_struct;
     io_channel ioch;
     my_data_t *my_data;
     /*  ls->flags = DIRENT_FLAG_INCLUDE_EMPTY; */
     ls->flags = DIRENT_FLAG_INCLUDE_REMOVED;
     ls->dir_data = dir_data;
-    my_data = (my_data_t *)new unsigned char[sizeof(*my_data)];
+    my_data = reinterpret_cast<my_data_t *>(new unsigned char[sizeof(*my_data)]);
     my_data->partition = partition;
     my_data->disk_car = &disk_car;
     ioch = alloc_io_channel(disk_car, my_data);
@@ -384,7 +387,7 @@ dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t &par
     dir_data->get_dir = &ext2_dir;
     dir_data->copy_file = &ext2_copy;
     dir_data->close = &dir_partition_ext2_close;
-    dir_data->local_dir = NULL;
+    dir_data->local_dir = nullptr;
     dir_data->private_dir_data = ls;
     return DIR_PART_OK;
 #else
@@ -392,11 +395,11 @@ dir_partition_t dir_partition_ext2_init(disk_t &disk_car, const partition_t &par
 #endif
 }
 
-const char *td_ext2fs_version(void)
+auto td_ext2fs_version() -> const char *
 {
     const char *ext2fs_version = "none";
 #if defined(HAVE_LIBEXT2FS)
-    ext2fs_get_library_version(&ext2fs_version, NULL);
+    ext2fs_get_library_version(&ext2fs_version, nullptr);
 #endif
     return ext2fs_version;
 }

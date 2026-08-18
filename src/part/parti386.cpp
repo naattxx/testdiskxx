@@ -22,14 +22,15 @@
 
 #include <iterator>
 #include <optional>
+#include <utility>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
 #include <config.h>
 
-#include <assert.h>
-#include <ctype.h> /* tolower */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cctype> /* tolower */
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/chgtype.hpp"
 #include "src/common.hpp"
@@ -62,12 +63,12 @@
 /*@
   @ assigns \nothing;
   @*/
-static int is_extended(const unsigned int part_type);
+static auto is_extended(const unsigned int part_type) -> int;
 
 /*@
   @ requires list_part == \null || \valid_read(list_part);
   @*/
-static int test_structure_i386(const list_part_t &list_part);
+static auto test_structure_i386(const list_part_t &list_part) -> int;
 
 #define pt_offset_const(b, n) ((const struct partition_dos *)((b) + 0x1be + (n) * sizeof(struct partition_dos)))
 #define pt_offset(b, n) ((struct partition_dos *)((b) + 0x1be + (n) * sizeof(struct partition_dos)))
@@ -101,15 +102,15 @@ static void log_dos_entry(const struct partition_dos *);
   @ requires geometry->sectors_per_head==0;
   @*/
 // assigns geometry->sectors_per_head, geometry->heads_per_cylinder, geometry->bytes_per_sector;
-static int get_geometry_from_i386mbr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry);
+static auto get_geometry_from_i386mbr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static list_part_t get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose,
-                                      const int saveheader);
+static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose, const int saveheader)
+    -> list_part_t;
 
 /*@
   @ requires list_part == \null || \valid(list_part);
@@ -120,37 +121,38 @@ static void test_MBR_data(const list_part_t &list_part);
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static int test_MBR_over(const disk_t &disk_car, const list_part_t &list_part);
+static auto test_MBR_over(const disk_t &disk_car, const list_part_t &list_part) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
+static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
+static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
 
-static int diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned char buffer_org[DEFAULT_SECTOR_SIZE]);
+static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned char buffer_org[DEFAULT_SECTOR_SIZE])
+    -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t read_part_i386(disk_t &disk_car, const int verbose, const int saveheader);
+static auto read_part_i386(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
+static auto write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -162,9 +164,9 @@ static void init_part_order_i386(const disk_t &disk_car, list_part_t &list_part)
 /*@
   @ requires \valid(disk_car);
   @*/
-static int write_MBR_code_i386(disk_t &disk_car);
+static auto write_MBR_code_i386(disk_t &disk_car) -> int;
 
-static int write_MBR_code_i386_aux(unsigned char *buffer);
+static auto write_MBR_code_i386_aux(unsigned char *buffer) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -186,13 +188,13 @@ static void set_next_status_i386(const disk_t &disk_car, partition_t &partition)
   @ requires \valid(partition);
   @ assigns partition.part_type_i386;
   @*/
-static int set_part_type_i386(partition_t &partition, unsigned int part_type);
+static auto set_part_type_i386(partition_t &partition, unsigned int part_type) -> int;
 
 /*@
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static int is_part_known_i386(const partition_t &partition);
+static auto is_part_known_i386(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -204,14 +206,14 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part, 
 /*@
   @ requires \valid(disk_car);
   @*/
-static int erase_list_part_i386(disk_t &disk_car);
+static auto erase_list_part_i386(disk_t &disk_car) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires \valid(partition);
   @ requires separation: \separated(disk_car, partition);
   @*/
-static int check_part_i386(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader);
+static auto check_part_i386(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -228,128 +230,130 @@ static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos, co
   @ requires \valid_read(p);
   @ requires separation: \separated(disk_car, partition, p);
   @*/
-static int i386_entry2partition(disk_t &disk_car, const uint64_t offset, partition_t &partition,
-                                const struct partition_dos *p, const status_type_t status, const unsigned int order,
-                                const int verbose, const int saveheader);
-static const char *errmsg_i386_entry2partition(const errcode_type_t errcode);
+static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset, partition_t &partition,
+                                 const struct partition_dos *p, const status_type_t status, const unsigned int order,
+                                 const int verbose, const int saveheader) -> int;
+static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const char *;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_i386(const partition_t &partition);
+static auto get_partition_typename_i386(const partition_t &partition) -> const char *;
 
 /*@
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_i386_aux(const unsigned int part_type_i386);
+static auto get_partition_typename_i386_aux(const unsigned int part_type_i386) -> const char *;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static unsigned int get_part_type_i386(const partition_t &partition);
+static auto get_part_type_i386(const partition_t &partition) -> unsigned int;
 
 /*@
   @ requires \valid_read(disk_car);
   @ assigns \nothing;
   @*/
-static uint64_t C_H_S2offset(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S);
+static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
+    -> uint64_t;
 
-static const struct systypes i386_sys_types[] = {{P_NO_OS, "No partition"},
-                                                 {P_12FAT, "FAT12"},
-                                                 {0x02, "XENIX root"},
-                                                 {0x03, "XENIX /usr"},
-                                                 {P_16FAT, "FAT16 <32M"},
-                                                 {P_EXTENDED, "extended"},
-                                                 {P_16FATBD, "FAT16 >32M"},
-                                                 {P_NTFS, "HPFS - NTFS"},
-                                                 {0x09, "AIX data"},
-                                                 {P_OS2MB, "OS/2 Boot Manager"},
-                                                 {P_32FAT, "FAT32"},
-                                                 {P_32FAT_LBA, "FAT32 LBA"},
-                                                 {P_16FATBD_LBA, "FAT16 LBA"},
-                                                 {P_EXTENDX, "extended LBA"},
-                                                 {0x10, "OPUS"},
-                                                 {P_12FATH, "hid. FAT12"},
-                                                 {0x12, "Compaq Diagnostics"},
-                                                 {P_16FATH, "hid. FAT16 <32M"},
-                                                 {P_16FATBDH, "hid. FAT16 >32M"},
-                                                 {P_NTFSH, "hid. HPFS/NTFS"},
-                                                 {0x18, "AST swap"},
-                                                 {0x19, "Willowtech Photon"},
-                                                 {P_32FATH, "hid. FAT32"},
-                                                 {P_32FAT_LBAH, "hid. FAT32 LBA"},
-                                                 {P_16FATBD_LBAH, "hid. FAT16 LBA"},
-                                                 {0x20, "Willowsoft OFS1"},
-                                                 {0x24, "NEC MS-DOS 3.x"},
-                                                 {0x27, "Windows RE(store)"},
-                                                 {0x38, "Theos"},
-                                                 {0x3c, "PMagic recovery"},
-                                                 {0x40, "VENIX 80286"},
-                                                 {0x41, "PPC PReP Boot"},
-                                                 {0x42, "W2K Dynamic/SFS"},
-                                                 {0x50, "OnTrack DM RO"},
-                                                 {0x51, "OnTrack DM RW-NOVEL"},
-                                                 {0x52, "CP/M-Microport V/386"},
-                                                 {0x53, "OnTrack DM WO ???"},
-                                                 {0x54, "OnTrack DM DDO"},
-                                                 {0x55, "EZ-Drive"},
-                                                 {0x56, "GoldenBow VFeature"},
-                                                 {0x61, "SpeedStor"},
-                                                 {P_SYSV, "Unixware, HURD, SCO"},
-                                                 {0x64, "NetWare 286"},
-                                                 {P_NETWARE, "NetWare 3.11+"},
-                                                 {0x67, "Novell"},
-                                                 {0x68, "Novell"},
-                                                 {0x69, "Novell"},
-                                                 {0x70, "DiskSecure MB"},
-                                                 {0x75, "PC/IX"},
-                                                 {0x80, "Minix v1.1-1.4a"},
-                                                 {P_OLDLINUX, "Minix / old Linux"},
-                                                 {P_LINSWAP, "Linux Swap"},
-                                                 {P_LINUX, "Linux"},
-                                                 {P_LINUXEXTENDX, "Linux extended"},
-                                                 {0x86, "NT FAT16 V/S set"},
-                                                 {0x87, "HPFS FT mirror-V/S set"},
-                                                 {P_LVM, "Linux LVM"},
-                                                 {0x93, "Amoeba"},
-                                                 {0x94, "Amoeba bad block"},
-                                                 {0xa0, "NoteBIOS save2disk"},
-                                                 {P_FREEBSD, "FreeBSD"},
-                                                 {P_OPENBSD, "OpenBSD"},
-                                                 {0xa8, "Darwin UFS"},
-                                                 {P_NETBSD, "NetBSD"},
-                                                 {0xab, "Darwin boot"},
-                                                 {P_HFS, "HFS"},
-                                                 {0xb7, "BSDI"},
-                                                 {0xb8, "BSDI swap"},
-                                                 {0xbc, "Acronis"},
-                                                 {0xbe, "Solaris boot"},
-                                                 {P_SUN, "Solaris"},
-                                                 {0xc1, "secured FAT12"},
-                                                 {0xc4, "secured FAT16"},
-                                                 {0xc6, "sec. Huge-bad FAT16"},
-                                                 {0xc7, "Syrinx Boot-bad NTFS"},
-                                                 {0xd8, "CP/M-86"},
-                                                 {0xdb, "CP/M"},
-                                                 {0xde, "Dell Utility"},
-                                                 {0xe1, "SpeedStor FAT12 ext"},
-                                                 {0xe3, "DOS RO"},
-                                                 {0xe4, "SpeedStor FAT16 ext"},
-                                                 {0xea, "Boot (BLS)"},
-                                                 {P_BEOS, "BeFS"},
-                                                 {0xee, "EFI GPT"},            /* Intel EFI GUID Partition Table */
-                                                 {0xef, "EFI (FAT-12/16/32)"}, /* Intel EFI System Partition */
-                                                 {0xf0, "Linux/PA-RISC boot"}, /* Linux/PA-RISC boot loader */
-                                                 {0xf1, "Storage Dimensions"},
-                                                 {0xf2, "DOS secondary"},
-                                                 {0xf4, "SpeedStor"},
-                                                 {P_VMFS, "VMFS"},
-                                                 {P_RAID, "Linux RAID"},
-                                                 {0xfe, "LANstep"},
-                                                 {0xff, "Xenix bad block"},
-                                                 {P_NO_OS, NULL}};
+static const struct systypes i386_sys_types[] = {
+    {.part_type = P_NO_OS, .name = "No partition"},
+    {.part_type = P_12FAT, .name = "FAT12"},
+    {.part_type = 0x02, .name = "XENIX root"},
+    {.part_type = 0x03, .name = "XENIX /usr"},
+    {.part_type = P_16FAT, .name = "FAT16 <32M"},
+    {.part_type = P_EXTENDED, .name = "extended"},
+    {.part_type = P_16FATBD, .name = "FAT16 >32M"},
+    {.part_type = P_NTFS, .name = "HPFS - NTFS"},
+    {.part_type = 0x09, .name = "AIX data"},
+    {.part_type = P_OS2MB, .name = "OS/2 Boot Manager"},
+    {.part_type = P_32FAT, .name = "FAT32"},
+    {.part_type = P_32FAT_LBA, .name = "FAT32 LBA"},
+    {.part_type = P_16FATBD_LBA, .name = "FAT16 LBA"},
+    {.part_type = P_EXTENDX, .name = "extended LBA"},
+    {.part_type = 0x10, .name = "OPUS"},
+    {.part_type = P_12FATH, .name = "hid. FAT12"},
+    {.part_type = 0x12, .name = "Compaq Diagnostics"},
+    {.part_type = P_16FATH, .name = "hid. FAT16 <32M"},
+    {.part_type = P_16FATBDH, .name = "hid. FAT16 >32M"},
+    {.part_type = P_NTFSH, .name = "hid. HPFS/NTFS"},
+    {.part_type = 0x18, .name = "AST swap"},
+    {.part_type = 0x19, .name = "Willowtech Photon"},
+    {.part_type = P_32FATH, .name = "hid. FAT32"},
+    {.part_type = P_32FAT_LBAH, .name = "hid. FAT32 LBA"},
+    {.part_type = P_16FATBD_LBAH, .name = "hid. FAT16 LBA"},
+    {.part_type = 0x20, .name = "Willowsoft OFS1"},
+    {.part_type = 0x24, .name = "NEC MS-DOS 3.x"},
+    {.part_type = 0x27, .name = "Windows RE(store)"},
+    {.part_type = 0x38, .name = "Theos"},
+    {.part_type = 0x3c, .name = "PMagic recovery"},
+    {.part_type = 0x40, .name = "VENIX 80286"},
+    {.part_type = 0x41, .name = "PPC PReP Boot"},
+    {.part_type = 0x42, .name = "W2K Dynamic/SFS"},
+    {.part_type = 0x50, .name = "OnTrack DM RO"},
+    {.part_type = 0x51, .name = "OnTrack DM RW-NOVEL"},
+    {.part_type = 0x52, .name = "CP/M-Microport V/386"},
+    {.part_type = 0x53, .name = "OnTrack DM WO ???"},
+    {.part_type = 0x54, .name = "OnTrack DM DDO"},
+    {.part_type = 0x55, .name = "EZ-Drive"},
+    {.part_type = 0x56, .name = "GoldenBow VFeature"},
+    {.part_type = 0x61, .name = "SpeedStor"},
+    {.part_type = P_SYSV, .name = "Unixware, HURD, SCO"},
+    {.part_type = 0x64, .name = "NetWare 286"},
+    {.part_type = P_NETWARE, .name = "NetWare 3.11+"},
+    {.part_type = 0x67, .name = "Novell"},
+    {.part_type = 0x68, .name = "Novell"},
+    {.part_type = 0x69, .name = "Novell"},
+    {.part_type = 0x70, .name = "DiskSecure MB"},
+    {.part_type = 0x75, .name = "PC/IX"},
+    {.part_type = 0x80, .name = "Minix v1.1-1.4a"},
+    {.part_type = P_OLDLINUX, .name = "Minix / old Linux"},
+    {.part_type = P_LINSWAP, .name = "Linux Swap"},
+    {.part_type = P_LINUX, .name = "Linux"},
+    {.part_type = P_LINUXEXTENDX, .name = "Linux extended"},
+    {.part_type = 0x86, .name = "NT FAT16 V/S set"},
+    {.part_type = 0x87, .name = "HPFS FT mirror-V/S set"},
+    {.part_type = P_LVM, .name = "Linux LVM"},
+    {.part_type = 0x93, .name = "Amoeba"},
+    {.part_type = 0x94, .name = "Amoeba bad block"},
+    {.part_type = 0xa0, .name = "NoteBIOS save2disk"},
+    {.part_type = P_FREEBSD, .name = "FreeBSD"},
+    {.part_type = P_OPENBSD, .name = "OpenBSD"},
+    {.part_type = 0xa8, .name = "Darwin UFS"},
+    {.part_type = P_NETBSD, .name = "NetBSD"},
+    {.part_type = 0xab, .name = "Darwin boot"},
+    {.part_type = P_HFS, .name = "HFS"},
+    {.part_type = 0xb7, .name = "BSDI"},
+    {.part_type = 0xb8, .name = "BSDI swap"},
+    {.part_type = 0xbc, .name = "Acronis"},
+    {.part_type = 0xbe, .name = "Solaris boot"},
+    {.part_type = P_SUN, .name = "Solaris"},
+    {.part_type = 0xc1, .name = "secured FAT12"},
+    {.part_type = 0xc4, .name = "secured FAT16"},
+    {.part_type = 0xc6, .name = "sec. Huge-bad FAT16"},
+    {.part_type = 0xc7, .name = "Syrinx Boot-bad NTFS"},
+    {.part_type = 0xd8, .name = "CP/M-86"},
+    {.part_type = 0xdb, .name = "CP/M"},
+    {.part_type = 0xde, .name = "Dell Utility"},
+    {.part_type = 0xe1, .name = "SpeedStor FAT12 ext"},
+    {.part_type = 0xe3, .name = "DOS RO"},
+    {.part_type = 0xe4, .name = "SpeedStor FAT16 ext"},
+    {.part_type = 0xea, .name = "Boot (BLS)"},
+    {.part_type = P_BEOS, .name = "BeFS"},
+    {.part_type = 0xee, .name = "EFI GPT"},            /* Intel EFI GUID Partition Table */
+    {.part_type = 0xef, .name = "EFI (FAT-12/16/32)"}, /* Intel EFI System Partition */
+    {.part_type = 0xf0, .name = "Linux/PA-RISC boot"}, /* Linux/PA-RISC boot loader */
+    {.part_type = 0xf1, .name = "Storage Dimensions"},
+    {.part_type = 0xf2, .name = "DOS secondary"},
+    {.part_type = 0xf4, .name = "SpeedStor"},
+    {.part_type = P_VMFS, .name = "VMFS"},
+    {.part_type = P_RAID, .name = "Linux RAID"},
+    {.part_type = 0xfe, .name = "LANstep"},
+    {.part_type = 0xff, .name = "Xenix bad block"},
+    {.part_type = P_NO_OS, .name = nullptr}};
 
 arch_fnct_t arch_i386 = {.part_name = "Intel",
                          .part_name_option = "partition_i386",
@@ -370,13 +374,15 @@ arch_fnct_t arch_i386 = {.part_name = "Intel",
                          .get_partition_typename = &get_partition_typename_i386,
                          .is_part_known = &is_part_known_i386};
 
-static uint64_t C_H_S2offset(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
+static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S)
+    -> uint64_t
 {
-    return (((uint64_t)C * disk_car.geom.heads_per_cylinder + H) * disk_car.geom.sectors_per_head + S - 1) *
+    return ((static_cast<uint64_t>(C) * disk_car.geom.heads_per_cylinder + H) * disk_car.geom.sectors_per_head + S -
+            1) *
            disk_car.sector_size;
 }
 
-static unsigned int get_part_type_i386(const partition_t &partition)
+static auto get_part_type_i386(const partition_t &partition) -> unsigned int
 {
     return partition.part_type_i386;
 }
@@ -397,17 +403,17 @@ static void store4_little_endian(unsigned char *cp, unsigned int val)
   @ requires \valid_read(cp);
   @ assigns  \nothing;
   @*/
-static unsigned int read4_little_endian(const unsigned char *cp)
+static auto read4_little_endian(const unsigned char *cp) -> unsigned int
 {
-    return (unsigned int)(cp[0]) + ((unsigned int)(cp[1]) << 8) + ((unsigned int)(cp[2]) << 16) +
-           ((unsigned int)(cp[3]) << 24);
+    return static_cast<unsigned int>(cp[0]) + (static_cast<unsigned int>(cp[1]) << 8) +
+           (static_cast<unsigned int>(cp[2]) << 16) + (static_cast<unsigned int>(cp[3]) << 24);
 }
 
 /*@
   @ requires \valid_read(p);
   @ assigns \nothing;
   @*/
-static uint64_t get_start_sect(const struct partition_dos *p)
+static auto get_start_sect(const struct partition_dos *p) -> uint64_t
 {
     return read4_little_endian(p->start4);
 }
@@ -416,7 +422,7 @@ static uint64_t get_start_sect(const struct partition_dos *p)
   @ requires \valid_read(p);
   @ assigns \nothing;
   @*/
-static uint64_t get_nr_sects(const struct partition_dos *p)
+static auto get_nr_sects(const struct partition_dos *p) -> uint64_t
 {
     return read4_little_endian(p->size4);
 }
@@ -439,7 +445,7 @@ static void set_start_sect(struct partition_dos *p, unsigned int start_sect)
     store4_little_endian(p->start4, start_sect);
 }
 
-static int get_geometry_from_i386mbr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry)
+static auto get_geometry_from_i386mbr(const unsigned char *buffer, const int verbose, CHSgeometry_t *geometry) -> int
 {
     unsigned int i;
 #ifndef DISABLED_FOR_FRAMAC
@@ -448,7 +454,7 @@ static int get_geometry_from_i386mbr(const unsigned char *buffer, const int verb
         ; // log_trace("get_geometry_from_i386mbr\n");
     }
 #endif
-    if ((buffer[0x1FE] != (unsigned char)0x55) || (buffer[0x1FF] != (unsigned char)0xAA))
+    if ((buffer[0x1FE] != static_cast<unsigned char>(0x55)) || (buffer[0x1FF] != static_cast<unsigned char>(0xAA)))
     {
         return 1;
     }
@@ -460,8 +466,8 @@ static int get_geometry_from_i386mbr(const unsigned char *buffer, const int verb
         {
             if (geometry->cylinders < e_cyl(p) + 1)
                 geometry->cylinders = e_cyl(p) + 1;
-            if (geometry->heads_per_cylinder < (unsigned int)p->end_head + 1)
-                geometry->heads_per_cylinder = (unsigned int)p->end_head + 1;
+            if (geometry->heads_per_cylinder < static_cast<unsigned int>(p->end_head) + 1)
+                geometry->heads_per_cylinder = static_cast<unsigned int>(p->end_head) + 1;
             if (geometry->sectors_per_head < e_sect(p))
                 geometry->sectors_per_head = e_sect(p);
         }
@@ -515,15 +521,16 @@ static void init_part_order_i386(const disk_t &disk_car, list_part_t &list_part)
     }
 }
 
-static list_part_t read_part_i386(disk_t &disk_car, const int verbose, const int saveheader)
+static auto read_part_i386(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t
 {
     unsigned int i;
     CHSgeometry_t geometry;
     list_part_t new_list_part;
-    unsigned char *buffer = new unsigned char[disk_car.sector_size];
+    auto *buffer = new unsigned char[disk_car.sector_size];
     /*@ assert valid_list_part(new_list_part); */
     screen_buffer_reset();
-    if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, (uint64_t)0) != disk_car.sector_size)
+    if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size, static_cast<uint64_t>(0)),
+                           disk_car.sector_size))
     {
         screen_buffer_add(msg_PART_RD_ERR);
         delete[] (buffer);
@@ -561,7 +568,8 @@ static list_part_t read_part_i386(disk_t &disk_car, const int verbose, const int
         {
             int insert_error = 0;
             partition_t new_partition(&arch_i386);
-            i386_entry2partition(disk_car, (uint64_t)0, new_partition, p, status, i + 1, verbose, saveheader);
+            i386_entry2partition(disk_car, static_cast<uint64_t>(0), new_partition, p, status, i + 1, verbose,
+                                 saveheader);
             if (verbose > 1)
                 log_dos_entry(p);
             aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
@@ -632,7 +640,7 @@ static void test_MBR_data(const list_part_t &list_part)
         screen_buffer_add(msg_ONLY1MUSTBOOT);
 }
 
-static std::optional<partition_t> get_ext_partition_i386(const list_part_t &list_part)
+static auto get_ext_partition_i386(const list_part_t &list_part) -> std::optional<partition_t>
 {
     for (const partition_t &element : list_part)
     {
@@ -642,7 +650,8 @@ static std::optional<partition_t> get_ext_partition_i386(const list_part_t &list
     return std::nullopt;
 }
 
-static list_part_t get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose, const int saveheader)
+static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, const int verbose, const int saveheader)
+    -> list_part_t
 {
     using std::optional;
     optional<partition_t> partition_main_ext;
@@ -660,7 +669,7 @@ static list_part_t get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, c
             return list_part;
         if (disk_car.pread(disk_car, &buffer, sizeof(buffer), partition_ext->part_offset) != sizeof(buffer))
             return list_part;
-        if ((buffer[0x1FE] != (unsigned char)0x55) || (buffer[0x1FF] != (unsigned char)0xAA))
+        if ((buffer[0x1FE] != static_cast<unsigned char>(0x55)) || (buffer[0x1FF] != static_cast<unsigned char>(0xAA)))
         {
             screen_buffer_add("\ntest_logical: " msg_TBL_NMARK);
             return list_part;
@@ -668,7 +677,7 @@ static list_part_t get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, c
         for (i = 0; i < 4; i++)
         {
             const struct partition_dos *p = pt_offset(buffer, i);
-            if (p->boot_ind == (unsigned char)0x80)
+            if (p->boot_ind == static_cast<unsigned char>(0x80))
                 nb_boot++;
             switch (p->sys_ind)
             {
@@ -788,7 +797,7 @@ static list_part_t get_ext_data_i386(disk_t &disk_car, list_part_t &list_part, c
     return list_part;
 }
 
-int recover_i386_logical(disk_t &disk, const unsigned char *buffer, partition_t &partition)
+auto recover_i386_logical(disk_t &disk, const unsigned char *buffer, partition_t &partition) -> int
 {
     const struct partition_dos *p = pt_offset_const(buffer, 0);
     if (partition.arch != &arch_i386)
@@ -815,7 +824,7 @@ int recover_i386_logical(disk_t &disk, const unsigned char *buffer, partition_t 
     return 0;
 }
 
-static int test_MBR_over(const disk_t &disk_car, const list_part_t &list_part)
+static auto test_MBR_over(const disk_t &disk_car, const list_part_t &list_part) -> int
 { /* Test if partitions overlap */
     int res = 0;
     for (auto element = list_part.cbegin(); element != list_part.cend(); element = std::next(element))
@@ -830,7 +839,7 @@ static int test_MBR_over(const disk_t &disk_car, const list_part_t &list_part)
     return res;
 }
 
-static int write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
+static auto write_part_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
 {
     int res = 0;
     res += write_mbr_i386(disk_car, list_part, ro, verbose);
@@ -839,7 +848,7 @@ static int write_part_i386(disk_t &disk_car, const list_part_t &list_part, const
     return res;
 }
 
-static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
+static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
 {
     unsigned char *buffer;
     unsigned char *buffer_org;
@@ -851,7 +860,7 @@ static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const 
     {
         ; // log_trace("\nwrite_mbr_i386: starting...\n");
     }
-    if (disk_car.pread(disk_car, buffer_org, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, buffer_org, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
     {
         log_error(msg_PART_RD_ERR);
         memset(buffer_org, 0, DEFAULT_SECTOR_SIZE);
@@ -884,7 +893,7 @@ static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const 
         case STATUS_EXT:
             if ((element.order >= 1) && (element.order <= 4))
             {
-                partition2_i386_entry(disk_car, (uint64_t)0, element,
+                partition2_i386_entry(disk_car, static_cast<uint64_t>(0), element,
                                       pt_offset(buffer, element.order - 1));
             }
             break;
@@ -907,7 +916,7 @@ static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const 
     }
     if (ro == 0)
     {
-        if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
+        if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
         {
             delete[] (buffer_org);
             delete[] (buffer);
@@ -919,7 +928,7 @@ static int write_mbr_i386(disk_t &disk_car, const list_part_t &list_part, const 
     return 0;
 }
 
-static int write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
+static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
 {
     auto element = list_part.cbegin();
     auto pos_ext = list_part.cend();
@@ -1048,8 +1057,8 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, co
                 //     (long unsigned)((element->part->part_offset+element->part->part_size-1)/disk_car.sector_size));
                 bloc_nextext.part_offset = CHS2offset(disk_car, &nextext_start);
                 /*      log_debug("table[i]->next=%p table[i+1]=%p\n",table[i]->next,table[i+1]); */
-                bloc_nextext.part_size = (uint64_t)std::next(element)->part_offset + std::next(element)->part_size -
-                                          bloc_nextext.part_offset;
+                bloc_nextext.part_size =
+                    std::next(element)->part_offset + std::next(element)->part_size - bloc_nextext.part_offset;
                 partition2_i386_entry(disk_car, pos_ext->part_offset, bloc_nextext, pt_offset(buffer, 1));
             }
             if (ro)
@@ -1079,7 +1088,8 @@ static int write_all_log_i386(disk_t &disk_car, const list_part_t &list_part, co
     return res;
 }
 
-static int diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned char buffer_org[DEFAULT_SECTOR_SIZE])
+static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned char buffer_org[DEFAULT_SECTOR_SIZE])
+    -> int
 {
     if (memcmp(buffer, buffer_org, DEFAULT_SECTOR_SIZE))
     {
@@ -1107,16 +1117,16 @@ static int diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE], const unsigned 
     return 0;
 }
 
-static int write_MBR_code_i386(disk_t &disk_car)
+static auto write_MBR_code_i386(disk_t &disk_car) -> int
 {
     unsigned char buffer[DEFAULT_SECTOR_SIZE];
-    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
+    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
     {
         log_error(msg_PART_RD_ERR);
         memset(buffer, 0, sizeof(buffer));
     }
     write_MBR_code_i386_aux(buffer);
-    if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
+    if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
     {
         return 1;
     }
@@ -1124,7 +1134,7 @@ static int write_MBR_code_i386(disk_t &disk_car)
     return 0;
 }
 
-static int write_MBR_code_i386_aux(unsigned char *buffer)
+static auto write_MBR_code_i386_aux(unsigned char *buffer) -> int
 {
     /* od -t x1 -v testdisk.b
        Thanks to Neil Turton for writing it */
@@ -1160,8 +1170,8 @@ static int write_MBR_code_i386_aux(unsigned char *buffer)
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xaa};
     /* don't overwrite the disk signature at 0x1b8 */
     memcpy(buffer, &mbr_code_testdisk, 0x1b8);
-    buffer[0x1FE] = (unsigned char)0x55;
-    buffer[0x1FF] = (unsigned char)0xAA;
+    buffer[0x1FE] = static_cast<unsigned char>(0x55);
+    buffer[0x1FF] = static_cast<unsigned char>(0xAA);
     return 0;
 }
 
@@ -1211,17 +1221,17 @@ static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos, co
         set_nr_sects(p, 0xFFFFFFFF);
 }
 
-static int i386_entry2partition(disk_t &disk_car, const uint64_t offset, partition_t &partition,
-                                const struct partition_dos *p, const status_type_t status, const unsigned int order,
-                                const int verbose, const int saveheader)
+static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset, partition_t &partition,
+                                 const struct partition_dos *p, const status_type_t status, const unsigned int order,
+                                 const int verbose, const int saveheader) -> int
 {
     CHS_t start, end;
     CHS_t start_calculated, end_calculated;
     partition.reset(&arch_i386);
     partition.part_type_i386 = p->sys_ind;
-    partition.part_offset = offset + (uint64_t)get_start_sect(p) * disk_car.sector_size;
+    partition.part_offset = offset + get_start_sect(p) * disk_car.sector_size;
     partition.order = order;
-    partition.part_size = (uint64_t)get_nr_sects(p) * disk_car.sector_size;
+    partition.part_size = get_nr_sects(p) * disk_car.sector_size;
 
     offset2CHS(disk_car, partition.part_offset, &start_calculated);
     offset2CHS(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size, &end_calculated);
@@ -1304,7 +1314,7 @@ static int i386_entry2partition(disk_t &disk_car, const uint64_t offset, partiti
     return 0;
 }
 
-static const char *errmsg_i386_entry2partition(const errcode_type_t errcode)
+static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const char *
 {
     switch (errcode)
     {
@@ -1335,7 +1345,7 @@ static const char *errmsg_i386_entry2partition(const errcode_type_t errcode)
 
 static void log_dos_entry(const struct partition_dos *entree)
 {
-    if (get_partition_typename_i386_aux(entree->sys_ind) != NULL)
+    if (get_partition_typename_i386_aux(entree->sys_ind) != nullptr)
         log_info(" %-20s ", get_partition_typename_i386_aux(entree->sys_ind));
     else
         log_info(" Sys=%02X               ", entree->sys_ind);
@@ -1347,7 +1357,7 @@ static void log_dos_entry(const struct partition_dos *entree)
              (long unsigned)get_start_sect(entree), (long unsigned)get_nr_sects(entree));
 }
 
-int parti386_can_be_ext(const disk_t &disk_car, const partition_t &partition)
+auto parti386_can_be_ext(const disk_t &disk_car, const partition_t &partition) -> int
 {
     return ((offset2head(disk_car, partition.part_offset) > 0) &&
             (offset2cylinder(disk_car, partition.part_offset) != 0 ||
@@ -1355,10 +1365,10 @@ int parti386_can_be_ext(const disk_t &disk_car, const partition_t &partition)
              offset2sector(disk_car, partition.part_offset) != 1));
 }
 
-static int test_structure_i386(const list_part_t &list_part)
+static auto test_structure_i386(const list_part_t &list_part) -> int
 { /* Return 1 if bad*/
     int nbr_prim = 0, nbr_prim_boot = 0, nbr_log_block = 0;
-    partition_t const *first_log = NULL;
+    partition_t const *first_log = nullptr;
     list_part_t new_list_part;
     int res;
     for (const partition_t &element : list_part)
@@ -1366,7 +1376,7 @@ static int test_structure_i386(const list_part_t &list_part)
         switch (element.status)
         {
         case STATUS_LOG:
-            if (first_log == NULL)
+            if (first_log == nullptr)
             {
                 first_log = &element;
                 nbr_log_block++;
@@ -1380,11 +1390,11 @@ static int test_structure_i386(const list_part_t &list_part)
             if (nbr_prim_boot++)
                 return 1;
             nbr_prim++;
-            first_log = NULL;
+            first_log = nullptr;
             break;
         case STATUS_PRIM:
             nbr_prim++;
-            first_log = NULL;
+            first_log = nullptr;
             break;
         case STATUS_DELETED:
             break;
@@ -1400,17 +1410,18 @@ static int test_structure_i386(const list_part_t &list_part)
     return res;
 }
 
-static int is_extended(const unsigned int part_type)
+static auto is_extended(const unsigned int part_type) -> int
 {
-    return (part_type == (const unsigned char)P_EXTENDX || part_type == (const unsigned char)P_EXTENDED ||
-            part_type == (const unsigned char)P_LINUXEXTENDX);
+    return (part_type == static_cast<const unsigned char>(P_EXTENDX) ||
+            part_type == static_cast<const unsigned char>(P_EXTENDED) ||
+            part_type == static_cast<const unsigned char>(P_LINUXEXTENDX));
 }
 
 void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd)
 {
     CHS_t start, end;
     partition_t new_partition(&arch_i386);
-    assert(current_cmd != NULL);
+    assert(current_cmd != nullptr);
     start.cylinder = 0;
     start.head = 0;
     start.sector = 1;
@@ -1421,7 +1432,7 @@ void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part, char **cur
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_read_string(*current_cmd);
       @ */
-    while (1)
+    while (true)
     {
         skip_comma_in_command(current_cmd);
         if (check_command(current_cmd, "c,", 2) == 0)
@@ -1555,7 +1566,7 @@ static void set_prev_status_i386(const disk_t &disk_car, partition_t &partition)
     }
 }
 
-static int set_part_type_i386(partition_t &partition, unsigned int part_type)
+static auto set_part_type_i386(partition_t &partition, unsigned int part_type) -> int
 {
     if (part_type != P_NO_OS && part_type <= 255 && is_extended(part_type) == 0)
     {
@@ -1565,7 +1576,7 @@ static int set_part_type_i386(partition_t &partition, unsigned int part_type)
     return 1;
 }
 
-static int is_part_known_i386(const partition_t &partition)
+static auto is_part_known_i386(const partition_t &partition) -> int
 {
     return (partition.part_type_i386 != P_NO_OS && partition.part_type_i386 != P_UNK);
 }
@@ -1579,7 +1590,7 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part, 
         element.to_be_removed = 0;
     for (auto element = list_part.begin(); element != list_part.end(); element = std::next(element))
     {
-        if (element->arch != NULL && element->arch != disk_car.arch)
+        if (element->arch != nullptr && element->arch != disk_car.arch)
         {
             element->to_be_removed = 1;
         }
@@ -1701,10 +1712,10 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part, 
     }
 }
 
-static int erase_list_part_i386(disk_t &disk)
+static auto erase_list_part_i386(disk_t &disk) -> int
 {
     unsigned char buffer[DEFAULT_SECTOR_SIZE];
-    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
+    if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
     {
         log_error(msg_PART_RD_ERR);
         memset(buffer, 0, sizeof(buffer));
@@ -1716,14 +1727,14 @@ static int erase_list_part_i386(disk_t &disk)
     /* Remove Sun signature */
     if (buffer[0x1fc] == 0xda && buffer[0x1fd] == 0xbe)
         buffer[0x1fc] = 0;
-    if (disk.pwrite(disk, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
+    if (disk.pwrite(disk, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
     {
         return 1;
     }
     {
         /* Erase XBOX signature if present */
-        struct xbox_partition *xboxlabel = (struct xbox_partition *)new unsigned char[0x800];
-        if ((unsigned)disk.pread(disk, xboxlabel, 0x800, 0) == 0x800)
+        auto *xboxlabel = reinterpret_cast<struct xbox_partition *>(new unsigned char[0x800]);
+        if (static_cast<unsigned>(disk.pread(disk, xboxlabel, 0x800, 0)) == 0x800)
         {
             if (memcmp(xboxlabel->magic, "BRFR", 4) == 0)
             {
@@ -1735,8 +1746,8 @@ static int erase_list_part_i386(disk_t &disk)
     }
     {
         /* Erase EFI GPT signature if present */
-        struct gpt_hdr *gpt = (struct gpt_hdr *)new unsigned char[disk.sector_size];
-        if ((unsigned)disk.pread(disk, gpt, disk.sector_size, disk.sector_size) == disk.sector_size)
+        auto *gpt = reinterpret_cast<struct gpt_hdr *>(new unsigned char[disk.sector_size]);
+        if (std::cmp_equal(disk.pread(disk, gpt, disk.sector_size, disk.sector_size), disk.sector_size))
         {
             if (memcmp(gpt->hdr_sig, GPT_HDR_SIG, 8) == 0)
             {
@@ -1750,7 +1761,7 @@ static int erase_list_part_i386(disk_t &disk)
     return 0;
 }
 
-static int check_part_i386(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader)
+static auto check_part_i386(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int
 {
     int ret = 0;
     switch (partition.part_type_i386)
@@ -1861,17 +1872,17 @@ static int check_part_i386(disk_t &disk_car, const int verbose, partition_t &par
     return ret;
 }
 
-static const char *get_partition_typename_i386_aux(const unsigned int part_type_i386)
+static auto get_partition_typename_i386_aux(const unsigned int part_type_i386) -> const char *
 {
     int i;
     /*@ loop assigns i; */
-    for (i = 0; i386_sys_types[i].name != NULL; i++)
+    for (i = 0; i386_sys_types[i].name != nullptr; i++)
         if (i386_sys_types[i].part_type == part_type_i386)
             return i386_sys_types[i].name;
-    return NULL;
+    return nullptr;
 }
 
-static const char *get_partition_typename_i386(const partition_t &partition)
+static auto get_partition_typename_i386(const partition_t &partition) -> const char *
 {
     return get_partition_typename_i386_aux(partition.part_type_i386);
 }

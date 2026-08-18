@@ -7,7 +7,7 @@
 
 using namespace cpptui;
 
-TD_LOG ask_testdisk_log_creation(App &app)
+auto ask_testdisk_log_creation(App &app) -> TD_LOG
 {
     TD_LOG log_choice = TD_LOG::NONE;
 
@@ -44,7 +44,8 @@ TD_LOG ask_testdisk_log_creation(App &app)
     aboutLog->max_width = 75;
 
     auto createBtn = std::make_shared<Button>(
-        StyledText(" [ Create ] ").colored("Create a new log file", Theme::current().secondary), [&app, &log_choice]() {
+        StyledText(" [ Create ] ").colored("Create a new log file", Theme::current().secondary),
+        [&app, &log_choice]() -> void {
             log_choice = TD_LOG::CREATE;
             app.quit();
         });
@@ -52,14 +53,15 @@ TD_LOG ask_testdisk_log_creation(App &app)
 
     auto appendBtn = std::make_shared<Button>(
         StyledText(" [ Append ] ").colored("Append information to log file", Theme::current().secondary),
-        [&app, &log_choice]() {
+        [&app, &log_choice]() -> void {
             log_choice = TD_LOG::APPEND;
             app.quit();
         });
     appendBtn->fixed_width = utf8_display_width(appendBtn->get_label());
 
     auto noLogBtn = std::make_shared<Button>(
-        StyledText(" [ No Log ] ").colored("Don't record anything", Theme::current().secondary), [&app, &log_choice]() {
+        StyledText(" [ No Log ] ").colored("Don't record anything", Theme::current().secondary),
+        [&app, &log_choice]() -> void {
             log_choice = TD_LOG::NONE;
             app.quit();
         });

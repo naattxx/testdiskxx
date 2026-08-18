@@ -20,15 +20,17 @@
 #include "src/dir_common.hpp"
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
 #if __has_include(<sys/param.h>)
 #include <sys/param.h>
 #endif
-#include <string.h>
+#include <cstring>
+
+#include <utility>
 // #include "types.h"
 #include "ntfs.hpp"
 #include "ntfs_dir.hpp"
@@ -45,8 +47,8 @@
 #define INTER_MFT_X 0
 #define INTER_MFT_Y 18
 
-int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int expert,
-               char **current_cmd)
+auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int expert,
+                char **current_cmd) -> int
 {
     struct ntfs_boot_sector *ntfs_header;
     unsigned char *buffer_mft;
@@ -66,7 +68,7 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
         ; // display_message("Boot sector not valid, can't repair MFT.\n");
         return -1;
     }
-    ntfs_header = (struct ntfs_boot_sector *)new unsigned char[DEFAULT_SECTOR_SIZE];
+    ntfs_header = reinterpret_cast<struct ntfs_boot_sector *>(new unsigned char[DEFAULT_SECTOR_SIZE]);
     if (disk_car.pread(disk_car, ntfs_header, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (ntfs_header);
@@ -74,12 +76,11 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
         return -1;
     }
     mft_pos = partition.part_offset +
-              (uint64_t)(le16(ntfs_header->reserved) + le64(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
+              (le16(ntfs_header->reserved) + le64(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
                   ntfs_sector_size(ntfs_header);
-    mftmirr_pos =
-        partition.part_offset +
-        (uint64_t)(le16(ntfs_header->reserved) + le64(ntfs_header->mftmirr_lcn) * ntfs_header->sectors_per_cluster) *
-            ntfs_sector_size(ntfs_header);
+    mftmirr_pos = partition.part_offset +
+                  (le16(ntfs_header->reserved) + le64(ntfs_header->mftmirr_lcn) * ntfs_header->sectors_per_cluster) *
+                      ntfs_sector_size(ntfs_header);
     if (ntfs_header->clusters_per_mft_record > 0)
         mft_record_size =
             ntfs_header->clusters_per_mft_record * ntfs_header->sectors_per_cluster * ntfs_sector_size(ntfs_header);
@@ -114,7 +115,7 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
     }
     /* Check if MFT mirror is identical to the beginning of MFT */
     buffer_mft = new unsigned char[mftmirr_size_bytes];
-    if ((unsigned)disk_car.pread(disk_car, buffer_mft, mftmirr_size_bytes, mft_pos) != mftmirr_size_bytes)
+    if (std::cmp_not_equal(disk_car.pread(disk_car, buffer_mft, mftmirr_size_bytes, mft_pos), mftmirr_size_bytes))
     {
         ; // display_message("Can't read NTFS MFT.\n");
         log_error("Can't read NTFS MFT.\n");
@@ -123,7 +124,8 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
         return -1;
     }
     buffer_mftmirr = new unsigned char[mftmirr_size_bytes];
-    if ((unsigned)disk_car.pread(disk_car, buffer_mftmirr, mftmirr_size_bytes, mftmirr_pos) != mftmirr_size_bytes)
+    if (std::cmp_not_equal(disk_car.pread(disk_car, buffer_mftmirr, mftmirr_size_bytes, mftmirr_pos),
+                           mftmirr_size_bytes))
     {
         ; // display_message("Can't read NTFS MFT mirror.\n");
         log_error("Can't read NTFS MFT mirror.\n");
@@ -135,7 +137,7 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
     if (memcmp(buffer_mft, buffer_mftmirr, mftmirr_size_bytes) == 0)
     {
         log_info("MFT and MFT mirror match perfectly.\n");
-        if (*current_cmd == NULL)
+        if (*current_cmd == nullptr)
             ; // display_message("MFT and MFT mirror match perfectly.\n");
         delete[] (buffer_mftmirr);
         delete[] (buffer_mft);
@@ -289,7 +291,8 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
     }
     if (use_MFT == 2)
     {
-        if ((unsigned)disk_car.pwrite(disk_car, buffer_mftmirr, mftmirr_size_bytes, mft_pos) != mftmirr_size_bytes)
+        if (std::cmp_not_equal(disk_car.pwrite(disk_car, buffer_mftmirr, mftmirr_size_bytes, mft_pos),
+                               mftmirr_size_bytes))
         {
             ; // display_message("Failed to fix MFT: write error.\n");
         }
@@ -301,7 +304,8 @@ int repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose, cons
     }
     else if (use_MFT == 1)
     {
-        if ((unsigned)disk_car.pwrite(disk_car, buffer_mft, mftmirr_size_bytes, mftmirr_pos) != mftmirr_size_bytes)
+        if (std::cmp_not_equal(disk_car.pwrite(disk_car, buffer_mft, mftmirr_size_bytes, mftmirr_pos),
+                               mftmirr_size_bytes))
         {
             ; // display_message("Failed to fix MFT mirror: write error.\n");
         }

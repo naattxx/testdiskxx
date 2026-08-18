@@ -31,21 +31,22 @@
 #endif
 
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
-#include <time.h>
-#include <string.h>
 #include <cerrno>
+#include <cstring>
+#include <ctime>
+#include <utility>
 #if __has_include(<sys/param.h>)
 #include <sys/param.h>
 #endif
 #if __has_include(<machine/endian.h>)
 #include <machine/endian.h>
 #endif
-#include <stdarg.h>
+#include <cstdarg>
 //#include "types.h"
 
 #ifdef HAVE_LIBNTFS
@@ -81,18 +82,19 @@ extern "C" {
  * Return:  Pointer  Success, an attribute was found
  *	    NULL     Error, no matching attributes were found
  */
-ATTR_RECORD * find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx)
+auto find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx) -> ATTR_RECORD *
 {
   if (!ctx) {
     errno = EINVAL;
-    return NULL;
+    return nullptr;
   }
 
-  if (ntfs_attr_lookup(type, NULL, 0, CASE_SENSITIVE, 0, NULL, 0, ctx) != 0) {
+  if (ntfs_attr_lookup(type, nullptr, 0, CASE_SENSITIVE, 0, nullptr, 0, ctx) != 0)
+  {
 #ifdef DEBUG_NTFS
     log_debug("find_attribute didn't find an attribute of type: 0x%02x.\n", type);
 #endif
-    return NULL;	/* None / no more of that type */
+    return nullptr; /* None / no more of that type */
   }
 #ifdef DEBUG_NTFS
   log_debug("find_attribute found an attribute of type: 0x%02x.\n", type);
@@ -114,20 +116,20 @@ ATTR_RECORD * find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx)
  * Return:  Pointer  Success, an attribute was found
  *	    NULL     Error, no matching attributes were found
  */
-ATTR_RECORD * find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft)
+auto find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft) -> ATTR_RECORD *
 {
   ntfs_attr_search_ctx *ctx;
   ATTR_RECORD *rec;
 
   if (!mft) {
     errno = EINVAL;
-    return NULL;
+    return nullptr;
   }
 
-  ctx = ntfs_attr_get_search_ctx(NULL, mft);
+  ctx = ntfs_attr_get_search_ctx(nullptr, mft);
   if (!ctx) {
     log_error("Couldn't create a search context.\n");
-    return NULL;
+    return nullptr;
   }
 
   rec = find_attribute(type, ctx);
@@ -158,7 +160,7 @@ ATTR_RECORD * find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft)
  *	    0  Cluster is free space
  *	   -1  Error occurred
  */
-int utils_cluster_in_use(ntfs_volume *vol, long long lcn)
+auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
 {
   static unsigned char buffer[512];
   static long long bmplcn = -sizeof(buffer) - 1;	/* Which bit of $Bitmap is in the buffer */
@@ -171,8 +173,10 @@ int utils_cluster_in_use(ntfs_volume *vol, long long lcn)
   }
 
   /* Does lcn lie in the section of $Bitmap we already have cached? */
-  if ((bmplcn <0 ) ||(lcn < (unsigned)bmplcn) || (lcn >= ((unsigned)bmplcn + ((unsigned)sizeof(buffer) << 3)))) {
-    ntfs_attr *attr;
+  if ((bmplcn < 0) || (std::cmp_less(lcn, bmplcn)) ||
+      (std::cmp_greater_equal(lcn, (static_cast<unsigned>(bmplcn) + (static_cast<unsigned>(sizeof(buffer)) << 3)))))
+  {
+      ntfs_attr *attr;
 #ifdef DEBUG_NTFS
     log_debug("Bit lies outside cache.\n");
 #endif

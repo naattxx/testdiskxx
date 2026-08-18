@@ -21,9 +21,9 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
@@ -69,7 +69,7 @@ static void dump_NTFS(disk_t &disk_car, const partition_t &partition, const unsi
 #endif
 }
 
-static int ntfs_boot_sector_command(char **current_cmd, const char *options)
+static auto ntfs_boot_sector_command(char **current_cmd, const char *options) -> int
 {
     skip_comma_in_command(current_cmd);
     if (check_command(current_cmd, "rebuildbs", 9) == 0)
@@ -86,23 +86,23 @@ static int ntfs_boot_sector_command(char **current_cmd, const char *options)
     }
     else if (check_command(current_cmd, "originalntfs", 12) == 0)
     {
-        if (strchr(options, 'O') != NULL)
+        if (strchr(options, 'O') != nullptr)
             return 'O';
     }
     else if (check_command(current_cmd, "backupntfs", 10) == 0)
     {
-        if (strchr(options, 'B') != NULL)
+        if (strchr(options, 'B') != nullptr)
             return 'B';
     }
     else if (check_command(current_cmd, "repairmft", 9) == 0)
     {
-        if (strchr(options, 'M') != NULL)
+        if (strchr(options, 'M') != nullptr)
             return 'M';
     }
     return 0;
 }
 
-static int is_no_confirm_command(char **current_cmd)
+static auto is_no_confirm_command(char **current_cmd) -> int
 {
     skip_comma_in_command(current_cmd);
     if (check_command(current_cmd, "noconfirm", 9) == 0)
@@ -112,9 +112,9 @@ static int is_no_confirm_command(char **current_cmd)
     return 0;
 }
 
-static const char *ntfs_boot_sector_scan(disk_t &disk, const partition_t &partition, unsigned char *buffer_bs,
-                                         unsigned char *buffer_backup_bs, unsigned int *menu, const int verbose,
-                                         const unsigned int expert)
+static auto ntfs_boot_sector_scan(disk_t &disk, const partition_t &partition, unsigned char *buffer_bs,
+                                  unsigned char *buffer_backup_bs, unsigned int *menu, const int verbose,
+                                  const unsigned int expert) -> const char *
 {
     int identical_sectors;
     int opt_B = 0;
@@ -135,7 +135,7 @@ static const char *ntfs_boot_sector_scan(disk_t &disk, const partition_t &partit
         screen_buffer_add("ntfs_boot_sector: Can't read boot sector.\n");
         memset(buffer_bs, 0, NTFS_BOOT_SECTOR_SIZE);
     }
-    if (test_NTFS(disk, (struct ntfs_boot_sector *)buffer_bs, partition, verbose, 0) == 0)
+    if (test_NTFS(disk, reinterpret_cast<struct ntfs_boot_sector *>(buffer_bs), partition, verbose, 0) == 0)
     {
         screen_buffer_add("Status: OK\n");
         opt_O = 1;
@@ -151,7 +151,7 @@ static const char *ntfs_boot_sector_scan(disk_t &disk, const partition_t &partit
         screen_buffer_add("ntfs_boot_sector: Can't read backup boot sector.\n");
         memset(buffer_backup_bs, 0, NTFS_BOOT_SECTOR_SIZE);
     }
-    if (test_NTFS(disk, (struct ntfs_boot_sector *)buffer_backup_bs, partition, verbose, 0) == 0)
+    if (test_NTFS(disk, reinterpret_cast<struct ntfs_boot_sector *>(buffer_backup_bs), partition, verbose, 0) == 0)
     {
         screen_buffer_add("Status: OK\n");
         opt_B = 1;
@@ -163,13 +163,14 @@ static const char *ntfs_boot_sector_scan(disk_t &disk, const partition_t &partit
     screen_buffer_add("\n");
     if (memcmp(buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE) == 0)
     {
-        log_ntfs_info((const struct ntfs_boot_sector *)buffer_bs);
+        log_ntfs_info(reinterpret_cast<const struct ntfs_boot_sector *>(buffer_bs));
         screen_buffer_add("Sectors are identical.\n");
         identical_sectors = 1;
     }
     else
     {
-        log_ntfs2_info((const struct ntfs_boot_sector *)buffer_bs, (const struct ntfs_boot_sector *)buffer_backup_bs);
+        log_ntfs2_info(reinterpret_cast<const struct ntfs_boot_sector *>(buffer_bs),
+                       reinterpret_cast<const struct ntfs_boot_sector *>(buffer_backup_bs));
         screen_buffer_add("Sectors are not identical.\n");
         identical_sectors = 0;
     }
@@ -199,8 +200,8 @@ static const char *ntfs_boot_sector_scan(disk_t &disk, const partition_t &partit
     return "DR";
 }
 
-int ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose, const unsigned int expert,
-                     char **current_cmd)
+auto ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose, const unsigned int expert,
+                      char **current_cmd) -> int
 {
     unsigned char *buffer_bs;
     unsigned char *buffer_backup_bs;
@@ -219,7 +220,7 @@ int ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose, co
     buffer_bs = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
     buffer_backup_bs = new unsigned char[NTFS_BOOT_SECTOR_SIZE];
 
-    while (1)
+    while (true)
     {
         unsigned int menu = 0;
         int no_confirm = 0;
@@ -228,7 +229,7 @@ int ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose, co
         screen_buffer_reset();
         options = ntfs_boot_sector_scan(disk, partition, buffer_bs, buffer_backup_bs, &menu, verbose, expert);
         screen_buffer_to_log();
-        if (*current_cmd != NULL)
+        if (*current_cmd != nullptr)
         {
             no_confirm = is_no_confirm_command(current_cmd);
             command = ntfs_boot_sector_command(current_cmd, options);
@@ -282,7 +283,7 @@ int ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose, co
             }
             break;
         case 'L':
-            if (strchr(options, 'O') == NULL && strchr(options, 'B') != NULL)
+            if (strchr(options, 'O') == nullptr && strchr(options, 'B') != nullptr)
             {
                 io_redir_add_redir(disk, partition.part_offset, NTFS_BOOT_SECTOR_SIZE, 0, buffer_backup_bs);
                 dir_partition(disk, partition, 0, expert, current_cmd);

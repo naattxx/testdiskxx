@@ -20,7 +20,7 @@
 
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 // #include <stdio.h>
 // #include "types.h"
@@ -29,8 +29,8 @@
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 
-static int test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, const partition_t &partition,
-                    const int verbose, const int dump_ind, const unsigned int max_partitions)
+static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, const partition_t &partition,
+                     const int verbose, const int dump_ind, const unsigned int max_partitions) -> int
 {
     unsigned int i;
     const uint16_t *cp;
@@ -45,8 +45,8 @@ static int test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, 
     if (le16(bsd_header->d_npartitions) > max_partitions)
         return 1;
     crc = 0;
-    for (cp = (const uint16_t *)bsd_header;
-         cp < (const uint16_t *)&bsd_header->d_partitions[le16(bsd_header->d_npartitions)]; cp++)
+    for (cp = reinterpret_cast<const uint16_t *>(bsd_header);
+         cp < reinterpret_cast<const uint16_t *>(&bsd_header->d_partitions[le16(bsd_header->d_npartitions)]); cp++)
         crc ^= *cp;
     if (crc == 0)
     {
@@ -99,7 +99,7 @@ static int test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, 
     return 0;
 }
 
-int check_BSD(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int max_partitions)
+auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int max_partitions) -> int
 {
     unsigned char *buffer;
     buffer = new unsigned char[BSD_DISKLABEL_SIZE];
@@ -108,18 +108,18 @@ int check_BSD(disk_t &disk_car, partition_t &partition, const int verbose, const
         delete[] (buffer);
         return 1;
     }
-    if (test_BSD(disk_car, (const struct disklabel *)buffer, partition, verbose, 0, max_partitions))
+    if (test_BSD(disk_car, reinterpret_cast<const struct disklabel *>(buffer), partition, verbose, 0, max_partitions))
     {
         delete[] (buffer);
         return 1;
     }
-    partition.set_name(((const struct disklabel *)buffer)->d_packname, 16);
+    partition.set_name((reinterpret_cast<const struct disklabel *>(buffer))->d_packname, 16);
     delete[] (buffer);
     return 0;
 }
 
-int recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, partition_t &partition, const int verbose,
-                const int dump_ind)
+auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, partition_t &partition, const int verbose,
+                 const int dump_ind) -> int
 {
     int i;
     int i_max_p_offset = -1;
@@ -136,10 +136,10 @@ int recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, part
             }
         }
         if (i_max_p_offset >= 0)
-            partition.part_size = (uint64_t)(le32(bsd_header->d_partitions[i_max_p_offset].p_size) +
-                                              le32(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1) *
-                                       disk_car.sector_size -
-                                   partition.part_offset;
+            partition.part_size = static_cast<uint64_t>(le32(bsd_header->d_partitions[i_max_p_offset].p_size) +
+                                                        le32(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1) *
+                                      disk_car.sector_size -
+                                  partition.part_offset;
         else
             partition.part_size = 0;
         partition.part_type_i386 = P_FREEBSD;
@@ -160,10 +160,10 @@ int recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header, part
             }
         }
         if (i_max_p_offset >= 0)
-            partition.part_size = (uint64_t)(le32(bsd_header->d_partitions[i_max_p_offset].p_size) +
-                                              le32(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1) *
-                                       disk_car.sector_size -
-                                   partition.part_offset;
+            partition.part_size = static_cast<uint64_t>(le32(bsd_header->d_partitions[i_max_p_offset].p_size) +
+                                                        le32(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1) *
+                                      disk_car.sector_size -
+                                  partition.part_offset;
         else
             partition.part_size = 0;
         partition.part_type_i386 = P_OPENBSD;

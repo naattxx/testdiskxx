@@ -21,8 +21,8 @@
  */
 
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 // #include "types.h"
 #include "gfs2.hpp"
@@ -36,7 +36,8 @@ static void set_gfs2_info(partition_t &partition)
     partition.info[0] = '\0';
 }
 
-static int test_gfs2(const disk_t &disk, const struct gfs2_sb *sb, const partition_t &partition, const int dump_ind)
+static auto test_gfs2(const disk_t &disk, const struct gfs2_sb *sb, const partition_t &partition, const int dump_ind)
+    -> int
 {
     if (sb->sb_header.mh_magic != be32(GFS2_MAGIC))
         return 1;
@@ -51,7 +52,7 @@ static int test_gfs2(const disk_t &disk, const struct gfs2_sb *sb, const partiti
     return 0;
 }
 
-int check_gfs2(disk_t &disk, partition_t &partition)
+auto check_gfs2(disk_t &disk, partition_t &partition) -> int
 {
     unsigned char *buffer;
     buffer = new unsigned char[512];
@@ -60,7 +61,7 @@ int check_gfs2(disk_t &disk, partition_t &partition)
         delete[] (buffer);
         return 1;
     }
-    if (test_gfs2(disk, (const struct gfs2_sb *)buffer, partition, 0) != 0)
+    if (test_gfs2(disk, reinterpret_cast<const struct gfs2_sb *>(buffer), partition, 0) != 0)
     {
         delete[] (buffer);
         return 1;
@@ -70,12 +71,12 @@ int check_gfs2(disk_t &disk, partition_t &partition)
     return 0;
 }
 
-int recover_gfs2(const disk_t &disk, const struct gfs2_sb *sb, partition_t &partition, const int dump_ind)
+auto recover_gfs2(const disk_t &disk, const struct gfs2_sb *sb, partition_t &partition, const int dump_ind) -> int
 {
     if (test_gfs2(disk, sb, partition, dump_ind) != 0)
         return 1;
     set_gfs2_info(partition);
     partition.part_size = disk.sector_size;
-    partition.part_type_i386 = (unsigned char)P_LINUX;
+    partition.part_type_i386 = static_cast<unsigned char>(P_LINUX);
     return 0;
 }

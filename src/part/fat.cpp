@@ -22,11 +22,13 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+
+#include <utility>
 // #include "types.h"
 #include "fat.hpp"
 #include "fat_dir.hpp"
@@ -49,19 +51,19 @@ extern const arch_fnct_t arch_mac;
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-static int is_fat12(const partition_t &partition);
+static auto is_fat12(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-static int is_fat16(const partition_t &partition);
+static auto is_fat16(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-static int is_fat32(const partition_t &partition);
+static auto is_fat32(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -72,19 +74,22 @@ static int is_fat32(const partition_t &partition);
   @ requires \separated(disk_car, partition, fat_header);
   @ decreases 0;
   @*/
-static int fat32_set_part_name(disk_t &disk_car, partition_t &partition, const struct fat_boot_sector *fat_header)
+static auto fat32_set_part_name(disk_t &disk_car, partition_t &partition, const struct fat_boot_sector *fat_header)
+    -> int
 {
     partition.fsname[0] = '\0';
     if ((fat_header->sectors_per_cluster > 0) && (fat_header->sectors_per_cluster <= 128))
     {
         const unsigned int cluster_size = fat_header->sectors_per_cluster * disk_car.sector_size;
-        unsigned char *buffer = new unsigned char[cluster_size];
-        if ((unsigned)disk_car.pread(
-                disk_car, buffer, cluster_size,
-                partition.part_offset +
-                    (le16(fat_header->reserved) + fat_header->fats * le32(fat_header->fat32_length) +
-                     (uint64_t)(le32(fat_header->root_cluster) - 2) * fat_header->sectors_per_cluster) *
-                        disk_car.sector_size) != cluster_size)
+        auto *buffer = new unsigned char[cluster_size];
+        if (std::cmp_not_equal(
+                disk_car.pread(
+                    disk_car, buffer, cluster_size,
+                    partition.part_offset +
+                        (le16(fat_header->reserved) + fat_header->fats * le32(fat_header->fat32_length) +
+                         static_cast<uint64_t>(le32(fat_header->root_cluster) - 2) * fat_header->sectors_per_cluster) *
+                            disk_car.sector_size),
+                cluster_size))
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_error("fat32_set_part_name() cannot read FAT32 root cluster.\n");
@@ -99,7 +104,7 @@ static int fat32_set_part_name(disk_t &disk_car, partition_t &partition, const s
                 if (((buffer[i * 0x20 + 0xB] & ATTR_EXT) != ATTR_EXT) &&
                     ((buffer[i * 0x20 + 0xB] & ATTR_VOLUME) != 0) && (buffer[i * 0x20] != 0xE5))
                 {
-                    partition.set_name_chomp((const char *)&buffer[i * 0x20], 11);
+                    partition.set_name_chomp(reinterpret_cast<const char *>(&buffer[i * 0x20]), 11);
                     if (check_VFAT_volume_name(partition.fsname, 11))
                         partition.fsname[0] = '\0';
                 }
@@ -116,7 +121,7 @@ static int fat32_set_part_name(disk_t &disk_car, partition_t &partition, const s
 #ifndef DISABLED_FOR_FRAMAC
         log_info("set_FAT_info: name from BS used\n");
 #endif
-        partition.set_name_chomp((const char *)fat_header + FAT32_PART_NAME, 11);
+        partition.set_name_chomp(reinterpret_cast<const char *>(fat_header) + FAT32_PART_NAME, 11);
         if (check_VFAT_volume_name(partition.fsname, 11))
             partition.fsname[0] = '\0';
     }
@@ -136,7 +141,7 @@ static void set_FAT_info(disk_t &disk_car, const struct fat_boot_sector *fat_hea
     uint64_t part_size;
     unsigned long int no_of_cluster;
     unsigned long int fat_length;
-    const char *buffer = (const char *)fat_header;
+    const char *buffer = reinterpret_cast<const char *>(fat_header);
     partition.fsname[0] = '\0';
     partition.blocksize = fat_sector_size(fat_header) * fat_header->sectors_per_cluster;
     fat_length = le16(fat_header->fat_length) > 0 ? le16(fat_header->fat_length) : le32(fat_header->fat32_length);
@@ -182,8 +187,8 @@ static void set_FAT_info(disk_t &disk_car, const struct fat_boot_sector *fat_hea
 /*@
   @ requires \valid_read(fh1);
   @*/
-static int log_fat_info(const struct fat_boot_sector *fh1, const upart_type_t upart_type,
-                        const unsigned int sector_size)
+static auto log_fat_info(const struct fat_boot_sector *fh1, const upart_type_t upart_type,
+                         const unsigned int sector_size) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
     log_info("sector_size  {}\n", fat_sector_size(fh1));
@@ -206,11 +211,11 @@ static int log_fat_info(const struct fat_boot_sector *fh1, const upart_type_t up
         log_info("root_cluster {}\n", (unsigned int)le32(fh1->root_cluster));
         log_info("info_sector  {}\n", le16(fh1->info_sector));
         log_info("backup_boot  {}\n", le16(fh1->backup_boot));
-        if (fat32_get_free_count((const unsigned char *)fh1, sector_size) == 0xFFFFFFFF)
+        if (fat32_get_free_count(reinterpret_cast<const unsigned char *>(fh1), sector_size) == 0xFFFFFFFF)
             log_info("free_count   uninitialised\n");
         else
             log_info("free_count   {}\n", fat32_get_free_count((const unsigned char *)fh1, sector_size));
-        if (fat32_get_next_free((const unsigned char *)fh1, sector_size) == 0xFFFFFFFF)
+        if (fat32_get_next_free(reinterpret_cast<const unsigned char *>(fh1), sector_size) == 0xFFFFFFFF)
             log_info("next_free    uninitialised\n");
         else
             log_info("next_free    {}\n", fat32_get_next_free((const unsigned char *)fh1, sector_size));
@@ -219,8 +224,8 @@ static int log_fat_info(const struct fat_boot_sector *fh1, const upart_type_t up
     return 0;
 }
 
-int log_fat2_info(const struct fat_boot_sector *fh1, const struct fat_boot_sector *fh2, const upart_type_t upart_type,
-                  const unsigned int sector_size)
+auto log_fat2_info(const struct fat_boot_sector *fh1, const struct fat_boot_sector *fh2, const upart_type_t upart_type,
+                   const unsigned int sector_size) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
     switch (upart_type)
@@ -258,20 +263,20 @@ int log_fat2_info(const struct fat_boot_sector *fh1, const struct fat_boot_secto
         log_info("info_sector  {} {}\n", le16(fh1->info_sector), le16(fh2->info_sector));
         log_info("backup_boot  {} {}\n", le16(fh1->backup_boot), le16(fh2->backup_boot));
         log_info("free_count   ");
-        if (fat32_get_free_count((const unsigned char *)fh1, sector_size) == 0xFFFFFFFF)
+        if (fat32_get_free_count(reinterpret_cast<const unsigned char *>(fh1), sector_size) == 0xFFFFFFFF)
             log_info("uninitialised ");
         else
             log_info("{} ", fat32_get_free_count((const unsigned char *)fh1, sector_size));
-        if (fat32_get_free_count((const unsigned char *)fh2, sector_size) == 0xFFFFFFFF)
+        if (fat32_get_free_count(reinterpret_cast<const unsigned char *>(fh2), sector_size) == 0xFFFFFFFF)
             log_info("uninitialised");
         else
             log_info("{}", fat32_get_free_count((const unsigned char *)fh2, sector_size));
         log_info("\nnext_free    ");
-        if (fat32_get_next_free((const unsigned char *)fh1, sector_size) == 0xFFFFFFFF)
+        if (fat32_get_next_free(reinterpret_cast<const unsigned char *>(fh1), sector_size) == 0xFFFFFFFF)
             log_info("uninitialised ");
         else
             log_info("{} ", fat32_get_next_free((const unsigned char *)fh1, sector_size));
-        if (fat32_get_next_free((const unsigned char *)fh2, sector_size) == 0xFFFFFFFF)
+        if (fat32_get_next_free(reinterpret_cast<const unsigned char *>(fh2), sector_size) == 0xFFFFFFFF)
             log_info("uninitialised\n");
         else
             log_info("{}\n", fat32_get_next_free((const unsigned char *)fh2, sector_size));
@@ -280,11 +285,11 @@ int log_fat2_info(const struct fat_boot_sector *fh1, const struct fat_boot_secto
     return 0;
 }
 
-int check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
+auto check_FAT(disk_t &disk_car, partition_t &partition, const int verbose) -> int
 {
     unsigned char *buffer;
     buffer = new unsigned char[3 * disk_car.sector_size];
-    if ((unsigned)disk_car.pread(disk_car, buffer, 3 * disk_car.sector_size, partition.part_offset) !=
+    if (static_cast<unsigned>(disk_car.pread(disk_car, buffer, 3 * disk_car.sector_size, partition.part_offset)) !=
         3 * disk_car.sector_size)
     {
 #ifndef DISABLED_FOR_FRAMAC
@@ -294,20 +299,21 @@ int check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
         delete[] (buffer);
         return 1;
     }
-    if (test_FAT(disk_car, (const struct fat_boot_sector *)buffer, partition, verbose, 0) != 0)
+    if (test_FAT(disk_car, reinterpret_cast<const struct fat_boot_sector *>(buffer), partition, verbose, 0) != 0)
     {
 #ifndef DISABLED_FOR_FRAMAC
         if (verbose > 0)
         {
             log_error("\n\ntest_FAT()\n");
             log_partition(disk_car, partition);
-            log_fat_info((const struct fat_boot_sector *)buffer, partition.upart_type, disk_car.sector_size);
+            log_fat_info(reinterpret_cast<const struct fat_boot_sector *>(buffer), partition.upart_type,
+                         disk_car.sector_size);
         }
 #endif
         delete[] (buffer);
         return 1;
     }
-    set_FAT_info(disk_car, (const struct fat_boot_sector *)buffer, partition);
+    set_FAT_info(disk_car, reinterpret_cast<const struct fat_boot_sector *>(buffer), partition);
     /*  screen_buffer_add("Ok\n"); */
     delete[] (buffer);
     return 0;
@@ -321,18 +327,18 @@ int check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
   @ requires \separated(disk, partition);
   @ decreases 0;
   @*/
-static unsigned int get_next_cluster_fat12(disk_t &disk, const partition_t &partition, const int offset,
-                                           const unsigned int cluster)
+static auto get_next_cluster_fat12(disk_t &disk, const partition_t &partition, const int offset,
+                                   const unsigned int cluster) -> unsigned int
 {
     unsigned int next_cluster;
     unsigned long int offset_s;
     unsigned long int offset_o;
-    unsigned char *buffer = new unsigned char[2 * disk.sector_size];
+    auto *buffer = new unsigned char[2 * disk.sector_size];
     offset_s = (cluster + cluster / 2) / disk.sector_size;
     offset_o = (cluster + cluster / 2) % disk.sector_size;
-    if ((unsigned)disk.pread(disk, buffer, 2 * disk.sector_size,
-                              partition.part_offset + (uint64_t)(offset + offset_s) * disk.sector_size) !=
-        2 * disk.sector_size)
+    if (static_cast<unsigned>(disk.pread(disk, buffer, 2 * disk.sector_size,
+                                         partition.part_offset + static_cast<uint64_t>(offset + offset_s) *
+                                                                     disk.sector_size)) != 2 * disk.sector_size)
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_error("get_next_cluster_fat12 read error\n");
@@ -356,19 +362,20 @@ static unsigned int get_next_cluster_fat12(disk_t &disk, const partition_t &part
   @ requires \separated(disk, partition);
   @ decreases 0;
   @*/
-static unsigned int get_next_cluster_fat16(disk_t &disk, const partition_t &partition, const int offset,
-                                           const unsigned int cluster)
+static auto get_next_cluster_fat16(disk_t &disk, const partition_t &partition, const int offset,
+                                   const unsigned int cluster) -> unsigned int
 {
     unsigned int next_cluster;
     unsigned long int offset_s;
     unsigned long int offset_o;
-    unsigned char *buffer = new unsigned char[disk.sector_size];
-    const uint16_t *p16 = (const uint16_t *)buffer;
+    auto *buffer = new unsigned char[disk.sector_size];
+    const auto *p16 = reinterpret_cast<const uint16_t *>(buffer);
     offset_s = cluster / (disk.sector_size / 2);
     offset_o = cluster % (disk.sector_size / 2);
-    if ((unsigned)disk.pread(disk, buffer, disk.sector_size,
-                              partition.part_offset + (uint64_t)(offset + offset_s) * disk.sector_size) !=
-        disk.sector_size)
+    if (std::cmp_not_equal(
+            disk.pread(disk, buffer, disk.sector_size,
+                       partition.part_offset + static_cast<uint64_t>(offset + offset_s) * disk.sector_size),
+            disk.sector_size))
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_error("get_next_cluster_fat16 read error\n");
@@ -389,19 +396,20 @@ static unsigned int get_next_cluster_fat16(disk_t &disk, const partition_t &part
   @ requires \separated(disk, partition);
   @ decreases 0;
   @*/
-static unsigned int get_next_cluster_fat32(disk_t &disk, const partition_t &partition, const int offset,
-                                           const unsigned int cluster)
+static auto get_next_cluster_fat32(disk_t &disk, const partition_t &partition, const int offset,
+                                   const unsigned int cluster) -> unsigned int
 {
     unsigned int next_cluster;
     unsigned long int offset_s;
     unsigned long int offset_o;
-    unsigned char *buffer = new unsigned char[disk.sector_size];
-    const uint32_t *p32 = (const uint32_t *)buffer;
+    auto *buffer = new unsigned char[disk.sector_size];
+    const auto *p32 = reinterpret_cast<const uint32_t *>(buffer);
     offset_s = cluster / (disk.sector_size / 4);
     offset_o = cluster % (disk.sector_size / 4);
-    if ((unsigned)disk.pread(disk, buffer, disk.sector_size,
-                              partition.part_offset + (uint64_t)(offset + offset_s) * disk.sector_size) !=
-        disk.sector_size)
+    if (std::cmp_not_equal(
+            disk.pread(disk, buffer, disk.sector_size,
+                       partition.part_offset + static_cast<uint64_t>(offset + offset_s) * disk.sector_size),
+            disk.sector_size))
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_error("get_next_cluster_fat32 read error\n");
@@ -419,8 +427,8 @@ static unsigned int get_next_cluster_fat32(disk_t &disk, const partition_t &part
     return next_cluster;
 }
 
-unsigned int get_next_cluster(disk_t &disk, const partition_t &partition, const upart_type_t upart_type,
-                              const int offset, const unsigned int cluster)
+auto get_next_cluster(disk_t &disk, const partition_t &partition, const upart_type_t upart_type, const int offset,
+                      const unsigned int cluster) -> unsigned int
 {
     /* Offset can be offset to FAT1 or to FAT2 */
     switch (upart_type)
@@ -439,8 +447,8 @@ unsigned int get_next_cluster(disk_t &disk, const partition_t &partition, const 
     }
 }
 
-int set_next_cluster(disk_t &disk_car, const partition_t &partition, const upart_type_t upart_type, const int offset,
-                     const unsigned int cluster, const unsigned int next_cluster)
+auto set_next_cluster(disk_t &disk_car, const partition_t &partition, const upart_type_t upart_type, const int offset,
+                      const unsigned int cluster, const unsigned int next_cluster) -> int
 {
     unsigned char *buffer;
     unsigned long int offset_s, offset_o;
@@ -470,9 +478,10 @@ int set_next_cluster(disk_t &disk_car, const partition_t &partition, const upart
         delete[] (buffer);
         return 1;
     }
-    if ((unsigned)disk_car.pread(disk_car, buffer, buffer_size,
-                                  partition.part_offset + (uint64_t)(offset + offset_s) * disk_car.sector_size) !=
-        buffer_size)
+    if (std::cmp_not_equal(
+            disk_car.pread(disk_car, buffer, buffer_size,
+                           partition.part_offset + static_cast<uint64_t>(offset + offset_s) * disk_car.sector_size),
+            buffer_size))
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_error("set_next_cluster read error\n");
@@ -484,19 +493,19 @@ int set_next_cluster(disk_t &disk_car, const partition_t &partition, const upart
     {
     case UP_FAT12:
         if ((cluster & 1) != 0)
-            (*((uint16_t *)&buffer[offset_o])) =
+            (*(reinterpret_cast<uint16_t *>(&buffer[offset_o]))) =
                 le16((next_cluster << 4) | (le16(*((uint16_t *)&buffer[offset_o])) & 0xF));
         else
-            (*((uint16_t *)&buffer[offset_o])) =
+            (*(reinterpret_cast<uint16_t *>(&buffer[offset_o]))) =
                 le16((next_cluster) | (le16(*((uint16_t *)&buffer[offset_o])) & 0xF000));
         break;
     case UP_FAT16: {
-        uint16_t *p16 = (uint16_t *)buffer;
+        auto *p16 = reinterpret_cast<uint16_t *>(buffer);
         p16[offset_o] = le16(next_cluster);
     }
     break;
     case UP_FAT32: {
-        uint32_t *p32 = (uint32_t *)buffer;
+        auto *p32 = reinterpret_cast<uint32_t *>(buffer);
         /* FAT32 used 28 bits, the 4 high bits are reserved
          * 0x00000000: free cluster
          * 0x0FFFFFF7: bad cluster
@@ -508,9 +517,10 @@ int set_next_cluster(disk_t &disk_car, const partition_t &partition, const upart
     default: /* Avoid compiler warning */
         break;
     }
-    if ((unsigned)disk_car.pwrite(disk_car, buffer, buffer_size,
-                                   partition.part_offset + (uint64_t)(offset + offset_s) * disk_car.sector_size) !=
-        buffer_size)
+    if (std::cmp_not_equal(
+            disk_car.pwrite(disk_car, buffer, buffer_size,
+                            partition.part_offset + static_cast<uint64_t>(offset + offset_s) * disk_car.sector_size),
+            buffer_size))
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_error("Write error: set_next_cluster write error\n");
@@ -522,21 +532,22 @@ int set_next_cluster(disk_t &disk_car, const partition_t &partition, const upart
     return 0;
 }
 
-unsigned int fat32_get_prev_cluster(disk_t &disk_car, const partition_t &partition, const unsigned int fat_offset,
-                                    const unsigned int cluster, const unsigned int no_of_cluster)
+auto fat32_get_prev_cluster(disk_t &disk_car, const partition_t &partition, const unsigned int fat_offset,
+                            const unsigned int cluster, const unsigned int no_of_cluster) -> unsigned int
 {
     const uint32_t *p32;
-    uint64_t hd_offset = partition.part_offset + (uint64_t)fat_offset * disk_car.sector_size;
+    uint64_t hd_offset = partition.part_offset + static_cast<uint64_t>(fat_offset) * disk_car.sector_size;
     unsigned int prev_cluster;
-    unsigned char *buffer = new unsigned char[disk_car.sector_size];
-    p32 = (const uint32_t *)buffer;
+    auto *buffer = new unsigned char[disk_car.sector_size];
+    p32 = reinterpret_cast<const uint32_t *>(buffer);
 
     for (prev_cluster = 2; prev_cluster <= no_of_cluster + 1; prev_cluster++)
     {
         const unsigned int offset_o = prev_cluster % (disk_car.sector_size / 4);
         if ((offset_o == 0) || (prev_cluster == 2))
         {
-            if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, hd_offset) != disk_car.sector_size)
+            if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size, hd_offset),
+                                   disk_car.sector_size))
             {
 #ifndef DISABLED_FOR_FRAMAC
                 log_error("fat32_get_prev_cluster error\n");
@@ -569,8 +580,8 @@ int offset, const unsigned int cluster, const unsigned int no_of_cluster)
 }
 */
 
-int test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, const partition_t &partition,
-             const int verbose, const int dump_ind)
+auto test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, const partition_t &partition,
+              const int verbose, const int dump_ind) -> int
 {
     uint64_t start_fat1;
     uint64_t start_fat2;
@@ -581,7 +592,7 @@ int test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, const p
     unsigned long int no_of_cluster;
     unsigned long int fat_length;
     unsigned long int fat_length_calc;
-    const char *buffer = (const char *)fat_header;
+    const char *buffer = reinterpret_cast<const char *>(fat_header);
     if (!(le16(fat_header->marker) == 0xAA55 && (fat_header->ignored[0] == 0xeb || fat_header->ignored[0] == 0xe9) &&
           (fat_header->fats == 1 || fat_header->fats == 2)))
         return 1; /* Obviously not a FAT */
@@ -809,7 +820,8 @@ int test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, const p
 #endif
             return 1;
         }
-        start_rootdir = start_data + (uint64_t)(le32(fat_header->root_cluster) - 2) * fat_header->sectors_per_cluster;
+        start_rootdir =
+            start_data + static_cast<uint64_t>(le32(fat_header->root_cluster) - 2) * fat_header->sectors_per_cluster;
         fat_length_calc = ((no_of_cluster + 2 + fat_sector_size(fat_header) / 4 - 1) * 4 / fat_sector_size(fat_header));
 #ifndef DISABLED_FOR_FRAMAC
         if (memcmp(buffer + FAT_NAME2, "FAT32   ", 8) != 0)
@@ -834,8 +846,8 @@ int test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, const p
         if (part_size > partition.part_size / fat_sector_size(fat_header))
         {
 #ifndef DISABLED_FOR_FRAMAC
-            screen_buffer_add("Error: size boot_sector {} > partition {}\n", (long unsigned)part_size,
-                              (long unsigned)(partition.part_size / fat_sector_size(fat_header)));
+            screen_buffer_add("Error: size boot_sector {} > partition {}\n", static_cast<long unsigned>(part_size),
+                              static_cast<long unsigned>(partition.part_size / fat_sector_size(fat_header)));
             log_error("test_FAT size boot_sector {} > partition {}\n", (long unsigned)part_size,
                       (long unsigned)(partition.part_size / fat_sector_size(fat_header)));
 #endif
@@ -891,8 +903,8 @@ int test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, const p
     return 0;
 }
 
-int comp_FAT(disk_t &disk, const partition_t &partition, const unsigned long int fat_size,
-             const unsigned long int sect_res)
+auto comp_FAT(disk_t &disk, const partition_t &partition, const unsigned long int fat_size,
+              const unsigned long int sect_res) -> int
 {
     /*
     return 0 if FATs match
@@ -904,15 +916,15 @@ int comp_FAT(disk_t &disk, const partition_t &partition, const unsigned long int
     unsigned char *buffer2;
     buffer = new unsigned char[16 * disk.sector_size];
     buffer2 = new unsigned char[16 * disk.sector_size];
-    hd_offset = partition.part_offset + (uint64_t)sect_res * disk.sector_size;
-    hd_offset2 = hd_offset + (uint64_t)fat_size * disk.sector_size;
+    hd_offset = partition.part_offset + static_cast<uint64_t>(sect_res) * disk.sector_size;
+    hd_offset2 = hd_offset + static_cast<uint64_t>(fat_size) * disk.sector_size;
     reste = (fat_size > 1000 ? 1000 : fat_size); /* Quick check ! */
     reste *= disk.sector_size;
     while (reste > 0)
     {
         const unsigned int read_size = (reste > 16 * disk.sector_size ? 16 * disk.sector_size : reste);
         reste -= read_size;
-        if ((unsigned)disk.pread(disk, buffer, read_size, hd_offset) != read_size)
+        if (std::cmp_not_equal(disk.pread(disk, buffer, read_size, hd_offset), read_size))
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_error("comp_FAT: can't read FAT1\n");
@@ -921,7 +933,7 @@ int comp_FAT(disk_t &disk, const partition_t &partition, const unsigned long int
             delete[] (buffer);
             return 1;
         }
-        if ((unsigned)disk.pread(disk, buffer2, read_size, hd_offset2) != read_size)
+        if (std::cmp_not_equal(disk.pread(disk, buffer2, read_size, hd_offset2), read_size))
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_error("comp_FAT: can't read FAT2\n");
@@ -950,16 +962,16 @@ int comp_FAT(disk_t &disk, const partition_t &partition, const unsigned long int
     return 0;
 }
 
-unsigned long int fat32_get_free_count(const unsigned char *boot_fat32, const unsigned int sector_size)
+auto fat32_get_free_count(const unsigned char *boot_fat32, const unsigned int sector_size) -> unsigned long int
 {
-    const struct fat_fsinfo *fsinfo = (const struct fat_fsinfo *)&boot_fat32[sector_size];
+    const auto *fsinfo = reinterpret_cast<const struct fat_fsinfo *>(&boot_fat32[sector_size]);
     /*@ assert \valid_read(fsinfo); */
     return le32(fsinfo->freecnt);
 }
 
-unsigned long int fat32_get_next_free(const unsigned char *boot_fat32, const unsigned int sector_size)
+auto fat32_get_next_free(const unsigned char *boot_fat32, const unsigned int sector_size) -> unsigned long int
 {
-    const struct fat_fsinfo *fsinfo = (const struct fat_fsinfo *)&boot_fat32[sector_size];
+    const auto *fsinfo = reinterpret_cast<const struct fat_fsinfo *>(&boot_fat32[sector_size]);
     /*@ assert \valid_read(fsinfo); */
     return le32(fsinfo->nextfree);
 }
@@ -972,7 +984,7 @@ unsigned long int fat32_get_next_free(const unsigned char *boot_fat32, const uns
   @ requires \separated(disk, partition);
   @ decreases 0;
   @*/
-static int fat_has_EFI_entry(disk_t &disk, const partition_t &partition, const int verbose)
+static auto fat_has_EFI_entry(disk_t &disk, const partition_t &partition, const int verbose) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
     dir_data_t dir_data;
@@ -996,14 +1008,14 @@ static int fat_has_EFI_entry(disk_t &disk, const partition_t &partition, const i
     return 0;
 }
 
-int recover_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, partition_t &partition, const int verbose,
-                const int dump_ind, const int backup)
+auto recover_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, partition_t &partition, const int verbose,
+                 const int dump_ind, const int backup) -> int
 {
     int efi = 0;
     if (test_FAT(disk_car, fat_header, partition, verbose, dump_ind))
         return 1;
     partition.part_size =
-        (uint64_t)(fat_sectors(fat_header) > 0 ? fat_sectors(fat_header) : le32(fat_header->total_sect)) *
+        static_cast<uint64_t>(fat_sectors(fat_header) > 0 ? fat_sectors(fat_header) : le32(fat_header->total_sect)) *
         fat_sector_size(fat_header);
     /* test_FAT has set partition.upart_type */
     partition.sborg_offset = 0;
@@ -1084,10 +1096,10 @@ int recover_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header, part
   @ requires \valid_read(partition);
   @ requires valid_partition(partition);
   @*/
-static int test_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header, const partition_t &partition,
-                      const int verbose, const int dump_ind)
+static auto test_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header, const partition_t &partition,
+                       const int verbose, const int dump_ind) -> int
 {
-    const char *buffer = (const char *)fat_header;
+    const char *buffer = reinterpret_cast<const char *>(fat_header);
     if (le16(fat_header->marker) == 0xAA55 && memcmp(buffer + FAT_NAME1, "FAT     ", 8) == 0)
     {
 #ifndef DISABLED_FOR_FRAMAC
@@ -1104,10 +1116,10 @@ static int test_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_head
     return 1;
 }
 
-int check_OS2MB(disk_t &disk, partition_t &partition, const int verbose)
+auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose) -> int
 {
-    unsigned char *buffer = new unsigned char[disk.sector_size];
-    if ((unsigned)disk.pread(disk, buffer, disk.sector_size, partition.part_offset) != disk.sector_size)
+    auto *buffer = new unsigned char[disk.sector_size];
+    if (std::cmp_not_equal(disk.pread(disk, buffer, disk.sector_size, partition.part_offset), disk.sector_size))
     {
 #ifndef DISABLED_FOR_FRAMAC
         screen_buffer_add("check_OS2MB: Read error\n");
@@ -1116,7 +1128,7 @@ int check_OS2MB(disk_t &disk, partition_t &partition, const int verbose)
         delete[] (buffer);
         return 1;
     }
-    if (test_OS2MB(disk, (const struct fat_boot_sector *)buffer, partition, verbose, 0) != 0)
+    if (test_OS2MB(disk, reinterpret_cast<const struct fat_boot_sector *>(buffer), partition, verbose, 0) != 0)
     {
 #ifndef DISABLED_FOR_FRAMAC
         if (verbose > 0)
@@ -1133,31 +1145,32 @@ int check_OS2MB(disk_t &disk, partition_t &partition, const int verbose)
     return 0;
 }
 
-int recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header, partition_t &partition,
-                  const int verbose, const int dump_ind)
+auto recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header, partition_t &partition,
+                   const int verbose, const int dump_ind) -> int
 {
     if (test_OS2MB(disk, fat_header, partition, verbose, dump_ind))
         return 1;
     /* 1 cylinder */
     partition.upart_type = UP_OS2MB;
-    partition.part_size = (uint64_t)disk.geom.heads_per_cylinder * disk.geom.sectors_per_head * disk.sector_size;
+    partition.part_size =
+        static_cast<uint64_t>(disk.geom.heads_per_cylinder) * disk.geom.sectors_per_head * disk.sector_size;
     partition.part_type_i386 = P_OS2MB;
     partition.fsname[0] = '\0';
     partition.info[0] = '\0';
     return 0;
 }
 
-int is_fat(const partition_t &partition)
+auto is_fat(const partition_t &partition) -> int
 {
     return (is_fat12(partition) || is_fat16(partition) || is_fat32(partition));
 }
 
-int is_part_fat(const partition_t &partition)
+auto is_part_fat(const partition_t &partition) -> int
 {
     return (is_part_fat12(partition) || is_part_fat16(partition) || is_part_fat32(partition));
 }
 
-int is_part_fat12(const partition_t &partition)
+auto is_part_fat12(const partition_t &partition) -> int
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
     if (partition.arch == &arch_i386)
@@ -1175,12 +1188,12 @@ int is_part_fat12(const partition_t &partition)
     return 0;
 }
 
-static int is_fat12(const partition_t &partition)
+static auto is_fat12(const partition_t &partition) -> int
 {
     return (is_part_fat12(partition) || partition.upart_type == UP_FAT12);
 }
 
-int is_part_fat16(const partition_t &partition)
+auto is_part_fat16(const partition_t &partition) -> int
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
     if (partition.arch == &arch_i386)
@@ -1202,12 +1215,12 @@ int is_part_fat16(const partition_t &partition)
     return 0;
 }
 
-static int is_fat16(const partition_t &partition)
+static auto is_fat16(const partition_t &partition) -> int
 {
     return (is_part_fat16(partition) || partition.upart_type == UP_FAT16);
 }
 
-int is_part_fat32(const partition_t &partition)
+auto is_part_fat32(const partition_t &partition) -> int
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
     if (partition.arch == &arch_i386)
@@ -1234,20 +1247,20 @@ int is_part_fat32(const partition_t &partition)
     return 0;
 }
 
-static int is_fat32(const partition_t &partition)
+static auto is_fat32(const partition_t &partition) -> int
 {
     return (is_part_fat32(partition) || partition.upart_type == UP_FAT32);
 }
 
-int fat32_free_info(disk_t &disk_car, const partition_t &partition, const unsigned int fat_offset,
-                    const unsigned int no_of_cluster, unsigned int *next_free, unsigned int *free_count)
+auto fat32_free_info(disk_t &disk_car, const partition_t &partition, const unsigned int fat_offset,
+                     const unsigned int no_of_cluster, unsigned int *next_free, unsigned int *free_count) -> int
 {
     unsigned char *buffer;
     const uint32_t *p32;
     unsigned int prev_cluster;
-    uint64_t hd_offset = partition.part_offset + (uint64_t)fat_offset * disk_car.sector_size;
+    uint64_t hd_offset = partition.part_offset + static_cast<uint64_t>(fat_offset) * disk_car.sector_size;
     buffer = new unsigned char[disk_car.sector_size];
-    p32 = (const uint32_t *)buffer;
+    p32 = reinterpret_cast<const uint32_t *>(buffer);
     *next_free = 0;
     *free_count = 0;
     for (prev_cluster = 2; prev_cluster <= no_of_cluster + 1; prev_cluster++)
@@ -1257,7 +1270,8 @@ int fat32_free_info(disk_t &disk_car, const partition_t &partition, const unsign
         offset_o = prev_cluster % (disk_car.sector_size / 4);
         if ((offset_o == 0) || (prev_cluster == 2))
         {
-            if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, hd_offset) != disk_car.sector_size)
+            if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size, hd_offset),
+                                   disk_car.sector_size))
             {
 #ifndef DISABLED_FOR_FRAMAC
                 log_error("fat32_free_info read error\n");
@@ -1283,7 +1297,7 @@ int fat32_free_info(disk_t &disk_car, const partition_t &partition, const unsign
     return 0;
 }
 
-int check_VFAT_volume_name(const char *name, const unsigned int max_size)
+auto check_VFAT_volume_name(const char *name, const unsigned int max_size) -> int
 {
     unsigned int i;
     /*@

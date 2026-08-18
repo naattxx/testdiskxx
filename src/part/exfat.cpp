@@ -21,9 +21,9 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "exfat.hpp"
 #include "src/common.hpp"
@@ -31,14 +31,15 @@
 
 extern const arch_fnct_t arch_none;
 
-uint64_t exfat_cluster_to_offset(const struct exfat_super_block *exfat_header, const unsigned int cluster)
+auto exfat_cluster_to_offset(const struct exfat_super_block *exfat_header, const unsigned int cluster) -> uint64_t
 {
-    return ((uint64_t)(((cluster - 2) << exfat_header->block_per_clus_bits) + le32(exfat_header->clus_blocknr)))
+    return (static_cast<uint64_t>(((cluster - 2) << exfat_header->block_per_clus_bits) +
+                                  le32(exfat_header->clus_blocknr)))
            << exfat_header->blocksize_bits;
 }
 
-int exfat_read_cluster(disk_t &disk, const partition_t &partition, const struct exfat_super_block *exfat_header,
-                       void *buffer, const unsigned int cluster)
+auto exfat_read_cluster(disk_t &disk, const partition_t &partition, const struct exfat_super_block *exfat_header,
+                        void *buffer, const unsigned int cluster) -> int
 {
     return disk.pread(disk, buffer, 1 << (exfat_header->block_per_clus_bits + exfat_header->blocksize_bits),
                        partition.part_offset + exfat_cluster_to_offset(exfat_header, cluster));
@@ -61,25 +62,25 @@ static void set_exFAT_info(partition_t &partition, const struct exfat_super_bloc
                  partition.blocksize);
 }
 
-int check_exFAT(disk_t &disk, partition_t &partition)
+auto check_exFAT(disk_t &disk, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[EXFAT_BS_SIZE];
+    auto *buffer = new unsigned char[EXFAT_BS_SIZE];
     if (disk.pread(disk, buffer, EXFAT_BS_SIZE, partition.part_offset) != EXFAT_BS_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_exFAT((struct exfat_super_block *)buffer) != 0)
+    if (test_exFAT(reinterpret_cast<struct exfat_super_block *>(buffer)) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_exFAT_info(partition, (struct exfat_super_block *)buffer);
+    set_exFAT_info(partition, reinterpret_cast<struct exfat_super_block *>(buffer));
     delete[] (buffer);
     return 0;
 }
 
-int test_exFAT(const struct exfat_super_block *exfat_header)
+auto test_exFAT(const struct exfat_super_block *exfat_header) -> int
 {
     if (le16(exfat_header->signature) != 0xAA55)
         return 1;
@@ -88,7 +89,7 @@ int test_exFAT(const struct exfat_super_block *exfat_header)
     return 0;
 }
 
-int recover_exFAT(const disk_t &disk, const struct exfat_super_block *exfat_header, partition_t &partition)
+auto recover_exFAT(const disk_t &disk, const struct exfat_super_block *exfat_header, partition_t &partition) -> int
 {
     if (test_exFAT(exfat_header) != 0)
         return 1;
@@ -96,7 +97,7 @@ int recover_exFAT(const disk_t &disk, const struct exfat_super_block *exfat_head
     partition.sb_size = 12 << exfat_header->blocksize_bits;
     partition.part_type_i386 = P_EXFAT;
     partition.part_type_gpt = GPT_ENT_TYPE_MS_BASIC_DATA;
-    partition.part_size = (uint64_t)le64(exfat_header->nr_sectors) * disk.sector_size;
+    partition.part_size = le64(exfat_header->nr_sectors) * disk.sector_size;
 #ifdef DEBUG_exFAT
     log_info("recover_exFAT:\n");
     log_info("start_sector={}\n", (long long unsigned)le64(exfat_header->start_sector));
@@ -105,7 +106,8 @@ int recover_exFAT(const disk_t &disk, const struct exfat_super_block *exfat_head
 #endif
     if ((le64(exfat_header->start_sector) * disk.sector_size + (12 << exfat_header->blocksize_bits) ==
          partition.part_offset) ||
-        (disk.arch == &arch_none && ((uint64_t)12 << exfat_header->blocksize_bits) == partition.part_offset))
+        (disk.arch == &arch_none &&
+         (static_cast<uint64_t>(12) << exfat_header->blocksize_bits) == partition.part_offset))
     {
         partition.sb_offset = 12 << exfat_header->blocksize_bits;
         partition.part_offset -= partition.sb_offset;

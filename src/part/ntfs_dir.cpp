@@ -31,14 +31,14 @@
 #undef HAVE_SYS_PARAM_H
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
-#include <string.h>
-#include <time.h>
 #include <cerrno>
+#include <cstring>
+#include <ctime>
 #if __has_include(<sys/param.h>)
 #include <sys/param.h>
 #endif
@@ -48,8 +48,8 @@
 #if __has_include(<iconv.h>)
 #include <iconv.h>
 #endif
-#include <ctype.h> /* isalpha */
-#include <stdarg.h>
+#include <cctype> /* isalpha */
+#include <cstdarg>
 // #include "types.h"
 
 #if defined(HAVE_LIBNTFS)
@@ -99,20 +99,20 @@ extern "C"
  * This allows the caller to read directories into their application or
  * to have different dirent layouts depending on the binary type.
  */
-typedef int (*ntfs_filldir_t)(void *dirent, const ntfschar *name, const int name_len, const int name_type,
-                              const s64 pos, const MFT_REF mref, const unsigned dt_type);
+using ntfs_filldir_t = int (*)(void *dirent, const ntfschar *name, const int name_len, const int name_type,
+                               const s64 pos, const MFT_REF mref, const unsigned dt_type);
 
 extern "C"
 {
     extern struct ntfs_device_operations ntfs_device_testdisk_io_ops;
-    extern int ntfs_readdir(ntfs_inode *dir_ni, s64 *pos, void *dirent, ntfs_filldir_t filldir);
+    extern auto ntfs_readdir(ntfs_inode *dir_ni, s64 *pos, void *dirent, ntfs_filldir_t filldir) -> int;
 }
-static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const int name_len, const int name_type,
-                              const s64 pos, const MFT_REF mref, const unsigned dt_type);
-static int ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                    const unsigned long int cluster, dir_list_t &dir_list);
-static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                             const file_info_t &file);
+static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const int name_len, const int name_type,
+                               const s64 pos, const MFT_REF mref, const unsigned dt_type) -> int;
+static auto ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+                     const unsigned long int cluster, dir_list_t &dir_list) -> int;
+static auto ntfs_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const file_info_t &file)
+    -> copy_file_t;
 static void dir_partition_ntfs_close(dir_data_t *dir_data);
 
 /**
@@ -124,7 +124,7 @@ static void dir_partition_ntfs_close(dir_data_t *dir_data);
  * Return:  n  Success, the INDX blocks are n bytes in size
  *	    0  Error, not a directory
  */
-static int index_get_size(ntfs_inode *inode)
+static auto index_get_size(ntfs_inode *inode) -> int
 {
     ATTR_RECORD *attr90;
     INDEX_ROOT *iroot;
@@ -133,13 +133,13 @@ static int index_get_size(ntfs_inode *inode)
     if (!attr90)
         return 0; // not a directory
 
-    iroot = (INDEX_ROOT *)((u8 *)attr90 + le16_to_cpu(attr90->value_offset));
+    iroot = reinterpret_cast<INDEX_ROOT *>(reinterpret_cast<u8 *>(attr90) + le16_to_cpu(attr90->value_offset));
 
     return iroot->index_block_size;
 }
 
 #ifdef HAVE_ICONV
-static int ntfs_ucstoutf8(iconv_t cd, char *ins, const int ins_len, char **outs, const int outs_len)
+static auto ntfs_ucstoutf8(iconv_t cd, char *ins, const int ins_len, char **outs, const int outs_len) -> int
 {
     char *inp;
     char *outp;
@@ -148,12 +148,12 @@ static int ntfs_ucstoutf8(iconv_t cd, char *ins, const int ins_len, char **outs,
         return -1;
 
     outp = *outs;
-    inp = (char *)ins;
+    inp = ins;
     inb_left = ins_len << 1;  // ntfschar is 16-bit
     outb_left = outs_len - 1; // reserve 1 byte for NUL
 
     *outp = '\0';
-    if (iconv(cd, &inp, &inb_left, &outp, &outb_left) == (size_t)(-1))
+    if (iconv(cd, &inp, &inb_left, &outp, &outb_left) == static_cast<size_t>(-1))
     {
         // Regardless of the value of errno
         log_error("ntfs_ucstoutf8: iconv failed\n");
@@ -168,19 +168,19 @@ static int ntfs_ucstoutf8(iconv_t cd, char *ins, const int ins_len, char **outs,
  * ntfs_td_list_entry
  * FIXME: Should we print errors as we go along? (AIA)
  */
-static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const int name_len, const int name_type,
-                              const s64 pos, const MFT_REF mref, const unsigned dt_type)
+static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const int name_len, const int name_type,
+                               const s64 pos, const MFT_REF mref, const unsigned dt_type) -> int
 {
     int result = 0;
     char *filename;
     ntfs_inode *ni;
-    ntfs_attr_search_ctx *ctx_si = NULL;
+    ntfs_attr_search_ctx *ctx_si = nullptr;
     file_info_t new_file;
     /* Keep FILE_NAME_WIN32 and FILE_NAME_POSIX */
     if ((name_type & FILE_NAME_WIN32_AND_DOS) == FILE_NAME_DOS)
         return 0;
 
-    filename = (char *)calloc(1, MAX_PATH);
+    filename = static_cast<char *>(calloc(1, MAX_PATH));
     if (!filename)
     {
         log_critical("ntfs_td_list_entry calloc failed\n");
@@ -188,7 +188,7 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
     }
 
 #ifdef HAVE_ICONV
-    if (ntfs_ucstoutf8(ls->cd, (char *)name, name_len, &filename, MAX_PATH) < 0 &&
+    if (ntfs_ucstoutf8(ls->cd, reinterpret_cast<char *>(name), name_len, &filename, MAX_PATH) < 0 &&
         ntfs_ucstombs(name, name_len, &filename, MAX_PATH) < 0)
     {
         log_error("Cannot represent filename in current locale.\n");
@@ -219,11 +219,11 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
     ctx_si = ntfs_attr_get_search_ctx(ni, ni->mrec);
     if (ctx_si)
     {
-        if (ntfs_attr_lookup(AT_STANDARD_INFORMATION, AT_UNNAMED, 0, CASE_SENSITIVE, 0, NULL, 0, ctx_si) == 0)
+        if (ntfs_attr_lookup(AT_STANDARD_INFORMATION, AT_UNNAMED, 0, CASE_SENSITIVE, 0, nullptr, 0, ctx_si) == 0)
         {
             const ATTR_RECORD *attr = ctx_si->attr;
-            const STANDARD_INFORMATION *si =
-                (const STANDARD_INFORMATION *)((const char *)attr + le16_to_cpu(attr->value_offset));
+            const auto *si = reinterpret_cast<const STANDARD_INFORMATION *>(reinterpret_cast<const char *>(attr) +
+                                                                            le16_to_cpu(attr->value_offset));
             if (si)
             {
                 new_file.td_atime = td_ntfs2utc(sle64_to_cpu(si->last_access_time));
@@ -235,7 +235,7 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
     }
     {
         ATTR_RECORD *rec;
-        ntfs_attr_search_ctx *ctx = NULL;
+        ntfs_attr_search_ctx *ctx = nullptr;
         if (dt_type == NTFS_DT_DIR)
         {
             new_file.name = strdup(filename);
@@ -255,11 +255,12 @@ static int ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name, const 
             new_file.st_size = filesize;
             if (rec->name_length)
             {
-                char *stream_name = NULL;
+                char *stream_name = nullptr;
                 new_file.status = FILE_STATUS_ADS;
                 new_file.name = new char[MAX_PATH];
-                if (ntfs_ucstombs((ntfschar *)((char *)rec + le16_to_cpu(rec->name_offset)), rec->name_length,
-                                  &stream_name, 0) < 0)
+                if (ntfs_ucstombs(
+                        reinterpret_cast<ntfschar *>(reinterpret_cast<char *>(rec) + le16_to_cpu(rec->name_offset)),
+                        rec->name_length, &stream_name, 0) < 0)
                 {
                     log_error("ERROR: Cannot translate name into current locale.\n");
                     snprintf(new_file.name, MAX_PATH, "%s:???", filename);
@@ -287,12 +288,12 @@ freefn:
     return result;
 }
 
-static int ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                    const unsigned long int cluster, dir_list_t &dir_list)
+static auto ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+                     const unsigned long int cluster, dir_list_t &dir_list) -> int
 {
     ntfs_inode *inode;
     s64 pos;
-    struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)dir_data->private_dir_data;
+    auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data->private_dir_data);
     ls->dir_list = dir_list;
 
     inode = ntfs_inode_open(ls->vol, cluster);
@@ -309,7 +310,7 @@ static int ntfs_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *
     pos = 0;
     if (inode->mrec->flags & MFT_RECORD_IS_DIRECTORY)
     {
-        if (ntfs_readdir(inode, &pos, ls, (ntfs_filldir_t)ntfs_td_list_entry) < 0)
+        if (ntfs_readdir(inode, &pos, ls, reinterpret_cast<ntfs_filldir_t>(ntfs_td_list_entry)) < 0)
         {
             log_error("ntfs_readdir failed for cluster {}: %s\n", cluster, strerror(errno));
         }
@@ -327,12 +328,12 @@ enum
     bufsize = 4096
 };
 
-static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                             const file_info_t &file)
+static auto ntfs_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const file_info_t &file)
+    -> copy_file_t
 {
     const unsigned long int first_inode = file.st_ino;
     ntfs_inode *inode;
-    struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)dir_data->private_dir_data;
+    auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data->private_dir_data);
     copy_file_t res = CP_OK;
     inode = ntfs_inode_open(ls->vol, first_inode);
     if (!inode)
@@ -343,7 +344,7 @@ static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir
     {
         char *buffer;
         char *new_file;
-        ntfs_attr *attr = NULL;
+        ntfs_attr *attr = nullptr;
         FILE *f_out;
         char *stream_name;
         s64 offset;
@@ -357,9 +358,9 @@ static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir
         stream_name = strrchr(dir_data->current_directory, ':');
         if (stream_name)
             stream_name++;
-        if (stream_name != NULL)
+        if (stream_name != nullptr)
         {
-            ntfschar *stream_name_ucs = NULL;
+            ntfschar *stream_name_ucs = nullptr;
 #ifdef NTFS_MBSTOUCS_HAVE_TWO_ARGUMENTS
             const int len = ntfs_mbstoucs(stream_name, &stream_name_ucs);
 #else
@@ -371,7 +372,7 @@ static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir
                 attr = ntfs_attr_open(inode, AT_DATA, stream_name_ucs, len);
         }
         else
-            attr = ntfs_attr_open(inode, AT_DATA, NULL, 0);
+            attr = ntfs_attr_open(inode, AT_DATA, nullptr, 0);
         if (!attr)
         {
             log_error("Cannot find attribute type 0x%lx.\n", (long)AT_DATA);
@@ -454,7 +455,7 @@ static copy_file_t ntfs_copy(disk_t &disk_car, const partition_t &partition, dir
 
 static void dir_partition_ntfs_close(dir_data_t *dir_data)
 {
-    struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)dir_data->private_dir_data;
+    auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data->private_dir_data);
     /* ntfs_umount() will invoke ntfs_device_free() for us. */
     ntfs_umount(ls->vol, FALSE);
     delete (ls->my_data);
@@ -467,20 +468,19 @@ static void dir_partition_ntfs_close(dir_data_t *dir_data)
 #endif
 
 extern "C"{
-dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                                        const int verbose, const int expert)
-{
+    auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+                                 const int verbose, const int expert) -> dir_partition_t
+    {
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
     struct ntfs_device *dev;
-    my_data_t *my_data = NULL;
-    ntfs_volume *vol = NULL;
+    my_data_t *my_data = nullptr;
+    ntfs_volume *vol = nullptr;
 #ifdef NTFS_LOG_LEVEL_VERBOSE
     ntfs_log_set_levels(NTFS_LOG_LEVEL_VERBOSE);
     ntfs_log_set_handler(ntfs_log_handler_stderr);
 #endif
 
-
-    dev = ntfs_device_alloc("/", 0, &ntfs_device_testdisk_io_ops, NULL);
+    dev = ntfs_device_alloc("/", 0, &ntfs_device_testdisk_io_ops, nullptr);
     if (dev)
     {
         my_data = (my_data_t *)new unsigned char[sizeof(*my_data)];
@@ -520,7 +520,7 @@ dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t &par
         log_warning("NTFS Volume is dirty.\n");
     }
     {
-        struct ntfs_dir_struct *ls = new struct ntfs_dir_struct;
+        auto *ls = new struct ntfs_dir_struct;
         ls->vol = vol;
         ls->my_data = my_data;
         ls->dir_data = dir_data;
@@ -540,7 +540,7 @@ dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t &par
         dir_data->get_dir = &ntfs_dir;
         dir_data->copy_file = &ntfs_copy;
         dir_data->close = &dir_partition_ntfs_close;
-        dir_data->local_dir = NULL;
+        dir_data->local_dir = nullptr;
         dir_data->private_dir_data = ls;
     }
     return DIR_PART_OK;
@@ -550,7 +550,7 @@ dir_partition_t dir_partition_ntfs_init(disk_t &disk_car, const partition_t &par
 }
 }
 
-const char *td_ntfs_version(void)
+auto td_ntfs_version() -> const char *
 {
 #ifdef HAVE_LIBNTFS
 #ifdef HAVE_NTFS_LIBNTFS_VERSION

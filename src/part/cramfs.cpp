@@ -22,9 +22,9 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "cramfs.hpp"
 #include "src/common.hpp"
@@ -32,27 +32,27 @@
 #include "src/log.hpp"
 
 static void set_cramfs_info(const struct cramfs_super *sb, partition_t &partition);
-static int test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, const partition_t &partition,
-                       const int verbose);
+static auto test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, const partition_t &partition,
+                        const int verbose) -> int;
 
-int check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
+auto check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose) -> int
 {
-    unsigned char *buffer = new unsigned char[CRAMFS_SUPERBLOCK_SIZE];
+    auto *buffer = new unsigned char[CRAMFS_SUPERBLOCK_SIZE];
     if (disk_car.pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE, partition.part_offset + 0x200) ==
         CRAMFS_SUPERBLOCK_SIZE)
     {
-        if (test_cramfs(disk_car, (struct cramfs_super *)buffer, partition, verbose) == 0)
+        if (test_cramfs(disk_car, reinterpret_cast<struct cramfs_super *>(buffer), partition, verbose) == 0)
         {
-            set_cramfs_info((struct cramfs_super *)buffer, partition);
+            set_cramfs_info(reinterpret_cast<struct cramfs_super *>(buffer), partition);
             delete[] (buffer);
             return 0;
         }
     }
     if (disk_car.pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE, partition.part_offset) == CRAMFS_SUPERBLOCK_SIZE)
     {
-        if (test_cramfs(disk_car, (struct cramfs_super *)buffer, partition, verbose) == 0)
+        if (test_cramfs(disk_car, reinterpret_cast<struct cramfs_super *>(buffer), partition, verbose) == 0)
         {
-            set_cramfs_info((struct cramfs_super *)buffer, partition);
+            set_cramfs_info(reinterpret_cast<struct cramfs_super *>(buffer), partition);
             delete[] (buffer);
             return 0;
         }
@@ -61,8 +61,8 @@ int check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
 }
 
-static int test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, const partition_t &partition,
-                       const int verbose)
+static auto test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, const partition_t &partition,
+                        const int verbose) -> int
 {
     if (sb->magic != le32(CRAMFS_MAGIC))
         return 1;
@@ -72,8 +72,8 @@ static int test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, co
     return 0;
 }
 
-int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partition_t &partition, const int verbose,
-                   const int dump_ind)
+auto recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partition_t &partition, const int verbose,
+                    const int dump_ind) -> int
 {
     if (test_cramfs(disk_car, sb, partition, verbose) != 0)
         return 1;
@@ -97,6 +97,6 @@ int recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb, partit
 static void set_cramfs_info(const struct cramfs_super *sb, partition_t &partition)
 {
     partition.upart_type = UP_CRAMFS;
-    partition.set_name((const char *)sb->name, 16);
+    partition.set_name(reinterpret_cast<const char *>(sb->name), 16);
     strncpy(partition.info, "cramfs", sizeof(partition.info));
 }

@@ -23,11 +23,11 @@
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_HUMAX)
 #include <config.h>
 
-#include <assert.h>
-#include <ctype.h> /* tolower */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cctype> /* tolower */
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "parthumax.hpp"
 #include "src/chgtype.hpp"
@@ -42,7 +42,7 @@
   @ requires valid_disk(disk_car);
   @*/
 // ensures  valid_list_part(\result);
-static list_part_t read_part_humax(disk_t &disk_car, const int verbose, const int saveheader);
+static auto read_part_humax(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -50,7 +50,7 @@ static list_part_t read_part_humax(disk_t &disk_car, const int verbose, const in
   @ requires \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_part_humax(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
+static auto write_part_humax(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -70,13 +70,13 @@ static void set_next_status_humax(const disk_t &disk_car, partition_t &partition
 /*@
   @ requires list_part == \null || \valid_read(list_part);
   @*/
-static int test_structure_humax(const list_part_t &list_part);
+static auto test_structure_humax(const list_part_t &list_part) -> int;
 
 /*@
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static int is_part_known_humax(const partition_t &partition);
+static auto is_part_known_humax(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -88,13 +88,13 @@ static void init_structure_humax(const disk_t &disk_car, list_part_t &list_part,
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_humax(const partition_t &partition);
+static auto get_partition_typename_humax(const partition_t &partition) -> const char *;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static unsigned int get_part_type_humax(const partition_t &partition);
+static auto get_part_type_humax(const partition_t &partition) -> unsigned int;
 
 #if 0
 static const struct systypes humax_sys_types[] = {
@@ -125,30 +125,30 @@ arch_fnct_t arch_humax = {.part_name = "Humax",
                           .read_part = &read_part_humax,
                           .write_part = &write_part_humax,
                           .init_part_order = &init_part_order_humax,
-                          .get_geometry_from_mbr = NULL,
-                          .check_part = NULL,
-                          .write_MBR_code = NULL,
+                          .get_geometry_from_mbr = nullptr,
+                          .check_part = nullptr,
+                          .write_MBR_code = nullptr,
                           .set_prev_status = &set_next_status_humax,
                           .set_next_status = &set_next_status_humax,
                           .test_structure = &test_structure_humax,
                           .get_part_type = &get_part_type_humax,
-                          .set_part_type = NULL,
+                          .set_part_type = nullptr,
                           .init_structure = &init_structure_humax,
-                          .erase_list_part = NULL,
+                          .erase_list_part = nullptr,
                           .get_partition_typename = &get_partition_typename_humax,
                           .is_part_known = &is_part_known_humax};
 
-static int is_part_known_humax(const partition_t &partition)
+static auto is_part_known_humax(const partition_t &partition) -> int
 {
     return (partition.part_type_humax != PHUMAX_PARTITION);
 }
 
-static unsigned int get_part_type_humax(const partition_t &partition)
+static auto get_part_type_humax(const partition_t &partition) -> unsigned int
 {
     return partition.part_type_humax;
 }
 
-static list_part_t read_part_humax(disk_t &disk_car, const int verbose, const int saveheader)
+static auto read_part_humax(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t
 {
     unsigned int i;
     struct humaxlabel *humaxlabel;
@@ -160,9 +160,9 @@ static list_part_t read_part_humax(disk_t &disk_car, const int verbose, const in
         return new_list_part;
     buffer = new unsigned char[disk_car.sector_size];
     screen_buffer_reset();
-    humaxlabel = (struct humaxlabel *)buffer;
-    p32 = (uint32_t *)buffer;
-    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, (uint64_t)0) != DEFAULT_SECTOR_SIZE)
+    humaxlabel = reinterpret_cast<struct humaxlabel *>(buffer);
+    p32 = reinterpret_cast<uint32_t *>(buffer);
+    if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
     {
         screen_buffer_add(msg_PART_RD_ERR);
         delete[] (buffer);
@@ -189,7 +189,8 @@ static list_part_t read_part_humax(disk_t &disk_car, const int verbose, const in
             new_partition.order = i + 1;
             new_partition.part_type_humax = PHUMAX_PARTITION;
             new_partition.part_offset = be32(humaxlabel->partitions[i].start_sector) * disk_car.sector_size;
-            new_partition.part_size = (uint64_t)be32(humaxlabel->partitions[i].num_sectors) * disk_car.sector_size;
+            new_partition.part_size =
+                static_cast<uint64_t>(be32(humaxlabel->partitions[i].num_sectors)) * disk_car.sector_size;
             new_partition.status = STATUS_PRIM;
             //       disk_car.arch->check_part(disk_car,verbose,new_partition,saveheader);
             aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
@@ -200,7 +201,7 @@ static list_part_t read_part_humax(disk_t &disk_car, const int verbose, const in
     return new_list_part;
 }
 
-static int write_part_humax(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
+static auto write_part_humax(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
 {
     /* TODO: Implement it */
     if (ro == 0)
@@ -229,7 +230,7 @@ void add_partition_humax_cli(const disk_t &disk_car, list_part_t &list_part, cha
 {
     CHS_t start, end;
     partition_t new_partition(&arch_humax);
-    assert(current_cmd != NULL);
+    assert(current_cmd != nullptr);
     start.cylinder = 0;
     start.head = 0;
     start.sector = 1;
@@ -240,7 +241,7 @@ void add_partition_humax_cli(const disk_t &disk_car, list_part_t &list_part, cha
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_read_string(*current_cmd);
       @ */
-    while (1)
+    while (true)
     {
         skip_comma_in_command(current_cmd);
         /*@ assert valid_read_string(*current_cmd); */
@@ -288,7 +289,7 @@ static void set_next_status_humax(const disk_t &disk_car, partition_t &partition
         partition.status = STATUS_DELETED;
 }
 
-static int test_structure_humax(const list_part_t &list_part)
+static auto test_structure_humax(const list_part_t &list_part) -> int
 { /* Return 1 if bad*/
     list_part_t new_list_part;
     int res;
@@ -336,7 +337,7 @@ static void init_structure_humax(const disk_t &disk_car, list_part_t &list_part,
     list_part = new_list_part;
 }
 
-static const char *get_partition_typename_humax(const partition_t &partition)
+static auto get_partition_typename_humax(const partition_t &partition) -> const char *
 {
     return "Partition";
 }

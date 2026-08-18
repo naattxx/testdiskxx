@@ -23,11 +23,11 @@
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_MAC)
 #include <config.h>
 
-#include <assert.h>
-#include <ctype.h> /* tolower */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cctype> /* tolower */
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -48,20 +48,20 @@
   @ requires \valid(disk_car);
   @ requires \valid(partition);
   @*/
-static int check_part_mac(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader);
+static auto check_part_mac(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @ ensures  valid_list_part(\result);
   @*/
-static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int saveheader);
+static auto read_part_mac(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t;
 
 /*@
   @ requires \valid(disk_car);
   @ requires list_part == \null || \valid(list_part);
   @*/
-static int write_part_mac(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
+static auto write_part_mac(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -83,13 +83,13 @@ static void set_next_status_mac(const disk_t &disk_car, partition_t &partition);
   @ requires \valid(partition);
   @ assigns partition.part_type_mac;
   @*/
-static int set_part_type_mac(partition_t &partition, unsigned int part_type_mac);
+static auto set_part_type_mac(partition_t &partition, unsigned int part_type_mac) -> int;
 
 /*@
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static int is_part_known_mac(const partition_t &partition);
+static auto is_part_known_mac(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -101,37 +101,37 @@ static void init_structure_mac(const disk_t &disk_car, list_part_t &list_part, c
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_mac(const partition_t &partition);
+static auto get_partition_typename_mac(const partition_t &partition) -> const char *;
 
 /*@
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_mac_aux(const unsigned int part_type_mac);
+static auto get_partition_typename_mac_aux(const unsigned int part_type_mac) -> const char *;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static unsigned int get_part_type_mac(const partition_t &partition);
+static auto get_part_type_mac(const partition_t &partition) -> unsigned int;
 
-static const struct systypes mac_sys_types[] = {{PMAC_DRIVER43, "Driver43"},
-                                                {PMAC_DRIVERATA, "Driver_ATA"},
-                                                {PMAC_DRIVERIO, "Driver_IOKit"},
-                                                {PMAC_FREE, "Free"},
-                                                {PMAC_FWDRIVER, "FWDriver"},
-                                                {PMAC_SWAP, "Swap"},
-                                                {PMAC_LINUX, "Linux"},
-                                                {PMAC_BEOS, "BeFS"},
-                                                {PMAC_HFS, "HFS"},
-                                                {PMAC_MAP, "partition_map"},
-                                                {PMAC_PATCHES, "Patches"},
-                                                {PMAC_UNK, "Unknown"},
-                                                {PMAC_NewWorld, "NewWorld"},
-                                                {PMAC_DRIVER, "Driver"},
-                                                {PMAC_MFS, "MFS"},
-                                                {PMAC_PRODOS, "ProDOS"},
-                                                {PMAC_FAT32, "DOS_FAT_32"},
-                                                {PMAC_UNK, NULL}};
+static const struct systypes mac_sys_types[] = {{.part_type = PMAC_DRIVER43, .name = "Driver43"},
+                                                {.part_type = PMAC_DRIVERATA, .name = "Driver_ATA"},
+                                                {.part_type = PMAC_DRIVERIO, .name = "Driver_IOKit"},
+                                                {.part_type = PMAC_FREE, .name = "Free"},
+                                                {.part_type = PMAC_FWDRIVER, .name = "FWDriver"},
+                                                {.part_type = PMAC_SWAP, .name = "Swap"},
+                                                {.part_type = PMAC_LINUX, .name = "Linux"},
+                                                {.part_type = PMAC_BEOS, .name = "BeFS"},
+                                                {.part_type = PMAC_HFS, .name = "HFS"},
+                                                {.part_type = PMAC_MAP, .name = "partition_map"},
+                                                {.part_type = PMAC_PATCHES, .name = "Patches"},
+                                                {.part_type = PMAC_UNK, .name = "Unknown"},
+                                                {.part_type = PMAC_NewWorld, .name = "NewWorld"},
+                                                {.part_type = PMAC_DRIVER, .name = "Driver"},
+                                                {.part_type = PMAC_MFS, .name = "MFS"},
+                                                {.part_type = PMAC_PRODOS, .name = "ProDOS"},
+                                                {.part_type = PMAC_FAT32, .name = "DOS_FAT_32"},
+                                                {.part_type = PMAC_UNK, .name = nullptr}};
 
 arch_fnct_t arch_mac = {.part_name = "Mac",
                         .part_name_option = "partition_mac",
@@ -139,25 +139,25 @@ arch_fnct_t arch_mac = {.part_name = "Mac",
                         .read_part = &read_part_mac,
                         .write_part = &write_part_mac,
                         .init_part_order = &init_part_order_mac,
-                        .get_geometry_from_mbr = NULL,
+                        .get_geometry_from_mbr = nullptr,
                         .check_part = &check_part_mac,
-                        .write_MBR_code = NULL,
+                        .write_MBR_code = nullptr,
                         .set_prev_status = &set_next_status_mac,
                         .set_next_status = &set_next_status_mac,
                         .test_structure = &test_structure_mac,
                         .get_part_type = &get_part_type_mac,
                         .set_part_type = &set_part_type_mac,
                         .init_structure = &init_structure_mac,
-                        .erase_list_part = NULL,
+                        .erase_list_part = nullptr,
                         .get_partition_typename = &get_partition_typename_mac,
                         .is_part_known = &is_part_known_mac};
 
-static unsigned int get_part_type_mac(const partition_t &partition)
+static auto get_part_type_mac(const partition_t &partition) -> unsigned int
 {
     return partition.part_type_mac;
 }
 
-static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int saveheader)
+static auto read_part_mac(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t
 {
     unsigned char buffer[DEFAULT_SECTOR_SIZE];
     list_part_t new_list_part;
@@ -167,7 +167,7 @@ static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int 
     if (disk_car.pread(disk_car, &buffer, sizeof(buffer), 0) != sizeof(buffer))
         return new_list_part;
     {
-        mac_Block0 *maclabel = (mac_Block0 *)&buffer;
+        auto *maclabel = reinterpret_cast<mac_Block0 *>(&buffer);
         if (be16(maclabel->sbSig) != BLOCK0_SIGNATURE)
         {
             screen_buffer_add("Bad MAC partition, invalid block0 signature\n");
@@ -177,8 +177,8 @@ static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int 
     }
     for (i = 1; i <= limit; i++)
     {
-        const mac_DPME *dpme = (const mac_DPME *)buffer;
-        if (disk_car.pread(disk_car, &buffer, sizeof(buffer), (uint64_t)i * PBLOCK_SIZE) != sizeof(buffer))
+        const auto *dpme = reinterpret_cast<const mac_DPME *>(buffer);
+        if (disk_car.pread(disk_car, &buffer, sizeof(buffer), static_cast<uint64_t>(i) * PBLOCK_SIZE) != sizeof(buffer))
             return new_list_part;
         if (be16(dpme->dpme_signature) != DPME_SIGNATURE)
         {
@@ -232,8 +232,8 @@ static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int 
                 new_partition.part_type_mac = PMAC_UNK;
                 log_error("%s\n", dpme->dpme_type);
             }
-            new_partition.part_offset = (uint64_t)be32(dpme->dpme_pblock_start) * PBLOCK_SIZE;
-            new_partition.part_size = (uint64_t)be32(dpme->dpme_pblocks) * PBLOCK_SIZE;
+            new_partition.part_offset = static_cast<uint64_t>(be32(dpme->dpme_pblock_start)) * PBLOCK_SIZE;
+            new_partition.part_size = static_cast<uint64_t>(be32(dpme->dpme_pblocks)) * PBLOCK_SIZE;
             new_partition.status = STATUS_PRIM;
             check_part_mac(disk_car, verbose, new_partition, saveheader);
             aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
@@ -247,7 +247,7 @@ static list_part_t read_part_mac(disk_t &disk_car, const int verbose, const int 
     return new_list_part;
 }
 
-static int write_part_mac(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
+static auto write_part_mac(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
 {
     /* TODO: Implement it */
     if (ro == 0)
@@ -263,14 +263,14 @@ static void init_part_order_mac(const disk_t &disk_car, list_part_t &list_part)
 void add_partition_mac_cli(disk_t &disk_car, list_part_t &list_part, char **current_cmd)
 {
     partition_t new_partition(&arch_mac);
-    assert(current_cmd != NULL);
+    assert(current_cmd != nullptr);
     new_partition.part_offset = disk_car.sector_size;
     new_partition.part_size = disk_car.disk_size - disk_car.sector_size;
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_read_string(*current_cmd);
       @ */
-    while (1)
+    while (true)
     {
         skip_comma_in_command(current_cmd);
         if (check_command(current_cmd, "s,", 2) == 0)
@@ -278,20 +278,20 @@ void add_partition_mac_cli(disk_t &disk_car, list_part_t &list_part, char **curr
             uint64_t part_offset;
             part_offset = new_partition.part_offset;
             new_partition.part_offset =
-                (uint64_t)ask_number_cli(
-                    current_cmd, new_partition.part_offset / disk_car.sector_size, 4096 / disk_car.sector_size,
-                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the starting sector ") *
-                (uint64_t)disk_car.sector_size;
+                ask_number_cli(current_cmd, new_partition.part_offset / disk_car.sector_size,
+                               4096 / disk_car.sector_size, (disk_car.disk_size - 1) / disk_car.sector_size,
+                               "Enter the starting sector ") *
+                static_cast<uint64_t>(disk_car.sector_size);
             new_partition.part_size = new_partition.part_size + part_offset - new_partition.part_offset;
         }
         else if (check_command(current_cmd, "S,", 2) == 0)
         {
             new_partition.part_size =
-                (uint64_t)ask_number_cli(
-                    current_cmd, (new_partition.part_offset + new_partition.part_size - 1) / disk_car.sector_size,
-                    new_partition.part_offset / disk_car.sector_size,
-                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the ending sector ") *
-                    (uint64_t)disk_car.sector_size +
+                ask_number_cli(current_cmd,
+                               (new_partition.part_offset + new_partition.part_size - 1) / disk_car.sector_size,
+                               new_partition.part_offset / disk_car.sector_size,
+                               (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the ending sector ") *
+                    static_cast<uint64_t>(disk_car.sector_size) +
                 disk_car.sector_size - new_partition.part_offset;
         }
         else if (check_command(current_cmd, "T,", 2) == 0)
@@ -326,7 +326,7 @@ static void set_next_status_mac(const disk_t &disk_car, partition_t &partition)
         partition.status = STATUS_DELETED;
 }
 
-int test_structure_mac(const list_part_t &list_part)
+auto test_structure_mac(const list_part_t &list_part) -> int
 { /* Return 1 if bad*/
     list_part_t new_list_part;
     int res;
@@ -335,7 +335,7 @@ int test_structure_mac(const list_part_t &list_part)
     return res;
 }
 
-static int set_part_type_mac(partition_t &partition, unsigned int part_type_mac)
+static auto set_part_type_mac(partition_t &partition, unsigned int part_type_mac) -> int
 {
     if (part_type_mac > 0 && part_type_mac <= 255)
     {
@@ -345,7 +345,7 @@ static int set_part_type_mac(partition_t &partition, unsigned int part_type_mac)
     return 1;
 }
 
-static int is_part_known_mac(const partition_t &partition)
+static auto is_part_known_mac(const partition_t &partition) -> int
 {
     return (partition.part_type_mac != PMAC_UNK);
 }
@@ -380,7 +380,7 @@ static void init_structure_mac(const disk_t &disk_car, list_part_t &list_part, c
     list_part = new_list_part;
 }
 
-static int check_part_mac(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader)
+static auto check_part_mac(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int
 {
     int ret = 0;
     switch (partition.part_type_mac)
@@ -434,17 +434,17 @@ static int check_part_mac(disk_t &disk_car, const int verbose, partition_t &part
     return ret;
 }
 
-static const char *get_partition_typename_mac_aux(const unsigned int part_type_mac)
+static auto get_partition_typename_mac_aux(const unsigned int part_type_mac) -> const char *
 {
     int i;
     /*@ loop assigns i; */
-    for (i = 0; mac_sys_types[i].name != NULL; i++)
+    for (i = 0; mac_sys_types[i].name != nullptr; i++)
         if (mac_sys_types[i].part_type == part_type_mac)
             return mac_sys_types[i].name;
-    return NULL;
+    return nullptr;
 }
 
-static const char *get_partition_typename_mac(const partition_t &partition)
+static auto get_partition_typename_mac(const partition_t &partition) -> const char *
 {
     return get_partition_typename_mac_aux(partition.part_type_mac);
 }

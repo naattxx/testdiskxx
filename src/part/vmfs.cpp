@@ -20,9 +20,9 @@
 
  */
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -32,10 +32,11 @@
 static void set_VMFS_info(const struct vmfs_volume *sb, partition_t &partition)
 {
     partition.upart_type = UP_VMFS;
-    sprintf(partition.info, "VMFS %lu", (long unsigned)le32(sb->version));
+    sprintf(partition.info, "VMFS %lu", static_cast<long unsigned> le32(sb->version));
 }
 
-static int test_VMFS(const disk_t &disk, const struct vmfs_volume *sb, const partition_t &partition, const int dump_ind)
+static auto test_VMFS(const disk_t &disk, const struct vmfs_volume *sb, const partition_t &partition,
+                      const int dump_ind) -> int
 {
     if (le32(sb->magic) != 0xc001d00d || le32(sb->version) > 20)
         return 1;
@@ -47,33 +48,33 @@ static int test_VMFS(const disk_t &disk, const struct vmfs_volume *sb, const par
     }
     return 0;
 }
-int check_VMFS(disk_t &disk, partition_t &partition)
+auto check_VMFS(disk_t &disk, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[2 * DEFAULT_SECTOR_SIZE];
+    auto *buffer = new unsigned char[2 * DEFAULT_SECTOR_SIZE];
     if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition.part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_VMFS(disk, (struct vmfs_volume *)buffer, partition, 0) != 0)
+    if (test_VMFS(disk, reinterpret_cast<struct vmfs_volume *>(buffer), partition, 0) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_VMFS_info((struct vmfs_volume *)buffer, partition);
+    set_VMFS_info(reinterpret_cast<struct vmfs_volume *>(buffer), partition);
     delete[] (buffer);
     return 0;
 }
 
-int recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb, partition_t &partition, const int verbose,
-                 const int dump_ind)
+auto recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb, partition_t &partition, const int verbose,
+                  const int dump_ind) -> int
 {
-    const struct vmfs_lvm *lvm = (const struct vmfs_lvm *)(((const char *)sb) + 0x200);
+    const auto *lvm = reinterpret_cast<const struct vmfs_lvm *>((reinterpret_cast<const char *>(sb)) + 0x200);
     if (test_VMFS(disk, sb, partition, dump_ind) != 0)
         return 1;
     set_VMFS_info(sb, partition);
     partition.part_type_i386 = P_VMFS;
-    partition.part_size = (uint64_t)le64(lvm->size);
+    partition.part_size = le64(lvm->size);
     partition.blocksize = 0;
     partition.sborg_offset = 0;
     partition.sb_offset = 0;

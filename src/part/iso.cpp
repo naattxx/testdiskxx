@@ -20,9 +20,9 @@
 
  */
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "iso.hpp"
 #include "iso9660.hpp"
@@ -43,7 +43,7 @@ static void set_ISO_info(const struct iso_primary_descriptor *iso, partition_t &
   @ requires \valid_read(iso);
   @ assigns  \nothing;
   @*/
-static int test_ISO(const struct iso_primary_descriptor *iso)
+static auto test_ISO(const struct iso_primary_descriptor *iso) -> int
 {
     static const unsigned char iso_header[6] = {0x01, 'C', 'D', '0', '0', '1'};
     if (memcmp(iso, iso_header, sizeof(iso_header)) != 0)
@@ -51,21 +51,21 @@ static int test_ISO(const struct iso_primary_descriptor *iso)
     return 0;
 }
 
-int check_ISO(disk_t &disk_car, partition_t &partition)
+auto check_ISO(disk_t &disk_car, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[ISO_PD_SIZE];
+    auto *buffer = new unsigned char[ISO_PD_SIZE];
     /*@ assert \valid(buffer + (0 .. ISO_PD_SIZE-1)); */
     if (disk_car.pread(disk_car, buffer, ISO_PD_SIZE, partition.part_offset + 64 * 512) != ISO_PD_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_ISO((struct iso_primary_descriptor *)buffer) != 0)
+    if (test_ISO(reinterpret_cast<struct iso_primary_descriptor *>(buffer)) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_ISO_info((struct iso_primary_descriptor *)buffer, partition);
+    set_ISO_info(reinterpret_cast<struct iso_primary_descriptor *>(buffer), partition);
     delete[] (buffer);
     return 0;
 }
@@ -87,7 +87,7 @@ static void set_ISO_info(const struct iso_primary_descriptor *iso, partition_t &
         snprintf(partition.info, sizeof(partition.info), "ISO");
 }
 
-int recover_ISO(const struct iso_primary_descriptor *iso, partition_t &partition)
+auto recover_ISO(const struct iso_primary_descriptor *iso, partition_t &partition) -> int
 {
     if (test_ISO(iso) != 0)
         return 1;
@@ -101,7 +101,7 @@ int recover_ISO(const struct iso_primary_descriptor *iso, partition_t &partition
         const unsigned int logical_block_size_be = be16(iso->logical_block_size_be);
         if (volume_space_size_le == volume_space_size_be && logical_block_size_le == logical_block_size_be)
         { /* ISO 9660 */
-            partition.part_size = (uint64_t)volume_space_size_le * logical_block_size_le;
+            partition.part_size = static_cast<uint64_t>(volume_space_size_le) * logical_block_size_le;
         }
     }
     return 0;

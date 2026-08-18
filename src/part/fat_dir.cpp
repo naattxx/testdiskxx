@@ -21,16 +21,17 @@
  */
 
 #include "src/dir_common.hpp"
+#include <cctype>
 #include <config.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
 #include <cerrno>
+#include <utility>
 // #include "types.h"
 #include "fat.hpp"
 #include "fat_common.hpp"
@@ -61,8 +62,8 @@ struct fat_dir_struct
   @ requires \separated(disk_car, partition, dir_data, fat_header, dir_list);
   @ decreases 0;
   @*/
-static int fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const dir_data_t *dir_data,
-                         const struct fat_boot_sector *fat_header, dir_list_t &dir_list);
+static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const dir_data_t *dir_data,
+                          const struct fat_boot_sector *fat_header, dir_list_t &dir_list) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -73,8 +74,8 @@ static int fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const d
   @ requires \valid(file);
   @ requires \separated(disk_car, partition, dir_data, file);
   @*/
-static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                            const file_info_t &file);
+static auto fat_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const file_info_t &file)
+    -> copy_file_t;
 
 /*@
   @ requires \valid(dir_data);
@@ -99,9 +100,10 @@ static inline void fat16_towchar(wchar_t *dst, const uint8_t *src, size_t len)
     }
 }
 
-int dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsigned int param, dir_list_t &dir_list)
+auto dir_fat_aux(const unsigned char *buffer, const unsigned int size, const unsigned int param, dir_list_t &dir_list)
+    -> int
 {
-    const struct msdos_dir_entry *de = (const struct msdos_dir_entry *)buffer;
+    const auto *de = reinterpret_cast<const struct msdos_dir_entry *>(buffer);
     wchar_t unicode[1000];
     unsigned char long_slots;
     unsigned int status;
@@ -127,14 +129,14 @@ GetNew:
     ParseLongDeleted:
         de_initial = de;
         long_slots = 0;
-        ds = (const struct msdos_dir_slot *)de;
+        ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
         alias_checksum = ds->alias_checksum;
         /* The number of slot has been overwritten, try to find it */
-        while (1)
+        while (true)
         {
-            if ((const void *)de >= (const void *)(buffer + size))
+            if (reinterpret_cast<const void *>(de) >= reinterpret_cast<const void *>(buffer + size))
                 return 0;
-            ds = (const struct msdos_dir_slot *)de;
+            ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
             if (de->name[0] != DELETED_FLAG)
                 goto GetNew;
             if (ds->attr != ATTR_EXT)
@@ -151,7 +153,7 @@ GetNew:
             goto RecEnd;
         }
         {
-            ds = (const struct msdos_dir_slot *)de_initial;
+            ds = reinterpret_cast<const struct msdos_dir_slot *>(de_initial);
             unicode[long_slots * 13] = 0;
             for (slot = long_slots; slot != 0;)
             {
@@ -185,7 +187,7 @@ GetNew:
         unsigned char sum;
         unsigned char alias_checksum;
     ParseLong:
-        ds = (const struct msdos_dir_slot *)de;
+        ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
         id = ds->id;
         if ((id & 0x40) == 0)
             goto RecEnd;
@@ -199,7 +201,7 @@ GetNew:
             alias_checksum = ds->alias_checksum;
 
             slot = slots;
-            while (1)
+            while (true)
             {
                 int offset;
 
@@ -214,11 +216,11 @@ GetNew:
                     unicode[offset + 13] = 0;
                 }
                 de++;
-                if ((const void *)de >= (const void *)(buffer + size))
+                if (reinterpret_cast<const void *>(de) >= reinterpret_cast<const void *>(buffer + size))
                     return 0;
                 if (slot == 0)
                     break;
-                ds = (const struct msdos_dir_slot *)de;
+                ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
                 if (ds->attr != ATTR_EXT)
                 {
                     long_slots = 0;
@@ -323,31 +325,32 @@ RecEnd:
         }
     }
     de++;
-    if ((const void *)de < (const void *)(buffer + size - 1) && de->name[0] != (int8_t)0)
+    if (reinterpret_cast<const void *>(de) < reinterpret_cast<const void *>(buffer + size - 1) &&
+        de->name[0] != static_cast<int8_t>(0))
         goto GetNew;
 #endif
     return 0;
 }
 
-typedef enum
+using fat_method_t = enum
 {
     FAT_FOLLOW_CLUSTER,
     FAT_NEXT_FREE_CLUSTER,
     FAT_NEXT_CLUSTER
-} fat_method_t;
+};
 
 /*@
   @ terminates \true;
   @ assigns \nothing;
   @*/
-static int is_EOC(const unsigned int cluster, const upart_type_t upart_type)
+static auto is_EOC(const unsigned int cluster, const upart_type_t upart_type) -> int
 {
     if (upart_type == UP_FAT12)
-        return ((cluster & 0x0ff8) == (unsigned)FAT12_EOC);
+        return ((cluster & 0x0ff8) == static_cast<unsigned>(FAT12_EOC));
     else if (upart_type == UP_FAT16)
-        return ((cluster & 0x0fff8) == (unsigned)FAT16_EOC);
+        return ((cluster & 0x0fff8) == static_cast<unsigned>(FAT16_EOC));
     else
-        return ((cluster & 0xffffff8) == (unsigned)FAT32_EOC);
+        return ((cluster & 0xffffff8) == static_cast<unsigned>(FAT32_EOC));
 }
 
 #define NBR_ENTRIES_MAX 65536
@@ -362,10 +365,10 @@ static int is_EOC(const unsigned int cluster, const upart_type_t upart_type)
   @ requires \separated(disk_car, partition, dir_data, dir_list);
   @ decreases 0;
   @*/
-static int fat_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                   const unsigned long int first_cluster, dir_list_t &dir_list)
+static auto fat_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+                    const unsigned long int first_cluster, dir_list_t &dir_list) -> int
 {
-    const struct fat_dir_struct *ls = (const struct fat_dir_struct *)dir_data->private_dir_data;
+    const auto *ls = static_cast<const struct fat_dir_struct *>(dir_data->private_dir_data);
     const struct fat_boot_sector *fat_header = ls->boot_sector;
     unsigned int cluster = first_cluster;
     if (fat_header->sectors_per_cluster < 1)
@@ -403,7 +406,7 @@ static int fat_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *d
     }
     {
         const unsigned int cluster_size = fat_header->sectors_per_cluster * fat_sector_size(fat_header);
-        unsigned char *buffer_dir = new unsigned char[32 * NBR_ENTRIES_MAX];
+        auto *buffer_dir = new unsigned char[32 * NBR_ENTRIES_MAX];
         unsigned int nbr_cluster;
         const unsigned int nbr_cluster_max = 32 * NBR_ENTRIES_MAX / cluster_size;
         int stop = 0;
@@ -422,7 +425,7 @@ static int fat_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *d
         {
             const uint64_t start =
                 partition.part_offset +
-                (uint64_t)(start_data + (cluster - 2) * fat_header->sectors_per_cluster) * fat_sector_size(fat_header);
+                (start_data + (cluster - 2) * fat_header->sectors_per_cluster) * fat_sector_size(fat_header);
             //      if(dir_data->verbose>0)
             {
 #ifndef DISABLED_FOR_FRAMAC
@@ -430,8 +433,10 @@ static int fat_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *d
                          (long unsigned)(start / fat_sector_size(fat_header)));
 #endif
             }
-            if ((unsigned)disk_car.pread(disk_car, buffer_dir + (uint64_t)cluster_size * nbr_cluster, cluster_size,
-                                          start) != cluster_size)
+            if (std::cmp_not_equal(disk_car.pread(disk_car,
+                                                  buffer_dir + static_cast<uint64_t>(cluster_size) * nbr_cluster,
+                                                  cluster_size, start),
+                                   cluster_size))
             {
 #ifndef DISABLED_FOR_FRAMAC
                 log_error("FAT: Can't read directory cluster.\n");
@@ -485,8 +490,8 @@ static int fat_dir(disk_t &disk_car, const partition_t &partition, dir_data_t *d
     }
 }
 
-static int fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const dir_data_t *dir_data,
-                         const struct fat_boot_sector *fat_header, dir_list_t &dir_list)
+static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const dir_data_t *dir_data,
+                          const struct fat_boot_sector *fat_header, dir_list_t &dir_list) -> int
 {
     const unsigned int root_size =
         (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) / disk_car.sector_size * disk_car.sector_size;
@@ -504,9 +509,9 @@ static int fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const d
         unsigned char *buffer_dir;
         buffer_dir = new unsigned char[root_size];
         start = partition.part_offset +
-                (uint64_t)((le16(fat_header->reserved) + fat_header->fats * le16(fat_header->fat_length)) *
-                           disk_car.sector_size);
-        if ((unsigned)disk_car.pread(disk_car, buffer_dir, root_size, start) != root_size)
+                static_cast<uint64_t>((le16(fat_header->reserved) + fat_header->fats * le16(fat_header->fat_length)) *
+                                      disk_car.sector_size);
+        if (std::cmp_not_equal(disk_car.pread(disk_car, buffer_dir, root_size, start), root_size))
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_error("FAT 1x: Can't read root directory.\n");
@@ -519,8 +524,8 @@ static int fat1x_rootdir(disk_t &disk_car, const partition_t &partition, const d
     }
 }
 
-dir_partition_t dir_partition_fat_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                                       const int verbose)
+auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const int verbose)
+    -> dir_partition_t
 {
     static unsigned char *buffer;
     static struct fat_dir_struct *ls;
@@ -535,7 +540,7 @@ dir_partition_t dir_partition_fat_init(disk_t &disk_car, const partition_t &part
     }
     set_secwest();
     ls = new struct fat_dir_struct;
-    ls->boot_sector = (struct fat_boot_sector *)buffer;
+    ls->boot_sector = reinterpret_cast<struct fat_boot_sector *>(buffer);
     strncpy(dir_data->current_directory, "/", sizeof(dir_data->current_directory));
     dir_data->current_inode = 0;
     dir_data->param = FLAG_LIST_DELETED;
@@ -547,7 +552,7 @@ dir_partition_t dir_partition_fat_init(disk_t &disk_car, const partition_t &part
     dir_data->capabilities = CAPA_LIST_DELETED;
     dir_data->copy_file = &fat_copy;
     dir_data->close = &dir_partition_fat_close;
-    dir_data->local_dir = NULL;
+    dir_data->local_dir = nullptr;
     dir_data->private_dir_data = ls;
     dir_data->get_dir = &fat_dir;
     return DIR_PART_OK;
@@ -555,7 +560,7 @@ dir_partition_t dir_partition_fat_init(disk_t &disk_car, const partition_t &part
 
 static void dir_partition_fat_close(dir_data_t *dir_data)
 {
-    struct fat_dir_struct *ls = (struct fat_dir_struct *)dir_data->private_dir_data;
+    auto *ls = static_cast<struct fat_dir_struct *>(dir_data->private_dir_data);
     delete (ls->boot_sector);
     delete (ls);
 }
@@ -570,16 +575,16 @@ static void dir_partition_fat_close(dir_data_t *dir_data)
   @ requires \separated(disk_car, partition, dir_data, file);
   @ decreases 0;
   @*/
-static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                            const file_info_t &file)
+static auto fat_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const file_info_t &file)
+    -> copy_file_t
 {
     char *new_file;
     FILE *f_out;
-    const struct fat_dir_struct *ls = (const struct fat_dir_struct *)dir_data->private_dir_data;
+    const auto *ls = static_cast<const struct fat_dir_struct *>(dir_data->private_dir_data);
     const struct fat_boot_sector *fat_header = ls->boot_sector;
     const unsigned int sectors_per_cluster = fat_header->sectors_per_cluster;
     const unsigned int block_size = fat_sector_size(fat_header) * sectors_per_cluster;
-    unsigned char *buffer_file = new unsigned char[block_size];
+    auto *buffer_file = new unsigned char[block_size];
     unsigned int cluster;
     unsigned int file_size = file.st_size;
     fat_method_t fat_meth = FAT_FOLLOW_CLUSTER;
@@ -614,12 +619,12 @@ static copy_file_t fat_copy(disk_t &disk_car, const partition_t &partition, dir_
       @*/
     while (cluster >= 2 && cluster <= no_of_cluster + 2 && file_size > 0)
     {
-        const uint64_t start = partition.part_offset + (uint64_t)(start_data + (cluster - 2) * sectors_per_cluster) *
-                                                            fat_sector_size(fat_header);
+        const uint64_t start =
+            partition.part_offset + (start_data + (cluster - 2) * sectors_per_cluster) * fat_sector_size(fat_header);
         unsigned int toread = block_size;
         if (toread > file_size)
             toread = file_size;
-        if ((unsigned)disk_car.pread(disk_car, buffer_file, toread, start) != toread)
+        if (std::cmp_not_equal(disk_car.pread(disk_car, buffer_file, toread, start), toread))
         {
 #ifndef DISABLED_FOR_FRAMAC
             log_error("fat_copy: Can't read cluster {}.\n", cluster);

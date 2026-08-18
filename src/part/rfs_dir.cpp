@@ -22,17 +22,17 @@
  */
 #include <config.h>
 
+#include <cstdio>
+#include <cstdlib>
 #include <print>
-#include <stdio.h>
-#include <stdlib.h>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
 #if __has_include(<fcntl.h>)
 #include <fcntl.h>
 #endif
-#include <string.h>
 #include <cerrno>
+#include <cstring>
 // #include "types.h"
 #include "rfs.hpp"
 #include "rfs_dir.hpp"
@@ -581,8 +581,8 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition, d
 }
 #endif
 
-dir_partition_t dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
-                                          const int verbose)
+auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data, const int verbose)
+    -> dir_partition_t
 {
 #ifdef HAVE_LIBREISERFS
     dal_t *dal;
@@ -640,7 +640,7 @@ dir_partition_t dir_partition_reiser_init(disk_t &disk_car, const partition_t &p
 #endif
 }
 
-const char *td_reiserfs_version(void)
+auto td_reiserfs_version() -> const char *
 {
 #ifdef HAVE_LIBREISERFS
     return libreiserfs_get_version();

@@ -21,13 +21,13 @@
  */
 #include <config.h>
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "netware.hpp"
 #include "src/common.hpp"
 
-static int test_netware(const struct disk_netware *netware_block)
+static auto test_netware(const struct disk_netware *netware_block) -> int
 {
     if (memcmp(netware_block->magic, "Nw_PaRtItIoN", 12) == 0)
     {
@@ -36,15 +36,15 @@ static int test_netware(const struct disk_netware *netware_block)
     return 1;
 }
 
-int check_netware(disk_t &disk_car, partition_t &partition)
+auto check_netware(disk_t &disk_car, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
+    auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
     if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_netware((const struct disk_netware *)buffer) != 0)
+    if (test_netware(reinterpret_cast<const struct disk_netware *>(buffer)) != 0)
     {
         delete[] (buffer);
         return 1;
@@ -54,13 +54,13 @@ int check_netware(disk_t &disk_car, partition_t &partition)
     return 0;
 }
 
-int recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t &partition)
+auto recover_netware(const disk_t &disk_car, const struct disk_netware *netware_block, partition_t &partition) -> int
 {
     if (test_netware(netware_block) != 0)
         return 1;
     partition.upart_type = UP_NETWARE;
     partition.part_type_i386 = P_NETWARE;
-    partition.part_size = (uint64_t)le32(netware_block->nbr_sectors) * disk_car.sector_size;
+    partition.part_size = static_cast<uint64_t> le32(netware_block->nbr_sectors) * disk_car.sector_size;
     partition.fsname[0] = '\0';
     partition.info[0] = '\0';
     return 0;

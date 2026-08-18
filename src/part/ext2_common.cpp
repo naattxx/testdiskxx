@@ -21,14 +21,14 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "ext2_common.hpp"
 #include "src/common.hpp"
 
-uint64_t td_ext2fs_blocks_count(const struct ext2_super_block *super)
+auto td_ext2fs_blocks_count(const struct ext2_super_block *super) -> uint64_t
 {
     const uint64_t lo = le32(super->s_blocks_count);
     const uint64_t hi = le32(super->s_blocks_count_hi);
@@ -38,7 +38,7 @@ uint64_t td_ext2fs_blocks_count(const struct ext2_super_block *super)
     return lo | (EXT2_HAS_INCOMPAT_FEATURE(super, EXT4_FEATURE_INCOMPAT_64BIT) ? hi << 32 : 0);
 }
 
-uint64_t td_ext2fs_free_blocks_count(const struct ext2_super_block *super)
+auto td_ext2fs_free_blocks_count(const struct ext2_super_block *super) -> uint64_t
 {
     const uint64_t lo = le32(super->s_free_blocks_count);
     const uint64_t hi = le32(super->s_free_blocks_hi);
@@ -48,7 +48,7 @@ uint64_t td_ext2fs_free_blocks_count(const struct ext2_super_block *super)
     return lo | (EXT2_HAS_INCOMPAT_FEATURE(super, EXT4_FEATURE_INCOMPAT_64BIT) ? hi << 32 : 0);
 }
 
-int test_EXT2(const struct ext2_super_block *sb, const partition_t &partition)
+auto test_EXT2(const struct ext2_super_block *sb, const partition_t &partition) -> int
 {
     const unsigned int s_errors = le16(sb->s_errors);
     const uint64_t blocks_count = td_ext2fs_blocks_count(sb);
@@ -85,11 +85,11 @@ int test_EXT2(const struct ext2_super_block *sb, const partition_t &partition)
         return 8;
     /*@ assert 0 <= EXT2_MIN_BLOCK_SIZE<<s_log_block_size <= EXT2_MIN_BLOCK_SIZE<<6; */
     /*@ assert 0 ≤ 64-10-s_log_block_size ≤ 64-10-6; */;
-    if (blocks_count >= (uint64_t)1 << (64 - 10 - s_log_block_size))
+    if (blocks_count >= static_cast<uint64_t>(1) << (64 - 10 - s_log_block_size))
         return 9;
     /*@ assert blocks_count < 1 << (64-10-s_log_block_size); */
     if (partition.part_size != 0 &&
-        partition.part_size < blocks_count * ((uint64_t)EXT2_MIN_BLOCK_SIZE << s_log_block_size))
+        partition.part_size < blocks_count * (static_cast<uint64_t>(EXT2_MIN_BLOCK_SIZE) << s_log_block_size))
         return 8;
     return 0;
 }

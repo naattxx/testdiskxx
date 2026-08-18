@@ -20,9 +20,9 @@
 
  */
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "jfs.hpp"
 #include "jfs_superblock.hpp"
@@ -35,8 +35,8 @@ static void set_JFS_info(const struct jfs_superblock *sb, partition_t &partition
 {
     partition.upart_type = UP_JFS;
     partition.blocksize = le32(sb->s_bsize);
-    snprintf(partition.info, sizeof(partition.info), "JFS %u, blocksize=%u", (unsigned int)le32(sb->s_version),
-             partition.blocksize);
+    snprintf(partition.info, sizeof(partition.info), "JFS %u, blocksize=%u",
+             static_cast<unsigned int> le32(sb->s_version), partition.blocksize);
     partition.fsname[0] = '\0';
     if (le32(sb->s_version) == 1)
     {
@@ -44,8 +44,8 @@ static void set_JFS_info(const struct jfs_superblock *sb, partition_t &partition
     }
 }
 
-static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, const partition_t &partition,
-                    const int dump_ind)
+static auto test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, const partition_t &partition,
+                     const int dump_ind) -> int
 {
     if (memcmp(sb->s_magic, "JFS1", 4) != 0)
         return 1;
@@ -69,21 +69,21 @@ static int test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, con
     return 0;
 }
 
-int check_JFS(disk_t &disk_car, partition_t &partition)
+auto check_JFS(disk_t &disk_car, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[JFS_SUPERBLOCK_SIZE];
+    auto *buffer = new unsigned char[JFS_SUPERBLOCK_SIZE];
     if (disk_car.pread(disk_car, buffer, JFS_SUPERBLOCK_SIZE, partition.part_offset + 64 * 512) !=
         JFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_JFS(disk_car, (struct jfs_superblock *)buffer, partition, 0) != 0)
+    if (test_JFS(disk_car, reinterpret_cast<struct jfs_superblock *>(buffer), partition, 0) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_JFS_info((struct jfs_superblock *)buffer, partition);
+    set_JFS_info(reinterpret_cast<struct jfs_superblock *>(buffer), partition);
     delete[] (buffer);
     return 0;
 }
@@ -91,8 +91,8 @@ int check_JFS(disk_t &disk_car, partition_t &partition)
 /*
 Primary superblock is at 0x8000
 */
-int recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partition_t &partition, const int verbose,
-                const int dump_ind)
+auto recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partition_t &partition, const int verbose,
+                 const int dump_ind) -> int
 {
     if (test_JFS(disk_car, sb, partition, dump_ind) != 0)
         return 1;
@@ -101,12 +101,12 @@ int recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb, partiti
     partition.part_type_sun = PSUN_LINUX;
     partition.part_type_mac = PMAC_LINUX;
     partition.part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
-    partition.part_size = (uint64_t)le32(sb->s_pbsize) * le64(sb->s_size) +
-                           (uint64_t)le32(sb->s_bsize) * (le24(sb->s_fsckpxd.len) + le24(sb->s_logpxd.len));
+    partition.part_size = static_cast<uint64_t> le32(sb->s_pbsize) * le64(sb->s_size) +
+                          static_cast<uint64_t> le32(sb->s_bsize) * (le24(sb->s_fsckpxd.len) + le24(sb->s_logpxd.len));
     partition.sborg_offset = 64 * 512;
     partition.sb_size = JFS_SUPERBLOCK_SIZE;
     partition.sb_offset = 0;
-    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&sb->s_uuid);
+    guid_cpy(&partition.part_uuid, reinterpret_cast<const efi_guid_t *>(&sb->s_uuid));
     if (verbose > 0)
     {
         log_info("\n");

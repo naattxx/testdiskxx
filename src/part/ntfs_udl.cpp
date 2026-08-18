@@ -32,11 +32,11 @@
 #undef HAVE_LIBNTFS3G
 #endif
 
-#include <stdio.h>
+#include <cstdio>
 // #include <features.h>
-#include <stdlib.h>
-#include <string.h>
 #include <cerrno>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #if __has_include(<fcntl.h>)
@@ -48,19 +48,20 @@
 #if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
-#include <limits.h>
-#include <stdarg.h>
-#include <time.h>
+#include <climits>
+#include <cstdarg>
+#include <ctime>
 
 #if !defined(REG_NOERROR) || (REG_NOERROR != 0)
 #define REG_NOERROR 0
 #endif
 
-#include <list>
 #include "ntfs_udl.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
+#include <list>
+#include <utility>
 // #include "intrfn.h"
 
 #ifdef HAVE_LIBNTFS
@@ -122,7 +123,7 @@ struct filename
     uint64_t parent_mref;
     char *parent_name;
 };
-typedef std::list<filename *> filename_list_t;
+using filename_list_t = std::list<filename *>;
 
 struct data
 {
@@ -140,7 +141,7 @@ struct data
     unsigned int percent;     /* Amount potentially recoverable */
     void *data;               /* If resident, a pointer to the data */
 };
-typedef std::list<data *> data_list_t;
+using data_list_t = std::list<data *>;
 
 struct ufile
 {
@@ -203,39 +204,40 @@ static void free_file(struct ufile *file)
  * Return:	@rec's filename, either same name space as @name or lowest space.
  *		NULL if can't determine parenthood or on error.
  */
-static FILE_NAME_ATTR *verify_parent(const struct filename *name, MFT_RECORD *rec)
+static auto verify_parent(const struct filename *name, MFT_RECORD *rec) -> FILE_NAME_ATTR *
 {
     ATTR_RECORD *attr30;
-    FILE_NAME_ATTR *filename_attr = NULL, *lowest_space_name = NULL;
+    FILE_NAME_ATTR *filename_attr = nullptr, *lowest_space_name = nullptr;
     ntfs_attr_search_ctx *ctx;
     int found_same_space = 1;
 
     if (!name || !rec)
-        return NULL;
+        return nullptr;
 
     if (!(rec->flags & MFT_RECORD_IS_DIRECTORY))
     {
-        return NULL;
+        return nullptr;
     }
 
-    ctx = ntfs_attr_get_search_ctx(NULL, rec);
+    ctx = ntfs_attr_get_search_ctx(nullptr, rec);
     if (!ctx)
     {
         log_error("ERROR: Couldn't create a search context.\n");
-        return NULL;
+        return nullptr;
     }
 
     attr30 = find_attribute(AT_FILE_NAME, ctx);
     if (!attr30)
     {
-        return NULL;
+        return nullptr;
     }
 
-    filename_attr = (FILE_NAME_ATTR *)((char *)attr30 + le16_to_cpu(attr30->value_offset));
+    filename_attr =
+        reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(attr30) + le16_to_cpu(attr30->value_offset));
     /* if name is older than this dir -> can't determine */
     if (td_ntfs2utc(filename_attr->creation_time) > name->date_c)
     {
-        return NULL;
+        return nullptr;
     }
     if (filename_attr->file_name_type != name->name_space)
     {
@@ -244,7 +246,8 @@ static FILE_NAME_ATTR *verify_parent(const struct filename *name, MFT_RECORD *re
 
         while (!found_same_space && (attr30 = find_attribute(AT_FILE_NAME, ctx)))
         {
-            filename_attr = (FILE_NAME_ATTR *)((char *)attr30 + le16_to_cpu(attr30->value_offset));
+            filename_attr = reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(attr30) +
+                                                               le16_to_cpu(attr30->value_offset));
 
             if (filename_attr->file_name_type == name->name_space)
             {
@@ -295,7 +298,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
         uint64_t inode_num;
         int ok;
         inode_num = MREF(name->parent_mref);
-        name->parent_name = NULL;
+        name->parent_name = nullptr;
         do
         {
             FILE_NAME_ATTR *filename_attr;
@@ -306,15 +309,15 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
             }
             else if ((filename_attr = verify_parent(name, rec)))
             {
-                char *parent_name = NULL;
+                char *parent_name = nullptr;
                 if (ntfs_ucstombs(filename_attr->file_name, filename_attr->file_name_length, &parent_name, 0) < 0)
                 {
                     log_error("ERROR: Couldn't translate filename to current locale.\n");
-                    parent_name = NULL;
+                    parent_name = nullptr;
                 }
                 else
                 {
-                    if (name->parent_name == NULL || parent_name == NULL)
+                    if (name->parent_name == nullptr || parent_name == nullptr)
                         name->parent_name = parent_name;
                     else
                     {
@@ -334,7 +337,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
                         name->parent_name = npn;
                         delete (parent_name);
                     }
-                    if ((unsigned)inode_num != MREF(filename_attr->parent_directory))
+                    if (static_cast<unsigned>(inode_num) != MREF(filename_attr->parent_directory))
                     {
                         inode_num = MREF(filename_attr->parent_directory);
                         ok = 1;
@@ -367,7 +370,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
  * Return:  n  The number of $FILENAME attributes found
  *	   -1  Error
  */
-static int get_filenames(struct ufile *file, ntfs_volume *vol)
+static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
 {
     ATTR_RECORD *rec;
     ntfs_attr_search_ctx *ctx;
@@ -377,7 +380,7 @@ static int get_filenames(struct ufile *file, ntfs_volume *vol)
     if (!file)
         return -1;
 
-    ctx = ntfs_attr_get_search_ctx(NULL, file->mft);
+    ctx = ntfs_attr_get_search_ctx(nullptr, file->mft);
     if (!ctx)
         return -1;
 
@@ -386,9 +389,9 @@ static int get_filenames(struct ufile *file, ntfs_volume *vol)
         struct filename *name;
         FILE_NAME_ATTR *attr;
         /* We know this will always be resident. */
-        attr = (FILE_NAME_ATTR *)((char *)rec + le16_to_cpu(rec->value_offset));
+        attr = reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(rec) + le16_to_cpu(rec->value_offset));
 
-        name = (struct filename *)calloc(1, sizeof(*name));
+        name = static_cast<struct filename *>(calloc(1, sizeof(*name)));
         if (!name)
         {
             log_error("ERROR: Couldn't allocate memory in get_filenames().\n");
@@ -413,7 +416,7 @@ static int get_filenames(struct ufile *file, ntfs_volume *vol)
             log_error("ERROR: Couldn't translate filename to current locale.\n");
         }
 
-        name->parent_name = NULL;
+        name->parent_name = nullptr;
         name->parent_mref = attr->parent_directory;
         get_parent_name(name, vol);
 
@@ -451,7 +454,7 @@ static int get_filenames(struct ufile *file, ntfs_volume *vol)
  * Return:  n  The number of $FILENAME attributes found
  *	   -1  Error
  */
-static int get_data(struct ufile *file, const ntfs_volume *vol)
+static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
 {
     ATTR_RECORD *rec;
     ntfs_attr_search_ctx *ctx;
@@ -460,14 +463,14 @@ static int get_data(struct ufile *file, const ntfs_volume *vol)
     if (!file)
         return -1;
 
-    ctx = ntfs_attr_get_search_ctx(NULL, file->mft);
+    ctx = ntfs_attr_get_search_ctx(nullptr, file->mft);
     if (!ctx)
         return -1;
 
     while ((rec = find_attribute(AT_DATA, ctx)))
     {
         struct data *data;
-        data = (struct data *)calloc(1, sizeof(*data));
+        data = static_cast<struct data *>(calloc(1, sizeof(*data)));
         if (!data)
         {
             log_error("ERROR: Couldn't allocate memory in get_data().\n");
@@ -481,7 +484,7 @@ static int get_data(struct ufile *file, const ntfs_volume *vol)
 
         if (rec->name_length)
         {
-            data->uname = (ntfschar *)((char *)rec + le16_to_cpu(rec->name_offset));
+            data->uname = reinterpret_cast<ntfschar *>(reinterpret_cast<char *>(rec) + le16_to_cpu(rec->name_offset));
             data->uname_len = rec->name_length;
 
             if (ntfs_ucstombs(data->uname, data->uname_len, &data->name, 0) < 0)
@@ -493,7 +496,7 @@ static int get_data(struct ufile *file, const ntfs_volume *vol)
         if (data->resident)
         {
             data->size_data = le32_to_cpu(rec->value_length);
-            data->data = ((char *)(rec)) + le16_to_cpu(rec->value_offset);
+            data->data = (reinterpret_cast<char *>(rec)) + le16_to_cpu(rec->value_offset);
         }
         else
         {
@@ -503,7 +506,7 @@ static int get_data(struct ufile *file, const ntfs_volume *vol)
             data->size_vcn = sle64_to_cpu(rec->highest_vcn) + 1;
         }
 
-        data->runlist = ntfs_mapping_pairs_decompress(vol, rec, NULL);
+        data->runlist = ntfs_mapping_pairs_decompress(vol, rec, nullptr);
         if (!data->runlist)
         {
             log_debug("Couldn't decompress the data runs.\n");
@@ -532,32 +535,32 @@ static int get_data(struct ufile *file, const ntfs_volume *vol)
  * Return:  Pointer  A ufile object containing the results
  *	    NULL     Error
  */
-static struct ufile *read_record(ntfs_volume *vol, uint64_t record)
+static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
 {
     ATTR_RECORD *attr10, *attr20, *attr90;
     struct ufile *file;
     ntfs_attr *mft;
 
     if (!vol)
-        return NULL;
+        return nullptr;
 
-    file = (struct ufile *)calloc(1, sizeof(*file));
+    file = static_cast<struct ufile *>(calloc(1, sizeof(*file)));
     if (!file)
     {
         log_error("ERROR: Couldn't allocate memory in read_record()\n");
-        return NULL;
+        return nullptr;
     }
 
     file->inode = record;
 
-    file->mft = (MFT_RECORD *)new unsigned char[vol->mft_record_size];
+    file->mft = reinterpret_cast<MFT_RECORD *>(new unsigned char[vol->mft_record_size]);
 
     mft = ntfs_attr_open(vol->mft_ni, AT_DATA, AT_UNNAMED, 0);
     if (!mft)
     {
         log_error("ERROR: Couldn't open $MFT/$DATA\n");
         free_file(file);
-        return NULL;
+        return nullptr;
     }
 
     if (ntfs_attr_mst_pread(mft, vol->mft_record_size * record, 1, vol->mft_record_size, file->mft) < 1)
@@ -565,11 +568,11 @@ static struct ufile *read_record(ntfs_volume *vol, uint64_t record)
         log_error("ERROR: Couldn't read MFT Record {}.\n", (long long unsigned)record);
         ntfs_attr_close(mft);
         free_file(file);
-        return NULL;
+        return nullptr;
     }
 
     ntfs_attr_close(mft);
-    mft = NULL;
+    mft = nullptr;
 
     attr10 = find_first_attribute(AT_STANDARD_INFORMATION, file->mft);
     attr20 = find_first_attribute(AT_ATTRIBUTE_LIST, file->mft);
@@ -580,7 +583,8 @@ static struct ufile *read_record(ntfs_volume *vol, uint64_t record)
     if (attr10)
     {
         STANDARD_INFORMATION *si;
-        si = (STANDARD_INFORMATION *)((char *)attr10 + le16_to_cpu(attr10->value_offset));
+        si = reinterpret_cast<STANDARD_INFORMATION *>(reinterpret_cast<char *>(attr10) +
+                                                      le16_to_cpu(attr10->value_offset));
         file->date = td_ntfs2utc(si->last_data_change_time);
     }
 
@@ -623,7 +627,7 @@ static struct ufile *read_record(ntfs_volume *vol, uint64_t record)
  * Return:  n  The percentage of the file that _could_ be recovered
  *	   -1  Error
  */
-static unsigned int calc_percentage(struct ufile *file, ntfs_volume *vol)
+static auto calc_percentage(struct ufile *file, ntfs_volume *vol) -> unsigned int
 {
     unsigned int percent = 0;
 
@@ -642,7 +646,7 @@ static unsigned int calc_percentage(struct ufile *file, ntfs_volume *vol)
 
     for (data *data : file->data)
     {
-        runlist_element *rl = NULL;
+        runlist_element *rl = nullptr;
         uint64_t i;
         unsigned int clusters_inuse, clusters_free;
         clusters_inuse = 0;
@@ -742,7 +746,7 @@ static unsigned int calc_percentage(struct ufile *file, ntfs_volume *vol)
  * Return:  -1  Error, something went wrong
  *	     0  Success, all the data was written
  */
-static unsigned int write_data(int fd, const char *buffer, unsigned int bufsize)
+static auto write_data(int fd, const char *buffer, unsigned int bufsize) -> unsigned int
 {
     ssize_t result1, result2;
 
@@ -753,7 +757,7 @@ static unsigned int write_data(int fd, const char *buffer, unsigned int bufsize)
     }
 
     result1 = write(fd, buffer, bufsize);
-    if ((result1 == (ssize_t)bufsize) || (result1 < 0))
+    if ((std::cmp_equal(result1, bufsize)) || (result1 < 0))
         return result1;
 
     /* Try again with the rest of the buffer */
@@ -791,11 +795,11 @@ static unsigned int write_data(int fd, const char *buffer, unsigned int bufsize)
  *
  * Return:  n  Length of the allocated name
  */
-static int create_pathname(const char *dir, const char *dir2, const char *name, const char *stream, char *buffer,
-                           int bufsize)
+static auto create_pathname(const char *dir, const char *dir2, const char *name, const char *stream, char *buffer,
+                            int bufsize) -> int
 {
     char *namel;
-    if (name == NULL)
+    if (name == nullptr)
         name = UNKNOWN;
     namel = gen_local_filename(name);
     if (dir2)
@@ -837,7 +841,7 @@ static int create_pathname(const char *dir, const char *dir2, const char *name, 
  * Return:  -1  Error, failed to create the file
  *	     n  Success, this is the file descriptor
  */
-static int open_file(const char *pathname)
+static auto open_file(const char *pathname) -> int
 {
     int fh;
     fh = open(pathname, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -869,9 +873,9 @@ static int open_file(const char *pathname)
  * Return:  -2  Error, something went wrong
  *	    0  Success, the data was recovered
  */
-static int undelete_file(ntfs_volume *vol, uint64_t inode)
+static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
 {
-    char *buffer = NULL;
+    char *buffer = nullptr;
     unsigned int bufsize;
     struct ufile *file;
 
@@ -924,7 +928,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
         }
         else
         {
-            sprintf(defname, "inode_%llu", (long long unsigned)file->inode);
+            sprintf(defname, "inode_%llu", static_cast<long long unsigned>(file->inode));
             name = defname;
         }
 
@@ -941,7 +945,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
             }
 
             //log_verbose("File has resident data.\n");
-            if (write_data(fd, (const char *)d->data, d->size_data) < d->size_data)
+            if (write_data(fd, static_cast<const char *>(d->data), d->size_data) < d->size_data)
             {
                 log_error("Write failed\n");
                 close(fd);
@@ -986,7 +990,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
                 //            "clusters.\n",
                 //            (long long)rl[0].length);
                 memset(buffer, 0, bufsize);
-                for (k = 0; k < (uint64_t)rl[0].length * vol->cluster_size; k += bufsize)
+                for (k = 0; k < static_cast<uint64_t>(rl[0].length) * vol->cluster_size; k += bufsize)
                 {
                     if (write_data(fd, buffer, bufsize) < bufsize)
                     {
@@ -1010,7 +1014,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
                     //             "%lld clusters.\n",
                     //             (long long)rl[i].length);
                     memset(buffer, 0, bufsize);
-                    for (k = 0; k < (uint64_t)rl[i].length * vol->cluster_size; k += bufsize)
+                    for (k = 0; k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size; k += bufsize)
                     {
                         if (write_data(fd, buffer, bufsize) < bufsize)
                         {
@@ -1028,7 +1032,7 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
                     uint64_t k;
                     // log_verbose("File has a sparse section.\n");
                     memset(buffer, 0, bufsize);
-                    for (k = 0; k < (uint64_t)rl[i].length * vol->cluster_size; k += bufsize)
+                    for (k = 0; k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size; k += bufsize)
                     {
                         if (write_data(fd, buffer, bufsize) < bufsize)
                         {
@@ -1090,10 +1094,10 @@ static int undelete_file(ntfs_volume *vol, uint64_t inode)
              * already recovers their exact length.                           +mabs
              */
             if (d->percent == 100 && d->size_alloc >= d->size_data &&
-                (d->size_alloc - d->size_data) <= (uint64_t)vol->cluster_size &&
-                cluster_count * (uint64_t)vol->cluster_size == d->size_alloc)
+                (d->size_alloc - d->size_data) <= static_cast<uint64_t>(vol->cluster_size) &&
+                cluster_count * static_cast<uint64_t>(vol->cluster_size) == d->size_alloc)
             {
-                if (ftruncate(fd, (off_t)d->size_data))
+                if (ftruncate(fd, static_cast<off_t>(d->size_data)))
                     log_error("Truncation failed\n");
             }
             else
@@ -1116,14 +1120,14 @@ free:
     return -2;
 }
 
-static file_info_t ufile_to_file_data(const struct ufile *file, const struct data *d)
+static auto ufile_to_file_data(const struct ufile *file, const struct data *d) -> file_info_t
 {
     file_info_t new_file;
     char inode_name[32];
-    const unsigned int len = (file->pref_pname == NULL ? 0 : strlen(file->pref_pname)) +
-                             (file->pref_name == NULL ? sizeof(inode_name) : strlen(file->pref_name) + 1) +
-                             (d->name == NULL ? 0 : strlen(d->name) + 1) + 1;
-    sprintf(inode_name, "inode_%llu", (long long unsigned)file->inode);
+    const unsigned int len = (file->pref_pname == nullptr ? 0 : strlen(file->pref_pname)) +
+                             (file->pref_name == nullptr ? sizeof(inode_name) : strlen(file->pref_name) + 1) +
+                             (d->name == nullptr ? 0 : strlen(d->name) + 1) + 1;
+    sprintf(inode_name, "inode_%llu", static_cast<long long unsigned>(file->inode));
     new_file.name = new char[len];
     sprintf(new_file.name, "%s%s%s%s%s", (file->pref_pname ? file->pref_pname : ""), (file->pref_pname ? "/" : ""),
             (file->pref_name ? file->pref_name : inode_name), (d->name ? ":" : ""), (d->name ? d->name : ""));
@@ -1153,7 +1157,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
 {
     uint64_t nr_mft_records;
     const unsigned int BUFSIZE = 8192;
-    char *buffer = NULL;
+    char *buffer = nullptr;
     unsigned int results = 0;
     ntfs_attr *attr;
     uint64_t bmpsize;
@@ -1187,7 +1191,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
         if (size < 0)
             break;
 
-        for (j = 0; j < size; j++)
+        for (j = 0; std::cmp_less(j, size); j++)
         {
             unsigned int k;
             unsigned int b;
@@ -1633,7 +1637,7 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
 {
     unsigned int file_ok = 0;
     unsigned int file_bad = 0;
-    const struct ntfs_dir_struct *ls = (const struct ntfs_dir_struct *)dir_data->private_dir_data;
+    const auto *ls = static_cast<const struct ntfs_dir_struct *>(dir_data->private_dir_data);
     char *dst_path;
     dst_path = get_default_location();
     dir_data->local_dir = dst_path;
@@ -1647,15 +1651,15 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
     }
     log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
     delete (dst_path);
-    dir_data->local_dir = NULL;
-    opts.dest = NULL;
+    dir_data->local_dir = nullptr;
+    opts.dest = nullptr;
 }
 
 static void ntfs_undelete_menu(const disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                                dir_list_t &dir_list, char **current_cmd)
 {
     log_list_file(disk_car, partition, dir_data, dir_list);
-    if (*current_cmd != NULL)
+    if (*current_cmd != nullptr)
     {
         skip_comma_in_command(current_cmd);
         if (check_command(current_cmd, "allundelete", 11) == 0)
@@ -1669,7 +1673,7 @@ static void ntfs_undelete_menu(const disk_t &disk_car, const partition_t &partit
 #endif
 }
 
-int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd)
+auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd) -> int
 {
     dir_data_t dir_data;
 #ifdef HAVE_NCURSES
@@ -1681,7 +1685,7 @@ int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int
     dir_data.display = window;
     aff_copy(window);
 #else
-    dir_data.display = NULL;
+    dir_data.display = nullptr;
 #endif
     log_info("\n");
     switch (res)
@@ -1696,7 +1700,7 @@ int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int
         log_partition(disk_car, partition);
         screen_buffer_add("Support for this filesystem wasn't enabled during compilation.\n");
         screen_buffer_to_log();
-        if (*current_cmd == NULL)
+        if (*current_cmd == nullptr)
         {
 #ifdef HAVE_NCURSES
             screen_buffer_display(window, "", NULL);
@@ -1713,7 +1717,7 @@ int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int
         log_partition(disk_car, partition);
         screen_buffer_add("Can't open filesystem. Filesystem seems damaged.\n");
         screen_buffer_to_log();
-        if (*current_cmd == NULL)
+        if (*current_cmd == nullptr)
         {
 #ifdef HAVE_NCURSES
             screen_buffer_display(window, "", NULL);
@@ -1721,7 +1725,7 @@ int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition, const int
         }
         break;
     default: {
-        struct ntfs_dir_struct *ls = (struct ntfs_dir_struct *)dir_data.private_dir_data;
+        auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
         dir_list_t dir_list;
         scan_disk(ls->vol, dir_list);
         ntfs_undelete_menu(disk_car, partition, &dir_data, dir_list, current_cmd);

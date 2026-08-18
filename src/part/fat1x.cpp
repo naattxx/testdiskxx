@@ -21,9 +21,9 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
@@ -61,7 +61,7 @@ static void dump_fat1x(disk_t &disk_car, const partition_t &partition, const uns
 {
     log_info("Boot sector\n");
     // dump_log(buffer_bs, FAT1x_BOOT_SECTOR_SIZE);
-    if (current_cmd == NULL || *current_cmd == NULL)
+    if (current_cmd == nullptr || *current_cmd == nullptr)
     {
 #ifdef HAVE_NCURSES
         dump_fat1x_ncurses(disk_car, partition, buffer_bs);
@@ -69,8 +69,8 @@ static void dump_fat1x(disk_t &disk_car, const partition_t &partition, const uns
     }
 }
 
-int fat1x_boot_sector(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind,
-                      const unsigned int expert, char **current_cmd)
+auto fat1x_boot_sector(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind,
+                       const unsigned int expert, char **current_cmd) -> int
 {
     unsigned char *buffer_bs;
 #ifdef HAVE_NCURSES
@@ -85,7 +85,7 @@ int fat1x_boot_sector(disk_t &disk_car, partition_t &partition, const int verbos
                                           {0, NULL, NULL}};
 #endif
     buffer_bs = new unsigned char[FAT1x_BOOT_SECTOR_SIZE];
-    while (1)
+    while (true)
     {
         const char *options;
 #ifdef HAVE_NCURSES
@@ -111,7 +111,8 @@ int fat1x_boot_sector(disk_t &disk_car, partition_t &partition, const int verbos
                 screen_buffer_add("fat1x_boot_sector: Can't read boot sector.\n");
                 memset(buffer_bs, 0, FAT1x_BOOT_SECTOR_SIZE);
             }
-            if (test_FAT(disk_car, (const struct fat_boot_sector *)buffer_bs, partition, verbose, 0) == 0)
+            if (test_FAT(disk_car, reinterpret_cast<const struct fat_boot_sector *>(buffer_bs), partition, verbose,
+                         0) == 0)
             {
                 screen_buffer_add("OK\n");
                 if (expert == 0)
@@ -129,7 +130,7 @@ int fat1x_boot_sector(disk_t &disk_car, partition_t &partition, const int verbos
             screen_buffer_add("any data; even if the partition is not bootable.\n");
         }
         screen_buffer_to_log();
-        if (*current_cmd != NULL)
+        if (*current_cmd != nullptr)
         {
             command = 0;
             skip_comma_in_command(current_cmd);
@@ -143,17 +144,17 @@ int fat1x_boot_sector(disk_t &disk_car, partition_t &partition, const int verbos
             }
             else if (check_command(current_cmd, "list", 4) == 0)
             {
-                if (strchr(options, 'L') != NULL)
+                if (strchr(options, 'L') != nullptr)
                     command = 'L';
             }
             else if (check_command(current_cmd, "repairfat", 9) == 0)
             {
-                if (strchr(options, 'C') != NULL)
+                if (strchr(options, 'C') != nullptr)
                     command = 'C';
             }
             else if (check_command(current_cmd, "initroot", 8) == 0)
             {
-                if (strchr(options, 'I') != NULL)
+                if (strchr(options, 'I') != nullptr)
                     command = 'I';
             }
         }

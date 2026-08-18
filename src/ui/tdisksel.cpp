@@ -49,7 +49,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump, list_disk_t &list
         {
             auto diskBtn = std::make_shared<Button>(std::string(disk.description_short(disk)));
             diskBtn->alignment = Alignment::Left;
-            diskBtn->on_hover = [disk, SerialN](bool hover) {
+            diskBtn->on_hover = [disk, SerialN](bool hover) -> void {
                 if (hover && !disk.serial_no.empty())
                 {
                     SerialN->set_text(StyledText("Serial number: ").colored(disk.serial_no, Color::Green()));

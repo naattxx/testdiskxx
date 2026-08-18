@@ -21,8 +21,8 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
@@ -39,11 +39,11 @@ static const uint64_t group_size[4] = {
     (EXT2_MIN_BLOCK_SIZE << 0) * 8 * (EXT2_MIN_BLOCK_SIZE << 0),
     (EXT2_MIN_BLOCK_SIZE << 1) * 8 * (EXT2_MIN_BLOCK_SIZE << 1),
     (EXT2_MIN_BLOCK_SIZE << 2) * 8 * (EXT2_MIN_BLOCK_SIZE << 2),
-    (uint64_t)(EXT2_MIN_BLOCK_SIZE << 6) * 8 * (EXT2_MIN_BLOCK_SIZE << 6),
+    static_cast<uint64_t>(EXT2_MIN_BLOCK_SIZE << 6) * 8 * (EXT2_MIN_BLOCK_SIZE << 6),
 };
 static const uint64_t factors[3] = {3, 5, 7};
 
-static uint64_t next_sb(const uint64_t hd_offset_old)
+static auto next_sb(const uint64_t hd_offset_old) -> uint64_t
 {
     uint64_t hd_offset = 0;
     int j;
@@ -71,9 +71,9 @@ static uint64_t next_sb(const uint64_t hd_offset_old)
     return hd_offset;
 }
 
-list_part_t search_superblock(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind)
+auto search_superblock(disk_t &disk_car, partition_t &partition, const int verbose, const int dump_ind) -> list_part_t
 {
-    unsigned char *buffer = new unsigned char[2 * 0x200];
+    auto *buffer = new unsigned char[2 * 0x200];
     uint64_t hd_offset;
     int nbr_sb = 0;
     list_part_t list_part;
@@ -81,7 +81,7 @@ list_part_t search_superblock(disk_t &disk_car, partition_t &partition, const in
 #ifdef HAVE_NCURSES
     unsigned long int old_percent = 0;
 #endif
-    struct ext2_super_block *sb = (struct ext2_super_block *)buffer;
+    auto *sb = reinterpret_cast<struct ext2_super_block *>(buffer);
     partition_t new_partition(disk_car.arch);
     // log_trace("search_superblock\n");
 #ifdef HAVE_NCURSES

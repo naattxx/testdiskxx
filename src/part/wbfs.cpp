@@ -20,16 +20,17 @@
 
  */
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/log.hpp"
 #include "wbfs.hpp"
 
-static int test_WBFS(const disk_t &disk, const struct wbfs_head *sb, const partition_t &partition, const int dump_ind)
+static auto test_WBFS(const disk_t &disk, const struct wbfs_head *sb, const partition_t &partition, const int dump_ind)
+    -> int
 {
     if (be32(sb->magic) != WBFS_MAGIC)
         return 1;
@@ -48,15 +49,15 @@ static void set_WBFS_info(partition_t &partition)
     memcpy(partition.info, "WBFS", 5);
 }
 
-int check_WBFS(disk_t &disk, partition_t &partition)
+auto check_WBFS(disk_t &disk, partition_t &partition) -> int
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[2 * DEFAULT_SECTOR_SIZE];
+    auto *buffer = new unsigned char[2 * DEFAULT_SECTOR_SIZE];
     if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition.part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_WBFS(disk, (struct wbfs_head *)buffer, partition, 0) != 0)
+    if (test_WBFS(disk, reinterpret_cast<struct wbfs_head *>(buffer), partition, 0) != 0)
     {
         delete[] (buffer);
         return 1;
@@ -66,14 +67,14 @@ int check_WBFS(disk_t &disk, partition_t &partition)
     return 0;
 }
 
-int recover_WBFS(const disk_t &disk, const struct wbfs_head *sb, partition_t &partition, const int verbose,
-                 const int dump_ind)
+auto recover_WBFS(const disk_t &disk, const struct wbfs_head *sb, partition_t &partition, const int verbose,
+                  const int dump_ind) -> int
 {
     if (test_WBFS(disk, sb, partition, dump_ind) != 0)
         return 1;
     set_WBFS_info(partition);
     partition.part_type_i386 = P_NTFS;
-    partition.part_size = (uint64_t)be32(sb->n_hd_sec) << (sb->hd_sec_sz_s);
+    partition.part_size = static_cast<uint64_t>(be32(sb->n_hd_sec)) << (sb->hd_sec_sz_s);
     partition.blocksize = 0;
     partition.sborg_offset = 0;
     partition.sb_offset = 0;

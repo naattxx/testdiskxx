@@ -21,9 +21,9 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "apfs_common.hpp"
 #include "src/common.hpp"
@@ -33,7 +33,7 @@
   @ requires \valid_read(data + (0 .. cnt-1));
   @ assigns  \nothing;
   @*/
-static uint64_t fletcher64(const uint32_t *data, const size_t cnt, const uint64_t init)
+static auto fletcher64(const uint32_t *data, const size_t cnt, const uint64_t init) -> uint64_t
 {
     size_t k;
     uint64_t sum1 = init & 0xFFFFFFFFU;
@@ -58,10 +58,10 @@ static uint64_t fletcher64(const uint32_t *data, const size_t cnt, const uint64_
   @ requires \valid_read((char *)block+ (0 .. size-1));
   @ assigns  \nothing;
   @*/
-static uint64_t VerifyBlock(const void *block, const size_t size)
+static auto VerifyBlock(const void *block, const size_t size) -> uint64_t
 {
     uint64_t cs;
-    const uint32_t *data = (const uint32_t *)block;
+    const auto *data = static_cast<const uint32_t *>(block);
     const size_t size4 = size / sizeof(uint32_t);
 
     cs = fletcher64(data + 2, size4 - 2, 0);
@@ -69,11 +69,11 @@ static uint64_t VerifyBlock(const void *block, const size_t size)
     return cs;
 }
 
-int test_APFS(const nx_superblock_t *sb, const partition_t &partition)
+auto test_APFS(const nx_superblock_t *sb, const partition_t &partition) -> int
 {
     if (le32(sb->nx_magic) != 0x4253584e)
         return 1;
-    if ((uint64_t)le32(sb->nx_xp_desc_blocks) + le32(sb->nx_xp_data_blocks) > le64(sb->nx_block_count))
+    if (static_cast<uint64_t> le32(sb->nx_xp_desc_blocks) + le32(sb->nx_xp_data_blocks) > le64(sb->nx_block_count))
         return 2;
     if (le32(sb->nx_block_size) < NX_MINIMUM_BLOCK_SIZE || le32(sb->nx_block_size) > NX_MAXIMUM_BLOCK_SIZE)
         return 3;

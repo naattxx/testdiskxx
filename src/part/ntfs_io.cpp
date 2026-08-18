@@ -29,9 +29,9 @@
 #endif
 
 #if (defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G))
-#include <stdlib.h>
-#include <string.h>
 #include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -41,7 +41,7 @@
 #if __has_include(<sys/ioctl.h>)
 #include <sys/ioctl.h>
 #endif
-#include <stdarg.h>
+#include <cstdarg>
 #ifdef HAVE_LIBNTFS
 #include <ntfs/device.h>
 #endif
@@ -57,7 +57,7 @@ extern "C" {
 #undef min
 #undef max
 #endif
-#include <stdio.h>
+#include <cstdio>
 //#include "types.h"
 #include "src/common.hpp"
 #include "src/log.hpp"
@@ -66,7 +66,7 @@ extern "C" {
 #	define BLKGETSIZE _IO(0x12,96) /* Get device size in 512byte blocks. */
 #endif
 
-static int ntfs_device_testdisk_io_open(struct ntfs_device *dev, int flags)
+static auto ntfs_device_testdisk_io_open(struct ntfs_device *dev, int flags) -> int
 {
 	if (NDevOpen(dev)) {
 		errno = EBUSY;
@@ -80,7 +80,7 @@ static int ntfs_device_testdisk_io_open(struct ntfs_device *dev, int flags)
 	return 0;
 }
 
-static int ntfs_device_testdisk_io_close(struct ntfs_device *dev)
+static auto ntfs_device_testdisk_io_close(struct ntfs_device *dev) -> int
 {
 	if (!NDevOpen(dev)) {
 		errno = EBADF;
@@ -90,12 +90,11 @@ static int ntfs_device_testdisk_io_close(struct ntfs_device *dev)
 	return 0;
 }
 
-static s64 ntfs_device_testdisk_io_seek(struct ntfs_device *dev, s64 offset,
-		int whence)
+static auto ntfs_device_testdisk_io_seek(struct ntfs_device *dev, s64 offset, int whence) -> s64
 {
-  my_data_t *my_data=(my_data_t*)dev->d_private;
-  switch(whence)
-  {
+    auto *my_data = static_cast<my_data_t *>(dev->d_private);
+    switch (whence)
+    {
     case SEEK_SET:
       my_data->offset=offset;
       break;
@@ -109,49 +108,45 @@ static s64 ntfs_device_testdisk_io_seek(struct ntfs_device *dev, s64 offset,
   return my_data->offset;
 }
 
-static s64 ntfs_device_testdisk_io_read(struct ntfs_device *dev, void *buf,
-		s64 count)
+static auto ntfs_device_testdisk_io_read(struct ntfs_device *dev, void *buf, s64 count) -> s64
 {
-  my_data_t *my_data=(my_data_t*)dev->d_private;
-  if(my_data->disk_car->pread(*my_data->disk_car, buf, count, my_data->partition.part_offset + my_data->offset) != count)
-    return 0;
-  my_data->offset+=count;
-  return count;
+    auto *my_data = static_cast<my_data_t *>(dev->d_private);
+    if (my_data->disk_car->pread(*my_data->disk_car, buf, count, my_data->partition.part_offset + my_data->offset) !=
+        count)
+        return 0;
+    my_data->offset += count;
+    return count;
 }
 
-static s64 ntfs_device_testdisk_io_write(struct ntfs_device *dev, const void *buf,
-		s64 count)
+static auto ntfs_device_testdisk_io_write(struct ntfs_device *dev, const void *buf, s64 count) -> s64
 {
-  my_data_t *my_data=(my_data_t*)dev->d_private;
-  if(my_data->disk_car->pwrite(*my_data->disk_car, buf, count, my_data->partition.part_offset + my_data->offset) != count)
-    return 0;
-  my_data->offset+=count;
-  return count;
+    auto *my_data = static_cast<my_data_t *>(dev->d_private);
+    if (my_data->disk_car->pwrite(*my_data->disk_car, buf, count, my_data->partition.part_offset + my_data->offset) !=
+        count)
+        return 0;
+    my_data->offset += count;
+    return count;
 }
 
-static s64 ntfs_device_testdisk_io_pread(struct ntfs_device *dev, void *buf,
-    s64 count, s64 offset)
+static auto ntfs_device_testdisk_io_pread(struct ntfs_device *dev, void *buf, s64 count, s64 offset) -> s64
 {
-  my_data_t *my_data=(my_data_t*)dev->d_private;
-  return my_data->disk_car->pread(*my_data->disk_car, buf, count,
-      my_data->partition.part_offset + offset);
+    auto *my_data = static_cast<my_data_t *>(dev->d_private);
+    return my_data->disk_car->pread(*my_data->disk_car, buf, count, my_data->partition.part_offset + offset);
 }
 
-static s64 ntfs_device_testdisk_io_pwrite(struct ntfs_device *dev, const void *buf,
-                s64 count, s64 offset)
+static auto ntfs_device_testdisk_io_pwrite(struct ntfs_device *dev, const void *buf, s64 count, s64 offset) -> s64
 {
-  my_data_t *my_data=(my_data_t*)dev->d_private;
-  return my_data->disk_car->pwrite(*my_data->disk_car, buf, count,
-      my_data->partition.part_offset + offset);
+    auto *my_data = static_cast<my_data_t *>(dev->d_private);
+    return my_data->disk_car->pwrite(*my_data->disk_car, buf, count, my_data->partition.part_offset + offset);
 }
 
-static int ntfs_device_testdisk_io_sync(struct ntfs_device *dev)
+static auto ntfs_device_testdisk_io_sync(struct ntfs_device *dev) -> int
 {
-  my_data_t *my_data=(my_data_t*)dev->d_private;
-  return my_data->disk_car->sync(*my_data->disk_car);
+    auto *my_data = static_cast<my_data_t *>(dev->d_private);
+    return my_data->disk_car->sync(*my_data->disk_car);
 }
 
-static int ntfs_device_testdisk_io_stat(struct ntfs_device *dev, struct stat *buf)
+static auto ntfs_device_testdisk_io_stat(struct ntfs_device *dev, struct stat *buf) -> int
 {
 	log_warning("ntfs_device_testdisk_io_stat() unimplemented\n");
 #ifdef ENOTSUP
@@ -171,8 +166,7 @@ static int ntfs_device_testdisk_io_ioctl(struct ntfs_device *dev, int request,
 	return -1;
 }
 #elif defined(NTFS_DEVICE_OPERATIONS_IOCTL_UL)
-static int ntfs_device_testdisk_io_ioctl(struct ntfs_device *dev, unsigned long request,
-		void *argp)
+static auto ntfs_device_testdisk_io_ioctl(struct ntfs_device *dev, unsigned long request, void *argp) -> int
 {
 	log_warning( "ntfs_device_testdisk_io_ioctl() unimplemented\n");
 #ifdef ENOTSUP

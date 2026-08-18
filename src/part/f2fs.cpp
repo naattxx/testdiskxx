@@ -21,9 +21,9 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "f2fs.hpp"
 #include "f2fs_fs.hpp"
@@ -44,25 +44,25 @@ static void set_f2fs_info(partition_t &partition, const struct f2fs_super_block 
                  partition.blocksize);
 }
 
-int check_f2fs(disk_t &disk, partition_t &partition)
+auto check_f2fs(disk_t &disk, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[F2FS_BLKSIZE];
+    auto *buffer = new unsigned char[F2FS_BLKSIZE];
     if (disk.pread(disk, buffer, F2FS_BLKSIZE, partition.part_offset + F2FS_SUPER_OFFSET) != F2FS_BLKSIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_f2fs((struct f2fs_super_block *)buffer) != 0)
+    if (test_f2fs(reinterpret_cast<struct f2fs_super_block *>(buffer)) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_f2fs_info(partition, (struct f2fs_super_block *)buffer);
+    set_f2fs_info(partition, reinterpret_cast<struct f2fs_super_block *>(buffer));
     delete[] (buffer);
     return 0;
 }
 
-int test_f2fs(const struct f2fs_super_block *hdr)
+auto test_f2fs(const struct f2fs_super_block *hdr) -> int
 {
     if (le32(hdr->magic) != F2FS_SUPER_MAGIC)
         return 1;
@@ -82,7 +82,7 @@ int test_f2fs(const struct f2fs_super_block *hdr)
     return 0;
 }
 
-int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr, partition_t &partition)
+auto recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr, partition_t &partition) -> int
 {
     if (test_f2fs(hdr) != 0)
         return 1;
@@ -90,7 +90,7 @@ int recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr, partiti
     partition.sb_size = F2FS_BLKSIZE;
     partition.part_type_i386 = P_LINUX;
     partition.part_type_gpt = GPT_ENT_TYPE_MS_BASIC_DATA;
-    partition.part_size = (uint64_t)le64(hdr->block_count) << le32(hdr->log_blocksize);
+    partition.part_size = le64(hdr->block_count) << le32(hdr->log_blocksize);
     set_f2fs_info(partition, hdr);
     return 0;
 }

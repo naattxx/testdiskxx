@@ -22,9 +22,9 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -69,11 +69,13 @@ static void set_xfs_info(const struct xfs_sb *sb, partition_t &partition)
     partition.set_name(sb->sb_fname, 12);
 }
 
-static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const partition_t &partition, const int verbose)
+static auto test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const partition_t &partition, const int verbose)
+    -> int
 {
-    if (sb->sb_magicnum != be32(XFS_SB_MAGIC) || (uint16_t)be16(sb->sb_sectsize) != (1U << sb->sb_sectlog) ||
-        (uint32_t)be32(sb->sb_blocksize) != (1U << sb->sb_blocklog) ||
-        (uint16_t)be16(sb->sb_inodesize) != (1U << sb->sb_inodelog))
+    if (sb->sb_magicnum != be32(XFS_SB_MAGIC) ||
+        static_cast<uint16_t>(be16(sb->sb_sectsize)) != (1U << sb->sb_sectlog) ||
+        static_cast<uint32_t>(be32(sb->sb_blocksize)) != (1U << sb->sb_blocklog) ||
+        static_cast<uint16_t>(be16(sb->sb_inodesize)) != (1U << sb->sb_inodelog))
         return 1;
     switch (be16(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS)
     {
@@ -93,26 +95,26 @@ static int test_xfs(const disk_t &disk_car, const struct xfs_sb *sb, const parti
     return 0;
 }
 
-int check_xfs(disk_t &disk_car, partition_t &partition, const int verbose)
+auto check_xfs(disk_t &disk_car, partition_t &partition, const int verbose) -> int
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[XFS_SUPERBLOCK_SIZE];
+    auto *buffer = new unsigned char[XFS_SUPERBLOCK_SIZE];
     if (disk_car.pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE, partition.part_offset) != XFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_xfs(disk_car, (struct xfs_sb *)buffer, partition, verbose) != 0)
+    if (test_xfs(disk_car, reinterpret_cast<struct xfs_sb *>(buffer), partition, verbose) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_xfs_info((struct xfs_sb *)buffer, partition);
+    set_xfs_info(reinterpret_cast<struct xfs_sb *>(buffer), partition);
     delete[] (buffer);
     return 0;
 }
 
-int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t &partition, const int verbose,
-                const int dump_ind)
+auto recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t &partition, const int verbose,
+                 const int dump_ind) -> int
 {
     if (test_xfs(disk_car, sb, partition, verbose) != 0)
         return 1;
@@ -125,11 +127,11 @@ int recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb, partition_t &pa
         }
     }
     set_xfs_info(sb, partition);
-    partition.part_size = (uint64_t)be64(sb->sb_dblocks) * be32(sb->sb_blocksize);
+    partition.part_size = static_cast<uint64_t>(be64(sb->sb_dblocks)) * be32(sb->sb_blocksize);
     partition.part_type_i386 = P_LINUX;
     partition.part_type_mac = PMAC_LINUX;
     partition.part_type_sun = PSUN_LINUX;
     partition.part_type_gpt = GPT_ENT_TYPE_LINUX_DATA;
-    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&sb->sb_uuid);
+    guid_cpy(&partition.part_uuid, reinterpret_cast<const efi_guid_t *>(&sb->sb_uuid));
     return 0;
 }

@@ -21,8 +21,8 @@
  */
 
 #include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 // #include "types.h"
 #include "bfs.hpp"
@@ -39,8 +39,8 @@ static void set_BeFS_info(const struct disk_super_block *beos_block, partition_t
     partition.set_name(beos_block->name, B_OS_NAME_LENGTH);
 }
 
-static int test_BeFS(const disk_t &disk_car, const struct disk_super_block *beos_block, const partition_t &partition,
-                     const int dump_ind)
+static auto test_BeFS(const disk_t &disk_car, const struct disk_super_block *beos_block, const partition_t &partition,
+                      const int dump_ind) -> int
 {
     if (beos_block->magic1 != le32(SUPER_BLOCK_MAGIC1) && beos_block->magic2 != le32(SUPER_BLOCK_MAGIC2) &&
         beos_block->magic3 != le32(SUPER_BLOCK_MAGIC3))
@@ -54,7 +54,7 @@ static int test_BeFS(const disk_t &disk_car, const struct disk_super_block *beos
     return 0;
 }
 
-int check_BeFS(disk_t &disk_car, partition_t &partition)
+auto check_BeFS(disk_t &disk_car, partition_t &partition) -> int
 {
     unsigned char *buffer;
     buffer = new unsigned char[BFS_SUPERBLOCK_SIZE];
@@ -63,24 +63,24 @@ int check_BeFS(disk_t &disk_car, partition_t &partition)
         delete[] (buffer);
         return 1;
     }
-    if (test_BeFS(disk_car, (struct disk_super_block *)buffer, partition, 0) != 0)
+    if (test_BeFS(disk_car, reinterpret_cast<struct disk_super_block *>(buffer), partition, 0) != 0)
     {
         delete[] (buffer);
         return 1;
     }
-    set_BeFS_info((struct disk_super_block *)buffer, partition);
+    set_BeFS_info(reinterpret_cast<struct disk_super_block *>(buffer), partition);
     delete[] (buffer);
     return 0;
 }
 
-int recover_BeFS(const disk_t &disk_car, const struct disk_super_block *beos_block, partition_t &partition,
-                 const int dump_ind)
+auto recover_BeFS(const disk_t &disk_car, const struct disk_super_block *beos_block, partition_t &partition,
+                  const int dump_ind) -> int
 {
     if (test_BeFS(disk_car, beos_block, partition, dump_ind) != 0)
         return 1;
     set_BeFS_info(beos_block, partition);
     partition.part_size = le64(beos_block->num_blocks) << le32(beos_block->block_shift);
-    partition.part_type_i386 = (unsigned char)P_BEOS;
+    partition.part_type_i386 = static_cast<unsigned char>(P_BEOS);
     partition.part_type_mac = PMAC_BEOS;
     partition.part_type_gpt = GPT_ENT_TYPE_BEOS_BFS;
     return 0;

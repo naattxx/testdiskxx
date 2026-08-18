@@ -21,10 +21,10 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 // #include "types.h"
 #include "apfs.hpp"
 #include "src/common.hpp"
@@ -37,10 +37,10 @@ static void set_APFS_info(const nx_superblock_t *sb, partition_t &partition)
     partition.upart_type = UP_APFS;
 }
 
-int check_APFS(disk_t &disk_car, partition_t &partition)
+auto check_APFS(disk_t &disk_car, partition_t &partition) -> int
 {
-    unsigned char *buffer = new unsigned char[APFS_SUPERBLOCK_SIZE];
-    const nx_superblock_t *sb = (const nx_superblock_t *)buffer;
+    auto *buffer = new unsigned char[APFS_SUPERBLOCK_SIZE];
+    const auto *sb = reinterpret_cast<const nx_superblock_t *>(buffer);
     if (disk_car.pread(disk_car, buffer, APFS_SUPERBLOCK_SIZE, partition.part_offset) != APFS_SUPERBLOCK_SIZE)
     {
         delete[] (buffer);
@@ -56,8 +56,8 @@ int check_APFS(disk_t &disk_car, partition_t &partition)
     return 0;
 }
 
-int recover_APFS(const disk_t &disk, const nx_superblock_t *sb, partition_t &partition, const int verbose,
-                 const int dump_ind)
+auto recover_APFS(const disk_t &disk, const nx_superblock_t *sb, partition_t &partition, const int verbose,
+                  const int dump_ind) -> int
 {
     if (test_APFS(sb, partition) != 0)
         return 1;
@@ -74,7 +74,7 @@ int recover_APFS(const disk_t &disk, const nx_superblock_t *sb, partition_t &par
     partition.part_type_sun = PSUN_LINUX;
     partition.part_type_gpt = GPT_ENT_TYPE_MAC_APFS;
     partition.part_size = le32(sb->nx_block_size) * le64(sb->nx_block_count);
-    guid_cpy(&partition.part_uuid, (const efi_guid_t *)&sb->nx_uuid);
+    guid_cpy(&partition.part_uuid, reinterpret_cast<const efi_guid_t *>(&sb->nx_uuid));
     if (verbose > 0)
     {
         log_info("\n");

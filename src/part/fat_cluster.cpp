@@ -21,9 +21,11 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+#include <utility>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
@@ -35,15 +37,16 @@
 
 /* Using a couple of inodes of "." directory entries, get the cluster size and where the first cluster begins.
  * */
-int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, const int verbose, const int dump_ind,
-                             unsigned int *sectors_per_cluster, uint64_t *offset_org, const upart_type_t upart_type)
+auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, const int verbose, const int dump_ind,
+                              unsigned int *sectors_per_cluster, uint64_t *offset_org, const upart_type_t upart_type)
+    -> int
 {
     unsigned int nbr_subdir = 0;
     sector_cluster_t sector_cluster[10];
     uint64_t offset;
     uint64_t skip_offset;
     int ind_stop = 0;
-    unsigned char *buffer = new unsigned char[disk_car.sector_size];
+    auto *buffer = new unsigned char[disk_car.sector_size];
 #ifdef HAVE_NCURSES
     wmove(stdscr, 22, 0);
     wattrset(stdscr, A_REVERSE);
@@ -51,8 +54,8 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, con
     wattroff(stdscr, A_REVERSE);
 #endif
     /* 2 fats, maximum cluster size=128 */
-    skip_offset = (uint64_t)((partition.part_size - 32 * disk_car.sector_size) / disk_car.sector_size / 128 * 3 / 2 /
-                             disk_car.sector_size * 2) *
+    skip_offset = ((partition.part_size - 32 * disk_car.sector_size) / disk_car.sector_size / 128 * 3 / 2 /
+                   disk_car.sector_size * 2) *
                   disk_car.sector_size;
     if (verbose > 0)
     {
@@ -74,12 +77,13 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, con
             ind_stop |= check_enter_key_or_s(stdscr);
         }
 #endif
-        if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, partition.part_offset + offset) ==
-            disk_car.sector_size)
+        if (std::cmp_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size, partition.part_offset + offset),
+                           disk_car.sector_size))
         {
             if (buffer[0] == '.' && is_fat_directory(buffer))
             {
-                const unsigned long int cluster = fat_get_cluster_from_entry((const struct msdos_dir_entry *)buffer);
+                const unsigned long int cluster =
+                    fat_get_cluster_from_entry(reinterpret_cast<const struct msdos_dir_entry *>(buffer));
                 log_info("sector {}, cluster {}\n", (unsigned long)(offset / disk_car.sector_size), cluster);
                 sector_cluster[nbr_subdir].cluster = cluster;
                 sector_cluster[nbr_subdir].sector = offset / disk_car.sector_size;
@@ -96,17 +100,17 @@ int find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition, con
                                         partition.part_size / disk_car.sector_size, upart_type);
 }
 
-int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const unsigned int nbr_sector_cluster,
-                                 unsigned int *sectors_per_cluster, uint64_t *offset, const int verbose,
-                                 const unsigned long int part_size_in_sectors, const upart_type_t upart_type)
+auto find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const unsigned int nbr_sector_cluster,
+                                  unsigned int *sectors_per_cluster, uint64_t *offset, const int verbose,
+                                  const unsigned long int part_size_in_sectors, const upart_type_t upart_type) -> int
 {
     cluster_offset_t *cluster_offset;
     unsigned int i, j;
     unsigned int nbr_sol = 0;
     if (nbr_sector_cluster < 2)
         return 0;
-    cluster_offset =
-        (cluster_offset_t *)new unsigned char[nbr_sector_cluster * nbr_sector_cluster * sizeof(cluster_offset_t)];
+    cluster_offset = reinterpret_cast<cluster_offset_t *>(
+        new unsigned char[nbr_sector_cluster * nbr_sector_cluster * sizeof(cluster_offset_t)]);
     log_info("find_sectors_per_cluster_aux\n");
     for (i = 0; i < nbr_sector_cluster - 1; i++)
     {
@@ -126,12 +130,14 @@ int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const u
                 case 32:
                 case 64:
                 case 128:
-                    if (sector_cluster[i].sector > (uint64_t)(sector_cluster[i].cluster - 2) * sectors_per_cluster_tmp)
+                    if (sector_cluster[i].sector >
+                        static_cast<uint64_t>(sector_cluster[i].cluster - 2) * sectors_per_cluster_tmp)
                     {
                         unsigned int sol_cur;
                         unsigned int found = 0;
-                        uint64_t offset_tmp = sector_cluster[i].sector -
-                                              (uint64_t)(sector_cluster[i].cluster - 2) * sectors_per_cluster_tmp;
+                        uint64_t offset_tmp =
+                            sector_cluster[i].sector -
+                            static_cast<uint64_t>(sector_cluster[i].cluster - 2) * sectors_per_cluster_tmp;
                         for (sol_cur = 0; sol_cur < nbr_sol && !found; sol_cur++)
                         {
                             if (cluster_offset[sol_cur].sectors_per_cluster == sectors_per_cluster_tmp &&
@@ -205,7 +211,7 @@ int find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster, const u
     }
 }
 
-upart_type_t no_of_cluster2part_type(const unsigned long int no_of_cluster)
+auto no_of_cluster2part_type(const unsigned long int no_of_cluster) -> upart_type_t
 {
     if (no_of_cluster < 65525)
     {

@@ -22,9 +22,11 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h> /* free */
+#include <cstdio>
+#include <cstdlib> /* free */
+#include <cstring>
+
+#include <utility>
 // #include "types.h"
 #include "fat.hpp"
 #include "fat_common.hpp"
@@ -40,10 +42,10 @@ static void set_HPFS_info(partition_t &partition)
     partition.upart_type = UP_HPFS;
 }
 
-static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, const partition_t &partition,
-                     const int verbose, const int dump_ind)
+static auto test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, const partition_t &partition,
+                      const int verbose, const int dump_ind) -> int
 {
-    const char *buffer = (const char *)hpfs_header;
+    const char *buffer = reinterpret_cast<const char *>(hpfs_header);
     if (le16(hpfs_header->marker) == 0xAA55)
     {
         if (memcmp(buffer + 3, "IBM", 3) == 0)
@@ -64,8 +66,8 @@ static int test_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_
     return 1;
 }
 
-int recover_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, partition_t &partition,
-                 const int verbose)
+auto recover_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_header, partition_t &partition,
+                  const int verbose) -> int
 {
     if (test_HPFS(disk_car, hpfs_header, partition, verbose, 0) != 0)
         return 1;
@@ -75,23 +77,23 @@ int recover_HPFS(const disk_t &disk_car, const struct fat_boot_sector *hpfs_head
     partition.fsname[0] = '\0';
     partition.info[0] = '\0';
     partition.part_size =
-        (uint64_t)(fat_sectors(hpfs_header) > 0 ? fat_sectors(hpfs_header) : le32(hpfs_header->total_sect)) *
+        static_cast<uint64_t>(fat_sectors(hpfs_header) > 0 ? fat_sectors(hpfs_header) : le32(hpfs_header->total_sect)) *
         fat_sector_size(hpfs_header);
     return 0;
 }
 
-int check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
+auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose) -> int
 {
-    unsigned char *buffer = new unsigned char[disk_car.sector_size];
-    if ((unsigned)disk_car.pread(disk_car, buffer, disk_car.sector_size, partition.part_offset) !=
-        disk_car.sector_size)
+    auto *buffer = new unsigned char[disk_car.sector_size];
+    if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size, partition.part_offset),
+                           disk_car.sector_size))
     {
         screen_buffer_add("check_HPFS: Read error\n");
         log_error("check_HPFS: Read error\n");
         delete[] (buffer);
         return 1;
     }
-    if (test_HPFS(disk_car, (const struct fat_boot_sector *)buffer, partition, verbose, 0) != 0)
+    if (test_HPFS(disk_car, reinterpret_cast<const struct fat_boot_sector *>(buffer), partition, verbose, 0) != 0)
     {
         if (verbose > 0)
         {

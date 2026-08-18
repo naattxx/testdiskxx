@@ -21,9 +21,9 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "refs.hpp"
 #include "src/common.hpp"
@@ -36,7 +36,7 @@ static void set_ReFS_info(partition_t &partition)
     snprintf(partition.info, sizeof(partition.info), "ReFS");
 }
 
-static int test_ReFS(const struct ReFS_boot_sector *refs_header)
+static auto test_ReFS(const struct ReFS_boot_sector *refs_header) -> int
 {
     if (refs_header->fsname != be32(0x52654653))
         return 1;
@@ -45,15 +45,15 @@ static int test_ReFS(const struct ReFS_boot_sector *refs_header)
     return 0;
 }
 
-int check_ReFS(disk_t &disk, partition_t &partition)
+auto check_ReFS(disk_t &disk, partition_t &partition) -> int
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[ReFS_BS_SIZE];
+    auto *buffer = new unsigned char[ReFS_BS_SIZE];
     if (disk.pread(disk, buffer, ReFS_BS_SIZE, partition.part_offset) != ReFS_BS_SIZE)
     {
         delete[] (buffer);
         return 1;
     }
-    if (test_ReFS((struct ReFS_boot_sector *)buffer) != 0)
+    if (test_ReFS(reinterpret_cast<struct ReFS_boot_sector *>(buffer)) != 0)
     {
         delete[] (buffer);
         return 1;
@@ -63,7 +63,7 @@ int check_ReFS(disk_t &disk, partition_t &partition)
     return 0;
 }
 
-int recover_ReFS(const disk_t &disk, const struct ReFS_boot_sector *refs_header, partition_t &partition)
+auto recover_ReFS(const disk_t &disk, const struct ReFS_boot_sector *refs_header, partition_t &partition) -> int
 {
     if (test_ReFS(refs_header) != 0)
         return 1;

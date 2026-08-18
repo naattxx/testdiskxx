@@ -21,8 +21,8 @@
  */
 #include <config.h>
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
@@ -34,9 +34,9 @@
 #include "src/guid_cmp.hpp"
 #include "src/log.hpp"
 
-int interface_superblock(disk_t &disk_car, const list_part_t &list_part, char **current_cmd)
+auto interface_superblock(disk_t &disk_car, const list_part_t &list_part, char **current_cmd) -> int
 {
-    const partition_t *old_part = NULL;
+    const partition_t *old_part = nullptr;
 #ifdef HAVE_NCURSES
     const struct MenuItem menuSuperblock[] = {
         {'P', "Previous", ""}, {'N', "Next", ""}, {'Q', "Quit", "Return to Advanced menu"}, {0, NULL, NULL}};
@@ -51,20 +51,20 @@ int interface_superblock(disk_t &disk_car, const list_part_t &list_part, char **
 #endif
     for (const partition_t &partition : list_part)
     {
-        if (old_part == NULL || old_part->part_offset != partition.part_offset ||
+        if (old_part == nullptr || old_part->part_offset != partition.part_offset ||
             old_part->part_size != partition.part_size ||
             guid_cmp(old_part->part_type_gpt, partition.part_type_gpt) != 0 ||
             old_part->part_type_i386 != partition.part_type_i386 ||
-            old_part->part_type_sun != partition.part_type_sun ||
-            old_part->part_type_mac != partition.part_type_mac || old_part->upart_type != partition.upart_type)
+            old_part->part_type_sun != partition.part_type_sun || old_part->part_type_mac != partition.part_type_mac ||
+            old_part->upart_type != partition.upart_type)
         {
             aff_part_buffer(AFF_PART_BASE, disk_car, partition);
             old_part = &partition;
         }
         if (partition.blocksize != 0)
             screen_buffer_add("superblock {}, blocksize={} [%s]\n",
-                              (long unsigned)(partition.sb_offset / partition.blocksize), partition.blocksize,
-                              partition.fsname);
+                              static_cast<long unsigned>(partition.sb_offset / partition.blocksize),
+                              partition.blocksize, partition.fsname);
     }
     if (!list_part.empty())
     {
@@ -75,7 +75,7 @@ int interface_superblock(disk_t &disk_car, const list_part_t &list_part, char **
                           (partition.upart_type == UP_EXT2 ? 2 : (partition.upart_type == UP_EXT3 ? 3 : 4)));
     }
     screen_buffer_to_log();
-    if (*current_cmd == NULL)
+    if (*current_cmd == nullptr)
     {
         ; // log_flush();
 #ifdef HAVE_NCURSES

@@ -21,10 +21,10 @@
  */
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
@@ -61,7 +61,7 @@ static void exFAT_dump(disk_t &disk, const partition_t &partition, const unsigne
 {
     log_info("Superblock                        Backup superblock\n");
     ; // dump2_log(buffer_bs, buffer_backup_bs, 12 * disk.sector_size);
-    if (*current_cmd == NULL)
+    if (*current_cmd == nullptr)
     {
 #ifdef HAVE_NCURSES
         exFAT_dump_ncurses(disk, partition, buffer_bs, buffer_backup_bs);
@@ -69,7 +69,7 @@ static void exFAT_dump(disk_t &disk, const partition_t &partition, const unsigne
     }
 }
 
-static int exFAT_boot_sector_command(char **current_cmd, const char *options)
+static auto exFAT_boot_sector_command(char **current_cmd, const char *options) -> int
 {
     skip_comma_in_command(current_cmd);
     if (check_command(current_cmd, "dump", 4) == 0)
@@ -78,19 +78,19 @@ static int exFAT_boot_sector_command(char **current_cmd, const char *options)
     }
     else if (check_command(current_cmd, "originalexFAT", 13) == 0)
     {
-        if (strchr(options, 'O') != NULL)
+        if (strchr(options, 'O') != nullptr)
             return 'O';
     }
     else if (check_command(current_cmd, "backupexFAT", 11) == 0)
     {
-        if (strchr(options, 'B') != NULL)
+        if (strchr(options, 'B') != nullptr)
             return 'B';
     }
     return 0;
 }
 
-static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t &partition, unsigned char *buffer_bs,
-                                            unsigned char *buffer_backup_bs)
+static auto exFAT_boot_sector_rescan(disk_t &disk, const partition_t &partition, unsigned char *buffer_bs,
+                                     unsigned char *buffer_backup_bs) -> const char *
 {
     const int size_bs = 12 * disk.sector_size;
     int opt_B = 0;
@@ -111,7 +111,7 @@ static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t &par
         screen_buffer_add("Bad: can't read exFAT boot record.\n");
         memset(buffer_bs, 0, size_bs);
     }
-    else if (test_exFAT((const struct exfat_super_block *)buffer_bs) == 0)
+    else if (test_exFAT(reinterpret_cast<const struct exfat_super_block *>(buffer_bs)) == 0)
     {
         screen_buffer_add("exFAT OK\n");
         opt_O = 1;
@@ -124,7 +124,7 @@ static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t &par
         screen_buffer_add("Bad: can't read exFAT backup boot record.\n");
         memset(buffer_backup_bs, 0, size_bs);
     }
-    else if (test_exFAT((const struct exfat_super_block *)buffer_backup_bs) == 0)
+    else if (test_exFAT(reinterpret_cast<const struct exfat_super_block *>(buffer_backup_bs)) == 0)
     {
         screen_buffer_add("exFAT OK\n");
         opt_B = 1;
@@ -150,7 +150,7 @@ static const char *exFAT_boot_sector_rescan(disk_t &disk, const partition_t &par
     return "D";
 }
 
-int exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd)
+auto exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd) -> int
 {
     unsigned char *buffer_bs;
     unsigned char *buffer_backup_bs;
@@ -168,7 +168,7 @@ int exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd)
 #endif
     buffer_bs = new unsigned char[size_bs];
     buffer_backup_bs = new unsigned char[size_bs];
-    while (1)
+    while (true)
     {
         int command;
         screen_buffer_reset();
@@ -178,7 +178,7 @@ int exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd)
             rescan = 0;
         }
         screen_buffer_to_log();
-        if (*current_cmd != NULL)
+        if (*current_cmd != nullptr)
         {
             command = exFAT_boot_sector_command(current_cmd, options);
         }

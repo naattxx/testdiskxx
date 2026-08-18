@@ -21,12 +21,12 @@
  */
 #include <config.h>
 
-#include <string.h>
+#include <cstring>
 // #include "types.h"
 #include "fat_common.hpp"
 #include "src/common.hpp"
 
-unsigned int fat_sector_size(const struct fat_boot_sector *fat_header)
+auto fat_sector_size(const struct fat_boot_sector *fat_header) -> unsigned int
 {
     const unsigned int hi = fat_header->sector_size[1];
     const unsigned int lo = fat_header->sector_size[0];
@@ -38,7 +38,7 @@ unsigned int fat_sector_size(const struct fat_boot_sector *fat_header)
     return res;
 }
 
-unsigned int get_dir_entries(const struct fat_boot_sector *fat_header)
+auto get_dir_entries(const struct fat_boot_sector *fat_header) -> unsigned int
 {
     const unsigned int hi = fat_header->dir_entries[1];
     const unsigned int lo = fat_header->dir_entries[0];
@@ -50,7 +50,7 @@ unsigned int get_dir_entries(const struct fat_boot_sector *fat_header)
     return res;
 }
 
-unsigned int fat_sectors(const struct fat_boot_sector *fat_header)
+auto fat_sectors(const struct fat_boot_sector *fat_header) -> unsigned int
 {
     const unsigned int hi = fat_header->sectors[1];
     const unsigned int lo = fat_header->sectors[0];
@@ -62,7 +62,7 @@ unsigned int fat_sectors(const struct fat_boot_sector *fat_header)
     return res;
 }
 
-unsigned int fat_get_cluster_from_entry(const struct msdos_dir_entry *entry)
+auto fat_get_cluster_from_entry(const struct msdos_dir_entry *entry) -> unsigned int
 {
     const unsigned int hi = le16(entry->starthi);
     const unsigned int lo = le16(entry->start);
@@ -72,7 +72,7 @@ unsigned int fat_get_cluster_from_entry(const struct msdos_dir_entry *entry)
     return (hi << 16) | lo;
 }
 
-int is_fat_directory(const unsigned char *buffer)
+auto is_fat_directory(const unsigned char *buffer) -> int
 {
     return (buffer[0] == '.' && memcmp(buffer, ".          ", 8 + 3) == 0 &&
             memcmp(&buffer[0x20], "..         ", 8 + 3) == 0 && buffer[0xB] != ATTR_EXT &&

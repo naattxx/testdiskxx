@@ -23,11 +23,11 @@
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
 #include <config.h>
 
-#include <assert.h>
-#include <ctype.h> /* tolower */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cctype> /* tolower */
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "fatx.hpp"
 #include "partxbox.hpp"
@@ -43,21 +43,21 @@
   @ requires \valid(disk_car);
   @ requires \valid(partition);
   @*/
-static int check_part_xbox(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader);
+static auto check_part_xbox(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int;
 
 /*@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @*/
 // ensures  valid_list_part(\result);
-static list_part_t read_part_xbox(disk_t &disk_car, const int verbose, const int saveheader);
+static auto read_part_xbox(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t;
 
 /*@
   @ requires \valid_read(disk_car);
   @ requires \valid(list_part);
   @ requires separation: \separated(disk_car, list_part);
   @*/
-static int write_part_xbox(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose);
+static auto write_part_xbox(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int;
 
 /*@
   @ requires \valid(disk_car);
@@ -77,19 +77,19 @@ static void set_next_status_xbox(const disk_t &disk_car, partition_t &partition)
 /*@
   @ requires list_part == \null || \valid_read(list_part);
   @*/
-static int test_structure_xbox(const list_part_t &list_part);
+static auto test_structure_xbox(const list_part_t &list_part) -> int;
 
 /*@
   @ requires \valid(partition);
   @ assigns partition.part_type_xbox;
   @*/
-static int set_part_type_xbox(partition_t &partition, unsigned int part_type_xbox);
+static auto set_part_type_xbox(partition_t &partition, unsigned int part_type_xbox) -> int;
 
 /*@
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static int is_part_known_xbox(const partition_t &partition);
+static auto is_part_known_xbox(const partition_t &partition) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -101,20 +101,22 @@ static void init_structure_xbox(const disk_t &disk_car, list_part_t &list_part, 
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_xbox(const partition_t &partition);
+static auto get_partition_typename_xbox(const partition_t &partition) -> const char *;
 
 /*@
   @ assigns \nothing;
   @*/
-static const char *get_partition_typename_xbox_aux(const unsigned int part_type_xbox);
+static auto get_partition_typename_xbox_aux(const unsigned int part_type_xbox) -> const char *;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static unsigned int get_part_type_xbox(const partition_t &partition);
+static auto get_part_type_xbox(const partition_t &partition) -> unsigned int;
 
-static const struct systypes xbox_sys_types[] = {{PXBOX_UNK, "Unknown"}, {PXBOX_FATX, "FATX"}, {PXBOX_UNK, NULL}};
+static const struct systypes xbox_sys_types[] = {{.part_type = PXBOX_UNK, .name = "Unknown"},
+                                                 {.part_type = PXBOX_FATX, .name = "FATX"},
+                                                 {.part_type = PXBOX_UNK, .name = nullptr}};
 
 arch_fnct_t arch_xbox = {.part_name = "XBox",
                          .part_name_option = "partition_xbox",
@@ -122,25 +124,25 @@ arch_fnct_t arch_xbox = {.part_name = "XBox",
                          .read_part = &read_part_xbox,
                          .write_part = &write_part_xbox,
                          .init_part_order = &init_part_order_xbox,
-                         .get_geometry_from_mbr = NULL,
+                         .get_geometry_from_mbr = nullptr,
                          .check_part = &check_part_xbox,
-                         .write_MBR_code = NULL,
+                         .write_MBR_code = nullptr,
                          .set_prev_status = &set_next_status_xbox,
                          .set_next_status = &set_next_status_xbox,
                          .test_structure = &test_structure_xbox,
                          .get_part_type = &get_part_type_xbox,
                          .set_part_type = &set_part_type_xbox,
                          .init_structure = &init_structure_xbox,
-                         .erase_list_part = NULL,
+                         .erase_list_part = nullptr,
                          .get_partition_typename = &get_partition_typename_xbox,
                          .is_part_known = &is_part_known_xbox};
 
-static unsigned int get_part_type_xbox(const partition_t &partition)
+static auto get_part_type_xbox(const partition_t &partition) -> unsigned int
 {
     return partition.part_type_xbox;
 }
 
-static list_part_t read_part_xbox(disk_t &disk_car, const int verbose, const int saveheader)
+static auto read_part_xbox(disk_t &disk_car, const int verbose, const int saveheader) -> list_part_t
 {
     unsigned char buffer[0x800];
     list_part_t new_list_part;
@@ -151,7 +153,7 @@ static list_part_t read_part_xbox(disk_t &disk_car, const int verbose, const int
     {
         uint64_t offsets[] = {0x00080000, 0x2ee80000, 0x5dc80000, 0x8ca80000, 0xabe80000};
         unsigned int i;
-        struct xbox_partition *xboxlabel = (struct xbox_partition *)&buffer;
+        auto *xboxlabel = reinterpret_cast<struct xbox_partition *>(&buffer);
         if (memcmp(xboxlabel->magic, "BRFR", 4))
         {
             screen_buffer_add("\nBad XBOX partition, invalid signature\n");
@@ -184,7 +186,7 @@ static list_part_t read_part_xbox(disk_t &disk_car, const int verbose, const int
     return new_list_part;
 }
 
-static int write_part_xbox(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose)
+static auto write_part_xbox(disk_t &disk_car, const list_part_t &list_part, const int ro, const int verbose) -> int
 {
     /* TODO: Implement it */
     if (ro == 0)
@@ -200,14 +202,14 @@ static void init_part_order_xbox(const disk_t &disk_car, list_part_t &list_part)
 void add_partition_xbox_cli(const disk_t &disk_car, list_part_t &list_part, char **current_cmd)
 {
     partition_t new_partition(&arch_xbox);
-    assert(current_cmd != NULL);
+    assert(current_cmd != nullptr);
     new_partition.part_offset = disk_car.sector_size;
     new_partition.part_size = disk_car.disk_size - disk_car.sector_size;
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_read_string(*current_cmd);
       @ */
-    while (1)
+    while (true)
     {
         skip_comma_in_command(current_cmd);
         if (check_command(current_cmd, "s,", 2) == 0)
@@ -215,20 +217,20 @@ void add_partition_xbox_cli(const disk_t &disk_car, list_part_t &list_part, char
             uint64_t part_offset;
             part_offset = new_partition.part_offset;
             new_partition.part_offset =
-                (uint64_t)ask_number_cli(
-                    current_cmd, new_partition.part_offset / disk_car.sector_size, 0x800 / disk_car.sector_size,
-                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the starting sector ") *
-                (uint64_t)disk_car.sector_size;
+                ask_number_cli(current_cmd, new_partition.part_offset / disk_car.sector_size,
+                               0x800 / disk_car.sector_size, (disk_car.disk_size - 1) / disk_car.sector_size,
+                               "Enter the starting sector ") *
+                static_cast<uint64_t>(disk_car.sector_size);
             new_partition.part_size = new_partition.part_size + part_offset - new_partition.part_offset;
         }
         else if (check_command(current_cmd, "S,", 2) == 0)
         {
             new_partition.part_size =
-                (uint64_t)ask_number_cli(
-                    current_cmd, (new_partition.part_offset + new_partition.part_size - 1) / disk_car.sector_size,
-                    new_partition.part_offset / disk_car.sector_size,
-                    (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the ending sector ") *
-                    (uint64_t)disk_car.sector_size +
+                ask_number_cli(current_cmd,
+                               (new_partition.part_offset + new_partition.part_size - 1) / disk_car.sector_size,
+                               new_partition.part_offset / disk_car.sector_size,
+                               (disk_car.disk_size - 1) / disk_car.sector_size, "Enter the ending sector ") *
+                    static_cast<uint64_t>(disk_car.sector_size) +
                 disk_car.sector_size - new_partition.part_offset;
         }
         else if (check_command(current_cmd, "T,", 2) == 0)
@@ -263,7 +265,7 @@ static void set_next_status_xbox(const disk_t &disk_car, partition_t &partition)
         partition.status = STATUS_DELETED;
 }
 
-static int test_structure_xbox(const list_part_t &list_part)
+static auto test_structure_xbox(const list_part_t &list_part) -> int
 { /* Return 1 if bad*/
     list_part_t new_list_part;
     int res;
@@ -272,7 +274,7 @@ static int test_structure_xbox(const list_part_t &list_part)
     return res;
 }
 
-static int set_part_type_xbox(partition_t &partition, unsigned int part_type_xbox)
+static auto set_part_type_xbox(partition_t &partition, unsigned int part_type_xbox) -> int
 {
     if (part_type_xbox > 0 && part_type_xbox <= 255)
     {
@@ -282,7 +284,7 @@ static int set_part_type_xbox(partition_t &partition, unsigned int part_type_xbo
     return 1;
 }
 
-static int is_part_known_xbox(const partition_t &partition)
+static auto is_part_known_xbox(const partition_t &partition) -> int
 {
     return (partition.part_type_xbox != PXBOX_UNK);
 }
@@ -317,7 +319,7 @@ static void init_structure_xbox(const disk_t &disk_car, list_part_t &list_part, 
     list_part = new_list_part;
 }
 
-static int check_part_xbox(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader)
+static auto check_part_xbox(disk_t &disk_car, const int verbose, partition_t &partition, const int saveheader) -> int
 {
     int ret = 0;
     switch (partition.part_type_xbox)
@@ -348,17 +350,17 @@ static int check_part_xbox(disk_t &disk_car, const int verbose, partition_t &par
     return ret;
 }
 
-static const char *get_partition_typename_xbox_aux(const unsigned int part_type_xbox)
+static auto get_partition_typename_xbox_aux(const unsigned int part_type_xbox) -> const char *
 {
     int i;
     /*@ loop assigns i; */
-    for (i = 0; xbox_sys_types[i].name != NULL; i++)
+    for (i = 0; xbox_sys_types[i].name != nullptr; i++)
         if (xbox_sys_types[i].part_type == part_type_xbox)
             return xbox_sys_types[i].name;
-    return NULL;
+    return nullptr;
 }
 
-static const char *get_partition_typename_xbox(const partition_t &partition)
+static auto get_partition_typename_xbox(const partition_t &partition) -> const char *
 {
     return get_partition_typename_xbox_aux(partition.part_type_xbox);
 }

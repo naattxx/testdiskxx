@@ -21,11 +21,13 @@
  */
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
+
+#include <utility>
 #endif
 // #include "types.h"
 #include "src/common.hpp"
@@ -42,7 +44,7 @@
 #define MAX_INFO_MFT 10
 #define NTFS_SECTOR_SIZE 0x200
 
-typedef struct s_info_mft info_mft_t;
+using info_mft_t = struct s_info_mft;
 struct s_info_mft
 {
     uint64_t sector;
@@ -50,7 +52,7 @@ struct s_info_mft
     uint64_t mftmirr_lcn;
 };
 
-static int testdisk_ffs(int x);
+static auto testdisk_ffs(int x) -> int;
 
 #ifdef HAVE_NCURSES
 #define INTER_NTFS_X 0
@@ -109,7 +111,7 @@ static void ntfs_dump(disk_t &disk_car, const partition_t &partition, const unsi
 {
     log_info("     Rebuild Boot sector           Boot sector\n");
     ; // dump2_log(newboot, orgboot, NTFS_SECTOR_SIZE);
-    if (current_cmd == NULL || *current_cmd == NULL)
+    if (current_cmd == nullptr || *current_cmd == nullptr)
     {
 #ifdef HAVE_NCURSES
         ntfs_dump_ncurses(disk_car, partition, orgboot, newboot);
@@ -146,10 +148,10 @@ static void ntfs_list(disk_t &disk, const partition_t &partition, const unsigned
 static void menu_write_ntfs_boot_sector_cli(disk_t &disk_car, partition_t &partition, const unsigned char *orgboot,
                                             const unsigned char *newboot, char **current_cmd, const int expert)
 {
-    const struct ntfs_boot_sector *org_ntfs_header = (const struct ntfs_boot_sector *)orgboot;
-    const struct ntfs_boot_sector *ntfs_header = (const struct ntfs_boot_sector *)newboot;
+    const auto *org_ntfs_header = reinterpret_cast<const struct ntfs_boot_sector *>(orgboot);
+    const auto *ntfs_header = reinterpret_cast<const struct ntfs_boot_sector *>(newboot);
     int no_confirm = 0;
-    while (1)
+    while (true)
     {
         if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE) != 0)
         {
@@ -258,8 +260,8 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition, co
 {
     unsigned char orgboot[NTFS_SECTOR_SIZE];
     unsigned char newboot[NTFS_SECTOR_SIZE];
-    struct ntfs_boot_sector *org_ntfs_header = (struct ntfs_boot_sector *)&orgboot;
-    struct ntfs_boot_sector *ntfs_header = (struct ntfs_boot_sector *)&newboot;
+    auto *org_ntfs_header = reinterpret_cast<struct ntfs_boot_sector *>(&orgboot);
+    auto *ntfs_header = reinterpret_cast<struct ntfs_boot_sector *>(&newboot);
     if (disk_car.pread(disk_car, &orgboot, NTFS_SECTOR_SIZE, partition.part_offset) != NTFS_SECTOR_SIZE)
     {
         log_error("create_ntfs_boot_sector: Can't read boot sector.\n");
@@ -322,7 +324,7 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition, co
     {
         log_info("Extrapolated boot sector and current boot sector are identical.\n");
     }
-    if (*current_cmd != NULL)
+    if (*current_cmd != nullptr)
     {
         menu_write_ntfs_boot_sector_cli(disk_car, partition, orgboot, newboot, current_cmd, expert);
         return;
@@ -332,15 +334,15 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition, co
 #endif
 }
 
-static int read_mft_info(disk_t &disk_car, const partition_t &partition, const uint64_t mft_sector, const int verbose,
-                         unsigned int *sectors_per_cluster, uint64_t *mft_lcn, uint64_t *mftmirr_lcn,
-                         unsigned int *mft_record_size)
+static auto read_mft_info(disk_t &disk_car, const partition_t &partition, const uint64_t mft_sector, const int verbose,
+                          unsigned int *sectors_per_cluster, uint64_t *mft_lcn, uint64_t *mftmirr_lcn,
+                          unsigned int *mft_record_size) -> int
 {
     char buffer[8 * DEFAULT_SECTOR_SIZE];
-    const struct ntfs_mft_record *record = (const struct ntfs_mft_record *)buffer;
+    const auto *record = reinterpret_cast<const struct ntfs_mft_record *>(buffer);
     const ntfs_attribnonresident *attr80;
-    if (disk_car.pread(disk_car, &buffer, sizeof(buffer),
-                        partition.part_offset + (uint64_t)mft_sector * disk_car.sector_size) != sizeof(buffer))
+    if (disk_car.pread(disk_car, &buffer, sizeof(buffer), partition.part_offset + mft_sector * disk_car.sector_size) !=
+        sizeof(buffer))
     {
         ; // display_message("NTFS: Can't read mft_sector\n");
         return 1;
@@ -352,19 +354,22 @@ static int read_mft_info(disk_t &disk_car, const partition_t &partition, const u
             log_warning("read_mft_info failed: mft_record_size < 42\n");
         return 2;
     }
-    attr80 = (const ntfs_attribnonresident *)ntfs_findattribute(record, 0x80, buffer + sizeof(buffer));
+    attr80 =
+        reinterpret_cast<const ntfs_attribnonresident *>(ntfs_findattribute(record, 0x80, buffer + sizeof(buffer)));
     if (attr80 && attr80->header.bNonResident)
     {
         *mft_lcn = ntfs_get_first_rl_element(attr80, buffer + sizeof(buffer));
     }
-    record = (const struct ntfs_mft_record *)(buffer + (*mft_record_size));
-    if ((const char *)record < buffer || (const char *)record > buffer + sizeof(buffer))
+    record = reinterpret_cast<const struct ntfs_mft_record *>(buffer + (*mft_record_size));
+    if (reinterpret_cast<const char *>(record) < buffer ||
+        reinterpret_cast<const char *>(record) > buffer + sizeof(buffer))
     {
         if (verbose < 0)
             log_warning("read_mft_info failed: bad record.\n");
         return 2;
     }
-    attr80 = (const ntfs_attribnonresident *)ntfs_findattribute(record, 0x80, buffer + sizeof(buffer));
+    attr80 =
+        reinterpret_cast<const ntfs_attribnonresident *>(ntfs_findattribute(record, 0x80, buffer + sizeof(buffer)));
     if (attr80 && attr80->header.bNonResident)
     {
         *mftmirr_lcn = ntfs_get_first_rl_element(attr80, buffer + sizeof(buffer));
@@ -461,8 +466,8 @@ static int read_mft_info(disk_t &disk_car, const partition_t &partition, const u
     return 3;
 }
 
-int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int expert,
-                    char **current_cmd)
+auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose, const unsigned int expert,
+                     char **current_cmd) -> int
 {
     uint64_t sector;
     char buffer[8 * DEFAULT_SECTOR_SIZE];
@@ -495,9 +500,9 @@ int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose,
          sector++)
     {
         if (disk_car.pread(disk_car, &buffer, 0x400,
-                            partition.part_offset + sector * (uint64_t)disk_car.sector_size) == 0x400)
+                           partition.part_offset + sector * static_cast<uint64_t>(disk_car.sector_size)) == 0x400)
         {
-            const struct ntfs_mft_record *record = (const struct ntfs_mft_record *)&buffer;
+            const auto *record = reinterpret_cast<const struct ntfs_mft_record *>(&buffer);
             if (memcmp(buffer, "FILE", 4) == 0 && le16(record->attrs_offset) % 8 == 0 &&
                 le16(record->attrs_offset) >= 42 && le16(record->flags) == 1) /* MFT_RECORD_IN_USE */
             {
@@ -506,10 +511,10 @@ int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose,
                 attr30 = ntfs_findattribute(record, 0x30, buffer + 0x400);
                 if (attr30 && attr30->bNonResident == 0)
                 {
-                    const TD_FILE_NAME_ATTR *file_name_attr = (const TD_FILE_NAME_ATTR *)ntfs_getattributedata(
-                        (const ntfs_attribresident *)attr30, buffer + 0x400);
-                    if (file_name_attr != NULL && file_name_attr->file_name_length == 4 &&
-                        (const char *)&file_name_attr->file_name[0] + 8 <= buffer + 0x400 &&
+                    const auto *file_name_attr = reinterpret_cast<const TD_FILE_NAME_ATTR *>(
+                        ntfs_getattributedata(reinterpret_cast<const ntfs_attribresident *>(attr30), buffer + 0x400));
+                    if (file_name_attr != nullptr && file_name_attr->file_name_length == 4 &&
+                        reinterpret_cast<const char *>(&file_name_attr->file_name[0]) + 8 <= buffer + 0x400 &&
                         memcmp(file_name_attr->file_name, "$\0M\0F\0T\0", 8) == 0)
                         res = 1;
                 }
@@ -564,9 +569,9 @@ int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose,
         }
 #endif
         if (disk_car.pread(disk_car, &buffer, 0x400,
-                            partition.part_offset + sector * (uint64_t)disk_car.sector_size) == 0x400)
+                           partition.part_offset + sector * static_cast<uint64_t>(disk_car.sector_size)) == 0x400)
         {
-            const struct ntfs_mft_record *record = (const struct ntfs_mft_record *)&buffer;
+            const auto *record = reinterpret_cast<const struct ntfs_mft_record *>(&buffer);
             if (memcmp(buffer, "FILE", 4) == 0 && le16(record->attrs_offset) % 8 == 0 &&
                 le16(record->attrs_offset) >= 42 && le16(record->flags) == 1) /* MFT_RECORD_IN_USE */
             {
@@ -575,10 +580,10 @@ int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose,
                 attr30 = ntfs_findattribute(record, 0x30, buffer + 0x400);
                 if (attr30 && attr30->bNonResident == 0)
                 {
-                    const TD_FILE_NAME_ATTR *file_name_attr = (const TD_FILE_NAME_ATTR *)ntfs_getattributedata(
-                        (const ntfs_attribresident *)attr30, buffer + 0x400);
-                    if (file_name_attr != NULL && file_name_attr->file_name_length == 4 &&
-                        (const char *)&file_name_attr->file_name[0] + 8 <= buffer + 0x400 &&
+                    const auto *file_name_attr = reinterpret_cast<const TD_FILE_NAME_ATTR *>(
+                        ntfs_getattributedata(reinterpret_cast<const ntfs_attribresident *>(attr30), buffer + 0x400));
+                    if (file_name_attr != nullptr && file_name_attr->file_name_length == 4 &&
+                        reinterpret_cast<const char *>(&file_name_attr->file_name[0]) + 8 <= buffer + 0x400 &&
                         memcmp(file_name_attr->file_name, "$\0M\0F\0T\0", 8) == 0)
                         res = 1;
                 }
@@ -673,19 +678,21 @@ int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose,
         log_info("ntfs_find_mft: mftmirr_lcn         {}\n", (long long unsigned int)mftmirr_lcn);
         log_info("ntfs_find_mft: mft_record_size     {} bytes\n", mft_record_size);
         /* Read "root directory" in MFT */
-        if ((unsigned)disk_car.pread(disk_car, &buffer, mft_record_size,
-                                      partition.part_offset +
-                                          (uint64_t)mft_lcn * sectors_per_cluster * disk_car.sector_size +
-                                          5 * (uint64_t)mft_record_size) != mft_record_size)
+        if (std::cmp_not_equal(disk_car.pread(disk_car, &buffer, mft_record_size,
+                                              partition.part_offset +
+                                                  mft_lcn * sectors_per_cluster * disk_car.sector_size +
+                                                  5 * static_cast<uint64_t>(mft_record_size)),
+                               mft_record_size))
         {
             ; // display_message("NTFS Can't read \"root directory\" in MFT\n");
             return 1;
         }
-        attr90 = ntfs_findattribute((const ntfs_recordheader *)buffer, 0x90, buffer + mft_record_size);
+        attr90 =
+            ntfs_findattribute(reinterpret_cast<const ntfs_recordheader *>(buffer), 0x90, buffer + mft_record_size);
         if (attr90 && attr90->bNonResident == 0)
         {
-            const TD_INDEX_ROOT *index_root = (const TD_INDEX_ROOT *)ntfs_getattributedata(
-                (const ntfs_attribresident *)attr90, buffer + mft_record_size);
+            const auto *index_root = reinterpret_cast<const TD_INDEX_ROOT *>(
+                ntfs_getattributedata(reinterpret_cast<const ntfs_attribresident *>(attr90), buffer + mft_record_size));
             if (index_root)
                 index_block_size = le32(index_root->index_block_size);
         }
@@ -703,7 +710,7 @@ int rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition, const int verbose,
     return 0;
 }
 
-static int testdisk_ffs(int x)
+static auto testdisk_ffs(int x) -> int
 {
     int r = 1;
 
@@ -737,7 +744,7 @@ static int testdisk_ffs(int x)
     return r;
 }
 
-int log_ntfs2_info(const struct ntfs_boot_sector *nh1, const struct ntfs_boot_sector *nh2)
+auto log_ntfs2_info(const struct ntfs_boot_sector *nh1, const struct ntfs_boot_sector *nh2) -> int
 {
     log_info("filesystem size           {} {}\n", (long long unsigned)(le64(nh1->sectors_nbr) + 1),
              (long long unsigned)(le64(nh2->sectors_nbr) + 1));

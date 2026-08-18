@@ -22,9 +22,9 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -38,13 +38,13 @@ extern const arch_fnct_t arch_sun;
 #endif
 
 static void set_sun_info_i386(partition_t &partition);
-static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, const partition_t &partition,
-                         const int verbose);
+static auto test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, const partition_t &partition,
+                          const int verbose) -> int;
 
-int check_sun_i386(disk_t &disk_car, partition_t &partition, const int verbose)
+auto check_sun_i386(disk_t &disk_car, partition_t &partition, const int verbose) -> int
 {
-    unsigned char *buffer = (unsigned char *)new unsigned char[SUN_PARTITION_I386_SIZE];
-    const sun_partition_i386 *sunlabel = (const sun_partition_i386 *)buffer;
+    auto *buffer = new unsigned char[SUN_PARTITION_I386_SIZE];
+    const auto *sunlabel = reinterpret_cast<const sun_partition_i386 *>(buffer);
     if (disk_car.pread(disk_car, buffer, SUN_PARTITION_I386_SIZE, partition.part_offset + 0x200) !=
         SUN_PARTITION_I386_SIZE)
     {
@@ -61,8 +61,8 @@ int check_sun_i386(disk_t &disk_car, partition_t &partition, const int verbose)
     return 0;
 }
 
-static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, const partition_t &partition,
-                         const int verbose)
+static auto test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, const partition_t &partition,
+                          const int verbose) -> int
 {
     if ((le16(sunlabel->magic) != SUN_LABEL_MAGIC) || (le32(sunlabel->magic_start) != SUN_LABEL_MAGIC_START))
         return 1;
@@ -83,9 +83,9 @@ static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunla
                 new_partition.part_type_sun = sunlabel->partitions[i].id;
                 new_partition.part_offset =
                     partition.part_offset +
-                    (uint64_t)le32(sunlabel->partitions[i].start_sector) * le16(sunlabel->sector_size);
+                    static_cast<uint64_t> le32(sunlabel->partitions[i].start_sector) * le16(sunlabel->sector_size);
                 new_partition.part_size =
-                    (uint64_t)le32(sunlabel->partitions[i].num_sectors) * le16(sunlabel->sector_size);
+                    static_cast<uint64_t> le32(sunlabel->partitions[i].num_sectors) * le16(sunlabel->sector_size);
                 new_partition.status = STATUS_PRIM;
                 log_partition(disk_car, new_partition);
             }
@@ -95,8 +95,8 @@ static int test_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunla
     return 0;
 }
 
-int recover_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, partition_t &partition,
-                     const int verbose, const int dump_ind)
+auto recover_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel, partition_t &partition,
+                      const int verbose, const int dump_ind) -> int
 {
     if (test_sun_i386(disk_car, sunlabel, partition, verbose) != 0)
         return 1;
@@ -108,7 +108,7 @@ int recover_sun_i386(const disk_t &disk_car, const sun_partition_i386 *sunlabel,
             ; // dump_log(sunlabel,sizeof(*sunlabel));
         }
     }
-    partition.part_size = (uint64_t)le32(sunlabel->partitions[2].num_sectors) * le16(sunlabel->sector_size);
+    partition.part_size = static_cast<uint64_t> le32(sunlabel->partitions[2].num_sectors) * le16(sunlabel->sector_size);
     set_sun_info_i386(partition);
     partition.part_type_i386 = P_SUN;
     partition.part_type_gpt = GPT_ENT_TYPE_SOLARIS_ROOT;
