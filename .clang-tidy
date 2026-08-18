@@ -1,0 +1,5 @@
+HeaderFilterRegex: '^src/'
+Checks: >
+  -*,
+  modernize-*,
+  -modernize-macro-to-enum
