@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://json.schemastore.org/clangd.json
+Diagnostics:
+  UnusedIncludes: Strict
+  MissingIncludes: Strict
+  ClangTidy:
+    FastCheckFilter: None
+Documentation:
+  CommentFormat: Doxygen
