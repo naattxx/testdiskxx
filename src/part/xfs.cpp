@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -69,7 +70,7 @@ static void set_xfs_info(const struct xfs_sb *sb, partition_t &partition)
     partition.info = std::format("XFS unknown version {}", version);
     break;
   }
-  partition.set_name(sb->sb_fname, 12);
+  partition.set_name(std::string_view(sb->sb_fname, 12));
 }
 
 static auto test_xfs(const disk_t &disk_car, const struct xfs_sb *sb,

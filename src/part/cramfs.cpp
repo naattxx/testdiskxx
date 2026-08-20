@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 // #include "types.h"
 #include "cramfs.hpp"
 #include "src/common.hpp"
@@ -108,6 +109,6 @@ static void set_cramfs_info(const struct cramfs_super *sb,
                             partition_t &partition)
 {
   partition.upart_type = UP_CRAMFS;
-  partition.set_name(reinterpret_cast<const char *>(sb->name), 16);
+  partition.set_name(std::string_view(reinterpret_cast<const char *>(sb->name), 16));
   partition.info = "cramfs";
 }

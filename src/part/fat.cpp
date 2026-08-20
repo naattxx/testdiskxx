@@ -28,6 +28,7 @@
 #include <cstring>
 #include <ctime>
 
+#include <string_view>
 #include <utility>
 // #include "types.h"
 #include "fat.hpp"
@@ -114,7 +115,7 @@ static auto fat32_set_part_name(disk_t &disk_car, partition_t &partition,
             (buffer[i * 0x20] != 0xE5))
         {
           partition.set_name_chomp(
-              reinterpret_cast<const char *>(&buffer[i * 0x20]), 11
+              std::string_view(reinterpret_cast<const char *>(&buffer[i * 0x20]), 11)
           );
           if (check_VFAT_volume_name(partition.fsname, 11))
             partition.fsname[0] = '\0';
@@ -133,7 +134,7 @@ static auto fat32_set_part_name(disk_t &disk_car, partition_t &partition,
     log_info("set_FAT_info: name from BS used\n");
 #endif
     partition.set_name_chomp(
-        reinterpret_cast<const char *>(fat_header) + FAT32_PART_NAME, 11
+        std::string_view(reinterpret_cast<const char *>(fat_header) + FAT32_PART_NAME, 11)
     );
     if (check_VFAT_volume_name(partition.fsname, 11))
       partition.fsname[0] = '\0';
@@ -177,7 +178,7 @@ static void set_FAT_info(disk_t &disk_car,
     partition.info = std::format("FAT12, blocksize={}", partition.blocksize);
     if (buffer[38] == 0x29) /* BS_BootSig */
     {
-      partition.set_name_chomp(buffer + FAT1X_PART_NAME, 11);
+      partition.set_name_chomp(std::string_view(buffer + FAT1X_PART_NAME, 11));
       if (check_VFAT_volume_name(partition.fsname, 11))
         partition.fsname[0] = '\0';
     }
@@ -188,7 +189,7 @@ static void set_FAT_info(disk_t &disk_car,
     partition.info = std::format("FAT16, blocksize={}", partition.blocksize);
     if (buffer[38] == 0x29) /* BS_BootSig */
     {
-      partition.set_name_chomp(buffer + FAT1X_PART_NAME, 11);
+      partition.set_name_chomp(std::string_view(buffer + FAT1X_PART_NAME, 11));
       if (check_VFAT_volume_name(partition.fsname, 11))
         partition.fsname[0] = '\0';
     }

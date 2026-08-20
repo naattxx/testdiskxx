@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -210,8 +211,8 @@ static void set_ufs_info(const struct ufs_super_block *sb,
     partition.upart_type = UP_UFS_LE;
     partition.blocksize  = le32(sb->fs_fsize);
     partition.set_name(
-        reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
-        sizeof(sb->fs_u11.fs_u1.fs_fsmnt)
+        std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
+        sizeof(sb->fs_u11.fs_u1.fs_fsmnt))
     );
     partition.info = std::format("UFS1 blocksize={}", partition.blocksize);
   }
@@ -220,8 +221,8 @@ static void set_ufs_info(const struct ufs_super_block *sb,
     partition.upart_type = UP_UFS;
     partition.blocksize  = be32(sb->fs_fsize);
     partition.set_name(
-        reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
-        sizeof(sb->fs_u11.fs_u1.fs_fsmnt)
+        std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
+        sizeof(sb->fs_u11.fs_u1.fs_fsmnt))
     );
     partition.info = std::format("UFS1 blocksize={}", partition.blocksize);
   }
@@ -230,8 +231,8 @@ static void set_ufs_info(const struct ufs_super_block *sb,
     partition.blocksize  = le32(sb->fs_fsize);
     partition.upart_type = UP_UFS2_LE;
     partition.set_name(
-        reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
-        sizeof(sb->fs_u11.fs_u2.fs_fsmnt)
+        std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
+        sizeof(sb->fs_u11.fs_u2.fs_fsmnt))
     );
     partition.info = std::format("UFS2 blocksize={}", partition.blocksize);
   }
@@ -240,8 +241,8 @@ static void set_ufs_info(const struct ufs_super_block *sb,
     partition.upart_type = UP_UFS2;
     partition.blocksize  = be32(sb->fs_fsize);
     partition.set_name(
-        reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
-        sizeof(sb->fs_u11.fs_u2.fs_fsmnt)
+        std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
+        sizeof(sb->fs_u11.fs_u2.fs_fsmnt))
     );
     partition.info = std::format("UFS2 blocksize={}", partition.blocksize);
   }

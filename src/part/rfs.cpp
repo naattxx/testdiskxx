@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <format>
+#include <string_view>
 // #include "types.h"
 #include "rfs.hpp"
 #include "src/common.hpp"
@@ -226,7 +227,7 @@ static void set_rfs_info(const struct reiserfs_super_block *sb,
     partition.info =
         std::format("ReiserFS 3.6 with standard journal blocksize={}",
                     partition.blocksize);
-    partition.set_name(reinterpret_cast<const char *>(sb->s_label), 16);
+    partition.set_name(std::string_view(reinterpret_cast<const char *>(sb->s_label), 16));
   }
   else if (memcmp(sb->s_magic, REISERFS3_SUPER_MAGIC,
                   sizeof(REISERFS3_SUPER_MAGIC)) == 0)
@@ -244,7 +245,7 @@ static void set_rfs_info(const struct reiserfs_super_block *sb,
       partition.info =
           std::format("ReiserFS 3.? with non standard journal blocksize={}",
                       partition.blocksize);
-    partition.set_name(reinterpret_cast<const char *>(sb->s_label), 16);
+    partition.set_name(std::string_view(reinterpret_cast<const char *>(sb->s_label), 16));
   }
   if (le16(sb->s_state) == REISERFS_ERROR_FS)
   {

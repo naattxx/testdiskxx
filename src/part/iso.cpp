@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 // #include "types.h"
 #include "iso.hpp"
 #include "iso9660.hpp"
@@ -81,7 +82,7 @@ static void set_ISO_info(const struct iso_primary_descriptor *iso,
   const unsigned int logical_block_size_le = le16(iso->logical_block_size_le);
   const unsigned int logical_block_size_be = be16(iso->logical_block_size_be);
   partition.upart_type                     = UP_ISO;
-  partition.set_name_chomp((const char *)iso->volume_id, 32);
+  partition.set_name_chomp(std::string_view(iso->volume_id, 32));
   if (volume_space_size_le == volume_space_size_be &&
       logical_block_size_le == logical_block_size_be)
   {

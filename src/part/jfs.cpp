@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 // #include "types.h"
 #include "jfs.hpp"
 #include "jfs_superblock.hpp"
@@ -41,7 +42,7 @@ static void set_JFS_info(const struct jfs_superblock *sb,
   partition.fsname.clear();
   if (le32(sb->s_version) == 1)
   {
-    partition.set_name(sb->s_fpack, 11);
+    partition.set_name(std::string_view(sb->s_fpack, 11));
   }
 }
 

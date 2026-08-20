@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -129,5 +130,5 @@ static void set_sysv4_info(const struct sysv4_super_block *sbd,
 {
   partition.upart_type = UP_SYSV4;
   partition.info       = "SysV4";
-  partition.set_name(sbd->s_fname, sizeof(sbd->s_fname));
+  partition.set_name(std::string_view(sbd->s_fname, sizeof(sbd->s_fname)));
 }

@@ -127,7 +127,7 @@ auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
     return 1;
   }
   partition.set_name(
-      (reinterpret_cast<const struct disklabel *>(buffer))->d_packname, 16
+      std::string_view(reinterpret_cast<const struct disklabel *>(buffer)->d_packname, 16)
   );
   delete[] (buffer);
   return 0;
@@ -163,7 +163,7 @@ auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
     else
       partition.part_size = 0;
     partition.part_type_i386 = P_FREEBSD;
-    partition.set_name(bsd_header->d_packname, 16);
+    partition.set_name(std::string_view(bsd_header->d_packname, 16));
     partition.info[0] = '\0';
     return 0;
   }
@@ -191,7 +191,7 @@ auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
     else
       partition.part_size = 0;
     partition.part_type_i386 = P_OPENBSD;
-    partition.set_name(bsd_header->d_packname, 16);
+    partition.set_name(std::string_view(bsd_header->d_packname, 16));
     partition.info[0] = '\0';
     return 0;
   }

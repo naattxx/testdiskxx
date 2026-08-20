@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <format>
+#include <string_view>
 // #include "types.h"
 #include "md.hpp"
 #include "src/common.hpp"
@@ -120,7 +121,7 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
   {
     const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
     partition.upart_type = UP_MD1;
-    partition.set_name(sb1->set_name, 32);
+    partition.set_name(std::string_view(sb1->set_name, 32));
     partition.info = std::format("md {}.x L.Endian Raid {} - Array Slot : {}",
                                  le32(sb1->major_version), le32(sb1->level),
                                  le32(sb1->dev_number));
@@ -183,7 +184,7 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
   {
     const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
     partition.upart_type = UP_MD1;
-    partition.set_name(sb1->set_name, 32);
+    partition.set_name(std::string_view(sb1->set_name, 32));
     partition.info = std::format("md {}.x B.Endian Raid {} - Array Slot : {}",
                                  be32(sb1->major_version), be32(sb1->level),
                                  be32(sb1->dev_number));

@@ -23,6 +23,7 @@
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
+#include <string_view>
 
 // #include "types.h"
 #include "bfs.hpp"
@@ -36,7 +37,7 @@ static void set_BeFS_info(const struct disk_super_block *beos_block,
   partition.upart_type = UP_BEOS;
   partition.blocksize  = 1 << le32(beos_block->block_shift);
   partition.info       = std::format("BeFS blocksize={}", partition.blocksize);
-  partition.set_name(beos_block->name, B_OS_NAME_LENGTH);
+  partition.set_name(std::string_view(beos_block->name, B_OS_NAME_LENGTH));
 }
 
 static auto test_BeFS(const disk_t &disk_car,

@@ -585,8 +585,8 @@ struct partition_t
 {
     int to_be_removed;
 
-    void set_name(const char *src, const unsigned int max_size);
-    void set_name_chomp(const char *src, const unsigned int max_size);
+    void set_name(std::string_view src);
+    void set_name_chomp(std::string_view src);
     void reset(const arch_fnct_t *arch);
     partition_t() = default;
     partition_t(const arch_fnct_t *arch);

@@ -21,6 +21,7 @@
  */
 #include <algorithm>
 #include <config.h>
+#include <string_view>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_POSIX_MEMALIGN
@@ -53,46 +54,20 @@ static long secwest = 0;
 // }
 // #endif
 
-void partition_t::set_name(const char *src, const unsigned int max_size)
+void partition_t::set_name(std::string_view src)
 {
-    unsigned int i;
-    /*@
-      @ loop invariant \separated(partition, src + (..));
-      @ loop invariant 0 <= i < sizeof(fsname);
-      @ loop invariant 0 <= i <= max_size;
-      @ loop invariant \initialized(fsname+(0 .. i-1));
-      @ loop assigns i, fsname[0 .. i];
-      @ loop variant sizeof(fsname)-1 - i;
-      @*/
-    for (i = 0; i < sizeof(fsname) - 1 && i < max_size && src[i] != '\0'; i++)
-        fsname[i] = src[i];
-    fsname[i] = '\0';
-    /*@ assert valid_string(fsname); */
+  fsname = src.substr(0, src.find('\0'));
 }
 
-void partition_t::set_name_chomp(const char *src, const unsigned int max_size)
+void partition_t::set_name_chomp(std::string_view src)
 {
-    unsigned int i;
-    /*@
-      @ loop invariant \separated(partition, src + (..));
-      @ loop invariant 0 <= i < sizeof(fsname);
-      @ loop invariant 0 <= i <= max_size;
-      @ loop invariant \initialized(fsname+(0 .. i-1));
-      @ loop assigns i, fsname[0 .. i];
-      @ loop variant sizeof(fsname)-1 - i;
-      @*/
-    for (i = 0; i < sizeof(fsname) - 1 && i < max_size && src[i] != '\0'; i++)
-        fsname[i] = src[i];
-    /*@
-      @ loop invariant 0 <= i < sizeof(fsname);
-      @ loop invariant \initialized(fsname+(0 .. i-1));
-      @ loop assigns i;
-      @ loop variant i;
-      @*/
-    while (i > 0 && fsname[i - 1] == ' ')
-        i--;
-    fsname[i] = '\0';
-    /*@ assert valid_string(fsname); */
+  fsname = src.substr(0, src.find('\0'));
+
+  fsname.erase(std::ranges::find_if(
+                   fsname.rbegin(), fsname.rend(),
+                   [](unsigned char ch) -> bool { return !std::isspace(ch); }
+               ).base(),
+               fsname.end());
 }
 
 auto strip_dup(char *str) -> char *
