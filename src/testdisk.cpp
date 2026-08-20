@@ -236,7 +236,7 @@ auto main(int argc, char **argv) -> int
     {
         verbose = 1;
 
-
+        auto app = ftxui::App::Fullscreen();
         create_log = ask_testdisk_log_creation(app);
         if (create_log == TD_LOG::CREATE || create_log == TD_LOG::APPEND)
             log_opened = log_open(args::get(log_name), create_log);
