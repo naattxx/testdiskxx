@@ -1,8 +1,6 @@
 #pragma once
 
 #include "src/log.hpp"
-#include <cpptui.hpp>
+#include <ftxui/component/app.hpp>
 
-using namespace cpptui;
-
-auto ask_testdisk_log_creation(App &app) -> TD_LOG;
+auto ask_testdisk_log_creation(ftxui::App &app) -> TD_LOG;
