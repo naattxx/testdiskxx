@@ -1,0 +1,8 @@
+[wrap-git]
+url = https://github.com/ArthurSonzogni/FTXUI.git
+revision = v7.0.3
+
+[provide]
+ftxui-screen = ftxui_screen_dep
+ftxui-dom = ftxui_dom_dep
+ftxui-component = ftxui_component_dep

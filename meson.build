@@ -167,6 +167,10 @@ spdlog_dep = dependency(
   fallback: ['spdlog', 'spdlog_dep'],
   required: true,
 )
+ftxui_component_dep = dependency(
+  'ftxui-component',
+  fallback: ['ftxui', 'ftxui_component_dep'],
+)
 
 inc_dirs = include_directories('include')
 sources = files(
@@ -265,7 +269,17 @@ sources = files(
   'src/win32.cpp',
 )
 
-deps = [spdlog_dep, libntfs, libntfs3g, libext2fs, libewf, reiserfs, iconv, libuuid]
+deps = [
+  spdlog_dep,
+  ftxui_component_dep,
+  libntfs,
+  libntfs3g,
+  libext2fs,
+  libewf,
+  reiserfs,
+  iconv,
+  libuuid,
+]
 
 executable(
   'testdisk',
