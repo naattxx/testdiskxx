@@ -159,8 +159,6 @@ conf_data.set(
   ),
 )
 
-configure_file(output: 'config.h', configuration: conf_data)
-
 spdlog_dep = dependency(
   'spdlog',
   version: '1.17.0',
@@ -171,6 +169,9 @@ ftxui_component_dep = dependency(
   'ftxui-component',
   fallback: ['ftxui', 'ftxui_component_dep'],
 )
+conf_data.set_quoted('FTXUI_VERSION', ftxui_component_dep.version())
+
+configure_file(output: 'config.h', configuration: conf_data)
 
 inc_dirs = include_directories('include')
 sources = files(

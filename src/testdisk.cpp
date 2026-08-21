@@ -28,7 +28,7 @@ static void display_version()
 #ifdef RECORD_COMPILATION_DATE
               << "Compilation date: " << get_compilation_date() << "\n"
 #endif
-              << "cpptui.hpp: " << cpptui::VERSION_MAJOR << '.' << cpptui::VERSION_MINOR << '.' << cpptui::VERSION_PATCH
+              << "ftxui: " << FTXUI_VERSION
               << ", "
               << "args.hxx: " << ARGS_VERSION << '\n'
 #ifdef HAVE_ICONV
@@ -262,8 +262,7 @@ auto main(int argc, char **argv) -> int
 #ifdef RECORD_COMPILATION_DATE
     log_info("Compilation date: {}", get_compilation_date());
 #endif
-    log_info("cpptui.hpp: {}.{}.{}, args.hxx: {}", cpptui::VERSION_MAJOR, cpptui::VERSION_MINOR, cpptui::VERSION_PATCH,
-             ARGS_VERSION);
+    log_info("ftxui: " FTXUI_VERSION ", args.hxx: " ARGS_VERSION);
 
     if (!isAdmin())
     {
