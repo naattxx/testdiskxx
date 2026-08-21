@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "config.h"
 #include "fnctdsk.hpp"
+#include "ftxui/component/app.hpp"
 #include "hdaccess.hpp"
 #include "hdcache.hpp"
 #include "log.hpp"
@@ -17,7 +18,7 @@
 #include <optional>
 #include <string>
 
-using namespace cpptui;
+using namespace ftxui;
 
 static void display_version()
 {
@@ -228,15 +229,12 @@ auto main(int argc, char **argv) -> int
     }
     if (create_log != TD_LOG::NONE && !log_opened)
         log_opened = log_open(args::get(log_name), create_log);
-    App app;
+    App app = App::Fullscreen();
 
-    Theme::set_theme(Theme::Dark());
-    app.register_exit_key('q');
     if (argc == 1 && create_log == TD_LOG::NONE)
     {
         verbose = 1;
 
-        auto app = ftxui::App::Fullscreen();
         create_log = ask_testdisk_log_creation(app);
         if (create_log == TD_LOG::CREATE || create_log == TD_LOG::APPEND)
             log_opened = log_open(args::get(log_name), create_log);
