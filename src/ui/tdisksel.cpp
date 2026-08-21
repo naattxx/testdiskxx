@@ -58,16 +58,18 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
     diskList->Add(Renderer([]() {
       return vbox({
           text("No hard disk found"),
+#ifndef DJGPP
           (!isAdmin())
               ?
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
               paragraph("You need to be administrator to use TestDisk++.\n"
                         "select TestDisk++, right-click and choose \"Run as "
                         "administrator\".")
-#elif defined(__linux__)
+#else
               text("You need to be root to use TestDisk++.")
 #endif
               : emptyElement(),
+#endif
       });
     }));
   }
