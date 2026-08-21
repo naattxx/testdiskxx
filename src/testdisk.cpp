@@ -12,7 +12,6 @@
 #include "ui/tlog.hpp"
 #include <args.hxx>
 #include <chrono>
-#include <cpptui.hpp>
 #include <format>
 #include <iostream>
 #include <optional>
