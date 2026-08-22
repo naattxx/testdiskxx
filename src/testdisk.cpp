@@ -5,7 +5,6 @@
 #include "hdaccess.hpp"
 #include "hdcache.hpp"
 #include "log.hpp"
-#include "src/hidden.hpp"
 #include "src/intrface.hpp"
 #include "ui/tdisksel.hpp"
 #include "utils.hpp"
@@ -67,7 +66,7 @@ static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, co
         hd_update_all_geometry(list_disk, verbose);
     for (disk_t &disk : list_disk)
     {
-        const int hpa_dco = is_hpa_or_dco(disk);
+        const int hpa_dco = disk.is_hpa_or_dco();
         std::cout << disk.description(disk) << '\n';
         std::cout << "Sector size: " << disk.sector_size << '\n';
         if (!disk.model.empty())
