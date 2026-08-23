@@ -28,6 +28,7 @@
 auto UCSle2str(std::string &to, const uint16_t *from, const unsigned int len) -> unsigned int
 {
     unsigned int i;
+    to.resize(len);
     /*@
       @ loop assigns i, to[0 .. i];
       @ loop variant len - i;

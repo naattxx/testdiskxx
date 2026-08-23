@@ -1495,7 +1495,7 @@ auto check_VFAT_volume_name(std::string_view name, const unsigned int max_size)
     @ loop assigns i;
     @ loop variant max_size - i;
     @*/
-  for (i = 0; i < max_size && name[i] != '\0'; i++)
+  for (i = 0; i < max_size && i < name.size(); i++)
   {
     if (name[i] < 0x20)
       return 1;
