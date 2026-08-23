@@ -49,8 +49,8 @@ auto ask_testdisk_log_creation(App &app) -> TD_LOG
                       hflow({text("TestDisk++ "), bold(text(VERSION)),
                              text(", Data Recovery Utility, "),
                              text(TESTDISKDATE)}),
-                      text("naattxx <grenier@cgsecurity.org>"),
-                      text("https://www.github.com/"),
+                      text("naattxx"),
+                      text("https://github.com/naattxx/testdiskxx"),
                       separator(),
                       paragraph(
                           "TestDisk is free data recovery software designed "

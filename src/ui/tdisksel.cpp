@@ -28,8 +28,8 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
     return vbox({
         hflow({text("TestDisk++ "), bold(text(VERSION)),
                text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
-        text("naattxx <grenier@cgsecurity.org>"),
-        text("https://www.github.com/"),
+        text("naattxx"),
+        text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),
         paragraph("  TestDisk is free software, and comes with ABSOLUTELY NO "
                   "WARRANTY."),
