@@ -5,6 +5,9 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/color.hpp"
 #include "src/log.hpp"
+#include "src/ui/diskacc.hpp"
+#include "src/ui/diskcapa.hpp"
+#include "src/ui/hidden.hpp"
 #include "src/utils.hpp"
 #include <config.h>
 #include <string_view>
@@ -96,8 +99,16 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
       };
       Component diskBtn = Button(
           disk.description_short(disk),
-          [disk]() {
-
+          [&]() {
+            const int hpa_dco = disk.is_hpa_or_dco();
+            disk.autodetect_arch(nullptr);
+            disk.autoset_unit();
+            if (interface_check_disk_capacity(root, disk) == 0 &&
+                interface_check_disk_access(root, disk) == 0 &&
+                (hpa_dco==0 || interface_check_hidden(root, disk, hpa_dco)==0))
+            {
+              ;
+            }
           },
           options
       );
