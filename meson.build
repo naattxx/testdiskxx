@@ -263,6 +263,7 @@ sources = files(
   'src/savehdr.cpp',
   'src/setdate.cpp',
   'src/testdisk.cpp',
+  'src/ui/chgarch.cpp',
   'src/ui/diskacc.cpp',
   'src/ui/diskcapa.cpp',
   'src/ui/hidden.cpp',

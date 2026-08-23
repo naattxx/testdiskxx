@@ -1,4 +1,5 @@
 #include "tdisksel.hpp"
+#include "chgarch.hpp"
 #include "ftxui/component/app.hpp"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_options.hpp"
@@ -105,7 +106,9 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
             disk.autoset_unit();
             if (interface_check_disk_capacity(root, disk) == 0 &&
                 interface_check_disk_access(root, disk) == 0 &&
-                (hpa_dco==0 || interface_check_hidden(root, disk, hpa_dco)==0))
+                (hpa_dco == 0 ||
+                 interface_check_hidden(root, disk, hpa_dco) == 0) &&
+                change_arch_type(root, disk, verbose) == 0)
             {
               ;
             }
