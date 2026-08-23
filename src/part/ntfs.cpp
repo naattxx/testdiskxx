@@ -327,22 +327,31 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
   /* return first element of the run_list */
   /* buf must be unsigned! */
   const unsigned char *buf;
+  const unsigned char *attr_start =
+      reinterpret_cast<const unsigned char *>(attrnr);
+  const uint32_t attr_len    = le32(attrnr->header.cbAttribute);
+  const uint16_t offDataRuns = le16(attrnr->offDataRuns);
   uint8_t b;                                /* Current byte offset in buf. */
   const unsigned char *attr_end;            /* End of attribute. */
   auto deltaxcn = static_cast<int64_t>(-1); /* Change in [vl]cn. */
-  buf           = reinterpret_cast<const unsigned char *>(attrnr) +
-                  le16(attrnr->offDataRuns);
-  attr_end      = reinterpret_cast<const unsigned char *>(attrnr) +
-                  le32(attrnr->header.cbAttribute);
+  if ((const char *)attr_start + sizeof(ntfs_attribnonresident) > end)
+    return 0;
+
+  if (attr_len < sizeof(ntfs_attribnonresident))
+    return 0;
+  attr_end = attr_start + attr_len;
   if (reinterpret_cast<const char *>(attr_end) > end)
     return 0;
+  if (offDataRuns < sizeof(ntfs_attribnonresident) || offDataRuns >= attr_len)
+    return 0;
+  buf = attr_start + offDataRuns;
   b = *buf & 0xf;
   if (b == 0)
   {
     log_error("Missing length entry in mapping pairs array.\n");
     return 0;
   }
-  if (buf + b > attr_end)
+  if (buf + b >= attr_end)
   {
     log_error("Attribut AT_DATA: bad size\n");
     return 0;
@@ -365,7 +374,7 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
     const uint8_t b2 = *buf & 0xf;
     long lcn         = 0;
     b                = b2 + ((*buf >> 4) & 0xf);
-    if (buf + b > attr_end)
+    if (buf + b >= attr_end)
     {
       log_error("Attribut AT_DATA: bad size\n");
       return 0;
