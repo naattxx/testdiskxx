@@ -1,6 +1,6 @@
 /*
 
-    File: tdiskop.h
+    File: toptions.h
 
     Copyright (C) 2008 Christophe GRENIER <grenier@cgsecurity.org>
 
@@ -19,11 +19,10 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#ifndef _TDISKOP_H
-#define _TDISKOP_H
+#ifndef _TOPTIONS_H
+#define _TOPTIONS_H
+#include "ftxui/component/app.hpp"
 
-#include "src/common.hpp"
-void menu_disk(disk_t &disk, const int verbose, bool dump,
-               const int save_header);
+void interface_options(const ftxui::Component root, bool &dump, bool &align, bool &expert);
 
 #endif

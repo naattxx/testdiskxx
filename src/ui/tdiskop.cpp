@@ -5,15 +5,20 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/color.hpp"
 #include "src/common.hpp"
+#include "toptions.hpp"
 #include <config.h>
 #include <format>
 #include <string_view>
 
 using namespace ftxui;
 
-void menu_disk(disk_t &disk, const int verbose, int dump, const int save_header)
+void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header)
 {
+  bool align  = true;
+  bool expert = false;
+
   auto screen = App::Fullscreen();
+  Component root;
 
   ButtonOption buttonOptions = ButtonOption();
   buttonOptions.transform    = [](const EntryState &s) -> Element {
@@ -40,12 +45,13 @@ void menu_disk(disk_t &disk, const int verbose, int dump, const int save_header)
           "[ Geometry ] Change disk geometry", []() {}, buttonOptions
       ),
       Button(
-          "[ Options  ] Modify options", []() {}, buttonOptions
+          "[ Options  ] Modify options",
+          [&]() { interface_options(root, dump, align, expert); }, buttonOptions
       ),
       Button("[ Quit     ] Return to disk selection", screen.ExitLoopClosure(),
              buttonOptions),
   });
-  auto root    = Renderer(options, [&]() {
+  root         = Renderer(options, [&]() {
     return vbox({
         hflow({text("TestDisk++ "), bold(text(VERSION)),
                text(", Data Recovery Utility, "), text(TESTDISKDATE)}),

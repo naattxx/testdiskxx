@@ -270,6 +270,7 @@ sources = files(
   'src/ui/tdiskop.cpp',
   'src/ui/tdisksel.cpp',
   'src/ui/tlog.cpp',
+  'src/ui/toptions.cpp',
   'src/unicode.cpp',
   'src/utils.cpp',
   'src/win32.cpp',
