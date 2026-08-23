@@ -10,6 +10,7 @@
 #include "src/ui/diskcapa.hpp"
 #include "src/ui/hidden.hpp"
 #include "src/utils.hpp"
+#include "tdiskop.hpp"
 #include <config.h>
 #include <string_view>
 #if __has_include("unistd.h") && !defined(__CYGWIN__) &&   \
@@ -110,7 +111,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
                  interface_check_hidden(root, disk, hpa_dco) == 0) &&
                 change_arch_type(root, disk, verbose) == 0)
             {
-              ;
+              menu_disk(disk, verbose, dump, save_header);
             }
           },
           options
