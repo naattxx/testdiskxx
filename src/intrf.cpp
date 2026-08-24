@@ -116,7 +116,7 @@ void screen_buffer_to_log()
       @ loop variant intr_nbr_line - i;
       @*/
     for (i = 0; i < intr_nbr_line; i++)
-        log_info("{}\n", intr_buffer_screen[i]);
+        log_info("{}", intr_buffer_screen[i]);
 }
 
 auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition) -> const char *
