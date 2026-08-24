@@ -9,6 +9,7 @@
 #include <config.h>
 #include <format>
 #include <string_view>
+#include "tanalyse.hpp"
 
 using namespace ftxui;
 
@@ -36,7 +37,10 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
           "[ Analyse  ] Analyse current partition structure and search for "
           "lost "
           "partitions",
-          []() {}, buttonOptions
+          [&]() {
+            list_part_t list_part;
+            list_part = interface_analyse(disk, verbose, save_header);
+          }, buttonOptions
       ),
       Button(
           "[ Advanced ] Filesystem Utils", []() {}, buttonOptions

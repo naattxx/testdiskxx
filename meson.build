@@ -267,6 +267,7 @@ sources = files(
   'src/ui/diskacc.cpp',
   'src/ui/diskcapa.cpp',
   'src/ui/hidden.cpp',
+  'src/ui/tanalyse.cpp',
   'src/ui/tdiskop.cpp',
   'src/ui/tdisksel.cpp',
   'src/ui/tlog.cpp',
