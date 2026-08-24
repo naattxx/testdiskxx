@@ -190,7 +190,7 @@ static void free_file(struct ufile *file)
   }
 
   delete (file->mft);
-  delete (file);
+  free (file);
 }
 
 /**
@@ -341,7 +341,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
                   new char[strlen(parent_name) + strlen(name->parent_name) + 2];
               sprintf(npn, "%s/%s", parent_name, name->parent_name);
             }
-            delete (name->parent_name);
+            delete[] (name->parent_name);
             name->parent_name = npn;
             delete (parent_name);
           }

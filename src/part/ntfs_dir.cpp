@@ -472,7 +472,7 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
     set_date(new_file, file.td_atime, file.td_mtime);
     delete (new_file);
     ntfs_attr_close(attr);
-    delete (buffer);
+    delete[] (buffer);
   }
   /* Finished with the inode; release it. */
   ntfs_inode_close(inode);
@@ -511,7 +511,7 @@ extern "C"
     dev = ntfs_device_alloc("/", 0, &ntfs_device_testdisk_io_ops, nullptr);
     if (dev)
     {
-      my_data            = (my_data_t *)new unsigned char[sizeof(*my_data)];
+      my_data            = new my_data_t;
       my_data->partition = partition;
       my_data->disk_car  = &disk_car;
       my_data->offset    = 0;
