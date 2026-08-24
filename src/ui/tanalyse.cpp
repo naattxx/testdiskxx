@@ -29,6 +29,7 @@ auto getPartitionsTable(const disk_t &disk, const list_part_t &partitions)
     data.push_back(aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition));
   }
   Table table(data);
+  table.SelectColumns(3, 5).Decorate(align_right);
   table.SelectRow(0).Decorate(bold);
   table.SelectRow(0).Separator(EMPTY);
   return table.Render();

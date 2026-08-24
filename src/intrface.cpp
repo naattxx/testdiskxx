@@ -71,6 +71,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
             data.push_back({"", "", partition.info});
     }
     Table table(data);
+    table.SelectColumns(3, 5).Decorate(align_right);
     table.SelectRow(0).Decorate(bold);
     table.SelectRow(0).Separator(EMPTY);
     auto rendered = table.Render();
