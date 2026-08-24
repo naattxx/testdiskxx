@@ -21,26 +21,27 @@
  */
 
 #include <config.h>
+#include <span>
 // #include "types.h"
 #include "common.hpp"
 #include "unicode.hpp"
 
-auto UCSle2str(std::string &to, const uint16_t *from, const unsigned int len) -> unsigned int
+auto UCSle2str(std::string &to, std::span<const uint16_t> from) -> unsigned int
 {
     unsigned int i;
-    to.resize(len);
+    to.resize(from.size());
     /*@
       @ loop assigns i, to[0 .. i];
       @ loop variant len - i;
       @*/
-    for (i = 0; i < len && le16(from[i]) != 0; i++)
+    for (i = 0; i < from.size() && le16(from[i]) != 0; i++)
     {
         if (le16(from[i]) & 0xff00)
             to[i] = '?';
         else
             to[i] = static_cast<char>(le16(from[i]));
     }
-    if (i < len)
+    if (i < from.size())
         to[i] = '\0';
     return i;
 }

@@ -20,6 +20,8 @@
 
  */
 
+#include <span>
+#include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
 #include <config.h>
 
@@ -381,8 +383,9 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
           disk_car.sector_size;
       new_partition.status = STATUS_PRIM;
       UCSle2str(new_partition.partname,
-                reinterpret_cast<const uint16_t *>(&gpt_entry->ent_name),
-                sizeof(gpt_entry->ent_name) / 2);
+                std::span<const uint16_t, sizeof(gpt_entry->ent_name) / 2>(
+                    reinterpret_cast<const uint16_t *>(&gpt_entry->ent_name), sizeof(gpt_entry->ent_name) / 2
+                    ));
       check_part_gpt(disk_car, verbose, new_partition, saveheader);
       /* log_debug("{} ent_attr %08llx\n", new_partition.order, (long long
        * unsigned)le64(gpt_entry->ent_attr));

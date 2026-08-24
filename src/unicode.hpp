@@ -22,6 +22,7 @@
 #ifndef _UNICODE_H
 #define _UNICODE_H
 #include <cstdint>
+#include <span>
 #include <string>
 
     /*@
@@ -31,7 +32,7 @@
       @ terminates \true;
       @ assigns to[0 .. len-1];
       @*/
-    auto UCSle2str(std::string &to, const uint16_t *from, const unsigned int len) -> unsigned int;
+    auto UCSle2str(std::string &to, std::span<const uint16_t> from) -> unsigned int;
 
     /*@
       @ requires \valid(to + ( 0 .. len-1));
