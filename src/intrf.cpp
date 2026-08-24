@@ -200,9 +200,9 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const part
     pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%10llu",
                     static_cast<long long unsigned>(partition.part_size / disk_car.sector_size));
     if (partition.partname[0] != '\0')
-        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.partname);
+        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.partname.c_str());
     if (partition.fsname[0] != '\0')
-        snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.fsname);
+        snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.fsname.c_str());
 #endif
     return msg;
 }
