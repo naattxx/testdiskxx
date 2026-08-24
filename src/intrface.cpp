@@ -21,7 +21,6 @@
  */
 
 #include <iostream>
-#include <print>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -77,7 +76,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     auto rendered = table.Render();
     auto screen = Screen::Create(Dimension::Fit(rendered));
     Render(screen, rendered);
-    screen.Print();
+    std::cout << screen.ToString() << '\n';
 
     if (backup > 0)
     {
