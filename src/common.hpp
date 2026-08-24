@@ -393,12 +393,12 @@ enum upart_type_t
 };
 enum status_type_t
 {
-    STATUS_DELETED,
-    STATUS_PRIM,
-    STATUS_PRIM_BOOT,
-    STATUS_LOG,
-    STATUS_EXT,
-    STATUS_EXT_IN_EXT
+    STATUS_DELETED = 'D',
+    STATUS_PRIM = 'P',
+    STATUS_PRIM_BOOT = '*',
+    STATUS_LOG = 'L',
+    STATUS_EXT = 'E',
+    STATUS_EXT_IN_EXT = 'X'
 };
 enum errcode_type_t
 {

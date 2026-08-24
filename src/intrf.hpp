@@ -100,12 +100,4 @@ void screen_buffer_reset();
 auto screen_buffer_add(const char *_format, ...) -> int;
 void screen_buffer_to_log();
 
-/*@
-  @ requires \valid_read(partition);
-  @ requires valid_partition(partition);
-  @ terminates \true;
-  @ assigns \nothing;
-  @*/
-auto get_partition_status(const partition_t &partition) -> char;
-
 #endif

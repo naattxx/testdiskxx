@@ -119,27 +119,6 @@ void screen_buffer_to_log()
         log_info("{}\n", intr_buffer_screen[i]);
 }
 
-auto get_partition_status(const partition_t &partition) -> char
-{
-    switch (partition.status)
-    {
-    case STATUS_PRIM:
-        return 'P';
-    case STATUS_PRIM_BOOT:
-        return '*';
-    case STATUS_EXT:
-        return 'E';
-    case STATUS_EXT_IN_EXT:
-        return 'X';
-    case STATUS_LOG:
-        return 'L';
-    case STATUS_DELETED:
-        return 'D';
-    default:
-        return ' ';
-    }
-}
-
 auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition) -> const char *
 {
     char status = ' ';
@@ -168,7 +147,7 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const part
     }
     if ((newline & AFF_PART_STATUS) == AFF_PART_STATUS)
     {
-        status = get_partition_status(partition);
+        status = partition.status;
         /* Don't marked as D(eleted) an entry that is not a partition */
         if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER && partition.order == NO_ORDER &&
             partition.status == STATUS_DELETED)
