@@ -6,12 +6,10 @@
 #include "ftxui/dom/table.hpp"
 #include "ftxui/screen/color.hpp"
 #include "src/common.hpp"
-#include "src/fnctdsk.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 #include <chrono>
 #include <cstddef>
-#include <format>
 #include <future>
 #include <string>
 #include <unistd.h>
@@ -28,45 +26,7 @@ auto getPartitionsTable(const disk_t &disk, const list_part_t &partitions)
 
   for (const auto &partition : partitions)
   {
-    using std::string, std::to_string;
-    string order = to_string(partition.order);
-    string status =
-        (partition.status == 'd' && partition.order == NO_ORDER)
-            ? ""
-            : to_string(partition.status);
-    string partition_type =
-        (partition.arch->get_partition_typename(partition) != nullptr)
-            ? partition.arch->get_partition_typename(partition)
-        : (partition.arch->get_part_type(partition) != 0)
-            ? std::format("Sys={:02X}",
-                          partition.arch->get_part_type(partition))
-            : "Unknown";
-    string start;
-    string end;
-    if (disk.unit == UNIT::SECTOR)
-    {
-      start = to_string(partition.part_offset / disk.sector_size);
-      end   = to_string((partition.part_offset + partition.part_size - 1) /
-                        disk.sector_size);
-    }
-    else
-    {
-      start = std::format("{:5} {:3} {:2}",
-                          offset2cylinder(disk, partition.part_offset),
-                          offset2head(disk, partition.part_offset),
-                          offset2sector(disk, partition.part_offset));
-      end   = std::format(
-          "{:5} {:3} {:2}",
-          offset2cylinder(disk,
-                          partition.part_offset + partition.part_size - 1),
-          offset2head(disk, partition.part_offset + partition.part_size - 1),
-          offset2sector(disk, partition.part_offset + partition.part_size - 1)
-      );
-    }
-    string size_in_sector = to_string(partition.part_size / disk.sector_size);
-    string partname = (partition.partname.empty()) ? "" : "[" + partition.partname + "]";
-    string fsname = (partition.fsname.empty()) ? "" : "[" + partition.fsname + "]";
-    data.push_back({order, status, partition_type, start, end, size_in_sector, partname, fsname});
+    data.push_back(aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition));
   }
   Table table(data);
   table.SelectRow(0).Decorate(bold);

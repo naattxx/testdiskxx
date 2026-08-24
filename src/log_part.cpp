@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <format>
 // #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp"
@@ -9,10 +10,9 @@
 
 void log_partition(const disk_t &disk, const partition_t &partition)
 {
-    const char *msg;
+    const auto msg = aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+    log_info(std::format("{}", msg));
     char buffer_part_size[100];
-    msg = aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
-    log_info("{}", msg);
     size_to_unit(partition.part_size, buffer_part_size);
     if (partition.info[0] != '\0')
         log_info("\n     {}, {}", partition.info, buffer_part_size);

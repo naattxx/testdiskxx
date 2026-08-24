@@ -23,6 +23,8 @@
 #define _INTRF_H
 
 #include "common.hpp"
+#include <string>
+#include <vector>
 struct MenuItem
 {
     const int key;    /* Keyboard shortcut; if zero, then there is no more items in the menu item table */
@@ -69,7 +71,7 @@ void log_CHS_from_LBA(const disk_t &disk_car, const unsigned long int pos_LBA);
   @ requires valid_partition(partition);
   @ requires \separated(disk_car, partition);
   @*/
-auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition) -> const char *;
+auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition) -> std::vector<std::string>;
 
 /*@
   @ requires \valid_read(disk_car);

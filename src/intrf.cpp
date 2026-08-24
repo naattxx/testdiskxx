@@ -25,7 +25,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
+#include <cassert>
+#include <format>
+#include <string>
+#include <vector>
 
 #if __has_include(<libgen.h>)
 #include <libgen.h>
@@ -119,31 +122,18 @@ void screen_buffer_to_log()
         log_info("{}", intr_buffer_screen[i]);
 }
 
-auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const partition_t &partition) -> const char *
+auto aff_part_aux(const unsigned int newline, const disk_t &disk, const partition_t &partition) -> std::vector<std::string>
 {
-    char status = ' ';
-    static char msg[200];
-    unsigned int pos = 0;
-    const arch_fnct_t *arch = partition.arch;
-    if (arch == nullptr)
-    {
-#ifndef DISABLED_FOR_FRAMAC
-        log_error("BUG: No arch for a partition\n");
-#endif
-        msg[0] = '\0';
-        return msg;
-    }
-    msg[sizeof(msg) - 1] = 0;
-#ifdef DISABLED_FOR_FRAMAC
-    msg[0] = 'T';
-    msg[1] = '\0';
-#else
+  assert(partition.arch != nullptr && "BUG: No arch for a partition");
+  using std::string, std::to_string;
+
+  std::vector<std::string> result;
+  char status;
+
     if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER)
     {
         if (partition.status != STATUS_EXT_IN_EXT && partition.order != NO_ORDER)
-            pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%2u ", partition.order);
-        else
-            pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "   ");
+            result.push_back(to_string(partition.order));
     }
     if ((newline & AFF_PART_STATUS) == AFF_PART_STATUS)
     {
@@ -152,38 +142,42 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk_car, const part
         if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER && partition.order == NO_ORDER &&
             partition.status == STATUS_DELETED)
             status = ' ';
+        result.emplace_back(1, status);
     }
-    pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%c", status);
-    if (arch->get_partition_typename(partition) != nullptr)
-        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " %-20s ", arch->get_partition_typename(partition));
-    else if (arch->get_part_type)
-        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " Sys=%02X               ", arch->get_part_type(partition));
+    if (partition.arch->get_partition_typename(partition) != nullptr)
+        result.emplace_back(partition.arch->get_partition_typename(partition));
+    else if (partition.arch->get_part_type)
+        result.push_back(std::format("Sys={:02X}",
+                      partition.arch->get_part_type(partition)));
     else
-        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " Unknown              ");
-    if (disk_car.unit == UNIT::SECTOR)
+        result.emplace_back("Unknown");
+    if (disk.unit == UNIT::SECTOR)
     {
-        pos +=
-            snprintf(&msg[pos], sizeof(msg) - pos - 1, " %10llu %10llu ",
-                     static_cast<long long unsigned>(partition.part_offset / disk_car.sector_size),
-                     static_cast<long long unsigned>((partition.part_offset + partition.part_size - 1) / disk_car.sector_size));
+      result.push_back(to_string(partition.part_offset / disk.sector_size));
+      result.push_back(to_string((partition.part_offset + partition.part_size - 1) /
+                        disk.sector_size));
     }
     else
     {
-        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%5u %3u %2u %5u %3u %2u ",
-                        offset2cylinder(disk_car, partition.part_offset),
-                        offset2head(disk_car, partition.part_offset), offset2sector(disk_car, partition.part_offset),
-                        offset2cylinder(disk_car, partition.part_offset + partition.part_size - 1),
-                        offset2head(disk_car, partition.part_offset + partition.part_size - 1),
-                        offset2sector(disk_car, partition.part_offset + partition.part_size - 1));
+      result.push_back(std::format("{:5} {:3} {:2}",
+                          offset2cylinder(disk, partition.part_offset),
+                          offset2head(disk, partition.part_offset),
+                          offset2sector(disk, partition.part_offset)));
+      result.push_back(std::format(
+          "{:5} {:3} {:2}",
+          offset2cylinder(disk,
+                          partition.part_offset + partition.part_size - 1),
+          offset2head(disk, partition.part_offset + partition.part_size - 1),
+          offset2sector(disk, partition.part_offset + partition.part_size - 1)
+      ));
     }
-    pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, "%10llu",
-                    static_cast<long long unsigned>(partition.part_size / disk_car.sector_size));
+    result.push_back(to_string(partition.part_size / disk.sector_size));
     if (partition.partname[0] != '\0')
-        pos += snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.partname.c_str());
+        result.push_back("[" + partition.partname + "]");
     if (partition.fsname[0] != '\0')
-        snprintf(&msg[pos], sizeof(msg) - pos - 1, " [%s]", partition.fsname.c_str());
-#endif
-    return msg;
+        result.push_back("[" + partition.fsname + "]");
+
+    return result;
 }
 
 #define PATH_SEP '/'
@@ -241,9 +235,8 @@ auto ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t v
 
 void aff_part_buffer(const unsigned int newline, const disk_t &disk_car, const partition_t &partition)
 {
-    const char *msg;
-    msg = aff_part_aux(newline, disk_car, partition);
-    screen_buffer_add("%s\n", msg);
+    const auto msg = aff_part_aux(newline, disk_car, partition);
+    screen_buffer_add("%s\n", std::format("{}", msg).c_str());
 }
 
 void log_CHS_from_LBA(const disk_t &disk_car, const unsigned long int pos_LBA)

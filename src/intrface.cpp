@@ -24,12 +24,16 @@
 #include <print>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <vector>
 // #include "types.h"
 #include "common.hpp"
+#include "ftxui/dom/elements.hpp"
+#include "ftxui/dom/node.hpp"
+#include "ftxui/dom/table.hpp"
+#include "ftxui/screen/screen.hpp"
 #include "intrf.hpp"
-#include "lang.h"
 // #include "godmode.h"
-#include "fnctdsk.hpp"
 // #include "chgtypen.h"
 #include "dirpart.hpp"
 #include "io_redir.hpp"
@@ -50,20 +54,30 @@ extern const arch_fnct_t arch_none;
 
 void interface_list(disk_t &disk, const int verbose, const int saveheader, const int backup)
 {
+    using namespace ftxui;
+
     list_part_t list_part;
     log_info("\nAnalyse {}\n", disk.description(disk));
     std::cout << disk.description(disk) << '\n';
-    printf(msg_PART_HEADER_LONG);
+    std::vector<std::vector<std::string>> data{
+        {"", "", "Partition", "Start", "End", "Size in sectors", "", ""}
+    };
     list_part = disk.arch->read_part(disk, verbose, saveheader);
     /*@ assert valid_list_part(list_part); */
     for (const partition_t &partition : list_part)
     {
-        const char *msg;
-        msg = aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
-        std::println("{}", msg);
+        data.push_back(aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition));
         if (partition.info[0] != '\0')
-            std::println("     {}", partition.info);
+            data.push_back({"", "", partition.info});
     }
+    Table table(data);
+    table.SelectRow(0).Decorate(bold);
+    table.SelectRow(0).Separator(EMPTY);
+    auto rendered = table.Render();
+    auto screen = Screen::Create(Dimension::Fit(rendered));
+    Render(screen, rendered);
+    screen.Print();
+
     if (backup > 0)
     {
         partition_save(disk, list_part, verbose);
