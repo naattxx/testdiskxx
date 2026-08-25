@@ -3,4 +3,5 @@ HeaderFilterRegex: '^\.\./src/'
 Checks: >
   -*,
   modernize-*,
-  -modernize-macro-to-enum
+  -modernize-macro-to-enum,
+  -modernize-avoid-c-*
