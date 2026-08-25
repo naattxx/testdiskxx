@@ -23,6 +23,7 @@
 #define _PARTGPT_H
 #include "src/common.hpp"
 #include <cstdint>
+#include <string_view>
 
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
 
@@ -61,7 +62,7 @@ struct gpt_ent
 struct systypes_gtp
 {
   const efi_guid_t part_type;
-  const char *name;
+  std::string_view name;
 };
 
 /*@

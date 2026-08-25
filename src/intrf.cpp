@@ -144,7 +144,7 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk, const partitio
             status = ' ';
         result.emplace_back(1, status);
     }
-    if (partition.arch->get_partition_typename(partition) != nullptr)
+    if (!partition.arch->get_partition_typename(partition).empty())
         result.emplace_back(partition.arch->get_partition_typename(partition));
     else if (partition.arch->get_part_type)
         result.push_back(std::format("Sys={:02X}",

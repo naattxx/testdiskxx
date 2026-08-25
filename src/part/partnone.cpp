@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -150,8 +151,7 @@ static auto get_part_type_none(const partition_t &partition) -> unsigned int;
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_none(const partition_t &partition) -> const
-    char *;
+static auto get_partition_typename_none(const partition_t &partition) -> std::string_view;
 
 static const struct systypes none_sys_types[] = {
     {.part_type = UP_APFS,          .name = "APFS"                 },
@@ -209,7 +209,7 @@ static const struct systypes none_sys_types[] = {
     {.part_type = UP_XFS4,          .name = "XFS 4"                },
     {.part_type = UP_XFS5,          .name = "XFS 5"                },
     {.part_type = UP_ZFS,           .name = "ZFS"                  },
-    {.part_type = 0,                .name = nullptr                }
+    {.part_type = 0,                .name = ""                }
 };
 
 arch_fnct_t arch_none = {.part_name              = "None",
@@ -574,27 +574,26 @@ static auto check_part_none(disk_t &disk_car, const int verbose,
   @ assigns \nothing;
   @*/
 static auto get_partition_typename_none_aux(const unsigned int part_type_none)
-    -> const char *
+    -> std::string_view
 {
   unsigned int i;
   /*@
     @ loop assigns i;
     @ loop variant sizeof(none_sys_types)/sizeof(struct systypes) - i;
     @*/
-  for (i = 0; none_sys_types[i].name != nullptr; i++)
+  for (i = 0; !none_sys_types[i].name.empty(); i++)
   {
     if (none_sys_types[i].part_type == part_type_none)
       return none_sys_types[i].name;
   }
-  return nullptr;
+  return "";
 }
 
 /*@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_none(const partition_t &partition) -> const
-    char *
+static auto get_partition_typename_none(const partition_t &partition) -> std::string_view
 {
   return get_partition_typename_none_aux(partition.upart_type);
 }

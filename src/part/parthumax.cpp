@@ -20,6 +20,7 @@
 
  */
 
+#include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_HUMAX)
 #include <config.h>
 
@@ -93,8 +94,7 @@ static void init_structure_humax(const disk_t &disk_car, list_part_t &list_part,
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_humax(const partition_t &partition) -> const
-    char *;
+static auto get_partition_typename_humax(const partition_t &partition) -> std::string_view;
 
 /*@
   @ requires \valid_read(partition);
@@ -360,8 +360,7 @@ static void init_structure_humax(const disk_t &disk_car, list_part_t &list_part,
   list_part = new_list_part;
 }
 
-static auto get_partition_typename_humax(const partition_t &partition) -> const
-    char *
+static auto get_partition_typename_humax(const partition_t &partition) -> std::string_view
 {
   return "Partition";
 }

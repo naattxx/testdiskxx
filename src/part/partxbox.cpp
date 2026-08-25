@@ -20,6 +20,7 @@
 
  */
 
+#include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
 #include <config.h>
 
@@ -109,14 +110,13 @@ static void init_structure_xbox(const disk_t &disk_car, list_part_t &list_part,
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_xbox(const partition_t &partition) -> const
-    char *;
+static auto get_partition_typename_xbox(const partition_t &partition) -> std::string_view;
 
 /*@
   @ assigns \nothing;
   @*/
 static auto get_partition_typename_xbox_aux(const unsigned int part_type_xbox)
-    -> const char *;
+    -> std::string_view;
 
 /*@
   @ requires \valid_read(partition);
@@ -127,7 +127,7 @@ static auto get_part_type_xbox(const partition_t &partition) -> unsigned int;
 static const struct systypes xbox_sys_types[] = {
     {.part_type = PXBOX_UNK,  .name = "Unknown"},
     {.part_type = PXBOX_FATX, .name = "FATX"   },
-    {.part_type = PXBOX_UNK,  .name = nullptr  }
+    {.part_type = PXBOX_UNK,  .name = ""  }
 };
 
 arch_fnct_t arch_xbox = {.part_name        = "XBox",
@@ -383,18 +383,17 @@ static auto check_part_xbox(disk_t &disk_car, const int verbose,
 }
 
 static auto get_partition_typename_xbox_aux(const unsigned int part_type_xbox)
-    -> const char *
+    -> std::string_view
 {
   int i;
   /*@ loop assigns i; */
-  for (i = 0; xbox_sys_types[i].name != nullptr; i++)
+  for (i = 0; !xbox_sys_types[i].name.empty(); i++)
     if (xbox_sys_types[i].part_type == part_type_xbox)
       return xbox_sys_types[i].name;
-  return nullptr;
+  return "";
 }
 
-static auto get_partition_typename_xbox(const partition_t &partition) -> const
-    char *
+static auto get_partition_typename_xbox(const partition_t &partition) -> std::string_view
 {
   return get_partition_typename_xbox_aux(partition.part_type_xbox);
 }

@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <iterator>
 #include <optional>
+#include <string_view>
 #include <utility>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
 #include <config.h>
@@ -266,14 +267,13 @@ static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_i386(const partition_t &partition) -> const
-    char *;
+static auto get_partition_typename_i386(const partition_t &partition) -> std::string_view;
 
 /*@
   @ assigns \nothing;
   @*/
 static auto get_partition_typename_i386_aux(const unsigned int part_type_i386)
-    -> const char *;
+    -> std::string_view;
 
 /*@
   @ requires \valid_read(partition);
@@ -385,7 +385,7 @@ static const struct systypes i386_sys_types[] = {
     {.part_type = P_RAID,         .name = "Linux RAID"            },
     {.part_type = 0xfe,           .name = "LANstep"               },
     {.part_type = 0xff,           .name = "Xenix bad block"       },
-    {.part_type = P_NO_OS,        .name = nullptr                 }
+    {.part_type = P_NO_OS,        .name = ""                 }
 };
 
 arch_fnct_t arch_i386 = {
@@ -1492,7 +1492,7 @@ static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const
 
 static void log_dos_entry(const struct partition_dos *entree)
 {
-  if (get_partition_typename_i386_aux(entree->sys_ind) != nullptr)
+  if (!get_partition_typename_i386_aux(entree->sys_ind).empty())
     log_info(" %-20s ", get_partition_typename_i386_aux(entree->sys_ind));
   else
     log_info(" Sys=%02X               ", entree->sys_ind);
@@ -2053,18 +2053,17 @@ static auto check_part_i386(disk_t &disk_car, const int verbose,
 }
 
 static auto get_partition_typename_i386_aux(const unsigned int part_type_i386)
-    -> const char *
+    -> std::string_view
 {
   int i;
   /*@ loop assigns i; */
-  for (i = 0; i386_sys_types[i].name != nullptr; i++)
+  for (i = 0; !i386_sys_types[i].name.empty(); i++)
     if (i386_sys_types[i].part_type == part_type_i386)
       return i386_sys_types[i].name;
-  return nullptr;
+  return "";
 }
 
-static auto get_partition_typename_i386(const partition_t &partition) -> const
-    char *
+static auto get_partition_typename_i386(const partition_t &partition) -> std::string_view
 {
   return get_partition_typename_i386_aux(partition.part_type_i386);
 }

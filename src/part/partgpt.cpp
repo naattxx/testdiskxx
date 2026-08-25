@@ -126,13 +126,12 @@ static void init_structure_gpt(const disk_t &disk_car, list_part_t &list_part,
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_gpt(const partition_t &partition) -> const
-    char *;
+static auto get_partition_typename_gpt(const partition_t &partition) -> std::string_view;
 
 /*@
   @ assigns \nothing;
   @*/
-static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> const char *;
+static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view;
 
 const struct systypes_gtp gpt_sys_types[] = {
     {.part_type = GPT_ENT_TYPE_EFI,                 .name = "EFI System"          },
@@ -184,7 +183,7 @@ const struct systypes_gtp gpt_sys_types[] = {
     {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED4,   .name = "Solaris Reserved4"   },
     {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED5,   .name = "Solaris Reserved5"   },
     {.part_type = GPT_ENT_TYPE_BEOS_BFS,            .name = "BeFS"                },
-    {.part_type = GPT_ENT_TYPE_UNUSED,              .name = nullptr               }
+    {.part_type = GPT_ENT_TYPE_UNUSED,              .name = ""               }
 };
 
 arch_fnct_t arch_gpt = {.part_name        = "EFI GPT",
@@ -616,11 +615,11 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
   return ret;
 }
 
-static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> const char *
+static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view
 {
   int i;
   /*@ loop assigns i; */
-  for (i = 0; gpt_sys_types[i].name != nullptr; i++)
+  for (i = 0; !gpt_sys_types[i].name.empty(); i++)
     if (guid_cmp(gpt_sys_types[i].part_type, part_type_gpt) == 0)
       return gpt_sys_types[i].name;
 #ifndef DISABLED_FOR_FRAMAC
@@ -634,11 +633,10 @@ static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> const char *
       part_type_gpt.node[3], part_type_gpt.node[4], part_type_gpt.node[5]
   );
 #endif
-  return nullptr;
+  return "";
 }
 
-static auto get_partition_typename_gpt(const partition_t &partition) -> const
-    char *
+static auto get_partition_typename_gpt(const partition_t &partition) -> std::string_view
 {
   return get_gpt_typename(partition.part_type_gpt);
 }

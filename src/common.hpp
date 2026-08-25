@@ -475,7 +475,7 @@ inductive ld_reachable{L} (list_disk_t* root, list_disk_t* node)
 struct systypes
 {
     const unsigned int part_type;
-    const char *name;
+    std::string_view name;
 };
 
 struct arch_fnct_t
@@ -497,7 +497,7 @@ struct arch_fnct_t
     int (*set_part_type)(partition_t &partition, unsigned int part_type);
     void (*init_structure)(const disk_t &disk, list_part_t &list_part, const int verbose);
     int (*erase_list_part)(disk_t &disk);
-    const char *(*get_partition_typename)(const partition_t &partition);
+    std::string_view (*get_partition_typename)(const partition_t &partition);
     int (*is_part_known)(const partition_t &partition);
 };
 

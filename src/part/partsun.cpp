@@ -20,6 +20,7 @@
 
  */
 
+#include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
 #include <config.h>
 
@@ -118,14 +119,13 @@ static void init_structure_sun(const disk_t &disk_car, list_part_t &list_part,
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto get_partition_typename_sun(const partition_t &partition) -> const
-    char *;
+static auto get_partition_typename_sun(const partition_t &partition) -> std::string_view;
 
 /*@
   @ assigns \nothing;
   @*/
 static auto get_partition_typename_sun_aux(const unsigned int part_type_sun)
-    -> const char *;
+    -> std::string_view;
 
 /*@
   @ requires \valid_read(partition);
@@ -149,7 +149,7 @@ static const struct systypes sun_sys_types[] = {
     {.part_type = PSUN_LINUX,      .name = "Linux native"         },
     {.part_type = PSUN_LVM,        .name = "Linux LVM"            },
     {.part_type = PSUN_RAID,       .name = "Linux raid autodetect"},
-    {.part_type = 0,               .name = nullptr                }
+    {.part_type = 0,               .name = ""                }
 };
 
 arch_fnct_t arch_sun = {.part_name        = "Sun",
@@ -468,18 +468,17 @@ static auto check_part_sun(disk_t &disk_car, const int verbose,
 }
 
 static auto get_partition_typename_sun_aux(const unsigned int part_type_sun)
-    -> const char *
+    -> std::string_view
 {
   int i;
   /*@ loop assigns i; */
-  for (i = 0; sun_sys_types[i].name != nullptr; i++)
+  for (i = 0; !sun_sys_types[i].name.empty(); i++)
     if (sun_sys_types[i].part_type == part_type_sun)
       return sun_sys_types[i].name;
-  return nullptr;
+  return "";
 }
 
-static auto get_partition_typename_sun(const partition_t &partition) -> const
-    char *
+static auto get_partition_typename_sun(const partition_t &partition) -> std::string_view
 {
   return get_partition_typename_sun_aux(partition.part_type_sun);
 }
