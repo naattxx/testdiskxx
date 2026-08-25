@@ -50,16 +50,16 @@ auto check_ReFS(disk_t &disk, partition_t &partition) -> int
   if (disk.pread(disk, buffer, ReFS_BS_SIZE, partition.part_offset) !=
       ReFS_BS_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_ReFS(reinterpret_cast<struct ReFS_boot_sector *>(buffer)) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_ReFS_info(partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

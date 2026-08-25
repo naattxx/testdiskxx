@@ -200,7 +200,7 @@ struct [[gnu::gcc_struct, gnu::packed]] TD_FILE_NAME_ATTR
   /* 40*/ uint8_t file_name_length; /* Length of file name in
                    (Unicode) characters. */
   /* 41*/ uint8_t file_name_type;   /* Namespace of the file name.*/
-#if !defined(__FRAMAC__)
+#ifndef __FRAMAC__
   /* 42*/ char *file_name[0]; /* File name in Unicode. */
 #endif
 };

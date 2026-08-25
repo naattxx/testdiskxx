@@ -24,11 +24,11 @@
 
 #include <config.h>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBEXT2FS
 #endif
 
-#if defined(HAVE_LIBEXT2FS)
+#ifdef HAVE_LIBEXT2FS
 #include "src/dir_common.hpp"
 #include <ext2fs/ext2fs.h>
 struct ext2_dir_struct

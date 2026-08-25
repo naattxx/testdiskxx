@@ -60,17 +60,17 @@ auto check_ISO(disk_t &disk_car, partition_t &partition) -> int
   if (disk_car.pread(disk_car, buffer, ISO_PD_SIZE,
                      partition.part_offset + 64 * 512) != ISO_PD_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_ISO(reinterpret_cast<struct iso_primary_descriptor *>(buffer)) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_ISO_info(reinterpret_cast<struct iso_primary_descriptor *>(buffer),
                partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

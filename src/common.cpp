@@ -232,7 +232,7 @@ auto date_dos2unix(const unsigned short f_time, const unsigned short f_date) -> 
     secs += days * SECS_PER_DAY;
     /*@ assert secs <= (334 + 127 * 365 + 32 + 30 + DAYS_DELTA)* SECS_PER_DAY + 0x3f * SECS_PER_HOUR + 0x3f *
      * SECS_PER_MIN + 62; */
-#if defined(__FRAMAC__)
+#ifdef __FRAMAC__
     return secs;
 #else
     return secs + secwest;
@@ -256,7 +256,7 @@ void set_secwest()
 #elif defined(DJGPP) || defined(__ANDROID__)
     secwest = 0;
 #else
-#if defined(__CYGWIN__)
+#ifdef __CYGWIN__
     secwest = _timezone;
 #else
     secwest = timezone;

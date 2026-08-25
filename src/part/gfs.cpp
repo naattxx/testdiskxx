@@ -62,17 +62,17 @@ auto check_gfs2(disk_t &disk, partition_t &partition) -> int
                  partition.part_offset +
                      (GFS2_SB_ADDR << GFS2_BASIC_BLOCK_SHIFT)) != 512)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_gfs2(disk, reinterpret_cast<const struct gfs2_sb *>(buffer),
                 partition, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_gfs2_info(partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

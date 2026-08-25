@@ -25,7 +25,7 @@
 #include <string>
 #include <utility>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_FSYNC
 #undef HAVE_GLOB_H
 #undef HAVE_LIBEWF
@@ -118,16 +118,16 @@
 #include "hdwin32.hpp"
 #include "win32.hpp"
 #endif
-#if defined(DJGPP)
+#ifdef DJGPP
 #include "msdos.h"
 #endif
 #if defined(__CYGWIN__)  || defined(_WIN32)
 #include <io.h>
 #endif
-#if defined(__HAIKU__)
+#ifdef __HAIKU__
 #include <Drivers.h>
 #endif
-#if defined(__FRAMAC__)
+#ifdef __FRAMAC__
 #include "__fc_builtin.h"
 #endif
 #include "fnctdsk.hpp"
@@ -298,7 +298,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
             }
         }
     }
-#elif defined(__APPLE__)
+#elifdef __APPLE__
     {
         char device[100];
         /* Disk */
@@ -317,8 +317,8 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
                 insert_new_disk(list_disk, disk.value());
         }
     }
-#elif defined(DISABLED_FOR_FRAMAC)
-#elif defined(__linux__)
+#elifdef DISABLED_FOR_FRAMAC
+#elifdef __linux__
     {
         int j;
         char device[100];
@@ -468,7 +468,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
         hd_glob_parse("/dev/nvme[0-9]n[0-9]", list_disk, verbose, testdisk_mode);
 #endif
     }
-#elif defined(TARGET_SOLARIS)
+#elifdef TARGET_SOLARIS
     {
         char rdsk[] = "/dev/rdsk/c0t0d0s2";
         for (i = 0; i < 15; i++)
@@ -1026,7 +1026,7 @@ static auto read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file
  * information.  It uses the deprecated SCSI_IOCTL_SEND_COMMAND to
  * issue this query.
  */
-#if defined(__linux__)
+#ifdef __linux__
 #if __has_include(<scsi/scsi.h>)
 #include <scsi/scsi.h>
 #endif
@@ -1218,8 +1218,8 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
             dev.model.reserve(8 + 16 + 2);
             sprintf(dev.model.data(), "%.8s %.16s", vendor, product);
         }
-        delete (vendor);
-        delete (product);
+        delete vendor;
+        delete product;
     }
 #endif
 #ifdef __linux__
@@ -1266,43 +1266,43 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
 static auto compute_device_size(const int hd_h, const char *device, const int verbose,
                                     const unsigned int sector_size) -> uint64_t
 {
-#if defined(HAVE_PREAD)
-    /* This function can failed if there are bad sectors */
-    uint64_t min_offset;
-    uint64_t max_offset;
-    char *buffer = new char[sector_size];
-    min_offset = 0;
-    max_offset = sector_size;
-    /* Search the maximum device size */
-    while (pread(hd_h, buffer, sector_size, max_offset) == sector_size)
+#ifdef HAVE_PREAD
+  /* This function can failed if there are bad sectors */
+  uint64_t min_offset;
+  uint64_t max_offset;
+  char *buffer = new char[sector_size];
+  min_offset   = 0;
+  max_offset   = sector_size;
+  /* Search the maximum device size */
+  while (pread(hd_h, buffer, sector_size, max_offset) == sector_size)
+  {
+    min_offset = max_offset;
+    max_offset *= 2;
+  }
+  /* Search the device size by dichotomy */
+  while (min_offset <= max_offset)
+  {
+    uint64_t cur_offset;
+    cur_offset = (min_offset + max_offset) / 2 / sector_size * sector_size;
+    if (pread(hd_h, buffer, sector_size, cur_offset) == sector_size)
+      min_offset = cur_offset + sector_size;
+    else
     {
-        min_offset = max_offset;
-        max_offset *= 2;
+      if (cur_offset >= sector_size)
+        max_offset = cur_offset - sector_size;
+      else
+        break;
     }
-    /* Search the device size by dichotomy */
-    while (min_offset <= max_offset)
-    {
-        uint64_t cur_offset;
-        cur_offset = (min_offset + max_offset) / 2 / sector_size * sector_size;
-        if (pread(hd_h, buffer, sector_size, cur_offset) == sector_size)
-            min_offset = cur_offset + sector_size;
-        else
-        {
-            if (cur_offset >= sector_size)
-                max_offset = cur_offset - sector_size;
-            else
-                break;
-        }
-    }
-    if (pread(hd_h, buffer, sector_size, min_offset) == sector_size)
-        min_offset += sector_size;
-    delete (buffer);
-    if (verbose > 1)
-    {
-        log_verbose("file_test_availability compute_device_size {} size {}\n", device,
-                    (long long unsigned)min_offset);
-    }
-    return min_offset;
+  }
+  if (pread(hd_h, buffer, sector_size, min_offset) == sector_size)
+    min_offset += sector_size;
+  delete (buffer);
+  if (verbose > 1)
+  {
+    log_verbose("file_test_availability compute_device_size {} size {}\n",
+                device, (long long unsigned)min_offset);
+  }
+  return min_offset;
 #else
     return 0;
 #endif
@@ -1325,13 +1325,17 @@ static auto file_description(disk_t &disk) -> std::string_view
 #endif
     size_to_unit(disk.disk_size, buffer_disk_size);
     if (disk.geom.heads_per_cylinder == 1 && disk.geom.sectors_per_head == 1)
-        disk.description_txt = std::format("Disk {} - {} - {} sectors{}", disk.device.c_str(),
-                 buffer_disk_size, static_cast<long long unsigned>(disk.disk_size / disk.sector_size),
-                 ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
+      disk.description_txt = std::format(
+          "Disk {} - {} - {} sectors{}", disk.device, buffer_disk_size,
+          static_cast<long long unsigned>(disk.disk_size / disk.sector_size),
+          ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)")
+      );
     else
-        disk.description_txt = std::format("Disk {} - {} - CHS {} {} {}", disk.device.c_str(),
-                 buffer_disk_size, disk.geom.cylinders, disk.geom.heads_per_cylinder, disk.geom.sectors_per_head,
-                 ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
+      disk.description_txt =
+          std::format("Disk {} - {} - CHS {} {} {}", disk.device,
+                      buffer_disk_size, disk.geom.cylinders,
+                      disk.geom.heads_per_cylinder, disk.geom.sectors_per_head,
+                      ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     /*@ assert valid_read_string((char *)&disk.description_txt); */
     /*@ assert valid_disk(disk); */
     return disk.description_txt;
@@ -1353,11 +1357,14 @@ static auto file_description_short(disk_t &disk_car) -> std::string_view
 #endif
     size_to_unit(disk_car.disk_size, buffer_disk_size);
     if (disk_car.model.empty())
-        disk_car.description_short_txt = std::format("Disk {} - {}{}", disk_car.device.c_str(),
-                 buffer_disk_size, ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
+      disk_car.description_short_txt =
+          std::format("Disk {} - {}{}", disk_car.device, buffer_disk_size,
+                      ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     else
-        disk_car.description_short_txt = std::format("Disk {} - {}{} - {}",
-                 disk_car.device.c_str(), buffer_disk_size, ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"), disk_car.model.c_str());
+      disk_car.description_short_txt =
+          std::format("Disk {} - {}{} - {}", disk_car.device, buffer_disk_size,
+                      ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"),
+                      disk_car.model);
     /*@ assert valid_read_string((char *)&disk_car.description_short_txt); */
     /*@ assert valid_disk(disk_car); */
     return disk_car.description_short_txt;
@@ -1405,7 +1412,7 @@ static auto file_pread_aux(const disk_t &disk, void *buf, const unsigned int cou
 {
     long int ret;
     const int fd = (static_cast<const struct info_file_struct *>(disk.data))->handle;
-#if defined(__CYGWIN__)
+#ifdef __CYGWIN__
     if (lseek(fd, offset, SEEK_SET) < 0)
     {
         log_error("file_pread({},{},buffer,{}({}/{}/{})) lseek err {}", fd, (unsigned)(count / disk.sector_size),
@@ -1442,7 +1449,7 @@ static auto file_pread_aux(const disk_t &disk, void *buf, const unsigned int cou
     }
     ret = read(fd, buf, count);
 #else
-#if defined(HAVE_PREAD)
+#ifdef HAVE_PREAD
     ret = pread(fd, buf, count, offset);
     if (ret < 0 && errno == ENOSYS)
 #endif
@@ -1595,9 +1602,9 @@ static auto file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int 
   @*/
 static auto file_sync(disk_t &disk_car) -> int
 {
-#if defined(HAVE_FSYNC)
-    struct info_file_struct *data = (struct info_file_struct *)disk_car.data;
-    return fsync(data->handle);
+#ifdef HAVE_FSYNC
+  struct info_file_struct *data = (struct info_file_struct *)disk_car.data;
+  return fsync(data->handle);
 #else
     errno = EINVAL;
     return -1;
@@ -1835,7 +1842,7 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
         disk_car.access_mode |= TESTDISK_O_DIRECT;
 #endif
     disk_car.clean = &file_clean;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
     if (fstat(hd_h, &stat_rec) >= 0 && S_ISREG(stat_rec.st_mode) && stat_rec.st_size > 0)
 #endif
     {
@@ -1900,9 +1907,9 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
         }
         else if (memcmp(buffer, evf_file_signature, 8) == 0 && le16(ewf->fields_segment) == 1)
         {
-            delete[] (buffer);
-            delete (data);
-            close(hd_h);
+          delete[] buffer;
+          delete data;
+          close(hd_h);
 #if __has_include(<libewf.h>) && defined(HAVE_LIBEWF)
             log_info("EWF format detected.");
             return fewf_init(device, testdisk_mode);
@@ -1939,7 +1946,7 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
             disk_car.autoset_geometry(buffer, verbose);
 #endif
         }
-        delete[] (buffer);
+        delete[] buffer;
     }
     disk_car.update_fields();
     if (disk_car.disk_real_size != 0)
@@ -1973,7 +1980,7 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
         log_warning("Warning: can't get size for {}, sector size={} - {}", file_description(disk_car),
                     disk_car.sector_size, disk_car.model);
 #endif
-    delete (data);
+    delete data;
     close(hd_h);
     return std::nullopt;
 }
@@ -1988,7 +1995,7 @@ void disk_t::update_geometry(const int verbose)
             log_trace("autoset_geometry");
             autoset_geometry(buffer, 1);
         }
-        delete[] (buffer);
+        delete[] buffer;
     }
 #ifdef DJGPP
     if (description == disk_description)

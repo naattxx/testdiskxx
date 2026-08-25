@@ -81,7 +81,7 @@ static auto exFAT_boot_sector_command(char **current_cmd, const char *options)
   {
     return 'D';
   }
-  else if (check_command(current_cmd, "originalexFAT", 13) == 0)
+  if (check_command(current_cmd, "originalexFAT", 13) == 0)
   {
     if (strchr(options, 'O') != nullptr)
       return 'O';
@@ -149,15 +149,14 @@ static auto exFAT_boot_sector_rescan(disk_t &disk, const partition_t &partition,
     screen_buffer_add("Sectors are identical.\n");
     return "D";
   }
-  else
-  {
-    screen_buffer_add("Sectors are not identical.\n");
-  }
+
+  screen_buffer_add("Sectors are not identical.\n");
+
   if (opt_B != 0 && opt_O != 0)
     return "DOB";
-  else if (opt_B != 0)
+  if (opt_B != 0)
     return "DB";
-  else if (opt_O != 0)
+  if (opt_O != 0)
     return "DO";
   return "D";
 }
@@ -213,8 +212,8 @@ auto exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd)
     switch (command)
     {
     case 0:
-      delete[] (buffer_bs);
-      delete[] (buffer_backup_bs);
+      delete[] buffer_bs;
+      delete[] buffer_backup_bs;
       return 0;
     case 'O': /* O : copy original superblock over backup boot */
 #ifdef HAVE_NCURSES

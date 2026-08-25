@@ -20,6 +20,7 @@
 
  */
 
+#include <algorithm>
 #include <iterator>
 #include <optional>
 #include <utility>
@@ -505,12 +506,11 @@ static auto get_geometry_from_i386mbr(const unsigned char *buffer,
     const struct partition_dos *p = pt_offset_const(buffer, i);
     if (p->sys_ind != 0)
     {
-      if (geometry->cylinders < e_cyl(p) + 1)
-        geometry->cylinders = e_cyl(p) + 1;
-      if (geometry->heads_per_cylinder <
-          static_cast<unsigned int>(p->end_head) + 1)
-        geometry->heads_per_cylinder =
-            static_cast<unsigned int>(p->end_head) + 1;
+      geometry->cylinders =
+          std::max<unsigned long>(geometry->cylinders, e_cyl(p) + 1);
+      geometry->heads_per_cylinder =
+          std::max(geometry->heads_per_cylinder,
+                   static_cast<unsigned int>(p->end_head) + 1);
       if (geometry->sectors_per_head < e_sect(p))
         geometry->sectors_per_head = e_sect(p);
     }
@@ -581,7 +581,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
                          disk_car.sector_size))
   {
     screen_buffer_add(msg_PART_RD_ERR);
-    delete[] (buffer);
+    delete[] buffer;
     return new_list_part;
   }
   geometry.cylinders          = 0;
@@ -590,7 +590,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
   if (get_geometry_from_i386mbr(buffer, verbose, &geometry) != 0)
   {
     screen_buffer_add(msg_TBL_NMARK);
-    delete[] (buffer);
+    delete[] buffer;
     return new_list_part;
   }
 
@@ -635,7 +635,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
   new_list_part =
       get_ext_data_i386(disk_car, new_list_part, verbose, saveheader);
   get_geometry_from_list_part(disk_car, new_list_part, verbose);
-  delete[] (buffer);
+  delete[] buffer;
   return new_list_part;
 }
 
@@ -1014,13 +1014,13 @@ static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part,
     if (disk_car.pwrite(disk_car, buffer, DEFAULT_SECTOR_SIZE,
                         static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
     {
-      delete[] (buffer_org);
-      delete[] (buffer);
+      delete[] buffer_org;
+      delete[] buffer;
       return 1;
     }
   }
-  delete[] (buffer_org);
-  delete[] (buffer);
+  delete[] buffer_org;
+  delete[] buffer;
   return 0;
 }
 
@@ -1916,7 +1916,7 @@ static auto erase_list_part_i386(disk_t &disk) -> int
         disk.pwrite(disk, xboxlabel, 0x800, 0);
       }
     }
-    delete[] (xboxlabel);
+    delete[] xboxlabel;
   }
   {
     /* Erase EFI GPT signature if present */
@@ -1932,7 +1932,7 @@ static auto erase_list_part_i386(disk_t &disk) -> int
         disk.pwrite(disk, gpt, disk.sector_size, disk.sector_size);
       }
     }
-    delete[] (gpt);
+    delete[] gpt;
   }
   disk.sync(disk);
   return 0;

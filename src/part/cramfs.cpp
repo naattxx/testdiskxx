@@ -49,7 +49,7 @@ auto check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
     {
       set_cramfs_info(reinterpret_cast<struct cramfs_super *>(buffer),
                       partition);
-      delete[] (buffer);
+      delete[] buffer;
       return 0;
     }
   }
@@ -61,11 +61,11 @@ auto check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
     {
       set_cramfs_info(reinterpret_cast<struct cramfs_super *>(buffer),
                       partition);
-      delete[] (buffer);
+      delete[] buffer;
       return 0;
     }
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 1;
 }
 

@@ -23,7 +23,7 @@
 
 #include <config.h>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
 #undef HAVE_LIBNTFS3G
 #endif
@@ -180,7 +180,7 @@ static int ntfs_device_testdisk_io_ioctl(struct ntfs_device *dev, int request,
 #endif
   return -1;
 }
-#elif defined(NTFS_DEVICE_OPERATIONS_IOCTL_UL)
+#elifdef NTFS_DEVICE_OPERATIONS_IOCTL_UL
 static auto ntfs_device_testdisk_io_ioctl(struct ntfs_device *dev,
                                           unsigned long request, void *argp)
     -> int

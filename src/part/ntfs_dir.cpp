@@ -25,7 +25,7 @@
  */
 #include <config.h>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
 #undef HAVE_LIBNTFS3G
 #undef HAVE_SYS_PARAM_H
@@ -52,14 +52,14 @@
 #include <cstdarg>
 // #include "types.h"
 
-#if defined(HAVE_LIBNTFS)
+#ifdef HAVE_LIBNTFS
 #include <ntfs/attrib.h>
 #include <ntfs/volume.h>
 #if __has_include(<ntfs/version.h>)
 #include <ntfs/version.h>
 #endif
 #endif
-#if defined(HAVE_LIBNTFS3G)
+#ifdef HAVE_LIBNTFS3G
 extern "C"
 {
 #define HAVE_SYS_TYPES_H
@@ -399,7 +399,7 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
     if (!attr)
     {
       log_error("Cannot find attribute type 0x%lx.\n", (long)AT_DATA);
-      delete[] (buffer);
+      delete[] buffer;
       ntfs_inode_close(inode);
       return CP_STAT_FAILED;
     }
@@ -429,9 +429,9 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
     if (!f_out)
     {
       log_critical("Can't create file %s: %s\n", new_file, strerror(errno));
-      delete (new_file);
+      delete new_file;
       ntfs_attr_close(attr);
-      delete[] (buffer);
+      delete[] buffer;
       ntfs_inode_close(inode);
       return CP_CREATE_FAILED;
     }
@@ -470,9 +470,9 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
     }
     fclose(f_out);
     set_date(new_file, file.td_atime, file.td_mtime);
-    delete (new_file);
+    delete new_file;
     ntfs_attr_close(attr);
-    delete[] (buffer);
+    delete[] buffer;
   }
   /* Finished with the inode; release it. */
   ntfs_inode_close(inode);
@@ -489,7 +489,7 @@ static void dir_partition_ntfs_close(dir_data_t *dir_data)
   if (ls->cd != (iconv_t)(-1))
     iconv_close(ls->cd);
 #endif
-  delete (ls);
+  delete ls;
 }
 #endif
 
@@ -539,7 +539,7 @@ extern "C"
     }
     if (!vol)
     {
-      delete (my_data);
+      delete my_data;
       ntfs_device_free(dev);
       return DIR_PART_EIO;
     }
@@ -587,7 +587,7 @@ auto td_ntfs_version() -> const char *
 #else
   return "available";
 #endif
-#elif defined(HAVE_LIBNTFS3G)
+#elifdef HAVE_LIBNTFS3G
   return "libntfs-3g";
 #else
   return "none";

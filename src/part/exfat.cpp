@@ -77,17 +77,17 @@ auto check_exFAT(disk_t &disk, partition_t &partition) -> int
   if (disk.pread(disk, buffer, EXFAT_BS_SIZE, partition.part_offset) !=
       EXFAT_BS_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_exFAT(reinterpret_cast<struct exfat_super_block *>(buffer)) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_exFAT_info(partition,
                  reinterpret_cast<struct exfat_super_block *>(buffer));
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

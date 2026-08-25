@@ -80,15 +80,15 @@ static auto ntfs_boot_sector_command(char **current_cmd, const char *options)
   {
     return 'R';
   }
-  else if (check_command(current_cmd, "dump", 4) == 0)
+  if (check_command(current_cmd, "dump", 4) == 0)
   {
     return 'D';
   }
-  else if (check_command(current_cmd, "list", 4) == 0)
+  if (check_command(current_cmd, "list", 4) == 0)
   {
     return 'L';
   }
-  else if (check_command(current_cmd, "originalntfs", 12) == 0)
+  if (check_command(current_cmd, "originalntfs", 12) == 0)
   {
     if (strchr(options, 'O') != nullptr)
       return 'O';
@@ -196,18 +196,16 @@ static auto ntfs_boot_sector_scan(disk_t &disk, const partition_t &partition,
   {
     if (identical_sectors == 0)
       return "DOBRL";
-    else
-      return "DRML";
+    return "DRML";
   }
-  else if (opt_B != 0)
+  if (opt_B != 0)
   {
     *menu = 5;
     if (expert > 0)
       return "DBRML";
-    else
-      return "DBRL";
+    return "DBRL";
   }
-  else if (opt_O != 0)
+  if (opt_O != 0)
   {
     *menu = 4;
     return "DORL";
@@ -264,8 +262,8 @@ auto ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose,
     switch (command)
     {
     case 0:
-      delete[] (buffer_bs);
-      delete[] (buffer_backup_bs);
+      delete[] buffer_bs;
+      delete[] buffer_backup_bs;
       return 0;
     case 'O': /* O : copy original boot sector over backup boot */
 #ifdef HAVE_NCURSES

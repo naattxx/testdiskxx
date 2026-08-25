@@ -23,7 +23,7 @@
 #ifndef _ASKLOC_H
 #define _ASKLOC_H
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_NCURSES
 #endif
 

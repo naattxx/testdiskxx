@@ -60,25 +60,25 @@ static auto test_LVM(const disk_t &disk_car, const pv_disk_t *pv,
       ; // dump_log(pv,DEFAULT_SECTOR_SIZE);
     }
     if (le32(pv->pv_size) > LVM_MAX_SIZE)
-      return (1);
+      return 1;
     if (le32(pv->pv_status) != 0 && le32(pv->pv_status) != PV_ACTIVE)
-      return (1);
+      return 1;
     if (le32(pv->pv_allocatable) != 0 &&
         le32(pv->pv_allocatable) != PV_ALLOCATABLE)
-      return (1);
+      return 1;
     if (le32(pv->lv_cur) > MAX_LV)
-      return (1);
+      return 1;
     if (strlen(reinterpret_cast<const char *>(pv->vg_name)) > NAME_LEN / 2)
-      return (1);
+      return 1;
     size = le32(pv->pe_size) / LVM_MIN_PE_SIZE * LVM_MIN_PE_SIZE;
     if ((le32(pv->pe_size) != size) || (le32(pv->pe_size) < LVM_MIN_PE_SIZE) ||
         (le32(pv->pe_size) > LVM_MAX_PE_SIZE))
-      return (1);
+      return 1;
 
     if (le32(pv->pe_total) > (pv->pe_on_disk.size / sizeof(disk_pe_t)))
-      return (1);
+      return 1;
     if (le32(pv->pe_allocated) > le32(pv->pe_total))
-      return (1);
+      return 1;
     return 0;
   }
   return 1;
@@ -91,17 +91,17 @@ auto check_LVM(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, LVM_PV_DISK_SIZE,
                      partition.part_offset) != LVM_PV_DISK_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_LVM(disk_car, reinterpret_cast<pv_disk_t *>(buffer), partition,
                verbose, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_LVM_info(partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -169,18 +169,18 @@ auto check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
                      partition.part_offset + 0x200) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_LVM2(disk_car,
                 reinterpret_cast<const struct lvm2_label_header *>(buffer),
                 partition, verbose, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_LVM2_info(partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

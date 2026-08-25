@@ -98,7 +98,7 @@ auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
   {
     screen_buffer_add("check_HPFS: Read error\n");
     log_error("check_HPFS: Read error\n");
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_HPFS(disk_car,
@@ -110,10 +110,10 @@ auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
       log_info("\n\ntest_HPFS()\n");
       log_partition(disk_car, partition);
     }
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_HPFS_info(partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }

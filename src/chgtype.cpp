@@ -87,5 +87,4 @@ void change_part_type_cli(const disk_t &disk_car, partition_t &partition, char *
     log_info("Change partition type:\n");
     log_partition(disk_car, partition);
 #endif
-    return;
 }

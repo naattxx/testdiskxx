@@ -44,18 +44,18 @@ auto check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, EXT2_SUPERBLOCK_SIZE,
                      partition.part_offset + 0x400) != EXT2_SUPERBLOCK_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_EXT2(reinterpret_cast<struct ext2_super_block *>(buffer),
                 partition) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_EXT2_info(reinterpret_cast<struct ext2_super_block *>(buffer), partition,
                 verbose);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

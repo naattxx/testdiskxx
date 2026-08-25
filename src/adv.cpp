@@ -318,38 +318,41 @@ static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition, const i
         fat32_boot_sector(disk, partition, verbose, dump_ind, expert, current_cmd);
         return 1;
     }
-    else if (is_part_fat12(partition) || is_part_fat16(partition))
+    if (is_part_fat12(partition) || is_part_fat16(partition))
     {
-        fat1x_boot_sector(disk, partition, verbose, dump_ind, expert, current_cmd);
-        return 1;
+      fat1x_boot_sector(disk, partition, verbose, dump_ind, expert,
+                        current_cmd);
+      return 1;
     }
-    else if (is_part_ntfs(partition))
+    if (is_part_ntfs(partition))
     {
-        if (partition.upart_type == UP_EXFAT)
-            exFAT_boot_sector(disk, partition, current_cmd);
-        else
-            ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
-        return 1;
-    }
-    else if (partition.upart_type == UP_FAT32)
-    {
-        fat32_boot_sector(disk, partition, verbose, dump_ind, expert, current_cmd);
-        return 1;
-    }
-    else if (partition.upart_type == UP_FAT12 || partition.upart_type == UP_FAT16)
-    {
-        fat1x_boot_sector(disk, partition, verbose, dump_ind, expert, current_cmd);
-        return 1;
-    }
-    else if (partition.upart_type == UP_NTFS)
-    {
-        ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
-        return 1;
-    }
-    else if (partition.upart_type == UP_EXFAT)
-    {
+      if (partition.upart_type == UP_EXFAT)
         exFAT_boot_sector(disk, partition, current_cmd);
-        return 1;
+      else
+        ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
+      return 1;
+    }
+    if (partition.upart_type == UP_FAT32)
+    {
+      fat32_boot_sector(disk, partition, verbose, dump_ind, expert,
+                        current_cmd);
+      return 1;
+    }
+    if (partition.upart_type == UP_FAT12 || partition.upart_type == UP_FAT16)
+    {
+      fat1x_boot_sector(disk, partition, verbose, dump_ind, expert,
+                        current_cmd);
+      return 1;
+    }
+    if (partition.upart_type == UP_NTFS)
+    {
+      ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
+      return 1;
+    }
+    if (partition.upart_type == UP_EXFAT)
+    {
+      exFAT_boot_sector(disk, partition, current_cmd);
+      return 1;
     }
     return 0;
 }
@@ -378,7 +381,7 @@ static void adv_menu_image_selected(disk_t &disk, const partition_t &partition, 
         strcat(filename, "/");
         strcat(filename, DEFAULT_IMAGE_NAME);
         disk_image(disk, partition, filename);
-        delete[] (filename);
+        delete[] filename;
     }
 }
 

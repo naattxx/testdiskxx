@@ -126,7 +126,7 @@ static auto fat32_set_part_name(disk_t &disk_car, partition_t &partition,
         }
       }
     }
-    delete[] (buffer);
+    delete[] buffer;
   }
   if (partition.fsname[0] == '\0')
   {
@@ -346,7 +346,7 @@ auto check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
     screen_buffer_add("check_FAT: can't read FAT boot sector\n");
     log_error("check_FAT: can't read FAT boot sector\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_FAT(disk_car,
@@ -362,14 +362,14 @@ auto check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
                    partition.upart_type, disk_car.sector_size);
     }
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_FAT_info(disk_car,
                reinterpret_cast<const struct fat_boot_sector *>(buffer),
                partition);
   /*  screen_buffer_add("Ok\n"); */
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -400,14 +400,14 @@ static auto get_next_cluster_fat12(disk_t &disk, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_error("get_next_cluster_fat12 read error\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
   if ((cluster & 1) != 0)
     next_cluster = le16((*((uint16_t *)&buffer[offset_o]))) >> 4;
   else
     next_cluster = le16(*((uint16_t *)&buffer[offset_o])) & 0x0FFF;
-  delete[] (buffer);
+  delete[] buffer;
   return next_cluster;
 }
 
@@ -440,11 +440,11 @@ static auto get_next_cluster_fat16(disk_t &disk, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_error("get_next_cluster_fat16 read error\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
   next_cluster = le16(p16[offset_o]);
-  delete[] (buffer);
+  delete[] buffer;
   return next_cluster;
 }
 
@@ -477,7 +477,7 @@ static auto get_next_cluster_fat32(disk_t &disk, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_error("get_next_cluster_fat32 read error\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
   /* FAT32 used 28 bits, the 4 high bits are reserved
@@ -486,7 +486,7 @@ static auto get_next_cluster_fat32(disk_t &disk, const partition_t &partition,
    * 0x0FFFFFF8+: EOC End of cluster
    * */
   next_cluster = le32(p32[offset_o]) & 0xFFFFFFF;
-  delete[] (buffer);
+  delete[] buffer;
   return next_cluster;
 }
 
@@ -543,7 +543,7 @@ auto set_next_cluster(disk_t &disk_car, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_critical("fat.c set_next_cluster unknown fat type\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, buffer_size,
@@ -556,7 +556,7 @@ auto set_next_cluster(disk_t &disk_car, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_error("set_next_cluster read error\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   switch (upart_type)
@@ -599,10 +599,10 @@ auto set_next_cluster(disk_t &disk_car, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_error("Write error: set_next_cluster write error\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -636,11 +636,11 @@ auto fat32_get_prev_cluster(disk_t &disk_car, const partition_t &partition,
     }
     if ((le32(p32[offset_o]) & 0xFFFFFFF) == cluster)
     {
-      delete[] (buffer);
+      delete[] buffer;
       return prev_cluster;
     }
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -673,9 +673,9 @@ auto test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
   unsigned long int fat_length;
   unsigned long int fat_length_calc;
   const char *buffer = reinterpret_cast<const char *>(fat_header);
-  if (!(le16(fat_header->marker) == 0xAA55 &&
-        (fat_header->ignored[0] == 0xeb || fat_header->ignored[0] == 0xe9) &&
-        (fat_header->fats == 1 || fat_header->fats == 2)))
+  if (le16(fat_header->marker) != 0xAA55 ||
+      (fat_header->ignored[0] != 0xeb && fat_header->ignored[0] != 0xe9) ||
+      (fat_header->fats != 1 && fat_header->fats != 2))
     return 1; /* Obviously not a FAT */
 #ifndef DISABLED_FOR_FRAMAC
   if (verbose > 1 || dump_ind != 0)
@@ -686,8 +686,8 @@ auto test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
 #endif
   if (dump_ind != 0)
     ; // dump_log(fat_header, DEFAULT_SECTOR_SIZE);
-  if (!((fat_header->ignored[0] == 0xeb && fat_header->ignored[2] == 0x90) ||
-        fat_header->ignored[0] == 0xe9))
+  if ((fat_header->ignored[0] != 0xeb || fat_header->ignored[2] != 0x90) &&
+      fat_header->ignored[0] != 0xe9)
   {
 #ifndef DISABLED_FOR_FRAMAC
     screen_buffer_add(msg_CHKFAT_BAD_JUMP);
@@ -990,16 +990,14 @@ auto test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
 #endif
       return 1;
     }
-    else
-    {
+
 #ifndef DISABLED_FOR_FRAMAC
-      if (verbose > 0 && part_size != partition.part_size)
-        log_info("Info: size boot_sector {}, partition {}\n",
-                 (long unsigned)part_size,
-                 (long unsigned)(partition.part_size /
-                                 fat_sector_size(fat_header)));
+    if (verbose > 0 && part_size != partition.part_size)
+      log_info(
+          "Info: size boot_sector {}, partition {}\n", (long unsigned)part_size,
+          (long unsigned)(partition.part_size / fat_sector_size(fat_header))
+      );
 #endif
-    }
   }
 #ifndef DISABLED_FOR_FRAMAC
   if (verbose > 0)
@@ -1082,8 +1080,8 @@ auto comp_FAT(disk_t &disk, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
       log_error("comp_FAT: can't read FAT1\n");
 #endif
-      delete[] (buffer2);
-      delete[] (buffer);
+      delete[] buffer2;
+      delete[] buffer;
       return 1;
     }
     if (std::cmp_not_equal(disk.pread(disk, buffer2, read_size, hd_offset2),
@@ -1092,8 +1090,8 @@ auto comp_FAT(disk_t &disk, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
       log_error("comp_FAT: can't read FAT2\n");
 #endif
-      delete[] (buffer2);
-      delete[] (buffer);
+      delete[] buffer2;
+      delete[] buffer;
       return 1;
     }
     if (memcmp(buffer, buffer2, read_size) != 0)
@@ -1109,15 +1107,15 @@ auto comp_FAT(disk_t &disk, const partition_t &partition,
                                 sect_res),
                 fat_size);
 #endif
-      delete[] (buffer2);
-      delete[] (buffer);
+      delete[] buffer2;
+      delete[] buffer;
       return 1;
     }
     hd_offset += read_size;
     hd_offset2 += read_size;
   }
-  delete[] (buffer2);
-  delete[] (buffer);
+  delete[] buffer2;
+  delete[] buffer;
   return 0;
 }
 
@@ -1308,7 +1306,7 @@ auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose) -> int
     screen_buffer_add("check_OS2MB: Read error\n");
     log_error("check_OS2MB: Read error\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_OS2MB(disk, reinterpret_cast<const struct fat_boot_sector *>(buffer),
@@ -1321,11 +1319,11 @@ auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose) -> int
       log_partition(disk, partition);
     }
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   partition.upart_type = UP_OS2MB;
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -1483,7 +1481,7 @@ auto fat32_free_info(disk_t &disk_car, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
   log_info("next_free {}, free_count {}\n", *next_free, *free_count);
 #endif
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

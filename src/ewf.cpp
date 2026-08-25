@@ -21,7 +21,7 @@
  */
 #include <config.h>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBEWF
 #endif
 
@@ -59,7 +59,7 @@
 
 #include <libewf.h>
 
-#if !defined( LIBEWF_HANDLE )
+#ifndef LIBEWF_HANDLE
 /* libewf version 2 no longer defines LIBEWF_HANDLE
  */
 #define HAVE_LIBEWF_V2_API
@@ -84,7 +84,7 @@ static auto fewf_sync(disk_t &disk) -> int;
 
 struct info_fewf_struct
 {
-#if defined( HAVE_LIBEWF_V2_API )
+#ifdef HAVE_LIBEWF_V2_API
   libewf_handle_t *handle;
 #else
   LIBEWF_HANDLE *handle;
@@ -96,7 +96,7 @@ struct info_fewf_struct
   unsigned int buffer_size;
 };
 
-#if defined( HAVE_LIBEWF_V2_API )
+#ifdef HAVE_LIBEWF_V2_API
 auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
 {
   unsigned int num_files=0;
@@ -466,7 +466,7 @@ static void fewf_clean(disk_t &disk)
   if(disk.data!=nullptr)
   {
     auto *data=static_cast<struct info_fewf_struct *>(disk.data);
-#if defined( HAVE_LIBEWF_V2_API )
+#ifdef HAVE_LIBEWF_V2_API
     libewf_handle_close(
      data->handle,
      nullptr);
@@ -497,8 +497,8 @@ static auto fewf_pread(disk_t &disk, void *buffer, const unsigned int count, con
 {
   auto *data=static_cast<struct info_fewf_struct *>(disk.data);
   int64_t taille;
-#if defined( HAVE_LIBEWF_V2_API )
-#if defined( HAVE_LIBEWF_HANDLE_READ_BUFFER_AT_OFFSET )
+#ifdef HAVE_LIBEWF_V2_API
+#ifdef HAVE_LIBEWF_HANDLE_READ_BUFFER_AT_OFFSET
   taille = libewf_handle_read_buffer_at_offset(
             data->handle,
             buffer,
@@ -537,8 +537,8 @@ static auto fewf_pwrite(disk_t &disk, const void *buffer, const unsigned int cou
 {
   auto *data=static_cast<struct info_fewf_struct *>(disk.data);
   int64_t taille;
-#if defined( HAVE_LIBEWF_V2_API )
-#if defined( HAVE_LIBEWF_HANDLE_WRITE_BUFFER_AT_OFFSET )
+#ifdef HAVE_LIBEWF_V2_API
+#ifdef HAVE_LIBEWF_HANDLE_WRITE_BUFFER_AT_OFFSET
   taille = libewf_handle_write_buffer_at_offset(
             data->handle,
             buffer,
@@ -580,7 +580,7 @@ auto td_ewf_version() -> const char*
 {
 #ifdef LIBEWF_VERSION_STRING
   return (const char*)LIBEWF_VERSION_STRING;
-#elif defined(LIBEWF_VERSION)
+#elifdef LIBEWF_VERSION
   return LIBEWF_VERSION;
 #else
   return "available";

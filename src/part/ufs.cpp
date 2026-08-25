@@ -47,16 +47,16 @@ auto check_ufs(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, UFS_SUPERBLOCK_SIZE,
                      partition.part_offset + UFS_SBLOCK) != UFS_SUPERBLOCK_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_ufs(disk_car, sb, partition, verbose) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_ufs_info(sb, partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

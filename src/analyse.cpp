@@ -28,7 +28,7 @@
 #include "common.hpp"
 #include "part/exfat.hpp"
 #include "part/fat.hpp"
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
 #include "part/apfs.hpp"
 #include "part/bfs.hpp"
 #include "part/bsd.hpp"
@@ -70,7 +70,7 @@ auto search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partit
         return -1;
     {
         const auto *ntfs_header = reinterpret_cast<const struct ntfs_boot_sector *>(buffer);
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
         /* NTFS recovery using backup sector */
         if (le16(ntfs_header->marker) == 0xAA55 &&
             recover_NTFS(disk, ntfs_header, partition, verbose, dump_ind, 1) == 0)
@@ -85,7 +85,7 @@ auto search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
 {
     if (disk.pread(disk, buffer, 0x400, partition.part_offset) != 0x400)
         return -1;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
     {
         const auto *hfs_mdb = reinterpret_cast<const hfs_mdb_t *>(buffer);
         const auto *vh = reinterpret_cast<const struct hfsp_vh *>(buffer);
@@ -140,75 +140,97 @@ auto search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
 auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
                   const int dump_ind) -> int
 {
-#if !defined(DISABLED_FOR_FRAMAC)
-    /* Expect a buffer filled with 8k to handle the SWAP detection */
-    const auto *pv = reinterpret_cast<const pv_disk_t *>(buffer);
-    const auto *cramfs = reinterpret_cast<const struct cramfs_super *>(buffer);
-    const auto *fatx_block = reinterpret_cast<const struct disk_fatx *>(buffer);
-    const auto *netware_block = reinterpret_cast<const struct disk_netware *>(buffer);
-    const auto *exfat_header = reinterpret_cast<const struct exfat_super_block *>(buffer);
-    const auto *fat_header = reinterpret_cast<const struct fat_boot_sector *>(buffer);
-    const auto *luks = reinterpret_cast<const struct luks_phdr *>(buffer);
-    const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
-    const auto *ntfs_header = reinterpret_cast<const struct ntfs_boot_sector *>(buffer);
-    const auto *wbfs = reinterpret_cast<const struct wbfs_head *>(buffer);
-    const auto *xfs = reinterpret_cast<const struct xfs_sb *>(buffer);
-    const auto *swap_header = reinterpret_cast<const union swap_header *>(buffer);
-    const auto *refs_header = reinterpret_cast<const struct ReFS_boot_sector *>(buffer);
-    const auto *apfs = reinterpret_cast<const nx_superblock_t *>(buffer);
-    static const uint8_t LUKS_MAGIC[LUKS_MAGIC_L] = {'L', 'U', 'K', 'S', 0xba, 0xbe};
-    //  assert(sizeof(union swap_header)<=8*DEFAULT_SECTOR_SIZE);
-    //  assert(sizeof(pv_disk_t)<=8*DEFAULT_SECTOR_SIZE);
-    //  assert(sizeof(struct fat_boot_sector)<=8*DEFAULT_SECTOR_SIZE);
-    //  assert(sizeof(struct ntfs_boot_sector)<=8*DEFAULT_SECTOR_SIZE);
-    //  assert(sizeof(struct disk_netware)<=8*DEFAULT_SECTOR_SIZE);
-    //  assert(sizeof(struct xfs_sb)<=8*DEFAULT_SECTOR_SIZE);
-    //  assert(sizeof(struct disk_fatx)<=8*DEFAULT_SECTOR_SIZE);
-    if (verbose > 2)
-    {
-        //    log_trace("search_type_0 lba={}\n",
-        // (long unsigned)(partition.part_offset/disk->sector_size));
-    }
-    if (le32(apfs->nx_magic) == 0x4253584e && recover_APFS(disk, apfs, partition, verbose, dump_ind) == 0)
-        return 1;
-    if ((memcmp(swap_header->magic.magic, "SWAP", 4) == 0 || memcmp(swap_header->magic8k.magic, "SWAP", 4) == 0) &&
-        recover_Linux_SWAP(swap_header, partition) == 0)
-        return 1;
-    if (memcmp(reinterpret_cast<const char *>(pv->id), LVM_ID, sizeof(pv->id)) == 0 &&
-        recover_LVM(disk, pv, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (le16(fat_header->marker) == 0xAA55 && recover_FAT(disk, fat_header, partition, verbose, dump_ind, 0) == 0)
-        return 1;
-    if (le16(exfat_header->signature) == 0xAA55 && recover_exFAT(disk, exfat_header, partition) == 0)
-        return 1;
-    if (le16(fat_header->marker) == 0xAA55 && recover_HPFS(disk, fat_header, partition, verbose) == 0)
-        return 1;
-    if (le16(fat_header->marker) == 0xAA55 && recover_OS2MB(disk, fat_header, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (le16(ntfs_header->marker) == 0xAA55 && recover_NTFS(disk, ntfs_header, partition, verbose, dump_ind, 0) == 0)
-        return 1;
-    if (memcmp(netware_block->magic, "Nw_PaRtItIoN", 12) == 0 && recover_netware(disk, netware_block, partition) == 0)
-        return 1;
-    if (xfs->sb_magicnum == be32(XFS_SB_MAGIC) && recover_xfs(disk, xfs, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (memcmp(fatx_block->magic, "FATX", 4) == 0 && recover_FATX(fatx_block, partition) == 0)
-        return 1;
-    if (memcmp(luks->magic, LUKS_MAGIC, LUKS_MAGIC_L) == 0 &&
-        recover_LUKS(disk, luks, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (refs_header->fsname == be32(0x52654653u) && recover_ReFS(disk, refs_header, partition) == 0)
-        return 1;
-    /* MD 1.1 */
-    if (le32(sb1->major_version) == 1 &&
-        recover_MD(disk, reinterpret_cast<const struct mdp_superblock_t *>(buffer), partition, verbose, dump_ind) == 0)
-    {
-        partition.part_offset -= le64(sb1->super_offset) * 512;
-        return 1;
-    }
-    if (memcmp(&wbfs->magic, "WBFS", 4) == 0 && recover_WBFS(disk, wbfs, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (cramfs->magic == le32(CRAMFS_MAGIC) && recover_cramfs(disk, cramfs, partition, verbose, dump_ind) == 0)
-        return 1;
+#ifndef DISABLED_FOR_FRAMAC
+  /* Expect a buffer filled with 8k to handle the SWAP detection */
+  const auto *pv     = reinterpret_cast<const pv_disk_t *>(buffer);
+  const auto *cramfs = reinterpret_cast<const struct cramfs_super *>(buffer);
+  const auto *fatx_block = reinterpret_cast<const struct disk_fatx *>(buffer);
+  const auto *netware_block =
+      reinterpret_cast<const struct disk_netware *>(buffer);
+  const auto *exfat_header =
+      reinterpret_cast<const struct exfat_super_block *>(buffer);
+  const auto *fat_header =
+      reinterpret_cast<const struct fat_boot_sector *>(buffer);
+  const auto *luks = reinterpret_cast<const struct luks_phdr *>(buffer);
+  const auto *sb1  = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
+  const auto *ntfs_header =
+      reinterpret_cast<const struct ntfs_boot_sector *>(buffer);
+  const auto *wbfs        = reinterpret_cast<const struct wbfs_head *>(buffer);
+  const auto *xfs         = reinterpret_cast<const struct xfs_sb *>(buffer);
+  const auto *swap_header = reinterpret_cast<const union swap_header *>(buffer);
+  const auto *refs_header =
+      reinterpret_cast<const struct ReFS_boot_sector *>(buffer);
+  const auto *apfs = reinterpret_cast<const nx_superblock_t *>(buffer);
+  static const uint8_t LUKS_MAGIC[LUKS_MAGIC_L] = {'L', 'U',  'K',
+                                                   'S', 0xba, 0xbe};
+  //  assert(sizeof(union swap_header)<=8*DEFAULT_SECTOR_SIZE);
+  //  assert(sizeof(pv_disk_t)<=8*DEFAULT_SECTOR_SIZE);
+  //  assert(sizeof(struct fat_boot_sector)<=8*DEFAULT_SECTOR_SIZE);
+  //  assert(sizeof(struct ntfs_boot_sector)<=8*DEFAULT_SECTOR_SIZE);
+  //  assert(sizeof(struct disk_netware)<=8*DEFAULT_SECTOR_SIZE);
+  //  assert(sizeof(struct xfs_sb)<=8*DEFAULT_SECTOR_SIZE);
+  //  assert(sizeof(struct disk_fatx)<=8*DEFAULT_SECTOR_SIZE);
+  if (verbose > 2)
+  {
+    //    log_trace("search_type_0 lba={}\n",
+    // (long unsigned)(partition.part_offset/disk->sector_size));
+  }
+  if (le32(apfs->nx_magic) == 0x4253584e &&
+      recover_APFS(disk, apfs, partition, verbose, dump_ind) == 0)
+    return 1;
+  if ((memcmp(swap_header->magic.magic, "SWAP", 4) == 0 ||
+       memcmp(swap_header->magic8k.magic, "SWAP", 4) == 0) &&
+      recover_Linux_SWAP(swap_header, partition) == 0)
+    return 1;
+  if (memcmp(reinterpret_cast<const char *>(pv->id), LVM_ID, sizeof(pv->id)) ==
+          0 &&
+      recover_LVM(disk, pv, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (le16(fat_header->marker) == 0xAA55 &&
+      recover_FAT(disk, fat_header, partition, verbose, dump_ind, 0) == 0)
+    return 1;
+  if (le16(exfat_header->signature) == 0xAA55 &&
+      recover_exFAT(disk, exfat_header, partition) == 0)
+    return 1;
+  if (le16(fat_header->marker) == 0xAA55 &&
+      recover_HPFS(disk, fat_header, partition, verbose) == 0)
+    return 1;
+  if (le16(fat_header->marker) == 0xAA55 &&
+      recover_OS2MB(disk, fat_header, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (le16(ntfs_header->marker) == 0xAA55 &&
+      recover_NTFS(disk, ntfs_header, partition, verbose, dump_ind, 0) == 0)
+    return 1;
+  if (memcmp(netware_block->magic, "Nw_PaRtItIoN", 12) == 0 &&
+      recover_netware(disk, netware_block, partition) == 0)
+    return 1;
+  if (xfs->sb_magicnum == be32(XFS_SB_MAGIC) &&
+      recover_xfs(disk, xfs, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (memcmp(fatx_block->magic, "FATX", 4) == 0 &&
+      recover_FATX(fatx_block, partition) == 0)
+    return 1;
+  if (memcmp(luks->magic, LUKS_MAGIC, LUKS_MAGIC_L) == 0 &&
+      recover_LUKS(disk, luks, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (refs_header->fsname == be32(0x52654653u) &&
+      recover_ReFS(disk, refs_header, partition) == 0)
+    return 1;
+  /* MD 1.1 */
+  if (le32(sb1->major_version) == 1 &&
+      recover_MD(disk,
+                 reinterpret_cast<const struct mdp_superblock_t *>(buffer),
+                 partition, verbose, dump_ind) == 0)
+  {
+    partition.part_offset -= le64(sb1->super_offset) * 512;
+    return 1;
+  }
+  if (memcmp(&wbfs->magic, "WBFS", 4) == 0 &&
+      recover_WBFS(disk, wbfs, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (cramfs->magic == le32(CRAMFS_MAGIC) &&
+      recover_cramfs(disk, cramfs, partition, verbose, dump_ind) == 0)
+    return 1;
 #endif
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
     /* Try to locate logical partition that may host truecrypt encrypted filesystem */
@@ -222,39 +244,50 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
 auto search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t &partition, const int verbose,
                   const int dump_ind) -> int
 {
-#if !defined(DISABLED_FOR_FRAMAC)
-    const auto *bsd_header = reinterpret_cast<const struct disklabel *>(buffer + 0x200);
-    const auto *beos_block = reinterpret_cast<const struct disk_super_block *>(buffer + 0x200);
-    const auto *cramfs = reinterpret_cast<const struct cramfs_super *>(buffer + 0x200);
-    const auto *lvm2 = reinterpret_cast<const struct lvm2_label_header *>(buffer + 0x200);
-    const auto *sysv4 = reinterpret_cast<const struct sysv4_super_block *>(buffer + 0x200);
-    const auto *sunlabel = reinterpret_cast<const sun_partition_i386 *>(buffer + 0x200);
-    //  assert(sizeof(struct disklabel)<=2*0x200);
-    //  assert(sizeof(struct disk_super_block)<=0x200);
-    //  assert(sizeof(struct cramfs_super)<=2*0x200);
-    //  assert(sizeof(struct sysv4_super_block)<=2*0x200);
-    //  assert(sizeof(sun_partition_i386)<=2*0x200);
-    if (verbose > 2)
-    {
-        //    log_trace("search_type_1 lba={}\n",
-        // (long unsigned)(partition.part_offset/disk->sector_size));
-    }
-    if (le32(bsd_header->d_magic) == DISKMAGIC && le32(bsd_header->d_magic2) == DISKMAGIC &&
-        recover_BSD(disk, bsd_header, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (beos_block->magic1 == le32(SUPER_BLOCK_MAGIC1) && recover_BeFS(disk, beos_block, partition, dump_ind) == 0)
-        return 1;
-    if (cramfs->magic == le32(CRAMFS_MAGIC) && recover_cramfs(disk, cramfs, partition, verbose, dump_ind) == 0)
-        return 1;
-    if ((static_cast<unsigned>(sysv4->s_magic) == le32(0xfd187e20) || static_cast<unsigned>(sysv4->s_magic) == be32(0xfd187e20)) &&
-        recover_sysv(disk, sysv4, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (memcmp(reinterpret_cast<const char *>(lvm2->type), LVM2_LABEL, sizeof(lvm2->type)) == 0 &&
-        recover_LVM2(disk, (buffer + 0x200), partition, verbose, dump_ind) == 0)
-        return 1;
-    if (le32(sunlabel->magic_start) == SUN_LABEL_MAGIC_START &&
-        recover_sun_i386(disk, sunlabel, partition, verbose, dump_ind) == 0)
-        return 1;
+#ifndef DISABLED_FOR_FRAMAC
+  const auto *bsd_header =
+      reinterpret_cast<const struct disklabel *>(buffer + 0x200);
+  const auto *beos_block =
+      reinterpret_cast<const struct disk_super_block *>(buffer + 0x200);
+  const auto *cramfs =
+      reinterpret_cast<const struct cramfs_super *>(buffer + 0x200);
+  const auto *lvm2 =
+      reinterpret_cast<const struct lvm2_label_header *>(buffer + 0x200);
+  const auto *sysv4 =
+      reinterpret_cast<const struct sysv4_super_block *>(buffer + 0x200);
+  const auto *sunlabel =
+      reinterpret_cast<const sun_partition_i386 *>(buffer + 0x200);
+  //  assert(sizeof(struct disklabel)<=2*0x200);
+  //  assert(sizeof(struct disk_super_block)<=0x200);
+  //  assert(sizeof(struct cramfs_super)<=2*0x200);
+  //  assert(sizeof(struct sysv4_super_block)<=2*0x200);
+  //  assert(sizeof(sun_partition_i386)<=2*0x200);
+  if (verbose > 2)
+  {
+    //    log_trace("search_type_1 lba={}\n",
+    // (long unsigned)(partition.part_offset/disk->sector_size));
+  }
+  if (le32(bsd_header->d_magic) == DISKMAGIC &&
+      le32(bsd_header->d_magic2) == DISKMAGIC &&
+      recover_BSD(disk, bsd_header, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (beos_block->magic1 == le32(SUPER_BLOCK_MAGIC1) &&
+      recover_BeFS(disk, beos_block, partition, dump_ind) == 0)
+    return 1;
+  if (cramfs->magic == le32(CRAMFS_MAGIC) &&
+      recover_cramfs(disk, cramfs, partition, verbose, dump_ind) == 0)
+    return 1;
+  if ((static_cast<unsigned>(sysv4->s_magic) == le32(0xfd187e20) ||
+       static_cast<unsigned>(sysv4->s_magic) == be32(0xfd187e20)) &&
+      recover_sysv(disk, sysv4, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (memcmp(reinterpret_cast<const char *>(lvm2->type), LVM2_LABEL,
+             sizeof(lvm2->type)) == 0 &&
+      recover_LVM2(disk, (buffer + 0x200), partition, verbose, dump_ind) == 0)
+    return 1;
+  if (le32(sunlabel->magic_start) == SUN_LABEL_MAGIC_START &&
+      recover_sun_i386(disk, sunlabel, partition, verbose, dump_ind) == 0)
+    return 1;
 #endif
     return 0;
 }
@@ -262,29 +295,34 @@ auto search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t 
 auto search_type_2(const unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
                   const int dump_ind) -> int
 {
-#if !defined(DISABLED_FOR_FRAMAC)
-    const auto *hfs_mdb = reinterpret_cast<const hfs_mdb_t *>(buffer + 0x400);
-    const auto *vh = reinterpret_cast<const struct hfsp_vh *>(buffer + 0x400);
-    const auto *sb = reinterpret_cast<const struct ext2_super_block *>(buffer + 0x400);
-    const auto *sb_f2fs = reinterpret_cast<const struct f2fs_super_block *>(buffer + 0x400);
-    //  assert(sizeof(struct ext2_super_block)<=1024);
-    //  assert(sizeof(hfs_mdb_t)<=1024);
-    //  assert(sizeof(struct hfsp_vh)<=1024);
-    //  assert(sizeof(struct f2fs_super_block)==3072);
-    if (verbose > 2)
-    {
-        //    log_trace("search_type_2 lba={}\n",
-        // (long unsigned)(partition.part_offset/disk->sector_size));
-    }
-    if (le16(sb->s_magic) == EXT2_SUPER_MAGIC && recover_EXT2(disk, sb, partition, verbose, dump_ind) == 0)
-        return 1;
-    if (hfs_mdb->drSigWord == be16(HFS_SUPER_MAGIC) && recover_HFS(disk, hfs_mdb, partition, verbose, dump_ind, 0) == 0)
-        return 1;
-    if ((be16(vh->version) == 4 || be16(vh->version) == 5) &&
-        recover_HFSP(disk, vh, partition, verbose, dump_ind, 0) == 0)
-        return 1;
-    if (sb_f2fs->magic == le32(F2FS_SUPER_MAGIC) && recover_f2fs(disk, sb_f2fs, partition) == 0)
-        return 1;
+#ifndef DISABLED_FOR_FRAMAC
+  const auto *hfs_mdb = reinterpret_cast<const hfs_mdb_t *>(buffer + 0x400);
+  const auto *vh = reinterpret_cast<const struct hfsp_vh *>(buffer + 0x400);
+  const auto *sb =
+      reinterpret_cast<const struct ext2_super_block *>(buffer + 0x400);
+  const auto *sb_f2fs =
+      reinterpret_cast<const struct f2fs_super_block *>(buffer + 0x400);
+  //  assert(sizeof(struct ext2_super_block)<=1024);
+  //  assert(sizeof(hfs_mdb_t)<=1024);
+  //  assert(sizeof(struct hfsp_vh)<=1024);
+  //  assert(sizeof(struct f2fs_super_block)==3072);
+  if (verbose > 2)
+  {
+    //    log_trace("search_type_2 lba={}\n",
+    // (long unsigned)(partition.part_offset/disk->sector_size));
+  }
+  if (le16(sb->s_magic) == EXT2_SUPER_MAGIC &&
+      recover_EXT2(disk, sb, partition, verbose, dump_ind) == 0)
+    return 1;
+  if (hfs_mdb->drSigWord == be16(HFS_SUPER_MAGIC) &&
+      recover_HFS(disk, hfs_mdb, partition, verbose, dump_ind, 0) == 0)
+    return 1;
+  if ((be16(vh->version) == 4 || be16(vh->version) == 5) &&
+      recover_HFSP(disk, vh, partition, verbose, dump_ind, 0) == 0)
+    return 1;
+  if (sb_f2fs->magic == le32(F2FS_SUPER_MAGIC) &&
+      recover_f2fs(disk, sb_f2fs, partition) == 0)
+    return 1;
 #endif
     return 0;
 }
@@ -298,7 +336,7 @@ auto search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, 
     }
     if (disk.pread(disk, buffer, 4096, partition.part_offset + 4096) != 4096)
         return -1;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
     { /* MD 1.2 */
         const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
         if (le32(sb1->major_version) == 1 &&
@@ -323,7 +361,7 @@ auto search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition,
     if (disk.pread(disk, buffer, 3 * DEFAULT_SECTOR_SIZE, partition.part_offset + 16 * 512) !=
         3 * DEFAULT_SECTOR_SIZE)
         return -1;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
     {
         const auto *ufs = reinterpret_cast<const struct ufs_super_block *>(buffer);
         const auto *zfs = reinterpret_cast<const struct vdev_boot_header *>(buffer);
@@ -350,7 +388,7 @@ auto search_type_64(unsigned char *buffer, disk_t &disk, partition_t &partition,
     if (disk.pread(disk, buffer, 3 * DEFAULT_SECTOR_SIZE, partition.part_offset + 63 * 512) !=
         3 * DEFAULT_SECTOR_SIZE)
         return -1;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
     {
         const auto *jfs = reinterpret_cast<const struct jfs_superblock *>(buffer + 0x200);
         /* Test JFS */
@@ -371,7 +409,7 @@ auto search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition
     if (disk.pread(disk, buffer, 11 * DEFAULT_SECTOR_SIZE, partition.part_offset + 126 * 512) !=
         11 * DEFAULT_SECTOR_SIZE)
         return -1;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
     {
         const unsigned char *buffer_1024 = buffer + 0x400;
         const auto *rfs = reinterpret_cast<const struct reiserfs_super_block *>(buffer_1024);
@@ -409,7 +447,7 @@ auto search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partitio
     if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE, partition.part_offset + 2048 * 512) !=
         2 * DEFAULT_SECTOR_SIZE)
         return -1;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
     {
         const auto *sb_vmfs = reinterpret_cast<const struct vmfs_volume *>(buffer);
         if (le32(sb_vmfs->magic) == 0xc001d00d && recover_VMFS(disk, sb_vmfs, partition, verbose, dump_ind) == 0)
@@ -421,13 +459,16 @@ auto search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partitio
 
 auto check_linux(disk_t &disk, partition_t &partition, const int verbose) -> int
 {
-#if !defined(DISABLED_FOR_FRAMAC)
-    if (check_JFS(disk, partition) == 0 || check_rfs(disk, partition, verbose) == 0 ||
-        check_EXT2(disk, partition, verbose) == 0 || check_cramfs(disk, partition, verbose) == 0 ||
-        check_xfs(disk, partition, verbose) == 0 || check_LUKS(disk, partition) == 0 ||
-        check_btrfs(disk, partition) == 0 || check_f2fs(disk, partition) == 0 || check_gfs2(disk, partition) == 0 ||
-        check_ZFS(disk, partition) == 0)
-        return 0;
+#ifndef DISABLED_FOR_FRAMAC
+  if (check_JFS(disk, partition) == 0 ||
+      check_rfs(disk, partition, verbose) == 0 ||
+      check_EXT2(disk, partition, verbose) == 0 ||
+      check_cramfs(disk, partition, verbose) == 0 ||
+      check_xfs(disk, partition, verbose) == 0 ||
+      check_LUKS(disk, partition) == 0 || check_btrfs(disk, partition) == 0 ||
+      check_f2fs(disk, partition) == 0 || check_gfs2(disk, partition) == 0 ||
+      check_ZFS(disk, partition) == 0)
+    return 0;
 #endif
     return 1;
 }

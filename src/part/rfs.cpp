@@ -61,7 +61,7 @@ auto check_rfs(disk_t &disk_car, partition_t &partition, const int verbose)
                      partition.part_offset + 128 * 512) !=
       REISERFS_SUPER_BLOCK_SIZE) /* 64k offset */
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_rfs(disk_car,
@@ -70,7 +70,7 @@ auto check_rfs(disk_t &disk_car, partition_t &partition, const int verbose)
   {
     set_rfs_info(reinterpret_cast<struct reiserfs_super_block *>(buffer),
                  partition);
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
   if (test_rfs4(disk_car, reinterpret_cast<struct reiser4_master_sb *>(buffer),
@@ -78,10 +78,10 @@ auto check_rfs(disk_t &disk_car, partition_t &partition, const int verbose)
   {
     set_rfs4_info(reinterpret_cast<const struct reiser4_master_sb *>(buffer),
                   partition);
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 1;
 }
 
@@ -101,23 +101,23 @@ static auto test_rfs(const disk_t &disk_car,
    */
 
   if (le32(sb->s_block_count) < le32(sb->s_free_blocks))
-    return (1);
+    return 1;
 
   if (le32(sb->s_block_count) < REISERFS_MIN_BLOCK_AMOUNT)
-    return (1);
+    return 1;
 
   if ((le16(sb->s_state) != REISERFS_VALID_FS) &&
       (le16(sb->s_state) != REISERFS_ERROR_FS))
-    return (1);
+    return 1;
 
   if (le16(sb->s_oid_maxsize) % 2 != 0) /* must be even */
-    return (1);
+    return 1;
 
   if (le16(sb->s_oid_maxsize) < le16(sb->s_oid_cursize))
-    return (1);
+    return 1;
 
   if ((le16(sb->s_blocksize) != 4096) && (le16(sb->s_blocksize) != 8192))
-    return (1);
+    return 1;
 
   if (verbose > 0)
     log_info("\nReiserFS Marker at {}/{}/{}\n",
@@ -143,7 +143,7 @@ static auto test_rfs4(const disk_t &disk_car,
    * sanity checks.
    */
   if (le16(sb->blocksize) != 4096)
-    return (1);
+    return 1;
   /* if a value > 4096 become legal, the code will break while reading the
    * filesystem size (read out of bound) */
   return 0;

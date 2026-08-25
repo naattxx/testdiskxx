@@ -80,17 +80,17 @@ auto check_JFS(disk_t &disk_car, partition_t &partition) -> int
   if (disk_car.pread(disk_car, buffer, JFS_SUPERBLOCK_SIZE,
                      partition.part_offset + 64 * 512) != JFS_SUPERBLOCK_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_JFS(disk_car, reinterpret_cast<struct jfs_superblock *>(buffer),
                partition, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_JFS_info(reinterpret_cast<struct jfs_superblock *>(buffer), partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

@@ -58,7 +58,7 @@ static void efi_generate_uuid(efi_guid_t *ent_uuid)
 {
 #ifdef HAVE_UUID_GENERATE
   uuid_generate(reinterpret_cast<unsigned char *>(ent_uuid));
-#elif defined HAVE_UUIDGEN
+#elifdef HAVE_UUIDGEN
   uuidgen((struct uuid *)ent_uuid, 1);
 #elif defined HAVE_UUID_CREATE
   uuid_t *uuid;
@@ -275,10 +275,10 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
           gpt_entries_size
       ))
   {
-    delete[] (gpt_org);
-    delete[] (gpt_entries_org);
-    delete[] (gpt);
-    delete[] (gpt_entries);
+    delete[] gpt_org;
+    delete[] gpt_entries_org;
+    delete[] gpt;
+    delete[] gpt_entries;
     return 1;
   }
   if (std::cmp_not_equal(disk_car.pwrite(disk_car, gpt, disk_car.sector_size,
@@ -286,10 +286,10 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
                                              disk_car.sector_size),
                          disk_car.sector_size))
   {
-    delete[] (gpt_org);
-    delete[] (gpt_entries_org);
-    delete[] (gpt);
-    delete[] (gpt_entries);
+    delete[] gpt_org;
+    delete[] gpt_entries_org;
+    delete[] gpt;
+    delete[] gpt_entries;
     return 1;
   }
   gpt->hdr_lba_self = le64((disk_car.disk_size - 1) / disk_car.sector_size);
@@ -305,10 +305,10 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
           gpt_entries_size
       ))
   {
-    delete[] (gpt_org);
-    delete[] (gpt_entries_org);
-    delete[] (gpt);
-    delete[] (gpt_entries);
+    delete[] gpt_org;
+    delete[] gpt_entries_org;
+    delete[] gpt;
+    delete[] gpt_entries;
     return 1;
   }
   if (std::cmp_not_equal(disk_car.pwrite(disk_car, gpt, disk_car.sector_size,
@@ -316,16 +316,16 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
                                              disk_car.sector_size),
                          disk_car.sector_size))
   {
-    delete[] (gpt_org);
-    delete[] (gpt_entries_org);
-    delete[] (gpt);
-    delete[] (gpt_entries);
+    delete[] gpt_org;
+    delete[] gpt_entries_org;
+    delete[] gpt;
+    delete[] gpt_entries;
     return 1;
   }
-  delete[] (gpt_org);
-  delete[] (gpt_entries_org);
-  delete[] (gpt);
-  delete[] (gpt_entries);
+  delete[] gpt_org;
+  delete[] gpt_entries_org;
+  delete[] gpt;
+  delete[] gpt_entries;
   write_part_gpt_i386(disk_car, list_part);
   disk_car.sync(disk_car);
   return 0;

@@ -41,16 +41,16 @@ auto check_Linux_SWAP(disk_t &disk_car, partition_t &partition) -> int
   if (disk_car.pread(disk_car, buffer, MAX_PAGE_SIZE, partition.part_offset) !=
       MAX_PAGE_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_Linux_SWAP(reinterpret_cast<union swap_header *>(buffer)) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_Linux_SWAP_info(reinterpret_cast<union swap_header *>(buffer), partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

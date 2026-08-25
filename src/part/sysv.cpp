@@ -64,7 +64,7 @@ auto check_sysv(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, SYSV4_SECTOR_SIZE,
                      partition.part_offset + 0x200) != SYSV4_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_sysv4(disk_car,
@@ -73,10 +73,10 @@ auto check_sysv(disk_t &disk_car, partition_t &partition, const int verbose)
   {
     set_sysv4_info(reinterpret_cast<const struct sysv4_super_block *>(buffer),
                    partition);
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 1;
 }
 

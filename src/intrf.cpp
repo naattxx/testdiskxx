@@ -20,12 +20,13 @@
 
  */
 
+#include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <format>
 #include <string>
 #include <vector>
@@ -75,8 +76,7 @@ auto screen_buffer_add(const char *_format, ...) -> int
         const unsigned int dst_current_len = strlen(intr_buffer_screen[intr_nbr_line]);
         const char *end = strchr(start, '\n');
         unsigned int nbr = (end == nullptr ? strlen(start) : static_cast<unsigned int>(end - start));
-        if (nbr > BUFFER_LINE_LENGTH - dst_current_len)
-            nbr = BUFFER_LINE_LENGTH - dst_current_len;
+        nbr = std::min(nbr, BUFFER_LINE_LENGTH - dst_current_len);
 
         memcpy(&intr_buffer_screen[intr_nbr_line][dst_current_len], start, nbr);
         intr_buffer_screen[intr_nbr_line][dst_current_len + nbr] = '\0';
@@ -181,7 +181,7 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk, const partitio
 }
 
 #define PATH_SEP '/'
-#if defined(__CYGWIN__)
+#ifdef __CYGWIN__
 /* /cygdrive/c/ => */
 #define PATH_DRIVE_LENGTH 9
 #endif
@@ -215,18 +215,18 @@ auto ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t v
         if (val_min == val_max || (tmp_val >= val_min && tmp_val <= val_max))
             return tmp_val;
 #ifndef DISABLED_FOR_FRAMAC
-        else
-        {
-            char res[200];
-            va_list ap;
-            va_start(ap, _format);
-            vsnprintf(res, sizeof(res), _format, ap);
-            log_error("{}", res);
-            if (val_min != val_max)
-                log_error("({}-{}) :", (long long unsigned)val_min, (long long unsigned)val_max);
-            log_error("Invalid value\n");
-            va_end(ap);
-        }
+
+        char res[200];
+        va_list ap;
+        va_start(ap, _format);
+        vsnprintf(res, sizeof(res), _format, ap);
+        log_error("{}", res);
+        if (val_min != val_max)
+          log_error("({}-{}) :", (long long unsigned)val_min,
+                    (long long unsigned)val_max);
+        log_error("Invalid value\n");
+        va_end(ap);
+
 #endif
     }
     /*@ assert valid_read_string(*current_cmd); */

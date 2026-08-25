@@ -140,7 +140,7 @@ auto io_redir_del_redir(disk_t &disk_car, uint64_t org_offset) -> int
                 current_redir->next->prev = current_redir->prev;
             if (data->list_redir == current_redir)
                 data->list_redir = current_redir->next;
-            delete (current_redir);
+            delete current_redir;
             if (data->list_redir == nullptr)
             {
 #ifdef DEBUG_IO_REDIR
@@ -148,7 +148,7 @@ auto io_redir_del_redir(disk_t &disk_car, uint64_t org_offset) -> int
 #endif
                 disk_car = *data->disk_car;
                 delete (data->disk_car);
-                delete (data);
+                delete data;
             }
             return 0;
         }
@@ -172,9 +172,10 @@ static auto io_redir_pread(disk_t &disk_car, void *buffer, const unsigned int co
         int res = 0;
         for (current_redir = data->list_redir;
              (current_redir != nullptr) &&
-             !(current_redir->org_offset <= offset && offset < current_redir->org_offset + current_redir->size);
+             (current_redir->org_offset > offset ||
+              offset >= current_redir->org_offset + current_redir->size);
              current_redir = current_redir->next)
-            ;
+          ;
         if (current_redir != nullptr)
         {
             if (current_redir->org_offset > current_offset)

@@ -52,8 +52,8 @@ static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, co
         {
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
             std::cout << "You need to be Administrator to use TestDisk." << std::endl;
-#elif defined(__linux__)
-            std::cout << "You need to be root to use TestDisk." << std::endl;
+#elifdef __linux__
+          std::cout << "You need to be root to use TestDisk." << std::endl;
 #endif
         }
         return 1;

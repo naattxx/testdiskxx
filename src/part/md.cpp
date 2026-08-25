@@ -38,7 +38,6 @@ static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
 {
   if (le32(sb->md_magic) != MD_SB_MAGIC)
     return 1;
-#ifndef DISABLED_FOR_FRAMAC
   log_info("\nRaid magic value at {}/{}/{}\n",
            offset2cylinder(disk_car, partition.part_offset),
            offset2head(disk_car, partition.part_offset),
@@ -51,7 +50,6 @@ static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
     log_info("Raid chunk size: {} bytes\n",
              (long long unsigned)le32(sb->chunk_size));
   }
-#endif
   if (le32(sb->major_version) > 1)
     return 1;
   if (dump_ind != 0)
@@ -68,7 +66,6 @@ static auto test_MD_be(const disk_t &disk_car,
 {
   if (be32(sb->md_magic) != MD_SB_MAGIC)
     return 1;
-#ifndef DISABLED_FOR_FRAMAC
   log_info("\nRaid magic value at {}/{}/{}\n",
            offset2cylinder(disk_car, partition.part_offset),
            offset2head(disk_car, partition.part_offset),
@@ -81,7 +78,6 @@ static auto test_MD_be(const disk_t &disk_car,
     log_info("Raid chunk size: {} bytes\n",
              (long long unsigned)be32(sb->chunk_size));
   }
-#endif
   if (be32(sb->major_version) > 1)
     return 1;
   if (dump_ind != 0)
@@ -125,7 +121,6 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
     partition.info = std::format("md {}.x L.Endian Raid {} - Array Slot : {}",
                                  le32(sb1->major_version), le32(sb1->level),
                                  le32(sb1->dev_number));
-#ifndef DISABLED_FOR_FRAMAC
     if (le32(sb1->max_dev) <= 384)
     {
       unsigned int i, d;
@@ -147,12 +142,9 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
       }
       partition.info += ")";
     }
-#endif
   }
-#ifndef DISABLED_FOR_FRAMAC
   if (verbose > 0)
     log_info("%s %s\n", partition.fsname, partition.info);
-#endif
 }
 
 static void set_MD_info_be(const struct mdp_superblock_t *sb,
@@ -188,7 +180,6 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
     partition.info = std::format("md {}.x B.Endian Raid {} - Array Slot : {}",
                                  be32(sb1->major_version), be32(sb1->level),
                                  be32(sb1->dev_number));
-#if !defined(DISABLED_FOR_FRAMAC)
     if (be32(sb1->max_dev) <= 384)
     {
       unsigned int i, d;
@@ -210,12 +201,9 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
       }
       partition.info += ")";
     }
-#endif
   }
-#ifndef DISABLED_FOR_FRAMAC
   if (verbose > 0)
     log_info("%s %s\n", partition.fsname, partition.info);
-#endif
 }
 #endif
 
@@ -234,12 +222,10 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
         test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                 partition, 0) == 0)
     {
-#ifndef DISABLED_FOR_FRAMAC
       log_info("check_MD 1.1\n");
-#endif
       set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                   partition, verbose);
-      delete[] (buffer);
+      delete[] buffer;
       return 0;
     }
     if (be32(sb1->md_magic) == MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
@@ -248,12 +234,10 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
                    reinterpret_cast<struct mdp_superblock_t *>(buffer),
                    partition, 0) == 0)
     {
-#ifndef DISABLED_FOR_FRAMAC
       log_info("check_MD 1.1 (BigEndian)\n");
-#endif
       set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, verbose);
-      delete[] (buffer);
+      delete[] buffer;
       return 0;
     }
   }
@@ -267,12 +251,10 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
         test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                 partition, 0) == 0)
     {
-#ifndef DISABLED_FOR_FRAMAC
       log_info("check_MD 1.2\n");
-#endif
       set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                   partition, verbose);
-      delete[] (buffer);
+      delete[] buffer;
       return 0;
     }
     if (be32(sb1->md_magic) == MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
@@ -281,12 +263,10 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
                    reinterpret_cast<struct mdp_superblock_t *>(buffer),
                    partition, 0) == 0)
     {
-#ifndef DISABLED_FOR_FRAMAC
       log_info("check_MD 1.2 (BigEndian)\n");
-#endif
       set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, verbose);
-      delete[] (buffer);
+      delete[] buffer;
       return 0;
     }
   }
@@ -295,13 +275,11 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
     const auto *sb = reinterpret_cast<const struct mdp_superblock_t *>(buffer);
     const uint64_t offset =
         MD_NEW_SIZE_SECTORS(partition.part_size / 512) * 512;
-#ifndef DISABLED_FOR_FRAMAC
     if (verbose > 1)
     {
       ; // log_verbose("Raid md 0.90 offset {}\n", (long long
         // unsigned)offset/512);
     }
-#endif
     if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
                        partition.part_offset + offset) == MD_SB_BYTES)
     {
@@ -309,12 +287,10 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
           test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                   partition, 0) == 0)
       {
-#ifndef DISABLED_FOR_FRAMAC
         log_info("check_MD 0.90\n");
-#endif
         set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                     partition, verbose);
-        delete[] (buffer);
+        delete[] buffer;
         return 0;
       }
       if (be32(sb->md_magic) == MD_SB_MAGIC && be32(sb->major_version) == 0 &&
@@ -322,12 +298,10 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
                      reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, 0) == 0)
       {
-#ifndef DISABLED_FOR_FRAMAC
         log_info("check_MD 0.90 (BigEndian)\n");
-#endif
         set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                        partition, verbose);
-        delete[] (buffer);
+        delete[] buffer;
         return 0;
       }
     }
@@ -337,13 +311,11 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
   {
     const uint64_t offset =
         (((partition.part_size / 512) - 8 * 2) & ~(4 * 2 - 1)) * 512;
-#ifndef DISABLED_FOR_FRAMAC
     if (verbose > 1)
     {
       ; // log_verbose("Raid md 1.0 offset {}\n", (long long
         // unsigned)offset/512);
     }
-#endif
     if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
                        partition.part_offset + offset) == MD_SB_BYTES)
     {
@@ -354,12 +326,10 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
           test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                   partition, 0) == 0)
       {
-#ifndef DISABLED_FOR_FRAMAC
         log_info("check_MD 1.0\n");
-#endif
         set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                     partition, verbose);
-        delete[] (buffer);
+        delete[] buffer;
         return 0;
       }
       if (be32(sb1->md_magic) == MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
@@ -368,17 +338,15 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
                      reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, 0) == 0)
       {
-#ifndef DISABLED_FOR_FRAMAC
         log_info("check_MD 1.0 (BigEndian)\n");
-#endif
         set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
                        partition, verbose);
-        delete[] (buffer);
+        delete[] buffer;
         return 0;
       }
     }
   }
-  delete[] (buffer);
+  delete[] buffer;
 #endif
   return 1;
 }
@@ -399,7 +367,7 @@ auto recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
                      reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, verbose, 0) == 0)
       {
-        delete[] (buffer);
+        delete[] buffer;
         return 0;
       }
     }
@@ -420,13 +388,13 @@ auto recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
                      partition, verbose, 0) == 0)
       {
         partition.part_offset -= le64(sb1->super_offset) * 512 - offset;
-        delete[] (buffer);
+        delete[] buffer;
         return 0;
       }
     }
   }
   /* md 1.1 & 1.2 don't need special operation to be recovered */
-  delete[] (buffer);
+  delete[] buffer;
 #endif
   return 1;
 }

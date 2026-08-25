@@ -291,8 +291,8 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
     switch (command)
     {
     case 0:
-      delete[] (buffer_bs);
-      delete[] (buffer_backup_bs);
+      delete[] buffer_bs;
+      delete[] buffer_backup_bs;
       return 0;
     case 'O': /* O : copy original boot sector over backup boot */
 #ifdef HAVE_NCURSES

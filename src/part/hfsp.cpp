@@ -54,13 +54,13 @@ auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
                      partition.part_offset + 0x400) != HFSP_BOOT_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition,
                 verbose, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_HFSP_info(partition, reinterpret_cast<const struct hfsp_vh *>(buffer));
@@ -72,7 +72,7 @@ auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
   {
     partition.info += " + Backup";
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -108,7 +108,7 @@ auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
     {
       partition.info += " + Backup";
     }
-    delete[] (buffer);
+    delete[] buffer;
   }
   partition.part_type_i386 = P_HFSP;
   partition.part_type_mac  = PMAC_HFS;

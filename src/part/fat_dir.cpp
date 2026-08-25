@@ -21,6 +21,7 @@
  */
 
 #include "src/dir_common.hpp"
+#include <algorithm>
 #include <cctype>
 #include <config.h>
 #include <cstdio>
@@ -360,10 +361,9 @@ static auto is_EOC(const unsigned int cluster, const upart_type_t upart_type)
 {
   if (upart_type == UP_FAT12)
     return ((cluster & 0x0ff8) == static_cast<unsigned>(FAT12_EOC));
-  else if (upart_type == UP_FAT16)
+  if (upart_type == UP_FAT16)
     return ((cluster & 0x0fff8) == static_cast<unsigned>(FAT16_EOC));
-  else
-    return ((cluster & 0xffffff8) == static_cast<unsigned>(FAT32_EOC));
+  return ((cluster & 0xffffff8) == static_cast<unsigned>(FAT32_EOC));
 }
 
 #define NBR_ENTRIES_MAX 65536
@@ -469,9 +469,9 @@ static auto fat_dir(disk_t &disk_car, const partition_t &partition,
         stop = 1;
       }
       if (stop == 0 && nbr_cluster == 0 &&
-          !(partition.upart_type == UP_FAT32 && first_cluster == 0) &&
-          !(buffer_dir[0] == '.' && buffer_dir[0x20] == '.' &&
-            buffer_dir[0x21] == '.'))
+          (partition.upart_type != UP_FAT32 || first_cluster != 0) &&
+          (buffer_dir[0] != '.' || buffer_dir[0x20] != '.' ||
+           buffer_dir[0x21] != '.'))
       {
         stop = 1;
       }
@@ -515,7 +515,7 @@ static auto fat_dir(disk_t &disk_car, const partition_t &partition,
     if (nbr_cluster > 0)
       dir_fat_aux(buffer_dir, cluster_size * nbr_cluster, dir_data->param,
                   dir_list);
-    delete[] (buffer_dir);
+    delete[] buffer_dir;
     return 0;
   }
 }
@@ -557,7 +557,7 @@ static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
       /* Don't return yet, it may have been a partial read */
     }
     res = dir_fat_aux(buffer_dir, root_size, dir_data->param, dir_list);
-    delete[] (buffer_dir);
+    delete[] buffer_dir;
     return res;
   }
 }
@@ -574,7 +574,7 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_error("Can't read FAT boot sector.\n");
 #endif
-    delete[] (buffer);
+    delete[] buffer;
     return DIR_PART_EIO;
   }
   set_secwest();
@@ -602,7 +602,7 @@ static void dir_partition_fat_close(dir_data_t *dir_data)
 {
   auto *ls = static_cast<struct fat_dir_struct *>(dir_data->private_dir_data);
   delete (ls->boot_sector);
-  delete (ls);
+  delete ls;
 }
 
 /*@
@@ -640,8 +640,8 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
     log_critical("Can't create file %s: \n", new_file);
 #endif
-    delete (new_file);
-    delete[] (buffer_file);
+    delete new_file;
+    delete[] buffer_file;
     return CP_CREATE_FAILED;
   }
   cluster    = file.st_ino;
@@ -671,8 +671,7 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
                            (start_data + (cluster - 2) * sectors_per_cluster) *
                                fat_sector_size(fat_header);
     unsigned int toread  = block_size;
-    if (toread > file_size)
-      toread = file_size;
+    toread               = std::min(toread, file_size);
     if (std::cmp_not_equal(disk_car.pread(disk_car, buffer_file, toread, start),
                            toread))
     {
@@ -687,8 +686,8 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
 #endif
       fclose(f_out);
       set_date(new_file, file.td_atime, file.td_mtime);
-      delete (new_file);
-      delete[] (buffer_file);
+      delete new_file;
+      delete[] buffer_file;
       return CP_NOSPACE;
     }
     file_size -= toread;
@@ -719,7 +718,7 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
   }
   fclose(f_out);
   set_date(new_file, file.td_atime, file.td_mtime);
-  delete (new_file);
-  delete[] (buffer_file);
+  delete new_file;
+  delete[] buffer_file;
   return CP_OK;
 }

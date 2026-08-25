@@ -51,16 +51,16 @@ auto check_f2fs(disk_t &disk, partition_t &partition) -> int
   if (disk.pread(disk, buffer, F2FS_BLKSIZE,
                  partition.part_offset + F2FS_SUPER_OFFSET) != F2FS_BLKSIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_f2fs(reinterpret_cast<struct f2fs_super_block *>(buffer)) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_f2fs_info(partition, reinterpret_cast<struct f2fs_super_block *>(buffer));
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

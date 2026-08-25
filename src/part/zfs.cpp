@@ -60,17 +60,17 @@ auto check_ZFS(disk_t &disk, partition_t &partition) -> int
   if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE,
                  partition.part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_ZFS(disk, reinterpret_cast<struct vdev_boot_header *>(buffer),
                partition, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_ZFS_info(reinterpret_cast<struct vdev_boot_header *>(buffer), partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

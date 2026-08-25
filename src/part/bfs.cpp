@@ -66,17 +66,17 @@ auto check_BeFS(disk_t &disk_car, partition_t &partition) -> int
   if (disk_car.pread(disk_car, buffer, BFS_SUPERBLOCK_SIZE,
                      partition.part_offset + 0x200) != BFS_SUPERBLOCK_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_BeFS(disk_car, reinterpret_cast<struct disk_super_block *>(buffer),
                 partition, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_BeFS_info(reinterpret_cast<struct disk_super_block *>(buffer), partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

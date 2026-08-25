@@ -117,19 +117,19 @@ auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
   if (disk_car.pread(disk_car, buffer, BSD_DISKLABEL_SIZE,
                      partition.part_offset + 0x200) != BSD_DISKLABEL_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_BSD(disk_car, reinterpret_cast<const struct disklabel *>(buffer),
                partition, verbose, 0, max_partitions))
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   partition.set_name(
       std::string_view(reinterpret_cast<const struct disklabel *>(buffer)->d_packname, 16)
   );
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

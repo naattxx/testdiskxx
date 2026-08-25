@@ -110,17 +110,17 @@ auto check_xfs(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE,
                      partition.part_offset) != XFS_SUPERBLOCK_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_xfs(disk_car, reinterpret_cast<struct xfs_sb *>(buffer), partition,
                verbose) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_xfs_info(reinterpret_cast<struct xfs_sb *>(buffer), partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

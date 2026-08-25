@@ -24,7 +24,7 @@
 
 #include <config.h>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBEWF
 #endif
 

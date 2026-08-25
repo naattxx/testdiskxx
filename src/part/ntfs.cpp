@@ -25,6 +25,7 @@
 
 #include <config.h>
 
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -82,18 +83,18 @@ auto check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
   if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
                      partition.part_offset) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_NTFS(disk_car, reinterpret_cast<struct ntfs_boot_sector *>(buffer),
                 partition, verbose, dump_ind) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_NTFS_info(disk_car, reinterpret_cast<struct ntfs_boot_sector *>(buffer),
                 partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -430,7 +431,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
                          mft_record_size))
   {
     log_error("NTFS: Can't read MFT\n");
-    delete[] (buffer);
+    delete[] buffer;
     return;
   }
   {
@@ -445,14 +446,14 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
       const char *name_it;
       unsigned int volume_name_length = le32(attrib->cbAttribData);
       volume_name_length /= 2; /* Unicode */
-      if (volume_name_length > sizeof(partition.fsname) - 1)
-        volume_name_length = sizeof(partition.fsname) - 1;
+      volume_name_length =
+          std::min<size_t>(volume_name_length, sizeof(partition.fsname) - 1);
       name_it = ntfs_getattributedata(
           attrib, reinterpret_cast<char *>(buffer + mft_record_size)
       );
       if (name_it == nullptr)
       {
-        delete[] (buffer);
+        delete[] buffer;
         return;
       }
       for (dest = partition.fsname.data();
@@ -463,8 +464,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
                        Plessis-Denz */
     }
   }
-  delete[] (buffer);
-  return;
+  delete[] buffer;
 }
 
 auto is_part_ntfs(const partition_t &partition) -> int

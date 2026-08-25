@@ -64,17 +64,17 @@ auto check_LUKS(disk_t &disk_car, partition_t &partition) -> int
   if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
                      partition.part_offset) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_LUKS(disk_car, reinterpret_cast<struct luks_phdr *>(buffer),
                 partition, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_LUKS_info(reinterpret_cast<struct luks_phdr *>(buffer), partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

@@ -23,6 +23,7 @@
 #include "src/dir_common.hpp"
 #include <config.h>
 
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -537,14 +538,14 @@ static auto fat32_find_root_cluster(
                     // cluster({})=>{}\n",new_root_cluster,tmp);
                 if (tmp == 0)
                 {
-                  delete[] (buffer);
+                  delete[] buffer;
                   return new_root_cluster;
                 }
                 /* Check cluster number */
                 if ((tmp < 2) || (tmp >= 2 + no_of_cluster))
                 {
                   log_error("bad cluster number\n");
-                  delete[] (buffer);
+                  delete[] buffer;
                   return new_root_cluster;
                 }
                 /* Read the cluster */
@@ -559,7 +560,7 @@ static auto fat32_find_root_cluster(
                     ))
                 {
                   log_critical("cluster can't be read\n");
-                  delete[] (buffer);
+                  delete[] buffer;
                   return new_root_cluster;
                 }
                 /* Check if this cluster is a directory structure. FAT can be
@@ -569,23 +570,22 @@ static auto fat32_find_root_cluster(
                   if (check_FAT_dir_entry(&buffer[i * 0x20], i) != 1)
                   {
                     log_error("cluster data is not a directory structure\n");
-                    delete[] (buffer);
+                    delete[] buffer;
                     return new_root_cluster;
                   }
                 }
               }
-              delete[] (buffer);
+              delete[] buffer;
               return new_root_cluster;
             }
-            else
+
+            if (verbose > 1)
             {
-              if (verbose > 1)
-              {
-                // log_verbose("cluster {}, etat=%d, found={}, nb_subdir=%d,
-                // nb_subdir_ok=%d\n",
-                //     root_cluster, etat, found, nb_subdir, nb_subdir_ok);
-              }
+              // log_verbose("cluster {}, etat=%d, found={}, nb_subdir=%d,
+              // nb_subdir_ok=%d\n",
+              //     root_cluster, etat, found, nb_subdir, nb_subdir_ok);
             }
+
             {
               dir_list_t dir_list;
               dir_fat_aux(buffer, cluster_size, 0, dir_list);
@@ -656,7 +656,7 @@ static auto fat32_find_root_cluster(
 #endif
       delete_list_file(rootdir_list);
     }
-    delete[] (buffer);
+    delete[] buffer;
   }
   return root_cluster;
 }
@@ -866,7 +866,7 @@ static auto find_dir_entries(disk_t &disk_car, const partition_t &partition,
             dir_entry_found = 1;
             break;
           case 2: /* Failed */
-            delete[] (buffer);
+            delete[] buffer;
             return 0;
           }
         }
@@ -874,14 +874,14 @@ static auto find_dir_entries(disk_t &disk_car, const partition_t &partition,
         {
           if (check_FAT_dir_entry(&buffer[j * 32], j) != 1)
           { /* Must be in the FAT table */
-            delete[] (buffer);
+            delete[] buffer;
             return (i - 1) * (disk_car.sector_size / 32);
           }
         }
       }
     }
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -916,7 +916,7 @@ static auto analyse_dir_entries(disk_t &disk_car, const partition_t &partition,
             if (i == 0 && j == 0)
             { /* The first entry must not be empty, otherwise there is no file
                */
-              delete[] (buffer);
+              delete[] buffer;
               return 0;
             }
             etat         = 1;
@@ -930,7 +930,7 @@ static auto analyse_dir_entries(disk_t &disk_car, const partition_t &partition,
         { /* Not an entry or non empty entry */
           if (etat == 1)
           {
-            delete[] (buffer);
+            delete[] buffer;
             if (i == sector_etat1)
             { /* In the same sector, empty entry must not be followed by
                  non-empty entry */
@@ -947,7 +947,7 @@ static auto analyse_dir_entries(disk_t &disk_car, const partition_t &partition,
     }
     hd_offset += disk_car.sector_size;
   }
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -976,7 +976,7 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
                          root_dir_size))
   {
     log_error("FAT 1x can't read root directory\n");
-    delete[] (buffer_dir);
+    delete[] buffer_dir;
     return 0;
   }
   dir_fat_aux(buffer_dir, root_dir_size,
@@ -1043,7 +1043,7 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
             }
             if (cluster_prev == 0 && cluster == new_inode)
             {
-              delete[] (buffer_dir);
+              delete[] buffer_dir;
               delete_list_file(dir_list);
               return ((dir_entries + (disk_car.sector_size / 32) - 1) /
                       (disk_car.sector_size / 32)) *
@@ -1055,7 +1055,7 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
     }
   }
   log_warning("No directory found\n");
-  delete[] (buffer_dir);
+  delete[] buffer_dir;
   delete_list_file(dir_list);
   return root_size_max;
 }
@@ -1300,8 +1300,8 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
   memcpy(newboot, orgboot, 3 * disk_car.sector_size);
   if (3 * disk_car.sector_size >= DEFAULT_SECTOR_SIZE &&
       (le16(fat_header->marker) != 0xAA55 ||
-       !((fat_header->ignored[0] == 0xeb && fat_header->ignored[2] == 0x90) ||
-         fat_header->ignored[0] == 0xe9)))
+       ((fat_header->ignored[0] != 0xeb || fat_header->ignored[2] != 0x90) &&
+        fat_header->ignored[0] != 0xe9)))
   {
     write_FAT_boot_code_aux(newboot);
   }
@@ -1311,8 +1311,8 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
   fat_header->secs_track     = le16(disk_car.geom.sectors_per_head);
   fat_header->heads          = le16(disk_car.geom.heads_per_cylinder);
   fat_header->marker         = le16(0xAA55);
-  if (!((fat_header->ignored[0] == 0xeb && fat_header->ignored[2] == 0x90) ||
-        fat_header->ignored[0] == 0xe9))
+  if ((fat_header->ignored[0] != 0xeb || fat_header->ignored[2] != 0x90) &&
+      fat_header->ignored[0] != 0xe9)
   {
     fat_header->ignored[0] = 0xeb;
     fat_header->ignored[2] = 0x90;
@@ -1358,8 +1358,7 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
     log_close();
     exit(1);
   }
-  if (part_size > partition.part_size / disk_car.sector_size)
-    part_size = partition.part_size / disk_car.sector_size;
+  part_size = std::min(part_size, partition.part_size / disk_car.sector_size);
   if (part_size > 0xFFFF)
   {
     fat_header->sectors[0] = 0;
@@ -1504,8 +1503,8 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
   }
   menu_write_fat_boot_sector(disk_car, partition, verbose, upart_type, orgboot,
                              newboot, error, current_cmd);
-  delete[] (orgboot);
-  delete[] (newboot);
+  delete[] orgboot;
+  delete[] newboot;
 }
 
 /*@
@@ -1516,8 +1515,7 @@ static auto up2power_aux(const unsigned int number) -> unsigned int
 {
   if (number == 0)
     return 0;
-  else
-    return (1 + up2power_aux(number / 2));
+  return (1 + up2power_aux(number / 2));
 }
 
 /*@
@@ -1872,11 +1870,11 @@ static auto fat_find_fat_start(const unsigned char *buffer, const int p_fat12,
       unsigned int res;
       *fat_offset = info_offset[best_j].offset;
       res         = info_offset[best_j].fat_type;
-      delete[] (info_offset);
+      delete[] info_offset;
       return res;
     }
   }
-  delete[] (info_offset);
+  delete[] info_offset;
   return 0;
 }
 
@@ -1942,9 +1940,9 @@ static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
                    (long unsigned)(offset / disk_car.sector_size));
         }
         for (j = 0; j < *nbr_offset &&
-                    !(info_offset[j].offset ==
-                          offset / disk_car.sector_size - fat_offset &&
-                      info_offset[j].fat_type == fat_type);
+                    (info_offset[j].offset !=
+                         offset / disk_car.sector_size - fat_offset ||
+                     info_offset[j].fat_type != fat_type);
              j++)
           ;
         if (j < *nbr_offset)
@@ -1978,7 +1976,7 @@ static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
   wclrtoeol(stdscr);
   wrefresh(stdscr);
 #endif
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -2628,7 +2626,7 @@ auto FAT_init_rootdir(disk_t &disk_car, partition_t &partition,
                          disk_car.sector_size))
   {
     // display_message("FAT_init_rootdir: Can't read boot sector\n");
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   fat_length    = le16(fat_header->fat_length) > 0
@@ -2668,7 +2666,7 @@ auto FAT_init_rootdir(disk_t &disk_car, partition_t &partition,
     else
       ; // display_message("TestDisk doesn't seem needed to reset the root
         // directory.\n");
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
 #ifdef HAVE_NCURSES
@@ -2695,7 +2693,7 @@ auto FAT_init_rootdir(disk_t &disk_car, partition_t &partition,
     }
   }
 #endif
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -2741,7 +2739,7 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
                              disk_car.sector_size))
       {
         ; // display_message("repair_FAT_table: Can't read boot sector\n");
-        delete[] (buffer);
+        delete[] buffer;
 #ifdef HAVE_NCURSES
         delwin(window);
         (void)clearok(stdscr, TRUE);
@@ -2766,7 +2764,7 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
           (part_size - start_data) / fat_header->sectors_per_cluster;
       fat32_root_cluster = le32(fat_header->root_cluster);
       log_info("repair_FAT_table cluster=2..{}\n", no_of_cluster + 1);
-      delete[] (buffer);
+      delete[] buffer;
     }
     if (fats == 0 || fats > 2)
     {

@@ -21,6 +21,7 @@
  */
 
 #include "src/dir_common.hpp"
+#include <algorithm>
 #include <cctype>
 #include <config.h>
 #include <cstdio>
@@ -207,7 +208,7 @@ static auto exfat_get_next_cluster(disk_t &disk_car,
                          disk_car.sector_size))
   {
     log_error("exfat_get_next_cluster read error\n");
-    delete[] (buffer);
+    delete[] buffer;
     return 0;
   }
   /* 0x00000000: free cluster
@@ -215,7 +216,7 @@ static auto exfat_get_next_cluster(disk_t &disk_car,
    * 0xFFFFFFFF: EOC End of cluster
    * */
   next_cluster = le32(p32[offset_o]);
-  delete[] (buffer);
+  delete[] buffer;
   return next_cluster;
 }
 
@@ -404,7 +405,7 @@ static auto exfat_dir(disk_t &disk, const partition_t &partition,
   }
   if (nbr_cluster > 0)
     dir_exfat_aux(buffer_dir, nbr_cluster << cluster_shift, dir_data, dir_list);
-  delete[] (buffer_dir);
+  delete[] buffer_dir;
   return 0;
 }
 
@@ -420,7 +421,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   if (disk.pread(disk, exfat_header, 0x200, partition.part_offset) != 0x200)
   {
     log_error("Can't read exFAT boot sector.\n");
-    delete (exfat_header);
+    delete exfat_header;
     return DIR_PART_EIO;
   }
   if (le16(exfat_header->signature) != 0xAA55 ||
@@ -428,7 +429,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
           0)
   {
     log_error("Not an exFAT boot sector.\n");
-    delete (exfat_header);
+    delete exfat_header;
     return DIR_PART_EIO;
   }
   ls              = new struct exfat_dir_struct;
@@ -479,7 +480,7 @@ static void dir_partition_exfat_close(dir_data_t *dir_data)
   if (ls->cd != (iconv_t)(-1))
     iconv_close(ls->cd);
 #endif
-  delete (ls);
+  delete ls;
 }
 
 static auto exfat_copy(disk_t &disk, const partition_t &partition,
@@ -505,8 +506,8 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
   if (!f_out)
   {
     log_critical("Can't create file: {}", new_file);
-    delete (new_file);
-    delete[] (buffer_file);
+    delete new_file;
+    delete[] buffer_file;
     return CP_CREATE_FAILED;
   }
   cluster        = file.st_ino;
@@ -522,8 +523,7 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
   while (cluster >= 2 && cluster <= total_clusters && file_size > 0)
   {
     unsigned int toread = 1 << cluster_shift;
-    if (toread > file_size)
-      toread = file_size;
+    toread              = std::min<uint64_t>(toread, file_size);
     if (std::cmp_less(exfat_read_cluster(disk, partition, exfat_header,
                                          buffer_file, cluster),
                       toread))
@@ -535,8 +535,8 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
       log_error("exfat_copy: no space left on destination.\n");
       fclose(f_out);
       set_date(new_file, file.td_atime, file.td_mtime);
-      delete (new_file);
-      delete[] (buffer_file);
+      delete new_file;
+      delete[] buffer_file;
       return CP_NOSPACE;
     }
     file_size -= toread;
@@ -567,7 +567,7 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
   }
   fclose(f_out);
   set_date(new_file, file.td_atime, file.td_mtime);
-  delete (new_file);
-  delete[] (buffer_file);
+  delete new_file;
+  delete[] buffer_file;
   return CP_OK;
 }

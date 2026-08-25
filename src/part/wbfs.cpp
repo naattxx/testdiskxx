@@ -57,17 +57,17 @@ auto check_WBFS(disk_t &disk, partition_t &partition) -> int
   if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE,
                  partition.part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_WBFS(disk, reinterpret_cast<struct wbfs_head *>(buffer), partition,
                 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_WBFS_info(partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

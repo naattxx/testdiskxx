@@ -23,7 +23,7 @@
 #include <iostream>
 #include <string_view>
 #include <utility>
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -98,18 +98,24 @@ static auto cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int c
                     memcpy(buffer, cache->buffer + offset - cache->cache_offset, count);
                     return (std::cmp_less(res ,count) ? res : static_cast<signed>(count));
                 }
-                else
-                {
+
 #ifdef DEBUG_CACHE
-                    log_info("cache USE {:5} count={}, coffset={}, ctstatus={}, call again cache_pread_aux",
-                             cache_buffer_nbr, cache->cache_size, (long long unsigned)cache->cache_offset,
-                             cache->cache_status);
-                    data->nbr_fnct_sect += data_available;
+                log_info(
+                    "cache USE {:5} count={}, coffset={}, ctstatus={}, call "
+                    "again cache_pread_aux",
+                    cache_buffer_nbr, cache->cache_size,
+                    (long long unsigned)cache->cache_offset, cache->cache_status
+                );
+                data->nbr_fnct_sect += data_available;
 #endif
-                    memcpy(buffer, cache->buffer + offset - cache->cache_offset, data_available);
-                    return res + cache_pread_aux(disk_car, static_cast<unsigned char *>(buffer) + data_available,
-                                                 count - data_available, offset + data_available, read_ahead);
-                }
+                memcpy(buffer, cache->buffer + offset - cache->cache_offset,
+                       data_available);
+                return res +
+                       cache_pread_aux(disk_car,
+                                       static_cast<unsigned char *>(buffer) +
+                                           data_available,
+                                       count - data_available,
+                                       offset + data_available, read_ahead);
             }
         }
     }
@@ -200,7 +206,8 @@ static auto cache_pwrite(disk_t &disk_car, const void *buffer, const unsigned in
     for (i = 0; i < CACHE_BUFFER_NBR; i++)
     {
         struct cache_buffer_struct *cache = &data->cache[i];
-        if (!(cache->cache_offset + cache->cache_size - 1 < offset || offset + count - 1 < cache->cache_offset))
+        if (cache->cache_offset + cache->cache_size - 1 >= offset &&
+            offset + count - 1 >= cache->cache_offset)
         {
             /* Discard the cache */
             cache->cache_size = 0;

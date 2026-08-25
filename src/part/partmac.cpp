@@ -197,67 +197,63 @@ static auto read_part_mac(disk_t &disk_car, const int verbose,
       screen_buffer_add("read_part_mac: bad DPME signature\n");
       return new_list_part;
     }
+
+    int _insert_error = 0;
+    partition_t new_partition(&arch_mac);
+    new_partition.order = i;
+    if (strcmp(dpme->dpme_type, "Apple_UNIX_SVR2") == 0)
+    {
+      if (!strcmp(dpme->dpme_name, "Swap") || !strcmp(dpme->dpme_name, "swap"))
+        new_partition.part_type_mac = PMAC_SWAP;
+      else
+        new_partition.part_type_mac = PMAC_LINUX;
+    }
+    else if (strcmp(dpme->dpme_type, "Apple_Bootstrap") == 0)
+      new_partition.part_type_mac = PMAC_NewWorld;
+    else if (strcmp(dpme->dpme_type, "Apple_Scratch") == 0)
+      new_partition.part_type_mac = PMAC_SWAP;
+    else if (strcmp(dpme->dpme_type, "Apple_Driver") == 0)
+      new_partition.part_type_mac = PMAC_DRIVER;
+    else if (strcmp(dpme->dpme_type, "Apple_Driver43") == 0)
+      new_partition.part_type_mac = PMAC_DRIVER43;
+    else if (strcmp(dpme->dpme_type, "Apple_Driver_ATA") == 0)
+      new_partition.part_type_mac = PMAC_DRIVERATA;
+    else if (strcmp(dpme->dpme_type, "Apple_Driver_IOKit") == 0)
+      new_partition.part_type_mac = PMAC_DRIVERIO;
+    else if (strcmp(dpme->dpme_type, "Apple_Free") == 0)
+      new_partition.part_type_mac = PMAC_FREE;
+    else if (strcmp(dpme->dpme_type, "Apple_FWDriver") == 0)
+      new_partition.part_type_mac = PMAC_FWDRIVER;
+    else if (strcmp(dpme->dpme_type, "Apple_partition_map") == 0)
+      new_partition.part_type_mac = PMAC_MAP;
+    else if (strcmp(dpme->dpme_type, "Apple_Patches") == 0)
+      new_partition.part_type_mac = PMAC_PATCHES;
+    else if (strcmp(dpme->dpme_type, "Apple_HFS") == 0)
+      new_partition.part_type_mac = PMAC_HFS;
+    else if (strcmp(dpme->dpme_type, "Apple_MFS") == 0)
+      new_partition.part_type_mac = PMAC_MFS;
+    else if (strcmp(dpme->dpme_type, "Apple_PRODOS") == 0)
+      new_partition.part_type_mac = PMAC_PRODOS;
+    else if (strcmp(dpme->dpme_type, "Be_BFS") == 0)
+      new_partition.part_type_mac = PMAC_BEOS;
+    else if (strcmp(dpme->dpme_type, "DOS_FAT_32") == 0)
+      new_partition.part_type_mac = PMAC_FAT32;
     else
     {
-      int _insert_error = 0;
-      partition_t new_partition(&arch_mac);
-      new_partition.order = i;
-      if (strcmp(dpme->dpme_type, "Apple_UNIX_SVR2") == 0)
-      {
-        if (!strcmp(dpme->dpme_name, "Swap") ||
-            !strcmp(dpme->dpme_name, "swap"))
-          new_partition.part_type_mac = PMAC_SWAP;
-        else
-          new_partition.part_type_mac = PMAC_LINUX;
-      }
-      else if (strcmp(dpme->dpme_type, "Apple_Bootstrap") == 0)
-        new_partition.part_type_mac = PMAC_NewWorld;
-      else if (strcmp(dpme->dpme_type, "Apple_Scratch") == 0)
-        new_partition.part_type_mac = PMAC_SWAP;
-      else if (strcmp(dpme->dpme_type, "Apple_Driver") == 0)
-        new_partition.part_type_mac = PMAC_DRIVER;
-      else if (strcmp(dpme->dpme_type, "Apple_Driver43") == 0)
-        new_partition.part_type_mac = PMAC_DRIVER43;
-      else if (strcmp(dpme->dpme_type, "Apple_Driver_ATA") == 0)
-        new_partition.part_type_mac = PMAC_DRIVERATA;
-      else if (strcmp(dpme->dpme_type, "Apple_Driver_IOKit") == 0)
-        new_partition.part_type_mac = PMAC_DRIVERIO;
-      else if (strcmp(dpme->dpme_type, "Apple_Free") == 0)
-        new_partition.part_type_mac = PMAC_FREE;
-      else if (strcmp(dpme->dpme_type, "Apple_FWDriver") == 0)
-        new_partition.part_type_mac = PMAC_FWDRIVER;
-      else if (strcmp(dpme->dpme_type, "Apple_partition_map") == 0)
-        new_partition.part_type_mac = PMAC_MAP;
-      else if (strcmp(dpme->dpme_type, "Apple_Patches") == 0)
-        new_partition.part_type_mac = PMAC_PATCHES;
-      else if (strcmp(dpme->dpme_type, "Apple_HFS") == 0)
-        new_partition.part_type_mac = PMAC_HFS;
-      else if (strcmp(dpme->dpme_type, "Apple_MFS") == 0)
-        new_partition.part_type_mac = PMAC_MFS;
-      else if (strcmp(dpme->dpme_type, "Apple_PRODOS") == 0)
-        new_partition.part_type_mac = PMAC_PRODOS;
-      else if (strcmp(dpme->dpme_type, "Be_BFS") == 0)
-        new_partition.part_type_mac = PMAC_BEOS;
-      else if (strcmp(dpme->dpme_type, "DOS_FAT_32") == 0)
-        new_partition.part_type_mac = PMAC_FAT32;
-      else
-      {
-        new_partition.part_type_mac = PMAC_UNK;
-        log_error("%s\n", dpme->dpme_type);
-      }
-      new_partition.part_offset =
-          static_cast<uint64_t>(be32(dpme->dpme_pblock_start)) * PBLOCK_SIZE;
-      new_partition.part_size =
-          static_cast<uint64_t>(be32(dpme->dpme_pblocks)) * PBLOCK_SIZE;
-      new_partition.status = STATUS_PRIM;
-      check_part_mac(disk_car, verbose, new_partition, saveheader);
-      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
-                      new_partition);
-      insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
-      if (i == 1)
-      {
-        limit = be32(dpme->dpme_map_entries);
-      }
+      new_partition.part_type_mac = PMAC_UNK;
+      log_error("%s\n", dpme->dpme_type);
+    }
+    new_partition.part_offset =
+        static_cast<uint64_t>(be32(dpme->dpme_pblock_start)) * PBLOCK_SIZE;
+    new_partition.part_size =
+        static_cast<uint64_t>(be32(dpme->dpme_pblocks)) * PBLOCK_SIZE;
+    new_partition.status = STATUS_PRIM;
+    check_part_mac(disk_car, verbose, new_partition, saveheader);
+    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
+    insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
+    if (i == 1)
+    {
+      limit = be32(dpme->dpme_map_entries);
     }
   }
   return new_list_part;

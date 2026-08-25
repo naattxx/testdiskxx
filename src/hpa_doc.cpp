@@ -21,7 +21,7 @@
  */
 
 #include <string>
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LINUX_TYPES_H
 #undef HAVE_LINUX_HDREG_H
 #undef HAVE_SCSI_SG_H
@@ -266,7 +266,6 @@ static auto sg_device_configuration_identify(int fd) -> uint64_t
 
 void disk_get_hpa_dco(const int fd, disk_t &disk)
 {
-#ifdef HDIO_DRIVE_CMD
     unsigned char id_args[4 + 512];
     const auto *id_val = reinterpret_cast<const uint16_t *>(&id_args[4]);
     unsigned int flags = 0;
@@ -297,13 +296,13 @@ void disk_get_hpa_dco(const int fd, disk_t &disk)
         return;
     }
     {
-        std::string features = "";
-        // see if the removable media feature is supported
-        if (id_val[82] & 0x0004)
-        {
-            flags |= DISK_HAS_REMOVABLE_SUPPORT;
-            features += ", Removable";
-        }
+      std::string features;
+      // see if the removable media feature is supported
+      if (id_val[82] & 0x0004)
+      {
+        flags |= DISK_HAS_REMOVABLE_SUPPORT;
+        features += ", Removable";
+      }
 
         // see if the HPA commands are supported
         if (id_val[82] & 0x0400)
@@ -357,7 +356,6 @@ void disk_get_hpa_dco(const int fd, disk_t &disk)
         log_info("{}: native_max {} sectors\n", disk.device, (long long unsigned)(disk.native_max + 1));
     if (disk.dco != 0)
         log_info("{}: dco        {} sectors\n", disk.device, (long long unsigned)(disk.dco + 1));
-#endif
 }
 
 #else

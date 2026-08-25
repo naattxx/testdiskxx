@@ -23,7 +23,7 @@
 #include <config.h>
 #include <utility>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBEXT2FS
 #endif
 
@@ -31,7 +31,7 @@
 #include <cstdio>
 #include <cstring>
 
-#if defined(HAVE_LIBEXT2FS)
+#ifdef HAVE_LIBEXT2FS
 #if __has_include("ext2fs/ext2_fs.h")
 #include "ext2fs/ext2_fs.h"
 #endif
@@ -50,7 +50,7 @@
 #include "src/log.hpp"
 #include "src/setdate.hpp"
 
-#if defined(HAVE_LIBEXT2FS)
+#ifdef HAVE_LIBEXT2FS
 #define DIRENT_DELETED_FILE 4
 /*
  * list directory
@@ -130,7 +130,7 @@ static auto alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
   ioch->name    = strdup(my_data->partition.fsname.c_str());
   if (ioch->name == nullptr)
   {
-    delete (ioch);
+    delete ioch;
     return nullptr;
   }
   ioch->private_data = my_data;
@@ -157,7 +157,7 @@ static auto my_close(io_channel channel) -> errcode_t
 {
   delete static_cast<my_data_t *>(channel->private_data);
   delete (channel->name);
-  delete (channel);
+  delete channel;
 #ifdef DEBUG_EXT2
   log_info("my_close done\n");
 #endif
@@ -311,7 +311,7 @@ static void dir_partition_ext2_close(dir_data_t *dir_data)
   auto *ls = static_cast<struct ext2_dir_struct *>(dir_data->private_dir_data);
   ext2fs_close(ls->current_fs);
   /* ext2fs_close call the close function that freed my_data */
-  delete (ls);
+  delete ls;
 }
 
 static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
@@ -328,7 +328,7 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
   if (!f_out)
   {
     log_critical("Can't create file %s: %s\n", new_file, strerror(errno));
-    delete (new_file);
+    delete new_file;
     return CP_CREATE_FAILED;
   }
   {
@@ -339,7 +339,7 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
 
     if (ext2fs_read_inode(ls->current_fs, file.st_ino, &inode) != 0)
     {
-      delete (new_file);
+      delete new_file;
       fclose(f_out);
       return CP_STAT_FAILED;
     }
@@ -349,7 +349,7 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
     {
       log_error("Error while opening ext2 file %s\n",
                 dir_data->current_directory);
-      delete (new_file);
+      delete new_file;
       fclose(f_out);
       return CP_OPEN_FAILED;
     }
@@ -383,7 +383,7 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
     set_date(new_file, file.td_atime, file.td_mtime);
     (void)set_mode(new_file, file.st_mode);
   }
-  delete (new_file);
+  delete new_file;
   return error;
 }
 #endif
@@ -392,7 +392,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
                              dir_data_t *dir_data, const int verbose)
     -> dir_partition_t
 {
-#if defined(HAVE_LIBEXT2FS)
+#ifdef HAVE_LIBEXT2FS
   auto *ls = new struct ext2_dir_struct;
   io_channel ioch;
   my_data_t *my_data;
@@ -410,7 +410,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
                   &ls->current_fs) != 0)
   {
     //    delete (my_data);
-    delete (ls);
+    delete ls;
     return DIR_PART_EIO;
   }
   strncpy(dir_data->current_directory, "/",
@@ -433,7 +433,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
 auto td_ext2fs_version() -> const char *
 {
   const char *ext2fs_version = "none";
-#if defined(HAVE_LIBEXT2FS)
+#ifdef HAVE_LIBEXT2FS
   ext2fs_get_library_version(&ext2fs_version, nullptr);
 #endif
   return ext2fs_version;

@@ -153,7 +153,7 @@ void mode_string(const unsigned int mode, char *str)
 auto set_datestr(char *datestr, size_t n, const time_t timev) -> int
 {
     const struct tm *tm_p;
-#if !defined(__MINGW32__)
+#ifndef __MINGW32__
     struct tm tmp;
 #endif
     if (timev == 0)
@@ -637,7 +637,7 @@ static unsigned int filename_convert(char *dst, const char *src, const unsigned 
     dst[i] = '\0';
     return i;
 }
-#elif defined(__APPLE__)
+#elifdef __APPLE__
 static unsigned int filename_convert(char *dst, const char *src, const unsigned int n)
 {
     unsigned int i, j;
@@ -750,7 +750,7 @@ auto mkdir_local(const char *localroot, const char *pathname) -> char *
             dst = dst_org + l;
             mkdir(localdir);
         }
-#elif defined(__CYGWIN__)
+#elifdef __CYGWIN__
         if (memcmp(&localdir[1], ":/cygdrive", 11) != 0 && mkdir(localdir, 0775) < 0 && errno == EINVAL)
         {
             unsigned int l;
@@ -830,15 +830,16 @@ auto fopen_local(char **localfilename, const char *localroot, const char *filena
                 dst = dst_org + l;
                 mkdir(*localfilename);
             }
-#elif defined(__CYGWIN__)
-            if (memcmp(&localfilename[1], ":/cygdrive", 11) != 0 && mkdir(*localfilename, 0775) < 0 &&
-                (errno == EINVAL || errno == ENOENT))
-            {
-                unsigned int l;
-                l = filename_convert(dst_org, src_org, n);
-                dst = dst_org + l;
-                mkdir(*localfilename, 0775);
-            }
+#elifdef __CYGWIN__
+          if (memcmp(&localfilename[1], ":/cygdrive", 11) != 0 &&
+              mkdir(*localfilename, 0775) < 0 &&
+              (errno == EINVAL || errno == ENOENT))
+          {
+            unsigned int l;
+            l   = filename_convert(dst_org, src_org, n);
+            dst = dst_org + l;
+            mkdir(*localfilename, 0775);
+          }
 #else
             if (mkdir(*localfilename, 0775) < 0 && errno == EINVAL)
             {

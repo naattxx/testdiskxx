@@ -92,20 +92,20 @@ auto interface_analyse(disk_t &disk, const int verbose, const int save_header)
         text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),
         text(disk.description(disk)),
-        (loaded) ? vbox({
-                       text("Current partition structure:"),
-                       getPartitionsTable(disk, list_part.get()),
-                       filler(),
-                       (disk.arch->msg_part_type != nullptr)
-                           ? text(disk.arch->msg_part_type)
-                           : emptyElement(),
-                       options->Render(),
-                       buttonDescription | hcenter,
-                   })
-                 : hflow({
-                       text("Checking current partition structure "),
-                       spinner(15, frame),
-                   }),
+        loaded ? vbox({
+                     text("Current partition structure:"),
+                     getPartitionsTable(disk, list_part.get()),
+                     filler(),
+                     (disk.arch->msg_part_type != nullptr)
+                         ? text(disk.arch->msg_part_type)
+                         : emptyElement(),
+                     options->Render(),
+                     buttonDescription | hcenter,
+                 })
+               : hflow({
+                     text("Checking current partition structure "),
+                     spinner(15, frame),
+                 }),
     });
   });
 

@@ -46,7 +46,7 @@ auto interface_check_disk_access(const Component root, disk_t &disk_car) -> int
                    "Use the sudo command to launch TestDisk.\n"
                    "- Check the OS permissions for this file or device."
 #endif
-#if defined(__APPLE__)
+#ifdef __APPLE__
                          "\n- partitions from this disk must not be mounted:\n"
                          "Open the Disk Utility (In Finder -> Application -> "
                          "Utility folder)\n"

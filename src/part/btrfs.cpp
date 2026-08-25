@@ -55,17 +55,17 @@ auto check_btrfs(disk_t &disk_car, partition_t &partition) -> int
                      partition.part_offset + BTRFS_SUPER_INFO_OFFSET) !=
       BTRFS_SUPER_INFO_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_btrfs(reinterpret_cast<struct btrfs_super_block *>(buffer)) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_btrfs_info(reinterpret_cast<struct btrfs_super_block *>(buffer),
                  partition);
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

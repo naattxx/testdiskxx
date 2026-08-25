@@ -21,7 +21,7 @@
  */
 #ifndef _HDCACHE_H
 #define _HDCACHE_H
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
 
 #include "common.hpp"
 

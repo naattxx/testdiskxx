@@ -51,7 +51,8 @@ static auto align_pread(int (*fnct_pread)(const disk_t &disk_car, void *buf, con
     /*@ assert count_new >= disk_car->sector_size; */
     /*@ assert count_new > 0; */
     if (count != count_new ||
-        ((disk_car.access_mode & TESTDISK_O_DIRECT) != 0 && (((size_t)(buf) & (disk_car.sector_size - 1)) != 0) &&
+        ((disk_car.access_mode & TESTDISK_O_DIRECT) != 0 &&
+         (((size_t)buf & (disk_car.sector_size - 1)) != 0) &&
          (buf != disk_car.rbuffer || disk_car.rbuffer_size < count_new)))
     {
         int res;
@@ -109,7 +110,8 @@ static auto align_pwrite(int (*fnct_pread)(const disk_t &disk_car, void *buf, co
     const unsigned int count_new = ((offset_new % disk_car.sector_size) + count + disk_car.sector_size - 1) /
                                    disk_car.sector_size * disk_car.sector_size;
     if (count != count_new ||
-        ((disk_car.access_mode & TESTDISK_O_DIRECT) != 0 && (((size_t)(buf) & (disk_car.sector_size - 1)) != 0)))
+        ((disk_car.access_mode & TESTDISK_O_DIRECT) != 0 &&
+         (((size_t)buf & (disk_car.sector_size - 1)) != 0)))
     {
         int tmp;
         if (disk_car.wbuffer_size < count_new)

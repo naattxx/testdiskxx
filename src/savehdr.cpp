@@ -93,7 +93,7 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
     if (res >= 0 && fwrite(buffer, DEFAULT_SECTOR_SIZE, 256, f_backup) != 256)
         res = -1;
     fclose(f_backup);
-    delete[] (buffer);
+    delete[] buffer;
     return res;
 }
 
@@ -205,7 +205,7 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
     if (new_backup != nullptr)
         list_backup.push_front(new_backup);
     fclose(f_backup);
-    delete[] (buffer);
+    delete[] buffer;
     return list_backup;
 }
 

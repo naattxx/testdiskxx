@@ -105,7 +105,7 @@ auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
       }
     }
   }
-  delete[] (buffer);
+  delete[] buffer;
   return find_sectors_per_cluster_aux(
       sector_cluster, nbr_subdir, sectors_per_cluster, offset_org, verbose,
       partition.part_size / disk_car.sector_size, upart_type
@@ -227,7 +227,7 @@ auto find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster,
         *offset              = cluster_offset[i].offset;
       }
     }
-    delete[] (cluster_offset);
+    delete[] cluster_offset;
     if (nbr_max == 0)
       return 0;
     log_info(
@@ -245,8 +245,7 @@ auto no_of_cluster2part_type(const unsigned long int no_of_cluster)
   {
     if (no_of_cluster < 4085)
       return UP_FAT12;
-    else
-      return UP_FAT16;
+    return UP_FAT16;
   }
   return UP_FAT32;
 }

@@ -27,7 +27,7 @@
 #include "src/dir_common.hpp"
 #include <config.h>
 
-#if defined(DISABLED_FOR_FRAMAC)
+#ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
 #undef HAVE_LIBNTFS3G
 #endif
@@ -179,14 +179,14 @@ static void free_file(struct ufile *file)
   { /* List of filenames */
     delete (f->name);
     delete (f->parent_name);
-    delete (f);
+    delete f;
   }
 
   for (data *d : file->data)
   { /* List of data streams */
     delete (d->name);
     delete (d->runlist);
-    delete (d);
+    delete d;
   }
 
   delete (file->mft);
@@ -343,7 +343,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
             }
             delete[] (name->parent_name);
             name->parent_name = npn;
-            delete (parent_name);
+            delete parent_name;
           }
           if (static_cast<unsigned>(inode_num) !=
               MREF(filename_attr->parent_directory))
@@ -357,7 +357,6 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
   }
   delete rec;
   ntfs_attr_close(mft_data);
-  return;
 }
 
 /**
@@ -833,11 +832,11 @@ static auto create_pathname(const char *dir, const char *dir2, const char *name,
     {
       char *streaml = gen_local_filename(stream);
       snprintf(buffer, bufsize, "%s/%s/%s:%s", dir, dir2l, namel, streaml);
-      delete (streaml);
+      delete streaml;
     }
     else
       snprintf(buffer, bufsize, "%s/%s/%s", dir, dir2l, namel);
-    delete (dir2l);
+    delete dir2l;
   }
   else
   {
@@ -845,12 +844,12 @@ static auto create_pathname(const char *dir, const char *dir2, const char *name,
     {
       char *streaml = gen_local_filename(stream);
       snprintf(buffer, bufsize, "%s/%s:%s", dir, namel, streaml);
-      delete (streaml);
+      delete streaml;
     }
     else
       snprintf(buffer, bufsize, "%s/%s", dir, namel);
   }
-  delete (namel);
+  delete namel;
   return strlen(buffer);
 }
 
@@ -925,7 +924,7 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
   if (file->mft->flags & MFT_RECORD_IN_USE)
   {
     log_error("Record is in use by the mft\n");
-    delete[] (buffer);
+    delete[] buffer;
     free_file(file);
     return -2;
   }
@@ -1148,11 +1147,11 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
     }
     set_date(pathname, file->date, file->date);
   }
-  delete[] (buffer);
+  delete[] buffer;
   free_file(file);
   return 0;
 free:
-  delete[] (buffer);
+  delete[] buffer;
   free_file(file);
   return -2;
 }
@@ -1272,7 +1271,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
   }
 done:
   log_info("\nFiles with potentially recoverable content: {}\n", results);
-  delete[] (buffer);
+  delete[] buffer;
   ntfs_attr_close(attr);
   dir_list.sort(filesort);
 }
@@ -1721,7 +1720,7 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
       file_ok++;
   }
   log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
-  delete (dst_path);
+  delete dst_path;
   dir_data->local_dir = nullptr;
   opts.dest           = nullptr;
 }

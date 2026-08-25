@@ -74,7 +74,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
   if (disk_car.pread(disk_car, ntfs_header, DEFAULT_SECTOR_SIZE,
                      partition.part_offset) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] (ntfs_header);
+    delete[] ntfs_header;
     ; // display_message("Can't read NTFS boot sector.\n");
     return -1;
   }
@@ -97,7 +97,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
   {
     ; // display_message("Invalid NTFS MFT record size.\n");
     log_error("Invalid NTFS MFT record size.\n");
-    delete[] (ntfs_header);
+    delete[] ntfs_header;
     return -1;
   }
 
@@ -119,7 +119,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
   {
     ; // display_message("Invalid NTFS MFT size.\n");
     log_error("Invalid NTFS MFT size.\n");
-    delete[] (ntfs_header);
+    delete[] ntfs_header;
     return -1;
   }
   /* Check if MFT mirror is identical to the beginning of MFT */
@@ -130,8 +130,8 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
   {
     ; // display_message("Can't read NTFS MFT.\n");
     log_error("Can't read NTFS MFT.\n");
-    delete[] (buffer_mft);
-    delete[] (ntfs_header);
+    delete[] buffer_mft;
+    delete[] ntfs_header;
     return -1;
   }
   buffer_mftmirr = new unsigned char[mftmirr_size_bytes];
@@ -141,9 +141,9 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
   {
     ; // display_message("Can't read NTFS MFT mirror.\n");
     log_error("Can't read NTFS MFT mirror.\n");
-    delete[] (buffer_mftmirr);
-    delete[] (buffer_mft);
-    delete[] (ntfs_header);
+    delete[] buffer_mftmirr;
+    delete[] buffer_mft;
+    delete[] ntfs_header;
     return -1;
   }
   if (memcmp(buffer_mft, buffer_mftmirr, mftmirr_size_bytes) == 0)
@@ -151,9 +151,9 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     log_info("MFT and MFT mirror match perfectly.\n");
     if (*current_cmd == nullptr)
       ; // display_message("MFT and MFT mirror match perfectly.\n");
-    delete[] (buffer_mftmirr);
-    delete[] (buffer_mft);
-    delete[] (ntfs_header);
+    delete[] buffer_mftmirr;
+    delete[] buffer_mft;
+    delete[] ntfs_header;
     return 0;
   }
   if (partition.sb_offset != 0)
@@ -164,9 +164,9 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     );
     ; // display_message("Please quit TestDisk and reboot your computer before
       // trying to fix the MFT.\n");
-    delete[] (buffer_mftmirr);
-    delete[] (buffer_mft);
-    delete[] (ntfs_header);
+    delete[] buffer_mftmirr;
+    delete[] buffer_mft;
+    delete[] ntfs_header;
     return -1;
   }
 #ifdef DEBUG_REPAIR_MFT
@@ -194,9 +194,9 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
       ; // display_message("Can't determine which MFT is correct, ntfslib is
         // missing.\n");
       log_error("Can't determine which MFT is correct, ntfslib is missing.\n");
-      delete[] (buffer_mftmirr);
-      delete[] (buffer_mft);
-      delete[] (ntfs_header);
+      delete[] buffer_mftmirr;
+      delete[] buffer_mft;
+      delete[] ntfs_header;
       io_redir_del_redir(disk_car, mftmirr_pos);
       return 0;
     }
@@ -347,8 +347,8 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
       ; // display_message("MFT mirror fixed.\n");
     }
   }
-  delete[] (buffer_mftmirr);
-  delete[] (buffer_mft);
-  delete[] (ntfs_header);
+  delete[] buffer_mftmirr;
+  delete[] buffer_mft;
+  delete[] ntfs_header;
   return 0;
 }

@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <algorithm>
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
@@ -39,17 +40,17 @@ auto check_HFS(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, HFS_SUPERBLOCK_SIZE,
                      partition.part_offset + 0x400) != HFS_SUPERBLOCK_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_HFS(disk_car, reinterpret_cast<hfs_mdb_t *>(buffer), partition,
                verbose, 0) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   set_HFS_info(partition, reinterpret_cast<hfs_mdb_t *>(buffer));
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 
@@ -138,8 +139,7 @@ static void set_HFS_info(partition_t &partition, const hfs_mdb_t *hfs_mdb)
   partition.upart_type   = UP_HFS;
   partition.blocksize    = be32(hfs_mdb->drAlBlkSiz);
   partition.info         = std::format("HFS blocksize={}", partition.blocksize);
-  if (name_size > hfs_mdb->drVN[0])
-    name_size = hfs_mdb->drVN[0];
+  name_size              = std::min<unsigned int>(name_size, hfs_mdb->drVN[0]);
   partition.fsname.reserve(name_size);
   memcpy(partition.fsname.data(), &hfs_mdb->drVN[0] + 1, name_size);
 }

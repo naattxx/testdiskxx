@@ -217,13 +217,13 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
                      static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
   {
     screen_buffer_add(msg_PART_RD_ERR);
-    delete[] (buffer);
+    delete[] buffer;
     return new_list_part;
   }
   if (be16(sunlabel->magic) != SUN_LABEL_MAGIC)
   {
     screen_buffer_add("Bad SUN partition\n");
-    delete[] (buffer);
+    delete[] buffer;
     return new_list_part;
   }
   /*@
@@ -251,7 +251,7 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
       insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
     }
   }
-  delete (buffer);
+  delete buffer;
   /*@ assert valid_list_part(new_list_part); */
   return new_list_part;
 }

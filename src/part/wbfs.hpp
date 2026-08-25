@@ -34,7 +34,7 @@ struct [[gnu::gcc_struct, gnu::packed]] wbfs_head
   uint8_t hd_sec_sz_s;   // sector size in this partition
   uint8_t wbfs_sec_sz_s; // size of a wbfs sec
   uint8_t padding3[2];
-#if !defined(__FRAMAC__)
+#ifndef __FRAMAC__
   uint8_t disc_table[0]; // size depends on hd sector size
 #endif
 };

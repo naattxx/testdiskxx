@@ -42,16 +42,16 @@ auto check_netware(disk_t &disk_car, partition_t &partition) -> int
   if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
                      partition.part_offset) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   if (test_netware(reinterpret_cast<const struct disk_netware *>(buffer)) != 0)
   {
-    delete[] (buffer);
+    delete[] buffer;
     return 1;
   }
   partition.upart_type = UP_NETWARE;
-  delete[] (buffer);
+  delete[] buffer;
   return 0;
 }
 

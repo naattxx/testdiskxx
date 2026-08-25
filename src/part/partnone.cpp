@@ -29,13 +29,13 @@
 // #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
 #include "src/analyse.hpp"
 #endif
 #include "fat_common.hpp"
 #include "src/intrf.hpp"
 #include "src/lang.h"
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
 #include "apfs.hpp"
 #include "bfs.hpp"
 #include "bsd.hpp"
@@ -271,7 +271,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
   int res             = 0;
   buffer_disk         = new unsigned char[16 * DEFAULT_SECTOR_SIZE];
   partition.part_size = disk.disk_size;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
   if (recover_MD_from_partition(disk, partition, verbose) == 0)
     res = 1;
   else
@@ -371,7 +371,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
     }
   }
 #endif
-  delete[] (buffer_disk);
+  delete[] buffer_disk;
   if (res <= 0)
     partition.reset(&arch_none);
   partition.part_offset = 0;
@@ -428,7 +428,7 @@ static auto check_part_none(disk_t &disk_car, const int verbose,
                             partition_t &partition, const int saveheader) -> int
 {
   int ret = 0;
-#if !defined(DISABLED_FOR_FRAMAC)
+#ifndef DISABLED_FOR_FRAMAC
   switch (partition.upart_type)
   {
   case UP_APFS:
