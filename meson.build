@@ -23,6 +23,7 @@ conf_data.set('_ARM_', target_machine.cpu_family() == 'arm')
 conf_data.set('_ARM64_', target_machine.cpu_family() == 'aarch64')
 
 conf_data.set('TESTDISK_LSB', host_machine.endian() == 'little')
+conf_data.set('HAVE_LOCALTIME_R', compiler.has_type('localtime_r', prefix: '#include <ctime>'))
 
 libewf = compiler.find_library('libewf', required: false)
 libntfs = compiler.find_library('libntfs', required: false)
