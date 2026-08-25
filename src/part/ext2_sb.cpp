@@ -58,7 +58,7 @@ auto interface_superblock(disk_t &disk_car, const list_part_t &list_part,
   {
     if (old_part == nullptr || old_part->part_offset != partition.part_offset ||
         old_part->part_size != partition.part_size ||
-        guid_cmp(old_part->part_type_gpt, partition.part_type_gpt) != 0 ||
+        old_part->part_type_gpt != partition.part_type_gpt ||
         old_part->part_type_i386 != partition.part_type_i386 ||
         old_part->part_type_sun != partition.part_type_sun ||
         old_part->part_type_mac != partition.part_type_mac ||

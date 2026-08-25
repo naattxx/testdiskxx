@@ -79,7 +79,7 @@ static auto is_part_hfs(const partition_t &partition) -> int
 {
     if (partition.part_type_i386 == P_HFS || partition.part_type_mac == PMAC_HFS)
         return 1;
-    if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MAC_HFS) == 0)
+    if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_HFS)
         return 1;
     return 0;
 }
@@ -88,7 +88,7 @@ static auto is_part_hfsp(const partition_t &partition) -> int
 {
     if (partition.part_type_i386 == P_HFSP || partition.part_type_mac == PMAC_HFS)
         return 1;
-    if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MAC_HFS) == 0)
+    if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_HFS)
         return 1;
     return 0;
 }
@@ -101,9 +101,9 @@ auto is_part_linux(const partition_t &partition) -> int
         return 1;
     if (partition.arch == &arch_mac && partition.part_type_mac == PMAC_LINUX)
         return 1;
-    if (partition.arch == &arch_gpt && (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_DATA) == 0 ||
-                                         guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_HOME) == 0 ||
-                                         guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_SRV) == 0))
+    if (partition.arch == &arch_gpt && (partition.part_type_gpt == GPT_ENT_TYPE_LINUX_DATA ||
+                                         partition.part_type_gpt == GPT_ENT_TYPE_LINUX_HOME ||
+                                         partition.part_type_gpt == GPT_ENT_TYPE_LINUX_SRV))
         return 1;
     return 0;
 }

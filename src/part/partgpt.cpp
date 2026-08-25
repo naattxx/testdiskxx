@@ -367,7 +367,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
         reinterpret_cast<const char *>(gpt_entries) +
         static_cast<unsigned long>(i) * le32(gpt->hdr_entsz)
     );
-    if (guid_cmp(gpt_entry->ent_type, GPT_ENT_TYPE_UNUSED) != 0 &&
+    if (gpt_entry->ent_type != GPT_ENT_TYPE_UNUSED &&
         le64(gpt_entry->ent_lba_start) < le64(gpt_entry->ent_lba_end))
     {
       int _insert_error = 0;
@@ -424,7 +424,7 @@ static void init_part_order_gpt(const disk_t &disk_car, list_part_t &list_part)
   for (partition_t &element : list_part)
   {
     if (element.part_size > 0 &&
-        guid_cmp(element.part_type_gpt, GPT_ENT_TYPE_UNUSED) != 0)
+        element.part_type_gpt != GPT_ENT_TYPE_UNUSED)
       element.order = order++;
   }
 }
@@ -474,7 +474,7 @@ void add_partition_gpt_cli(const disk_t &disk_car, list_part_t &list_part,
       change_part_type_cli(disk_car, new_partition, current_cmd);
     }
     else if (new_partition.part_size > 0 &&
-             guid_cmp(new_partition.part_type_gpt, GPT_ENT_TYPE_UNUSED) != 0)
+             new_partition.part_type_gpt != GPT_ENT_TYPE_UNUSED)
     {
       int insert_error = 0;
       insert_new_partition(list_part, new_partition, 0, &insert_error);
@@ -507,7 +507,7 @@ static auto test_structure_gpt(const list_part_t &list_part) -> int
 
 static auto is_part_known_gpt(const partition_t &partition) -> int
 {
-  return (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_UNUSED) != 0);
+  return partition.part_type_gpt != GPT_ENT_TYPE_UNUSED;
 }
 
 static void init_structure_gpt(const disk_t &disk_car, list_part_t &list_part,
@@ -550,8 +550,8 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
   int ret = 0;
   // unsigned int old_levels;
   // old_levels=log_set_levels(0);
-  if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MS_BASIC_DATA) == 0 ||
-      guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MS_RESERVED) == 0)
+  if (partition.part_type_gpt == GPT_ENT_TYPE_MS_BASIC_DATA ||
+      partition.part_type_gpt == GPT_ENT_TYPE_MS_RESERVED)
   {
     ret = check_FAT(disk, partition, verbose);
     if (ret != 0)
@@ -567,13 +567,13 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
           "No FAT, NTFS, ext2, JFS, Reiser, cramfs or XFS marker\n"
       );
   }
-  else if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_RAID) == 0)
+  else if (partition.part_type_gpt == GPT_ENT_TYPE_LINUX_RAID)
   {
     ret = check_MD(disk, partition, verbose);
     if (ret != 0)
       screen_buffer_add("Invalid RAID superblock\n");
   }
-  else if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_LINUX_LVM) == 0)
+  else if (partition.part_type_gpt == GPT_ENT_TYPE_LINUX_LVM)
   {
     ret = check_LVM(disk, partition, verbose);
     if (ret != 0)
@@ -581,7 +581,7 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
     if (ret != 0)
       screen_buffer_add("No LVM or LVM2 structure\n");
   }
-  else if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MAC_HFS) == 0)
+  else if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_HFS)
   {
     ret = check_HFS(disk, partition, verbose);
     if (ret != 0)
@@ -589,13 +589,13 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
     if (ret != 0)
       screen_buffer_add("No HFS or HFS+ structure\n");
   }
-  else if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_MAC_APFS) == 0)
+  else if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_APFS)
   {
     ret = check_APFS(disk, partition);
     if (ret != 0)
       screen_buffer_add("No valid APFS structure\n");
   }
-  else if (guid_cmp(partition.part_type_gpt, GPT_ENT_TYPE_BEOS_BFS) == 0)
+  else if (partition.part_type_gpt == GPT_ENT_TYPE_BEOS_BFS)
   {
     ret = check_BeFS(disk, partition);
     if (ret != 0)
@@ -620,7 +620,7 @@ static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view
   int i;
   /*@ loop assigns i; */
   for (i = 0; !gpt_sys_types[i].name.empty(); i++)
-    if (guid_cmp(gpt_sys_types[i].part_type, part_type_gpt) == 0)
+    if (gpt_sys_types[i].part_type == part_type_gpt)
       return gpt_sys_types[i].name;
 #ifndef DISABLED_FOR_FRAMAC
   log_info(

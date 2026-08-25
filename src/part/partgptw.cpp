@@ -84,12 +84,11 @@ static auto find_gpt_entry(const uint64_t lba_start,
   for (i = 0; i < 128; i++)
   {
     if (gpt_entries_org[i].ent_lba_start == le64(lba_start) &&
-        guid_cmp(gpt_entries_org[i].ent_uuid, GPT_ENT_TYPE_UNUSED) != 0)
+        gpt_entries_org[i].ent_uuid != GPT_ENT_TYPE_UNUSED)
     {
       int j;
       for (j = 0; j < i; j++)
-        if (guid_cmp(gpt_entries_org[j].ent_uuid,
-                     gpt_entries_org[i].ent_uuid) == 0)
+        if (gpt_entries_org[j].ent_uuid == gpt_entries_org[i].ent_uuid)
           return -1;
       return i;
     }
@@ -113,7 +112,7 @@ static void partition_generate_gpt_entry(struct gpt_ent *gpt_entry,
             partition.partname, sizeof(gpt_entry->ent_name) / 2);
   if (entry >= 0)
     guid_cpy(&gpt_entry->ent_uuid, &gpt_entries_org[entry].ent_uuid);
-  else if (guid_cmp(partition.part_uuid, GPT_ENT_TYPE_UNUSED) != 0)
+  else if (partition.part_uuid != GPT_ENT_TYPE_UNUSED)
     guid_cpy(&gpt_entry->ent_uuid, &partition.part_uuid);
   else
     efi_generate_uuid(&gpt_entry->ent_uuid);

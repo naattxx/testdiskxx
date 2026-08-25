@@ -27,9 +27,9 @@
     /*@
       @ assigns \nothing;
       @*/
-    static inline auto guid_cmp(const efi_guid_t left, const efi_guid_t right) -> int
+    static inline auto operator==(const efi_guid_t left, const efi_guid_t right) -> bool
     {
-        return memcmp(&left, &right, sizeof(efi_guid_t));
+        return memcmp(&left, &right, sizeof(efi_guid_t)) == 0;
     }
 
 #endif
