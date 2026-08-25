@@ -34,8 +34,10 @@ void interface_options(const ftxui::Component root, bool &dump, bool &align,
        Checkbox("Dump - Dump essential sectors", &dump),
        Button("[ Ok ]", screen.ExitLoopClosure(), buttonOptions)}
   );
-  auto dialog = Renderer(options, [&]() { return vbox({options->Render()}); }) |
-                size(WIDTH, GREATER_THAN, 20) | border | center;
+  auto dialog =
+      Renderer(options,
+               [&]() -> Element { return vbox({options->Render()}); }) |
+      size(WIDTH, GREATER_THAN, 20) | border | center;
   screen.Loop(root | Modal(dialog, &show_modal));
 
   /* write new options to log file */

@@ -35,7 +35,7 @@ auto ask_testdisk_log_creation(App &app) -> TD_LOG
         "various outputs; including any folder/file names "
         "TestDisk was "
         "used to find and list onscreen."sv |
-        views::split(" "sv) | views::transform([](auto &&stri) {
+        views::split(" "sv) | views::transform([](auto &&stri) -> Element {
           auto str = std::string(std::string_view(stri));
           if (str == "testdisk.log")
             return bold(text(str));
@@ -43,7 +43,7 @@ auto ask_testdisk_log_creation(App &app) -> TD_LOG
         })
     );
   }
-  auto dialog = Renderer(menu, [&]() {
+  auto dialog = Renderer(menu, [&]() -> Element {
     return window(text("Log creation"),
                   vbox({
                       hflow({text("TestDisk++ "), bold(text(VERSION)),

@@ -28,7 +28,7 @@ auto interface_check_disk_access(const Component root, disk_t &disk_car) -> int
   auto screen     = App::Fullscreen();
   option.on_enter = screen.ExitLoopClosure();
   const auto menu = Menu(&entries, &selected, option);
-  auto dialog     = Renderer(menu, [&]() {
+  auto dialog     = Renderer(menu, [&]() -> Element {
     return vbox({
                text(disk_car.description_short(disk_car)),
                separator(),

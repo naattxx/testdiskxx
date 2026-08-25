@@ -42,7 +42,7 @@ struct [[gnu::gcc_struct, gnu::packed]] prange_t
   uint64_t pr_block_count;
 };
 
-typedef unsigned char apfs_uuid_t[16];
+using apfs_uuid_t = unsigned char[16];
 
 struct nx_superblock_t
 {

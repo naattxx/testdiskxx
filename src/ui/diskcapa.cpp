@@ -31,7 +31,7 @@ auto interface_check_disk_capacity(const Component root, disk_t &disk_car)
     auto screen     = App::Fullscreen();
     option.on_enter = screen.ExitLoopClosure();
     const auto menu = Menu(&entries, &selected, option);
-    auto dialog     = Renderer(menu, [&]() {
+    auto dialog     = Renderer(menu, [&]() -> Element {
       return vbox({
                  text(disk_car.description(disk_car)),
                  separator(),

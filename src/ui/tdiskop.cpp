@@ -37,25 +37,25 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
           "[ Analyse  ] Analyse current partition structure and search for "
           "lost "
           "partitions",
-          [&]() {
+          [&]() -> void {
             list_part_t list_part;
             list_part = interface_analyse(disk, verbose, save_header);
           }, buttonOptions
       ),
       Button(
-          "[ Advanced ] Filesystem Utils", []() {}, buttonOptions
+          "[ Advanced ] Filesystem Utils", []() -> void {}, buttonOptions
       ),
       Button(
-          "[ Geometry ] Change disk geometry", []() {}, buttonOptions
+          "[ Geometry ] Change disk geometry", []() -> void {}, buttonOptions
       ),
       Button(
           "[ Options  ] Modify options",
-          [&]() { interface_options(root, dump, align, expert); }, buttonOptions
+          [&]() -> void { interface_options(root, dump, align, expert); }, buttonOptions
       ),
       Button("[ Quit     ] Return to disk selection", screen.ExitLoopClosure(),
              buttonOptions),
   });
-  root         = Renderer(options, [&]() {
+  root         = Renderer(options, [&]() -> Element {
     return vbox({
         hflow({text("TestDisk++ "), bold(text(VERSION)),
                text(", Data Recovery Utility, "), text(TESTDISKDATE)}),

@@ -23,7 +23,7 @@ auto interface_check_hidden(const Component root, disk_t &disk,
   auto screen     = App::Fullscreen();
   option.on_enter = screen.ExitLoopClosure();
   const auto menu = Menu(&entries, &selected, option);
-  auto dialog     = Renderer(menu, [&]() {
+  auto dialog     = Renderer(menu, [&]() -> Element {
     return vbox({
                text(disk.description_short(disk)),
                separator(),

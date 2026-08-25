@@ -62,7 +62,7 @@ struct hfsp_extent
 
 /* A file may contain up to 8 normale extents, all other
    are found in some extra extent area */
-typedef hfsp_extent hfsp_extent_rec[8];
+using hfsp_extent_rec = hfsp_extent[8];
 
 /* Information for a "Fork" in a file
  * Forks are the "usual" DATA and RSRC forks or special files

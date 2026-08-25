@@ -59,7 +59,7 @@ auto change_arch_type(const Component root, disk_t &disk, const int verbose)
     auto screen     = App::Fullscreen();
     option.on_enter = screen.ExitLoopClosure();
     const auto menu = Menu(&entries, &selected, option);
-    auto dialog     = Renderer(menu, [&]() {
+    auto dialog     = Renderer(menu, [&]() -> Element {
       return vbox({
                  text(disk.description_short(disk)),
                  separator(),

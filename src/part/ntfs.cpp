@@ -327,7 +327,7 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
   /* return first element of the run_list */
   /* buf must be unsigned! */
   const unsigned char *buf;
-  const unsigned char *attr_start =
+  const auto *attr_start =
       reinterpret_cast<const unsigned char *>(attrnr);
   const uint32_t attr_len    = le32(attrnr->header.cbAttribute);
   const uint16_t offDataRuns = le16(attrnr->offDataRuns);

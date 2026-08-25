@@ -25,7 +25,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
 {
   auto diskList = Container::Vertical({});
   auto SerialN  = emptyElement();
-  auto root     = Renderer(diskList, [&]() {
+  auto root     = Renderer(diskList, [&]() -> Element {
     return vbox({
         hflow({text("TestDisk++ "), bold(text(VERSION)),
                text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
@@ -60,7 +60,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
   if (list_disk.empty())
   {
     log_critical("No disk found");
-    diskList->Add(Renderer([]() {
+    diskList->Add(Renderer([]() -> Element {
       return vbox({
           text("No hard disk found"),
 #ifndef DJGPP
@@ -101,7 +101,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
       };
       Component diskBtn = Button(
           disk.description_short(disk),
-          [&]() {
+          [&]() -> void {
             const int hpa_dco = disk.is_hpa_or_dco();
             disk.autodetect_arch(nullptr);
             disk.autoset_unit();

@@ -65,17 +65,17 @@ auto interface_analyse(disk_t &disk, const int verbose, const int save_header)
           "[ Quick Search ]"
           "Analyse current partition structure and search for lost "
           "partitions",
-          []() {}, buttonOptions
+          []() -> void {}, buttonOptions
       ),
       Button(
           "[ Backup       ]"
           "Filesystem Utils",
-          []() {}, buttonOptions
+          []() -> void {}, buttonOptions
       ),
   });
   size_t frame = 0;
 
-  root = Renderer(options, [&]() {
+  root = Renderer(options, [&]() -> Element {
     bool loaded = list_part.valid() &&
                   list_part.wait_for(std::chrono::milliseconds(10)) ==
                       std::future_status::ready;

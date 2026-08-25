@@ -32,7 +32,7 @@ struct [[gnu::gcc_struct, gnu::packed]] hfs_extent
   uint16_t block;
   uint16_t count;
 };
-typedef struct hfs_extent hfs_extent_rec[3];
+using hfs_extent_rec = hfs_extent[3];
 
 struct [[gnu::gcc_struct, gnu::packed]] hfs_mdb_t
 {
