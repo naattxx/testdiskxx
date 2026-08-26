@@ -8,6 +8,8 @@
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
+#include "src/savehdr.hpp"
+#include "intrfn.hpp"
 #include <chrono>
 #include <cstddef>
 #include <future>
@@ -70,7 +72,17 @@ auto interface_analyse(disk_t &disk, const int verbose, const int save_header)
       Button(
           "[ Backup       ]"
           "Filesystem Utils",
-          []() -> void {}, buttonOptions
+          [&]() -> void {
+            log_info("Backup partition structure");
+
+            if (partition_save(disk, list_part.get(), verbose) < 0)
+            {
+              display_message(root, "Can't create 'backup.log'.");
+            }
+            else
+              display_message(root, "Saved to 'backup.log'.");
+          },
+          buttonOptions
       ),
   });
   size_t frame = 0;
