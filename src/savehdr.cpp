@@ -21,7 +21,7 @@
  */
 #include <print>
 #include <cstring>
-#include <ctime>
+#include <chrono>
 #if __has_include(<sys/time.h>)
 #include <sys/time.h>
 #endif
@@ -209,50 +209,36 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
     return list_backup;
 }
 
-auto partition_save(disk_t &disk_car, const list_part_t &list_part, const int verbose) -> int
+auto partition_save(disk_t &disk_car, const list_part_t &list_part,
+                    const int verbose) -> int
 {
-    FILE *f_backup;
-    if (verbose > 0)
-    {
-        // log_trace("partition_save\n");
-    }
-    f_backup = fopen("backup.log", "a");
-    if (!f_backup)
-    {
-        log_critical("Can't create backup.log file: {}\n", strerror(errno));
-        return -1;
-    }
-    std::println(f_backup, "#{} {}", static_cast<unsigned long int>(time(nullptr)), disk_car.description(disk_car));
-    for (const partition_t &partition : list_part)
-    {
-        char status = 'D';
-        switch (partition.status)
-        {
-        case STATUS_PRIM:
-            status = 'P';
-            break;
-        case STATUS_PRIM_BOOT:
-            status = '*';
-            break;
-        case STATUS_EXT:
-            status = 'E';
-            break;
-        case STATUS_EXT_IN_EXT:
-            status = 'X';
-            break;
-        case STATUS_LOG:
-            status = 'L';
-            break;
-        case STATUS_DELETED:
-            status = 'D';
-            break;
-        }
-        std::println(f_backup, "{:2} : start={:9}, size={:9}, Id={:02X}, {}",
-                (partition.order < 100 ? partition.order : 0),
-                static_cast<unsigned long>(partition.part_offset / disk_car.sector_size),
-                static_cast<unsigned long>(partition.part_size / disk_car.sector_size),
-                (disk_car.arch->get_part_type != nullptr ? disk_car.arch->get_part_type(partition) : 0), status);
-    }
-    fclose(f_backup);
-    return 0;
+  std::FILE *f_backup;
+  if (verbose > 0)
+  {
+    log_trace("partition_save\n");
+  }
+  f_backup = std::fopen("backup.log", "a");
+  if (!f_backup)
+  {
+    log_critical("Can't create backup.log file: {}\n", strerror(errno));
+    return -1;
+  }
+  std::println(f_backup, "[{:%T}] {}",
+               std::chrono::system_clock::now(),
+               disk_car.description(disk_car));
+  for (const partition_t &partition : list_part)
+  {
+    std::println(f_backup, "{:2} : start={:9}, size={:10}, Id={:02X}, {}",
+                 (partition.order < 100 ? partition.order : 0),
+                 static_cast<unsigned long>(partition.part_offset /
+                                            disk_car.sector_size),
+                 static_cast<unsigned long>(partition.part_size /
+                                            disk_car.sector_size),
+                 (disk_car.arch->get_part_type != nullptr
+                      ? disk_car.arch->get_part_type(partition)
+                      : 0),
+                 static_cast<char>(partition.status));
+  }
+  std::fclose(f_backup);
+  return 0;
 }
