@@ -299,7 +299,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   if (le32(gpt->hdr_entries) == 0 || le32(gpt->hdr_entries) > 4096)
   {
     screen_buffer_add("GPT: invalid number ({}) of partition entries.\n",
-                      static_cast<unsigned int> le32(gpt->hdr_entries));
+                      le32(gpt->hdr_entries));
     delete[] gpt;
     return new_list_part;
   }
@@ -339,8 +339,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
     }
   }
 
-  gpt_entries =
-      reinterpret_cast<struct gpt_ent *>(new unsigned char[gpt_entries_size]);
+  gpt_entries = new struct gpt_ent[le32(gpt->hdr_entries)];
   if (std::cmp_not_equal(disk_car.pread(disk_car, gpt_entries, gpt_entries_size,
                                         gpt_entries_offset),
                          gpt_entries_size))
@@ -363,10 +362,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   for (i = 0; i < le32(gpt->hdr_entries); i++)
   {
     const struct gpt_ent *gpt_entry;
-    gpt_entry = reinterpret_cast<const struct gpt_ent *>(
-        reinterpret_cast<const char *>(gpt_entries) +
-        static_cast<unsigned long>(i) * le32(gpt->hdr_entsz)
-    );
+    gpt_entry = gpt_entries + i;
     if (gpt_entry->ent_type != GPT_ENT_TYPE_UNUSED &&
         le64(gpt_entry->ent_lba_start) < le64(gpt_entry->ent_lba_end))
     {
@@ -383,8 +379,8 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
       new_partition.status = STATUS_PRIM;
       UCSle2str(new_partition.partname,
                 std::span<const uint16_t, sizeof(gpt_entry->ent_name) / 2>(
-                    reinterpret_cast<const uint16_t *>(&gpt_entry->ent_name), sizeof(gpt_entry->ent_name) / 2
-                    ));
+                    gpt_entry->ent_name, sizeof(gpt_entry->ent_name) / 2
+                ));
       check_part_gpt(disk_car, verbose, new_partition, saveheader);
       /* log_debug("{} ent_attr %08llx\n", new_partition.order, (long long
        * unsigned)le64(gpt_entry->ent_attr));

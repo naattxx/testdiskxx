@@ -108,8 +108,8 @@ static void partition_generate_gpt_entry(struct gpt_ent *gpt_entry,
   gpt_entry->ent_lba_end =
       le64((partition.part_offset + partition.part_size - 1) /
            disk_car.sector_size);
-  str2UCSle(reinterpret_cast<uint16_t *>(&gpt_entry->ent_name),
-            partition.partname, sizeof(gpt_entry->ent_name) / 2);
+  str2UCSle(gpt_entry->ent_name, partition.partname,
+            sizeof(gpt_entry->ent_name) / 2);
   if (entry >= 0)
     guid_cpy(&gpt_entry->ent_uuid, &gpt_entries_org[entry].ent_uuid);
   else if (partition.part_uuid != GPT_ENT_TYPE_UNUSED)
@@ -216,13 +216,11 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
   const unsigned int gpt_entries_size = hdr_entries * sizeof(struct gpt_ent);
   if (ro > 0)
     return 0;
-  gpt_entries_org =
-      reinterpret_cast<struct gpt_ent *>(new unsigned char[gpt_entries_size]);
+  gpt_entries_org = new struct gpt_ent[hdr_entries];
   disk_car.pread(disk_car, gpt_entries_org, gpt_entries_size,
                  2 * disk_car.sector_size);
 
-  gpt_entries =
-      reinterpret_cast<struct gpt_ent *>(new unsigned char[gpt_entries_size]);
+  gpt_entries = new struct gpt_ent[hdr_entries];
   for (const partition_t &element : list_part)
   {
     if (element.order > 0 && element.order <= hdr_entries)
