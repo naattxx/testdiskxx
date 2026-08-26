@@ -391,7 +391,7 @@ enum upart_type_t
     UP_XFS5,
     UP_ZFS
 };
-enum status_type_t
+enum status_type_t : char
 {
     STATUS_DELETED = 'D',
     STATUS_PRIM = 'P',
