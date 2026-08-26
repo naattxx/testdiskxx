@@ -24,7 +24,7 @@
 #include <config.h>
 
 #include <algorithm>
-#include <cctype>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -1358,7 +1358,7 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
     log_close();
     exit(1);
   }
-  part_size = std::min(part_size, partition.part_size / disk_car.sector_size);
+  part_size = std::min<uint64_t>(part_size, partition.part_size / disk_car.sector_size);
   if (part_size > 0xFFFF)
   {
     fat_header->sectors[0] = 0;
