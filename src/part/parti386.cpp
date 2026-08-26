@@ -385,7 +385,6 @@ static const struct systypes i386_sys_types[] = {
     {.part_type = P_RAID,         .name = "Linux RAID"            },
     {.part_type = 0xfe,           .name = "LANstep"               },
     {.part_type = 0xff,           .name = "Xenix bad block"       },
-    {.part_type = P_NO_OS,        .name = ""                 }
 };
 
 arch_fnct_t arch_i386 = {
@@ -2055,11 +2054,9 @@ static auto check_part_i386(disk_t &disk_car, const int verbose,
 static auto get_partition_typename_i386_aux(const unsigned int part_type_i386)
     -> std::string_view
 {
-  int i;
-  /*@ loop assigns i; */
-  for (i = 0; !i386_sys_types[i].name.empty(); i++)
-    if (i386_sys_types[i].part_type == part_type_i386)
-      return i386_sys_types[i].name;
+  for (const auto &i386_sys_type : i386_sys_types)
+    if (i386_sys_type.part_type == part_type_i386)
+      return i386_sys_type.name;
   return "";
 }
 

@@ -139,7 +139,6 @@ static const struct systypes mac_sys_types[] = {
     {.part_type = PMAC_MFS,       .name = "MFS"          },
     {.part_type = PMAC_PRODOS,    .name = "ProDOS"       },
     {.part_type = PMAC_FAT32,     .name = "DOS_FAT_32"   },
-    {.part_type = PMAC_UNK,       .name = ""        }
 };
 
 arch_fnct_t arch_mac = {.part_name        = "Mac",
@@ -465,11 +464,9 @@ static auto check_part_mac(disk_t &disk_car, const int verbose,
 static auto get_partition_typename_mac_aux(const unsigned int part_type_mac)
     -> std::string_view
 {
-  int i;
-  /*@ loop assigns i; */
-  for (i = 0; !mac_sys_types[i].name.empty(); i++)
-    if (mac_sys_types[i].part_type == part_type_mac)
-      return mac_sys_types[i].name;
+  for (const auto &mac_sys_type : mac_sys_types)
+    if (mac_sys_type.part_type == part_type_mac)
+      return mac_sys_type.name;
   return "";
 }
 

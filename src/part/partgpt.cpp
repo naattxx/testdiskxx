@@ -183,7 +183,6 @@ const struct systypes_gtp gpt_sys_types[] = {
     {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED4,   .name = "Solaris Reserved4"   },
     {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED5,   .name = "Solaris Reserved5"   },
     {.part_type = GPT_ENT_TYPE_BEOS_BFS,            .name = "BeFS"                },
-    {.part_type = GPT_ENT_TYPE_UNUSED,              .name = ""               }
 };
 
 arch_fnct_t arch_gpt = {.part_name        = "EFI GPT",
@@ -613,11 +612,9 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
 
 static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view
 {
-  int i;
-  /*@ loop assigns i; */
-  for (i = 0; !gpt_sys_types[i].name.empty(); i++)
-    if (gpt_sys_types[i].part_type == part_type_gpt)
-      return gpt_sys_types[i].name;
+  for (const auto &gpt_sys_type : gpt_sys_types)
+    if (gpt_sys_type.part_type == part_type_gpt)
+      return gpt_sys_type.name;
 #ifndef DISABLED_FOR_FRAMAC
   log_info(
       "{:8x} {:04x} {:04x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} "

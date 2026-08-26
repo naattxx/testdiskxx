@@ -149,7 +149,6 @@ static const struct systypes sun_sys_types[] = {
     {.part_type = PSUN_LINUX,      .name = "Linux native"         },
     {.part_type = PSUN_LVM,        .name = "Linux LVM"            },
     {.part_type = PSUN_RAID,       .name = "Linux raid autodetect"},
-    {.part_type = 0,               .name = ""                }
 };
 
 arch_fnct_t arch_sun = {.part_name        = "Sun",
@@ -470,11 +469,9 @@ static auto check_part_sun(disk_t &disk_car, const int verbose,
 static auto get_partition_typename_sun_aux(const unsigned int part_type_sun)
     -> std::string_view
 {
-  int i;
-  /*@ loop assigns i; */
-  for (i = 0; !sun_sys_types[i].name.empty(); i++)
-    if (sun_sys_types[i].part_type == part_type_sun)
-      return sun_sys_types[i].name;
+  for (const auto &sun_sys_type : sun_sys_types)
+    if (sun_sys_type.part_type == part_type_sun)
+      return sun_sys_type.name;
   return "";
 }
 

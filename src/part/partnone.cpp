@@ -209,7 +209,6 @@ static const struct systypes none_sys_types[] = {
     {.part_type = UP_XFS4,          .name = "XFS 4"                },
     {.part_type = UP_XFS5,          .name = "XFS 5"                },
     {.part_type = UP_ZFS,           .name = "ZFS"                  },
-    {.part_type = 0,                .name = ""                }
 };
 
 arch_fnct_t arch_none = {.part_name              = "None",
@@ -576,16 +575,9 @@ static auto check_part_none(disk_t &disk_car, const int verbose,
 static auto get_partition_typename_none_aux(const unsigned int part_type_none)
     -> std::string_view
 {
-  unsigned int i;
-  /*@
-    @ loop assigns i;
-    @ loop variant sizeof(none_sys_types)/sizeof(struct systypes) - i;
-    @*/
-  for (i = 0; !none_sys_types[i].name.empty(); i++)
-  {
-    if (none_sys_types[i].part_type == part_type_none)
-      return none_sys_types[i].name;
-  }
+  for (const auto &none_sys_type : none_sys_types)
+    if (none_sys_type.part_type == part_type_none)
+      return none_sys_type.name;
   return "";
 }
 
