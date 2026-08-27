@@ -5,7 +5,7 @@
 #include "hdaccess.hpp"
 #include "hdcache.hpp"
 #include "log.hpp"
-#include "src/intrface.hpp"
+#include "src/ui/intrface.hpp"
 #include "ui/tdisksel.hpp"
 #include "utils.hpp"
 #include "ui/tlog.hpp"
