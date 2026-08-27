@@ -38,8 +38,7 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
           "lost "
           "partitions",
           [&]() -> void {
-            list_part_t list_part;
-            list_part = interface_analyse(disk, verbose, save_header);
+            interface_analyse(disk, verbose, dump, align, expert, save_header);
           }, buttonOptions
       ),
       Button(

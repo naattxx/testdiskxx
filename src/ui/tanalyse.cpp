@@ -5,11 +5,12 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/table.hpp"
 #include "ftxui/screen/color.hpp"
+#include "godmode.hpp"
+#include "intrfn.hpp"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/savehdr.hpp"
-#include "intrfn.hpp"
 #include <chrono>
 #include <cstddef>
 #include <future>
@@ -37,8 +38,9 @@ auto getPartitionsTable(const disk_t &disk, const list_part_t &partitions)
   return table.Render();
 }
 
-auto interface_analyse(disk_t &disk, const int verbose, const int save_header)
-    -> list_part_t
+auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
+                       bool align, const bool expert, const int save_header)
+    -> void
 {
   std::shared_future<list_part_t> list_part;
   auto screen = ftxui::App::Fullscreen();
@@ -67,7 +69,10 @@ auto interface_analyse(disk_t &disk, const int verbose, const int save_header)
           "[ Quick Search ]"
           "Analyse current partition structure and search for lost "
           "partitions",
-          []() -> void {}, buttonOptions
+          [&]() -> void {
+            //TODO:
+            //interface_recovery(disk, list_part.get(), verbose, dump, align, false, expert);
+          }, buttonOptions
       ),
       Button(
           "[ Backup       ]"
@@ -130,6 +135,4 @@ auto interface_analyse(disk_t &disk, const int verbose, const int save_header)
   });
 
   screen.Loop(root);
-
-  return list_part.get();
 }

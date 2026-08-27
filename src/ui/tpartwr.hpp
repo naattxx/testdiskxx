@@ -1,6 +1,6 @@
 /*
 
-    File: tanalyse.h
+    File: tpartwr.c
 
     Copyright (C) 2008 Christophe GRENIER <grenier@cgsecurity.org>
 
@@ -19,16 +19,18 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#ifndef _TANALYSE_H
-#define _TANALYSE_H
+#ifndef _TPARTWR_H
+#define _TPARTWR_H
 
 #include "src/common.hpp"
+
 /*@
   @ requires valid_disk(disk_car);
-  @ ensures  valid_list_part(\result);
+  @ requires valid_list_part(list_part);
   @*/
-auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
-                       bool align, const bool expert, const int save_header)
-    -> void;
+auto interface_write(disk_t &disk_car, list_part_t &list_part,
+                     const int can_search_deeper, const int can_ask_minmax_ext,
+                     int *no_confirm, char **current_cmd, unsigned int *menu)
+    -> int;
 
 #endif

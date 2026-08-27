@@ -1,8 +1,8 @@
 /*
 
-    File: tanalyse.h
+    File: next.h
 
-    Copyright (C) 2008 Christophe GRENIER <grenier@cgsecurity.org>
+    Copyright (C) 2020 Christophe GRENIER <grenier@cgsecurity.org>
 
     This software is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,16 +19,17 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#ifndef _TANALYSE_H
-#define _TANALYSE_H
+#ifndef _NEXT_H
+#define _NEXT_H
 
 #include "src/common.hpp"
+#include <cstdint>
+
 /*@
+  @ requires \valid_read(disk_car);
   @ requires valid_disk(disk_car);
-  @ ensures  valid_list_part(\result);
   @*/
-auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
-                       bool align, const bool expert, const int save_header)
-    -> void;
+void search_location_init(const disk_t &disk_car, const unsigned int location_boundary, const int fast_mode);
+auto search_location_update(const uint64_t location) -> uint64_t;
 
 #endif

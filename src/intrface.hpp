@@ -30,7 +30,7 @@
   @ requires \valid(current_cmd);
   @ requires \separated(disk_car, list_part, current_cmd);
   @*/
-auto ask_structure(disk_t &disk_car, list_part_t *list_part, const int verbose, char **current_cmd) -> list_part_t *;
+auto ask_structure(disk_t &disk_car, const list_part_t &partition, const int verbose, char **current_cmd) -> void;
 
 /*@
   @ requires \valid(disk_car);

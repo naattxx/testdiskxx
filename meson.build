@@ -23,7 +23,10 @@ conf_data.set('_ARM_', target_machine.cpu_family() == 'arm')
 conf_data.set('_ARM64_', target_machine.cpu_family() == 'aarch64')
 
 conf_data.set('TESTDISK_LSB', host_machine.endian() == 'little')
-conf_data.set('HAVE_LOCALTIME_R', compiler.has_type('localtime_r', prefix: '#include <ctime>'))
+conf_data.set(
+  'HAVE_LOCALTIME_R',
+  compiler.has_type('localtime_r', prefix: '#include <ctime>'),
+)
 
 libewf = compiler.find_library('libewf', required: false)
 libntfs = compiler.find_library('libntfs', required: false)
@@ -199,6 +202,7 @@ sources = files(
   'src/io_redir.cpp',
   'src/log.cpp',
   'src/log_part.cpp',
+  'src/next.cpp',
   'src/part/apfs.cpp',
   'src/part/apfs_common.cpp',
   'src/part/bfs.cpp',
@@ -267,6 +271,7 @@ sources = files(
   'src/ui/chgarch.cpp',
   'src/ui/diskacc.cpp',
   'src/ui/diskcapa.cpp',
+  'src/ui/godmode.cpp',
   'src/ui/hidden.cpp',
   'src/ui/intrfn.cpp',
   'src/ui/tanalyse.cpp',
@@ -274,6 +279,7 @@ sources = files(
   'src/ui/tdisksel.cpp',
   'src/ui/tlog.cpp',
   'src/ui/toptions.cpp',
+  'src/ui/tpartwr.cpp',
   'src/unicode.cpp',
   'src/utils.cpp',
   'src/win32.cpp',

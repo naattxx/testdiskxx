@@ -410,10 +410,10 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
 }
 #endif
 
-void ask_structure(disk_t &disk_car, const partition_t &partition, const int verbose, char **current_cmd)
+void ask_structure(disk_t &disk_car, const list_part_t &partition, const int verbose, char **current_cmd)
 {
-    if (*current_cmd != nullptr)
-        ask_structure_cli(disk_car, partition, verbose, current_cmd);
+    // if (*current_cmd != nullptr)
+    //     ask_structure_cli(disk_car, partition, verbose, current_cmd);
 #ifdef HAVE_NCURSES
     ask_structure_ncurses(disk_car, partition, verbose);
 #else
