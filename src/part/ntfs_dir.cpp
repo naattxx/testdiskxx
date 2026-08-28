@@ -511,10 +511,7 @@ extern "C"
     dev = ntfs_device_alloc("/", 0, &ntfs_device_testdisk_io_ops, nullptr);
     if (dev)
     {
-      my_data            = new my_data_t;
-      my_data->partition = partition;
-      my_data->disk_car  = &disk_car;
-      my_data->offset    = 0;
+      my_data            = new my_data_t(disk_car, partition, 0);
       dev->d_private     = my_data;
       /* Call ntfs_device_mount() to do the actual mount. */
 #ifdef MS_RDONLY

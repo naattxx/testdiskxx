@@ -117,7 +117,7 @@ static auto ntfs_device_testdisk_io_read(struct ntfs_device *dev, void *buf,
                                          s64 count) -> s64
 {
   auto *my_data = static_cast<my_data_t *>(dev->d_private);
-  if (my_data->disk_car->pread(*my_data->disk_car, buf, count,
+  if (my_data->disk_car.pread(my_data->disk_car, buf, count,
                                my_data->partition.part_offset +
                                    my_data->offset) != count)
     return 0;
@@ -129,7 +129,7 @@ static auto ntfs_device_testdisk_io_write(struct ntfs_device *dev,
                                           const void *buf, s64 count) -> s64
 {
   auto *my_data = static_cast<my_data_t *>(dev->d_private);
-  if (my_data->disk_car->pwrite(*my_data->disk_car, buf, count,
+  if (my_data->disk_car.pwrite(my_data->disk_car, buf, count,
                                 my_data->partition.part_offset +
                                     my_data->offset) != count)
     return 0;
@@ -141,7 +141,7 @@ static auto ntfs_device_testdisk_io_pread(struct ntfs_device *dev, void *buf,
                                           s64 count, s64 offset) -> s64
 {
   auto *my_data = static_cast<my_data_t *>(dev->d_private);
-  return my_data->disk_car->pread(*my_data->disk_car, buf, count,
+  return my_data->disk_car.pread(my_data->disk_car, buf, count,
                                   my_data->partition.part_offset + offset);
 }
 
@@ -150,14 +150,14 @@ static auto ntfs_device_testdisk_io_pwrite(struct ntfs_device *dev,
                                            s64 offset) -> s64
 {
   auto *my_data = static_cast<my_data_t *>(dev->d_private);
-  return my_data->disk_car->pwrite(*my_data->disk_car, buf, count,
+  return my_data->disk_car.pwrite(my_data->disk_car, buf, count,
                                    my_data->partition.part_offset + offset);
 }
 
 static auto ntfs_device_testdisk_io_sync(struct ntfs_device *dev) -> int
 {
   auto *my_data = static_cast<my_data_t *>(dev->d_private);
-  return my_data->disk_car->sync(*my_data->disk_car);
+  return my_data->disk_car.sync(my_data->disk_car);
 }
 
 static auto ntfs_device_testdisk_io_stat(struct ntfs_device *dev,

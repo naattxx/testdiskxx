@@ -189,7 +189,7 @@ static auto my_read_blk64(io_channel channel, unsigned long long block,
       my_data->partition.fsname, block, count, buf
   );
 #endif
-  if (my_data->disk_car->pread(*my_data->disk_car, buf, size,
+  if (my_data->disk_car.pread(my_data->disk_car, buf, size,
                                my_data->partition.part_offset +
                                    static_cast<uint64_t>(block) *
                                        channel->block_size) != size)
@@ -213,8 +213,8 @@ static auto my_write_blk64(io_channel channel, unsigned long long block,
 #if 1
   {
     const auto *my_data = reinterpret_cast<const my_data_t *>(channel);
-    if (my_data->disk_car->pwrite(
-            *my_data->disk_car, buf, count * channel->block_size,
+    if (my_data->disk_car.pwrite(
+            my_data->disk_car, buf, count * channel->block_size,
             my_data->partition.part_offset +
                 static_cast<uint64_t>(block) * channel->block_size
         ) != count * channel->block_size)
@@ -401,7 +401,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
   ls->dir_data = dir_data;
   my_data = reinterpret_cast<my_data_t *>(new unsigned char[sizeof(*my_data)]);
   my_data->partition = partition;
-  my_data->disk_car  = &disk_car;
+  my_data->disk_car  = disk_car;
   ioch               = alloc_io_channel(disk_car, my_data);
   shared_ioch        = ioch;
   /* An alternate superblock may be used if the calling function has set an IO

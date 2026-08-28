@@ -624,9 +624,13 @@ struct partition_t
 
 struct my_data_t
 {
-    disk_t *disk_car;
-    partition_t partition;
-    uint64_t offset;
+  my_data_t(disk_t &disk_car, const partition_t partition, uint64_t offset)
+      : disk_car(disk_car), partition(partition), offset(offset)
+  {
+  }
+  disk_t &disk_car;
+  partition_t partition;
+  uint64_t offset;
 };
 
 /*@
