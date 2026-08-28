@@ -96,7 +96,7 @@
     // ensures valid_list_disk(\result);
     // ensures disk==\null ==> \result == list_disk;
     // ensures the_disk==\null || (\valid_read(the_disk) && valid_disk(*the_disk));
-    void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t **the_disk);
+    void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t *the_disk);
 
     /*@
       @ requires list_disk==\null || valid_disk(list_disk->disk);

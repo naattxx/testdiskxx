@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 // #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp"
@@ -76,25 +77,21 @@ void offset2CHS(const disk_t &disk_car, const uint64_t offset, CHS_t *CHS)
   @ requires valid_disk(disk);
   @ assigns \nothing;
   @*/
-static auto search_disk(const list_disk_t &list_disk, const disk_t &disk) -> disk_t *
+static auto search_disk(const list_disk_t &list_disk, const disk_t &disk) -> std::optional<disk_t>
 {
-    /*@
-      @ loop assigns tmp;
-      @*/
     for (const disk_t& tmp : list_disk)
     {
         if (!tmp.device.empty() && !disk.device.empty() && tmp.device == disk.device)
         {
-            return const_cast<disk_t*>(&tmp);
+            return tmp;
         }
     }
-    return nullptr;
+    return std::nullopt;
 }
 
-void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t **the_disk)
+void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t *the_disk)
 {
     //list_disk_t result(list_disk);
-    disk_t* found;
     // if (!disk)
     // {
     //     if (the_disk != nullptr)
@@ -105,15 +102,15 @@ void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t **the_disk
     //     /*@ assert valid_list_disk(list_disk); */
     //     return;
     // }
-    found = search_disk(list_disk, disk);
+    std::optional<disk_t> found = search_disk(list_disk, disk);
     /* Do not add a disk already known */
-    if (found != nullptr)
+    if (found.has_value())
     {
         disk.clean(disk);
         if (the_disk != nullptr)
         {
             /*@ assert \valid(the_disk); */
-            *the_disk = found;
+            *the_disk = *found;
         }
         /*@ assert valid_list_disk(list_disk); */
         return;
@@ -123,7 +120,7 @@ void insert_new_disk_aux(list_disk_t &list_disk, disk_t &disk, disk_t **the_disk
     if (the_disk != nullptr)
     {
         /*@ assert \valid(the_disk); */
-        *the_disk = &disk;
+        *the_disk = disk;
     }
     /*@ assert valid_list_disk(new_disk); */
     /*@ assert valid_list_disk(list_disk); */
