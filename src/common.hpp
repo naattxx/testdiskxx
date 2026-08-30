@@ -523,6 +523,8 @@ struct disk_t
     void update_fields();
     void update_geometry(const int verbose);
     void autoset_geometry(const unsigned char *buffer, const int verbose);
+    void set_cylinders_from_size_up();
+    auto set_sector_size(const unsigned int sector_size) -> int;
     void autodetect_arch(const arch_fnct_t *arch);
     void autoset_unit();
     [[nodiscard]]

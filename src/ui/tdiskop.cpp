@@ -5,6 +5,7 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/color.hpp"
 #include "src/common.hpp"
+#include "geometry.hpp"
 #include "toptions.hpp"
 #include <config.h>
 #include <format>
@@ -45,7 +46,9 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
           "[ Advanced ] Filesystem Utils", []() -> void {}, buttonOptions
       ),
       Button(
-          "[ Geometry ] Change disk geometry", []() -> void {}, buttonOptions
+          "[ Geometry ] Change disk geometry", [&]() -> void {
+            change_geometry(root, disk);
+          }, buttonOptions
       ),
       Button(
           "[ Options  ] Modify options",
