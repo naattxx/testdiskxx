@@ -197,7 +197,7 @@ static void interface_adv_ncurses(disk_t &disk, const int rewrite, list_part_t *
 }
 #endif
 
-static auto adv_string_to_command(char **current_cmd, std::list<partition_t>::iterator current_element, list_part_t &list_part) -> int
+static auto adv_string_to_command(char **current_cmd, list_part_t::iterator current_element, list_part_t &list_part) -> int
 {
     int keep_asking;
     int command = 'q';
@@ -445,7 +445,7 @@ void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, cons
     int rewrite = 1;
     unsigned int menu = 0;
     list_part_t list_part;
-    std::list<partition_t>::iterator current_element;
+    list_part_t::iterator current_element;
     assert(current_cmd != nullptr);
     log_info("\nInterface Advanced\n");
     list_part = disk_car.arch->read_part(disk_car, verbose, 0);

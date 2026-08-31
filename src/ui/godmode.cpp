@@ -1284,8 +1284,8 @@ static auto add_ext_part_i386(const disk_t &disk, list_part_t &list_part,
 {
   /* list_part need to be sorted! */
   /* All extended partitions of an P_EXTENDX are P_EXTENDED */
-  std::optional<std::list<partition_t>::iterator> deb;
-  std::optional<std::list<partition_t>::iterator> fin;
+  std::optional<list_part_t::iterator> deb;
+  std::optional<list_part_t::iterator> fin;
   int nbr_entries               = 0;
   unsigned int order            = 0;
   uint64_t part_extended_offset = 0;
