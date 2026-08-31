@@ -19,14 +19,11 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#include <algorithm>
 #include <config.h>
 
 #include <cassert>
 #include <cstddef>
 #include <cctype>
-#include <iterator>
-#include <list>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -34,7 +31,6 @@
 // #include "types.h"
 #include "common.hpp"
 #include "intrf.hpp"
-#include "lang.h"
 // #include "intrfn.h"
 #include "chgtype.hpp"
 #include "fnctdsk.hpp"
@@ -45,8 +41,6 @@
 #include "dimage.hpp"
 #include "dirpart.hpp"
 #include "guid_cmp.hpp"
-#include "log.hpp"
-#include "log_part.hpp"
 #include "part/ext2_sb.hpp"
 #include "part/ext2_sbn.hpp"
 #include "part/fat.hpp"
@@ -148,105 +142,6 @@ static auto is_linux(const partition_t &partition) -> int
         break;
     }
     return 0;
-}
-
-#ifdef HAVE_NCURSES
-static void interface_adv_ncurses(disk_t &disk, const int rewrite, list_part_t *list_part,
-                                  const list_part_t *current_element, const int offset)
-{
-    list_part_t *element;
-    int i;
-    if (rewrite != 0)
-    {
-        aff_copy(stdscr);
-        wmove(stdscr, 4, 0);
-        wprintw(stdscr, "%s", disk->description(disk));
-        if (list_part != NULL)
-            mvwaddstr(stdscr, 6, 0, msg_PART_HEADER_LONG);
-    }
-    for (i = 0, element = list_part; element != NULL && i < offset + INTER_ADV; element = element->next, i++)
-    {
-        if (i < offset)
-            continue;
-        wmove(stdscr, 7 + i - offset, 0);
-        wclrtoeol(stdscr); /* before addstr for BSD compatibility */
-        if (element == current_element)
-        {
-            wattrset(stdscr, A_REVERSE);
-            waddstr(stdscr, ">");
-            aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk, element->part);
-            wattroff(stdscr, A_REVERSE);
-        }
-        else
-        {
-            waddstr(stdscr, " ");
-            aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk, element->part);
-        }
-    }
-    wmove(stdscr, 7 + INTER_ADV, 5);
-    wclrtoeol(stdscr);
-    if (element != NULL)
-        wprintw(stdscr, "Next");
-    if (current_element == NULL)
-    {
-        wmove(stdscr, 7, 0);
-        wattrset(stdscr, A_REVERSE);
-        wprintw(stdscr, "No partition available.");
-        wattroff(stdscr, A_REVERSE);
-    }
-}
-#endif
-
-static auto adv_string_to_command(char **current_cmd, list_part_t::iterator current_element, list_part_t &list_part) -> int
-{
-    int keep_asking;
-    int command = 'q';
-    assert(current_cmd != nullptr);
-    do
-    {
-        keep_asking = 0;
-        skip_comma_in_command(current_cmd);
-        if (check_command(current_cmd, "type", 4) == 0)
-        {
-            command = 't';
-        }
-        else if (check_command(current_cmd, "addpart", 7) == 0)
-        {
-            command = 'a';
-        }
-        else if (check_command(current_cmd, "boot", 4) == 0)
-        {
-            command = 'b';
-        }
-        else if (check_command(current_cmd, "copy", 4) == 0)
-        {
-            command = 'c';
-        }
-        else if (check_command(current_cmd, "list", 4) == 0)
-        {
-            command = 'l';
-        }
-        else if (check_command(current_cmd, "undelete", 8) == 0)
-        {
-            command = 'u';
-        }
-        else if (check_command(current_cmd, "superblock", 10) == 0)
-        {
-            command = 's';
-        }
-        else if (isdigit(*current_cmd[0]))
-        {
-            const unsigned int order = get_int_from_command(current_cmd);
-            current_element = std::ranges::find_if(list_part, [&](const partition_t &element) -> bool {
-                return element.order == order;
-            });
-            if (current_element != list_part.end())
-            {
-                keep_asking = 1;
-            }
-        }
-    } while (keep_asking > 0);
-    return command;
 }
 
 #ifdef HAVE_NCURSES
@@ -432,186 +327,5 @@ static void adv_menu_superblock_selected(disk_t &disk, partition_t &partition, c
     if (is_hfs(partition) || is_hfsp(partition))
     {
         HFS_HFSP_boot_sector(disk, partition, verbose, current_cmd);
-    }
-}
-
-void interface_adv(disk_t &disk_car, const int verbose, const int dump_ind, const unsigned int expert,
-                   char **current_cmd)
-{
-    int current_element_num = 0;
-#ifdef HAVE_NCURSES
-    int offset = 0;
-#endif
-    int rewrite = 1;
-    unsigned int menu = 0;
-    list_part_t list_part;
-    list_part_t::iterator current_element;
-    assert(current_cmd != nullptr);
-    log_info("\nInterface Advanced\n");
-    list_part = disk_car.arch->read_part(disk_car, verbose, 0);
-    /*@ assert valid_list_part(list_part); */
-    current_element = list_part.begin();
-    log_all_partitions(disk_car, list_part);
-    while (true)
-    {
-        int command;
-#ifdef HAVE_NCURSES
-        static struct MenuItem menuAdv[] = {{'t', "Type", "Change type, this setting will not be saved on disk"},
-                                            {'b', "Boot", "Boot sector recovery"},
-                                            {'s', "Superblock", NULL},
-                                            {'l', "List", "List and copy files"},
-                                            {'u', "Undelete", "File undelete"},
-                                            {'c', "Image Creation", "Create an image"},
-                                            //      {'a',"Add", "Add temporary partition (Expert only)"},
-                                            {'q', "Quit", "Return to main menu"},
-                                            {0, NULL, NULL}};
-        const char *options;
-        int old_LINES = LINES;
-        interface_adv_ncurses(disk_car, rewrite, list_part, current_element, offset);
-#endif
-        rewrite = 0;
-        if (current_element == list_part.end())
-        {
-#ifdef HAVE_NCURSES
-            options = "q";
-#endif
-        }
-        else
-        {
-            if (menu == 0 && (disk_car.arch != &arch_none || current_element->upart_type != UP_UNK))
-                menu = 1;
-#ifdef HAVE_NCURSES
-            options = adv_get_options_for_partition(*current_element);
-            menuAdv[2].desc = adv_get_boot_description(*current_element);
-#endif
-        }
-        if (*current_cmd != nullptr)
-        {
-            command = adv_string_to_command(current_cmd, current_element, list_part);
-        }
-        else
-        {
-#ifdef HAVE_NCURSES
-            command = wmenuSelect_ext(stdscr, INTER_ADV_Y + 1, INTER_ADV_Y, INTER_ADV_X, menuAdv, 8, options,
-                                      MENU_HORIZ | MENU_BUTTON | MENU_ACCEPT_OTHERS, &menu, NULL);
-#else
-            command = 'q';
-#endif
-        }
-        switch (command)
-        {
-        case 'q':
-        case 'Q':
-            return;
-        case 'a':
-        case 'A':
-            if (disk_car.arch != &arch_none)
-            {
-                current_element = list_part.end();
-                if (*current_cmd != nullptr)
-                    add_partition_cli(disk_car, list_part, current_cmd);
-#ifdef HAVE_NCURSES
-                else
-                    list_part = add_partition_ncurses(disk_car, list_part);
-#endif
-                rewrite = 1;
-            }
-            break;
-        }
-        if (current_element != list_part.end())
-        {
-            switch (command)
-            {
-            case 'p':
-            case 'P':
-#ifdef KEY_UP
-            case KEY_UP:
-#endif
-                if (current_element != list_part.begin())
-                {
-                    current_element = std::prev(current_element);
-                    current_element_num--;
-                }
-                break;
-            case 'n':
-            case 'N':
-#ifdef KEY_DOWN
-            case KEY_DOWN:
-#endif
-                if (std::next(current_element) != list_part.end())
-                {
-                    current_element = std::next(current_element);
-                    current_element_num++;
-                }
-                break;
-#ifdef KEY_PPAGE
-            case KEY_PPAGE: {
-                int i;
-                for (i = 0; i < INTER_ADV - 1 && current_element->prev != NULL; i++)
-                {
-                    current_element = current_element->prev;
-                    current_element_num--;
-                }
-            }
-            break;
-#endif
-#ifdef KEY_NPAGE
-            case KEY_NPAGE: {
-                int i;
-                for (i = 0; i < INTER_ADV - 1 && current_element->next != NULL; i++)
-                {
-                    current_element = current_element->next;
-                    current_element_num++;
-                }
-            }
-            break;
-#endif
-            case 'b':
-            case 'B':
-                rewrite =
-                    adv_menu_boot_selected(disk_car, *current_element, verbose, dump_ind, expert, current_cmd);
-                break;
-            case 'c':
-            case 'C':
-                adv_menu_image_selected(disk_car, *current_element, current_cmd);
-                rewrite = 1;
-                break;
-            case 'u':
-            case 'U':
-                adv_menu_undelete_selected(disk_car, *current_element, verbose, current_cmd);
-                rewrite = 1;
-                break;
-            case 'l':
-            case 'L':
-                adv_menu_list_selected(disk_car, *current_element, verbose, expert, current_cmd);
-                rewrite = 1;
-                break;
-            case 's':
-            case 'S':
-                adv_menu_superblock_selected(disk_car, *current_element, verbose, dump_ind, current_cmd);
-                rewrite = 1;
-                break;
-            case 't':
-            case 'T':
-                if (*current_cmd != nullptr)
-                    change_part_type_cli(disk_car, *current_element, current_cmd);
-#ifdef HAVE_NCURSES
-                else
-                    change_part_type_ncurses(disk_car, current_element->part);
-#endif
-                rewrite = 1;
-                break;
-            }
-#ifdef HAVE_NCURSES
-            if (current_element_num < offset)
-                offset = current_element_num;
-            if (current_element_num >= offset + INTER_ADV)
-                offset = current_element_num - INTER_ADV + 1;
-#endif
-        }
-#ifdef HAVE_NCURSES
-        if (old_LINES != LINES)
-            rewrite = 1;
-#endif
     }
 }

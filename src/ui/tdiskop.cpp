@@ -6,6 +6,7 @@
 #include "ftxui/screen/color.hpp"
 #include "src/common.hpp"
 #include "geometry.hpp"
+#include "src/ui/adv.hpp"
 #include "toptions.hpp"
 #include <config.h>
 #include <format>
@@ -43,7 +44,9 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
           }, buttonOptions
       ),
       Button(
-          "[ Advanced ] Filesystem Utils", []() -> void {}, buttonOptions
+          "[ Advanced ] Filesystem Utils", [&]() -> void {
+            interface_adv(disk, verbose, dump, expert);
+          }, buttonOptions
       ),
       Button(
           "[ Geometry ] Change disk geometry", [&]() -> void {
