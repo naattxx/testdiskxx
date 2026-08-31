@@ -7,6 +7,7 @@
 #include <string>
 #include <config.h>
 #include <string_view>
+#include <vector>
 
 struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
 {
@@ -446,7 +447,7 @@ struct CHS_t
     unsigned int sector;
 };
 
-using list_part_t = std::list<partition_t>;
+using list_part_t = std::vector<partition_t>;
 
 /*@
 inductive valid_list_part{L} (list_part_t *list)
