@@ -84,10 +84,12 @@ auto change_arch_type(const Component root, disk_t &disk, const int verbose)
     bool show_modal = true;
     screen.Loop(root | Modal(dialog, &show_modal));
 
+    // Quit
     if (static_cast<unsigned>(selected) ==
         arch_list.size()) // == entries.size() -1
       return 1;
   }
+  disk.arch = arch_list[selected];
   disk.autoset_unit();
   disk.update_geometry(verbose);
   log_info(disk.description_short(disk));
