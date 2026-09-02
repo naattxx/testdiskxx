@@ -41,7 +41,6 @@
 #include "hfs.hpp"
 #include "hfsp.hpp"
 #include "partmac.hpp"
-#include "src/chgtype.hpp"
 #include "src/log.hpp"
 #include "src/savehdr.hpp"
 
@@ -315,7 +314,7 @@ void add_partition_mac_cli(disk_t &disk_car, list_part_t &list_part,
     }
     else if (check_command(current_cmd, "T,", 2) == 0)
     {
-      change_part_type_cli(disk_car, new_partition, current_cmd);
+      //change_part_type_cli(disk_car, new_partition, current_cmd);
     }
     else if (new_partition.part_size > 0 && new_partition.part_type_mac > 0)
     {

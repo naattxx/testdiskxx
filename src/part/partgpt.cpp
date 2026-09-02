@@ -55,7 +55,6 @@
 #include "src/analyse.hpp"
 #endif
 #include "partgpt.hpp"
-#include "src/chgtype.hpp"
 #include "src/savehdr.hpp"
 #ifndef DISABLED_FOR_FRAMAC
 #include "apfs.hpp"
@@ -134,7 +133,7 @@ static auto get_partition_typename_gpt(const partition_t &partition) -> std::str
   @*/
 static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view;
 
-const std::array<const struct systypes_gtp, 46> gpt_sys_types {{
+extern const std::array<const struct systypes_gtp, 46> gpt_sys_types {{
     {.part_type = GPT_ENT_TYPE_EFI,                 .name = "EFI System"          },
     {.part_type = GPT_ENT_TYPE_EBP,                 .name = "Extended Boot"       },
     {.part_type = GPT_ENT_TYPE_MBR,                 .name = "MBR"                 },
@@ -467,7 +466,7 @@ void add_partition_gpt_cli(const disk_t &disk_car, list_part_t &list_part,
     }
     else if (check_command(current_cmd, "T,", 2) == 0)
     {
-      change_part_type_cli(disk_car, new_partition, current_cmd);
+      //change_part_type_cli(disk_car, new_partition, current_cmd);
     }
     else if (new_partition.part_size > 0 &&
              new_partition.part_type_gpt != GPT_ENT_TYPE_UNUSED)

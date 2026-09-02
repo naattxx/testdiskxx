@@ -32,7 +32,6 @@
 // #include "types.h"
 #include "fatx.hpp"
 #include "partxbox.hpp"
-#include "src/chgtype.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/intrf.hpp"
@@ -258,7 +257,7 @@ void add_partition_xbox_cli(const disk_t &disk_car, list_part_t &list_part,
     }
     else if (check_command(current_cmd, "T,", 2) == 0)
     {
-      change_part_type_cli(disk_car, new_partition, current_cmd);
+      //change_part_type_cli(disk_car, new_partition, current_cmd);
     }
     else if (new_partition.part_size > 0 && new_partition.part_type_xbox > 0)
     {

@@ -32,7 +32,6 @@
 #include "common.hpp"
 #include "intrf.hpp"
 // #include "intrfn.h"
-#include "chgtype.hpp"
 #include "fnctdsk.hpp"
 // #include "chgtypen.h"
 #include "addpart.hpp"

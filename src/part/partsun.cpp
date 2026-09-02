@@ -40,7 +40,6 @@
 #include "lvm.hpp"
 #include "md.hpp"
 #include "partsun.hpp"
-#include "src/chgtype.hpp"
 #include "src/log.hpp"
 #include "src/savehdr.hpp"
 #include "sun.hpp"
@@ -325,7 +324,7 @@ void add_partition_sun_cli(const disk_t &disk_car, list_part_t &list_part,
     }
     else if (check_command(current_cmd, "T,", 2) == 0)
     {
-      change_part_type_cli(disk_car, new_partition, current_cmd);
+      //change_part_type_cli(disk_car, new_partition, current_cmd);
     }
     else if ((CHS2offset(disk_car, &end) > new_partition.part_offset) &&
              new_partition.part_type_sun > 0)

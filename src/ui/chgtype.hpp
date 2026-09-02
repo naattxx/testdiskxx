@@ -21,17 +21,16 @@
  */
 #ifndef _CHGTYPE_H
 #define _CHGTYPE_H
+
+#include "ftxui/component/app.hpp"
 #include "src/common.hpp"
 
-    /*@
-      @ requires \valid_read(disk_car);
-      @ requires valid_disk(disk_car);
-      @ requires \valid(partition);
-      @ requires valid_partition(partition);
-      @ requires \valid(current_cmd);
-      @ requires \separated(disk_car, partition, current_cmd);
-      @ decreases 0;
-      @*/
-    void change_part_type_cli(const disk_t &disk_car, partition_t &partition, char **current_cmd);
+/*@
+  @ requires \valid(disk);
+  @ requires valid_disk(disk);
+  @ requires \valid(partition);
+  @ requires \separated(disk, partition);
+  @*/
+void change_part_type_interface(const ftxui::Component root, const disk_t &disk, partition_t &partition);
 
 #endif

@@ -1,4 +1,5 @@
 #include "adv.hpp"
+#include "chgtype.hpp"
 #include "config.h"
 #include "ftxui/component/app.hpp"
 #include "ftxui/component/component.hpp"
@@ -55,12 +56,23 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
   };
 
   int selected_part{0};
+  std::vector<std::vector<std::string>> rows{
+      {"", "", "Partition", "Start", "End", "Size in sectors", "", ""}
+  };
 
   Components buttons{
       Button(
           "[  Type  ]"
           "Change type, this setting will not be saved on disk",
-          []() -> void {}, buttonOptions
+          [&]() -> void {
+            change_part_type_interface(root, disk, list_part[selected_part]);
+
+            // refresh row
+            rows[selected_part + 1] =
+                aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk,
+                             list_part[selected_part]);
+          },
+          buttonOptions
       ),
       Button(
           "[  Boot  ]"
@@ -107,10 +119,6 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
         }
         return false;
       });
-
-  std::vector<std::vector<std::string>> rows{
-      {"", "", "Partition", "Start", "End", "Size in sectors", "", ""}
-  };
 
   for (const auto &partition : list_part)
   {
