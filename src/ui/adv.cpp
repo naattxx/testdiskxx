@@ -80,6 +80,9 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
           []() -> void {}, buttonOptions
       ),
       Button(
+          "[Superblock]", []() -> void {}, buttonOptions
+      ),
+      Button(
           "[  List  ]"
           "List and copy files",
           []() -> void {}, buttonOptions
