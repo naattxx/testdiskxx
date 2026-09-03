@@ -199,8 +199,6 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
   };
 
   bool hasBoot, hasSuperblock, hasList, hasUndelete;
-  adv_get_options_for_partition(list_part.front(), hasBoot, hasSuperblock,
-                                hasList, hasUndelete);
   Components buttons{
       Button(
           "[  Type  ]"
@@ -321,6 +319,9 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
 
   if (list_part.empty())
     display_message(root, "No partition available.");
-  else
+  else {
+    adv_get_options_for_partition(list_part.front(), hasBoot, hasSuperblock,
+                                  hasList, hasUndelete);
     screen.Loop(root);
+  }
 }
