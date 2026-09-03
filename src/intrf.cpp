@@ -134,6 +134,8 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk, const partitio
     {
         if (partition.status != STATUS_EXT_IN_EXT && partition.order != NO_ORDER)
             result.push_back(to_string(partition.order));
+        else
+            result.emplace_back("");
     }
     if ((newline & AFF_PART_STATUS) == AFF_PART_STATUS)
     {
@@ -159,12 +161,12 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk, const partitio
     }
     else
     {
-      result.push_back(std::format("{:5} {:3} {:2}",
+      result.push_back(std::format("{:05} {:03} {:02}",
                           offset2cylinder(disk, partition.part_offset),
                           offset2head(disk, partition.part_offset),
                           offset2sector(disk, partition.part_offset)));
       result.push_back(std::format(
-          "{:5} {:3} {:2}",
+          "{:05} {:03} {:02}",
           offset2cylinder(disk,
                           partition.part_offset + partition.part_size - 1),
           offset2head(disk, partition.part_offset + partition.part_size - 1),

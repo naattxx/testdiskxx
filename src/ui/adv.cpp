@@ -293,6 +293,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
   root = Renderer(buttonsContainer, [&]() -> Element {
     Table table(rows);
     table.SelectColumns(3, 6).Decorate(align_right);
+    table.SelectRow(0).Decorate(center);
     table.SelectRow(0).Decorate(bold);
     table.SelectRow(0).Separator(EMPTY);
     table.SelectRow(selected_part + 1).Decorate(inverted);

@@ -33,6 +33,7 @@ auto getPartitionsTable(const disk_t &disk, const list_part_t &partitions)
   }
   Table table(data);
   table.SelectColumns(3, 6).Decorate(align_right);
+  table.SelectRow(0).Decorate(center);
   table.SelectRow(0).Decorate(bold);
   table.SelectRow(0).Separator(EMPTY);
   return table.Render();

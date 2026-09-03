@@ -71,6 +71,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     }
     Table table(data);
     table.SelectColumns(3, 6).Decorate(align_right);
+    table.SelectRow(0).Decorate(center);
     table.SelectRow(0).Decorate(bold);
     table.SelectRow(0).Separator(EMPTY);
     auto rendered = table.Render();
