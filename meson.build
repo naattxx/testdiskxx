@@ -80,6 +80,26 @@ if libuuid.found()
   )
 endif
 
+prefix = '''
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYS_STAT_H
+#define HAVE_TIME_H
+#include <cstdarg>
+extern "C" {
+'''
+prefix += libntfs3g.found() ? '#include <ntfs-3g/volume.h>' : '#include <ntfs/volume.h>'
+prefix += '''
+}
+'''
+conf_data.set(
+  'HAVE_NTFS_VOLUME_STARTUP',
+  compiler.has_function(
+    'ntfs_volume_startup',
+    prefix: prefix,
+    dependencies: [libntfs, libntfs3g],
+  ),
+)
+
 conf_data.set(
   'NTFS_MBSTOUCS_HAVE_TWO_ARGUMENTS',
   compiler.compiles(
