@@ -68,24 +68,6 @@ extern const arch_fnct_t arch_xbox;
 
 #define DEFAULT_IMAGE_NAME "image.dd"
 
-static auto is_part_hfs(const partition_t &partition) -> int
-{
-    if (partition.part_type_i386 == P_HFS || partition.part_type_mac == PMAC_HFS)
-        return 1;
-    if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_HFS)
-        return 1;
-    return 0;
-}
-
-static auto is_part_hfsp(const partition_t &partition) -> int
-{
-    if (partition.part_type_i386 == P_HFSP || partition.part_type_mac == PMAC_HFS)
-        return 1;
-    if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_HFS)
-        return 1;
-    return 0;
-}
-
 auto is_part_linux(const partition_t &partition) -> int
 {
     if (partition.arch == &arch_i386 && partition.part_type_i386 == P_LINUX)
@@ -100,109 +82,6 @@ auto is_part_linux(const partition_t &partition) -> int
         return 1;
     return 0;
 }
-
-static auto is_exfat(const partition_t &partition) -> int
-{
-    return (is_part_ntfs(partition) || partition.upart_type == UP_EXFAT);
-}
-
-static auto is_hfs(const partition_t &partition) -> int
-{
-    return (is_part_hfs(partition) || partition.upart_type == UP_HFS);
-}
-
-static auto is_hfsp(const partition_t &partition) -> int
-{
-    return (is_part_hfsp(partition) || partition.upart_type == UP_HFSP || partition.upart_type == UP_HFSX);
-}
-
-static auto is_linux(const partition_t &partition) -> int
-{
-    if (is_part_linux(partition))
-        return 1;
-    switch (partition.upart_type)
-    {
-    case UP_CRAMFS:
-    case UP_EXT2:
-    case UP_EXT3:
-    case UP_EXT4:
-    case UP_JFS:
-    case UP_RFS:
-    case UP_RFS2:
-    case UP_RFS3:
-    case UP_RFS4:
-    case UP_XFS:
-    case UP_XFS2:
-    case UP_XFS3:
-    case UP_XFS4:
-    case UP_XFS5:
-        return 1;
-    default:
-        break;
-    }
-    return 0;
-}
-
-#ifdef HAVE_NCURSES
-static const char *adv_get_boot_description(const partition_t &partition)
-{
-    assert(partition != NULL);
-    if (is_part_linux(partition))
-    {
-        return "Locate ext2/ext3/ext4 backup superblock";
-    }
-    else if (is_part_hfs(partition) || is_part_hfsp(partition))
-    {
-        return "Locate HFS/HFS+ backup volume header";
-    }
-    else if (is_linux(partition))
-    {
-        return "Locate ext2/ext3/ext4 backup superblock";
-    }
-    else if (is_hfs(partition) || is_hfsp(partition))
-    {
-        return "Locate HFS/HFS+ backup volume header";
-    }
-    return "Boot sector recovery";
-}
-
-static const char *adv_get_options_for_partition(const partition_t &partition)
-{
-    if (is_part_fat(partition))
-    {
-        return "tubcq";
-    }
-    else if (is_part_ntfs(partition))
-        return "tlubcq";
-    else if (is_part_linux(partition))
-    {
-        if (partition.upart_type == UP_EXT2)
-            return "tuscq";
-        else
-            return "tlscq";
-    }
-    else if (is_part_hfs(partition) || is_part_hfsp(partition))
-    {
-        return "tscq";
-    }
-    else if (is_fat(partition))
-        return "tubcq";
-    else if (is_ntfs(partition) || is_exfat(partition))
-        return "tlubcq";
-    else if (is_linux(partition))
-    {
-        if (partition.upart_type == UP_EXT2)
-            return "tluscq";
-        else
-            return "tlscq";
-    }
-    else if (is_hfs(partition) || is_hfsp(partition))
-    {
-        return "tscq";
-    }
-    return "tcq";
-}
-#endif
 
 static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
                                   const unsigned int expert, char **current_cmd) -> int
@@ -315,16 +194,16 @@ static void adv_menu_list_selected(disk_t &disk, const partition_t &partition, c
         dir_partition(disk, partition, verbose, expert, current_cmd);
 }
 
-static void adv_menu_superblock_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
-                                         char **current_cmd)
-{
-    if (is_linux(partition))
-    {
-        list_part_t list_sb = search_superblock(disk, partition, verbose, dump_ind);
-        interface_superblock(disk, list_sb, current_cmd);
-    }
-    if (is_hfs(partition) || is_hfsp(partition))
-    {
-        HFS_HFSP_boot_sector(disk, partition, verbose, current_cmd);
-    }
-}
+// static void adv_menu_superblock_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
+//                                          char **current_cmd)
+// {
+//     if (is_linux(partition))
+//     {
+//         list_part_t list_sb = search_superblock(disk, partition, verbose, dump_ind);
+//         interface_superblock(disk, list_sb, current_cmd);
+//     }
+//     if (is_hfs(partition) || is_hfsp(partition))
+//     {
+//         HFS_HFSP_boot_sector(disk, partition, verbose, current_cmd);
+//     }
+// }
