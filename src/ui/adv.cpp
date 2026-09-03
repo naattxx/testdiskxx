@@ -14,9 +14,12 @@
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
+#include "src/part/ext2_sbn.hpp"
 #include "src/part/fat.hpp"
 #include "src/part/ntfs.hpp"
+#include "src/part/thfs.hpp"
 #include "src/ui/intrfn.hpp"
+#include "src/ui/part/ext2_sb.hpp"
 #include <cassert>
 #include <memory>
 #include <string>
@@ -166,6 +169,21 @@ static void adv_get_options_for_partition(const partition_t &partition,
     hasBoot = hasList = hasUndelete = hasSuperblock = false;
 }
 
+static void adv_menu_superblock_selected(const Component root, disk_t &disk,
+                                         partition_t &partition,
+                                         const int verbose, const bool dump)
+{
+  if (is_linux(partition))
+  {
+    list_part_t list_sb = search_superblock(disk, partition, verbose, dump);
+    interface_superblock(root, disk, list_sb);
+  }
+  if (is_hfs(partition) || is_hfsp(partition))
+  {
+    // HFS_HFSP_boot_sector(disk, partition, verbose, current_cmd);
+  }
+}
+
 void interface_adv(disk_t &disk, const int verbose, const bool dump,
                    const bool expert)
 {
@@ -234,7 +252,13 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
                    }),
             &hasBoot),
       Maybe(Button(
-                "[Superblock]", []() -> void {}, buttonOptions
+                "[Superblock]",
+                [&]() -> void {
+                  adv_menu_superblock_selected(root, disk,
+                                               list_part[selected_part],
+                                               verbose, dump);
+                },
+                buttonOptions
             ),
             &hasSuperblock),
       Maybe(Button(
@@ -320,7 +344,8 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
 
   if (list_part.empty())
     display_message(root, "No partition available.");
-  else {
+  else
+  {
     adv_get_options_for_partition(list_part.front(), hasBoot, hasSuperblock,
                                   hasList, hasUndelete);
     screen.Loop(root);

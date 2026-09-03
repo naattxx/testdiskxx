@@ -31,6 +31,6 @@
     @ ensures  valid_list_part(\result);
     @*/
 auto search_superblock(disk_t &disk_car, partition_t &partition,
-                       const int verbose, const int dump_ind) -> list_part_t;
+                       const int verbose, const bool dump) -> list_part_t;
 
 #endif

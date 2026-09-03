@@ -31,10 +31,10 @@
 /*
  * The second extended file system magic number
  */
-#define EXT2_SUPER_MAGIC 0xEF53
-#define EXT2_MIN_BLOCK_SIZE 1024
-#define EXT2_MAX_BLOCK_SIZE 4096
-#define EXT2_MIN_BLOCK_LOG_SIZE 10
+#define EXT2_SUPER_MAGIC 0xEF53u
+#define EXT2_MIN_BLOCK_SIZE 1024u
+#define EXT2_MAX_BLOCK_SIZE 4096u
+#define EXT2_MIN_BLOCK_LOG_SIZE 10u
 
 #define EXT2_MIN_BLOCK (EXT2_MIN_BLOCK_SIZE / DEFAULT_SECTOR_SIZE)
 

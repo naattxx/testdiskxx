@@ -21,18 +21,17 @@
  */
 #ifndef _EXT2_SB_H
 #define _EXT2_SB_H
+
+#include "ftxui/component/app.hpp"
 #include "src/common.hpp"
 
 /*@
     @ requires \valid(disk_car);
     @ requires valid_disk(disk_car);
     @ requires valid_list_part(list_part);
-    @ requires \valid(current_cmd);
-    @ requires valid_read_string(*current_cmd);
-    @ requires separation: \separated(disk_car, list_part, current_cmd);
-    @ ensures  valid_read_string(*current_cmd);
+    @ requires separation: \separated(disk_car, list_part);
     @*/
-auto interface_superblock(disk_t &disk_car, const list_part_t &list_part,
-                          char **current_cmd) -> int;
+auto interface_superblock(const ftxui::Component root, disk_t &disk_car,
+                          const list_part_t &list_part) -> int;
 
 #endif

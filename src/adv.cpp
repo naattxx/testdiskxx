@@ -40,8 +40,6 @@
 #include "dimage.hpp"
 #include "dirpart.hpp"
 #include "guid_cmp.hpp"
-#include "part/ext2_sb.hpp"
-#include "part/ext2_sbn.hpp"
 #include "part/fat.hpp"
 #include "part/fat1x.hpp"
 #include "part/fat32.hpp"
@@ -193,17 +191,3 @@ static void adv_menu_list_selected(disk_t &disk, const partition_t &partition, c
     else
         dir_partition(disk, partition, verbose, expert, current_cmd);
 }
-
-// static void adv_menu_superblock_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
-//                                          char **current_cmd)
-// {
-//     if (is_linux(partition))
-//     {
-//         list_part_t list_sb = search_superblock(disk, partition, verbose, dump_ind);
-//         interface_superblock(disk, list_sb, current_cmd);
-//     }
-//     if (is_hfs(partition) || is_hfsp(partition))
-//     {
-//         HFS_HFSP_boot_sector(disk, partition, verbose, current_cmd);
-//     }
-// }

@@ -78,7 +78,7 @@ static auto next_sb(const uint64_t hd_offset_old) -> uint64_t
 }
 
 auto search_superblock(disk_t &disk_car, partition_t &partition,
-                       const int verbose, const int dump_ind) -> list_part_t
+                       const int verbose, const bool dump) -> list_part_t
 {
   auto *buffer = new unsigned char[2 * 0x200];
   uint64_t hd_offset;
@@ -90,7 +90,7 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
 #endif
   auto *sb = reinterpret_cast<struct ext2_super_block *>(buffer);
   partition_t new_partition(disk_car.arch);
-  // log_trace("search_superblock\n");
+  log_trace("search_superblock");
 #ifdef HAVE_NCURSES
   aff_copy(stdscr);
   wmove(stdscr, 4, 0);
@@ -130,7 +130,7 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
       {
         new_partition = partition;
         new_partition.part_offset += hd_offset;
-        if (recover_EXT2(disk_car, sb, new_partition, verbose, dump_ind) == 0)
+        if (recover_EXT2(disk_car, sb, new_partition, verbose, dump) == 0)
         {
           int insert_error = 0;
           if (hd_offset <= (EXT2_MIN_BLOCK_SIZE << 2))
@@ -143,11 +143,11 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
             partition.blocksize    = new_partition.blocksize;
           }
           log_info(
-              "Ext2 superblock found at sector {} (block={}, blocksize={})\n",
-              (long long unsigned)hd_offset / DEFAULT_SECTOR_SIZE,
-              (long long unsigned)hd_offset >>
+              "Ext2 superblock found at sector {} (block={}, blocksize={})",
+              hd_offset / DEFAULT_SECTOR_SIZE,
+              hd_offset >>
                   (EXT2_MIN_BLOCK_LOG_SIZE + le32(sb->s_log_block_size)),
-              (unsigned int)EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size)
+              EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size)
           );
 #ifdef HAVE_NCURSES
           wmove(stdscr, 10 + nbr_sb, 0);
