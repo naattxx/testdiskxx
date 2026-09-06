@@ -67,7 +67,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.BUILD_TYPE }}-
       - name: Setup Cpp
-        uses: aminya/setup-cpp@8170d66c458f4a045220b7b0966c10940bb2a15d
+        uses: aminya/setup-cpp@c4e5daa333e7b32a6d1d5e462bede4e1f98435b7
         with:
           compiler: ${{ matrix.compiler }}
           ccache: true
