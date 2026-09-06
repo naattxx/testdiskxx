@@ -24,6 +24,7 @@
  * Foundation,Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 #include <config.h>
+#include <cstdint>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
@@ -153,7 +154,7 @@ static auto ntfs_ucstoutf8(iconv_t cd, char *ins, const int ins_len,
   char *inp;
   char *outp;
   size_t inb_left, outb_left;
-  if (cd == (iconv_t)(-1))
+  if (reinterpret_cast<intptr_t>(cd) == -1)
     return -1;
 
   outp      = *outs;
@@ -344,10 +345,7 @@ static auto ntfs_dir(disk_t &disk_car, const partition_t &partition,
   return 0;
 }
 
-enum
-{
-  bufsize = 4096
-};
+constexpr uint8_t bufsize = 4096;
 
 static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
                       dir_data_t *dir_data, const file_info_t &file)
@@ -486,7 +484,7 @@ static void dir_partition_ntfs_close(dir_data_t *dir_data)
   ntfs_umount(ls->vol, FALSE);
   delete (ls->my_data);
 #ifdef HAVE_ICONV
-  if (ls->cd != (iconv_t)(-1))
+  if (reinterpret_cast<intptr_t>(ls->cd) != -1)
     iconv_close(ls->cd);
 #endif
   delete ls;
@@ -550,7 +548,7 @@ extern "C"
       ls->my_data  = my_data;
       ls->dir_data = dir_data;
 #ifdef HAVE_ICONV
-      if ((ls->cd = iconv_open("UTF-8", "UTF-16LE")) == (iconv_t)(-1))
+      if (reinterpret_cast<intptr_t>(ls->cd = iconv_open("UTF-8", "UTF-16LE")) == -1)
       {
         log_error("ntfs_ucstoutf8: iconv_open failed\n");
       }

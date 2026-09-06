@@ -17,7 +17,7 @@ using namespace ftxui;
 
 constexpr int MAX_HEADS{255};
 
-auto change_geometry(const Component root, disk_t &disk) -> int
+auto change_geometry(const Component &root, disk_t &disk) -> int
 {
   auto screen = App::Fullscreen();
   std::string cylinders;
@@ -36,7 +36,7 @@ auto change_geometry(const Component root, disk_t &disk) -> int
   auto cylindrInput =
       Input(&cylinders, std::to_string(disk.geom.cylinders),
             {.multiline = false}) |
-      CatchEvent([&](Event event) -> bool {
+      CatchEvent([&](const Event &event) -> bool {
         return event.is_character() && !std::isdigit(event.character()[0]);
       });
 
@@ -55,7 +55,7 @@ auto change_geometry(const Component root, disk_t &disk) -> int
                else
                  heads = std::to_string(std::stoi(heads));
              }}) |
-      CatchEvent([&](Event event) -> bool {
+      CatchEvent([&](const Event &event) -> bool {
         return event.is_character() && !std::isdigit(event.character()[0]);
       });
 
@@ -74,7 +74,7 @@ auto change_geometry(const Component root, disk_t &disk) -> int
                else
                  sectors = std::to_string(std::stoi(sectors));
              }}) |
-      CatchEvent([&](Event event) -> bool {
+      CatchEvent([&](const Event &event) -> bool {
         return event.is_character() && !std::isdigit(event.character()[0]);
       });
 

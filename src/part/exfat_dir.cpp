@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cctype>
 #include <config.h>
+#include <cstdint>
 #include <cstdio>
 #include <optional>
 #if __has_include(<iconv.h>)
@@ -86,7 +87,7 @@ static auto exfat_ucstoutf8(iconv_t cd, const unsigned char *ins,
   const char *inp;
   char *outp;
   size_t inb_left, outb_left;
-  if (cd == (iconv_t)(-1))
+  if (reinterpret_cast<intptr_t>(cd) == -1)
     return -1;
 
   outp      = *outs;
@@ -269,7 +270,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
       new_file.status =
           ((entry->type & 0x80) == 0x80 ? 0 : FILE_STATUS_DELETED);
       current_file = new_file;
-      dir_list.push_front(std::move(new_file));
+      dir_list.push_front(new_file);
     }
     else if (sec_count > 0 && current_file)
     {
@@ -317,7 +318,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
   return 0;
 }
 
-using exfat_method_t = enum
+enum exfat_method_t : uint8_t
 {
   exFAT_FOLLOW_CLUSTER,
   exFAT_NEXT_FREE_CLUSTER,
@@ -435,7 +436,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   ls              = new struct exfat_dir_struct;
   ls->boot_sector = exfat_header;
 #ifdef HAVE_ICONV
-  if ((ls->cd = iconv_open("UTF-8", "UTF-16LE")) == (iconv_t)(-1))
+  if (reinterpret_cast<intptr_t>(ls->cd = iconv_open("UTF-8", "UTF-16LE")) == -1)
   {
     log_error("dir_partition_exfat_init: iconv_open failed\n");
   }
@@ -477,7 +478,7 @@ static void dir_partition_exfat_close(dir_data_t *dir_data)
   auto *ls = static_cast<struct exfat_dir_struct *>(dir_data->private_dir_data);
   delete (ls->boot_sector);
 #ifdef HAVE_ICONV
-  if (ls->cd != (iconv_t)(-1))
+  if (reinterpret_cast<intptr_t>(ls->cd) != -1)
     iconv_close(ls->cd);
 #endif
   delete ls;

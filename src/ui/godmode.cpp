@@ -600,7 +600,7 @@ static void search_NTFS_from_backup(disk_t &disk_car, list_part_t &list_part,
   delete[] buffer_disk;
 }
 
-enum indstop_t
+enum indstop_t : uint8_t
 {
   INDSTOP_CONTINUE = 0,
   INDSTOP_STOP     = 1,

@@ -10,7 +10,7 @@
 
 using namespace ftxui;
 
-auto interface_check_disk_capacity(const Component root, disk_t &disk_car)
+auto interface_check_disk_capacity(const Component &root, disk_t &disk_car)
     -> int
 {
   /* Test for LBA28 limitation */

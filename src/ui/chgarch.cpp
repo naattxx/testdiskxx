@@ -21,7 +21,7 @@ extern const arch_fnct_t arch_mac;
 extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
 
-auto change_arch_type(const Component root, disk_t &disk, const int verbose)
+auto change_arch_type(const Component &root, disk_t &disk, const int verbose)
     -> int
 {
   // arch_list must match the order from entries

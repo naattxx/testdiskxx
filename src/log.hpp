@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <string>
@@ -8,7 +9,7 @@ using namespace spdlog;
 
 inline std::shared_ptr<logger> file_logger = nullptr;
 
-enum class TD_LOG
+enum class TD_LOG : uint8_t
 {
     NONE,
     CREATE,

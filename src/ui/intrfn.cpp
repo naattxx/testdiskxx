@@ -8,7 +8,7 @@
 
 using namespace ftxui;
 
-void display_message(const Component root, std::string_view msg)
+void display_message(const Component &root, std::string_view msg)
 {
   auto screen = App::Fullscreen();
 

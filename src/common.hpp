@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -333,7 +334,7 @@ constexpr efi_guid_t GPT_ENT_TYPE_BEOS_BFS
 #define TESTDISK_O_READAHEAD_32K 010
 #define TESTDISK_O_ALL 020
 
-enum upart_type_t
+enum upart_type_t : uint8_t
 {
     UP_UNK = 0,
     UP_APFS,
@@ -401,7 +402,7 @@ enum status_type_t : char
     STATUS_EXT = 'E',
     STATUS_EXT_IN_EXT = 'X'
 };
-enum errcode_type_t
+enum errcode_type_t : uint8_t
 {
     BAD_NOERR,
     BAD_SS,
@@ -419,7 +420,7 @@ enum errcode_type_t
 #define AFF_PART_ORDER 1
 #define AFF_PART_STATUS 2
 
-enum class UNIT
+enum class UNIT : uint8_t
 {
     DEFAULT = 0,
     SECTOR,
@@ -627,8 +628,8 @@ struct partition_t
 
 struct my_data_t
 {
-  my_data_t(disk_t &disk_car, const partition_t partition, uint64_t offset)
-      : disk_car(disk_car), partition(partition), offset(offset)
+  my_data_t(disk_t &disk_car, partition_t partition, uint64_t offset)
+      : disk_car(disk_car), partition(std::move(partition)), offset(offset)
   {
   }
   disk_t &disk_car;

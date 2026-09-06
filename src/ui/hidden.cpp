@@ -10,7 +10,7 @@
 
 using namespace ftxui;
 
-auto interface_check_hidden(const Component root, disk_t &disk,
+auto interface_check_hidden(const Component &root, disk_t &disk,
                                     const int hpa_dco) -> int
 {
   std::vector<std::string_view> entries = {

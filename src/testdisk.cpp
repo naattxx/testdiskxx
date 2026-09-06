@@ -51,9 +51,9 @@ static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, co
         if (!isAdmin())
         {
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
-            std::cout << "You need to be Administrator to use TestDisk." << std::endl;
+            std::cout << "You need to be Administrator to use TestDisk.\n";
 #elifdef __linux__
-          std::cout << "You need to be root to use TestDisk." << std::endl;
+          std::cout << "You need to be root to use TestDisk.\n";
 #endif
         }
         return 1;
@@ -177,7 +177,7 @@ auto main(int argc, char **argv) -> int
     }
     catch (const args::ParseError &e)
     {
-        std::cerr << e.what() << std::endl;
+        std::cerr << e.what() << '\n';
         std::cerr << parser;
         return 1;
     }

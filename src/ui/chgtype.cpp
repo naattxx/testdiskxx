@@ -29,7 +29,7 @@ extern const arch_fnct_t arch_i386;
 extern const arch_fnct_t arch_sun;
 extern const std::array<const struct systypes_gtp, 46> gpt_sys_types;
 
-static void change_part_type_int(const Component root, const disk_t &disk_car,
+static void change_part_type_int(const Component &root, const disk_t &disk_car,
                                  partition_t &partition)
 {
   if (partition.arch->set_part_type == nullptr)
@@ -70,7 +70,7 @@ static void change_part_type_int(const Component root, const disk_t &disk_car,
   Component input =
       Input(&out, std::format("[current is {:02x}]", current_part),
             {.multiline = false}) |
-      CatchEvent([&](Event event) -> bool {
+      CatchEvent([&](const Event &event) -> bool {
         if (event == Event::Return && !out.empty())
         {
           int numOut = std::stoi(out, nullptr, 16);
@@ -106,7 +106,7 @@ static void change_part_type_int(const Component root, const disk_t &disk_car,
   partition.arch->set_part_type(partition, std::stoi(out, nullptr, 16));
 }
 
-static void change_part_type_list(const Component root, const disk_t &disk_car,
+static void change_part_type_list(const Component &root, const disk_t &disk_car,
                                   partition_t &partition)
 {
   if (partition.arch->set_part_type == nullptr)
@@ -185,7 +185,7 @@ static void change_part_type_list(const Component root, const disk_t &disk_car,
   );
 }
 
-static void gpt_change_part_type(const Component root, const disk_t &disk_car,
+static void gpt_change_part_type(const Component &root, const disk_t &disk_car,
                                  partition_t &partition)
 {
   log_info("gpt_change_part_type\n");
@@ -244,7 +244,7 @@ static void gpt_change_part_type(const Component root, const disk_t &disk_car,
            &gpt_sys_types[row + col * thirdRoundedUp].part_type);
 }
 
-void change_part_type_interface(const Component root, const disk_t &disk_car,
+void change_part_type_interface(const Component &root, const disk_t &disk_car,
                                 partition_t &partition)
 {
   if (partition.arch == nullptr)

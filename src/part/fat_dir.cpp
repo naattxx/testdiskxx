@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cctype>
 #include <config.h>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -333,7 +334,7 @@ RecEnd:
       new_file.status = status;
       /* log_debug("fat: new file %s de=%p
        * size={}\n",new_file.name,de,le32(de->size)); */
-      dir_list.push_front(std::move(new_file));
+      dir_list.push_front(new_file);
     }
   }
   de++;
@@ -345,7 +346,7 @@ RecEnd:
   return 0;
 }
 
-using fat_method_t = enum
+enum fat_method_t : uint8_t
 {
   FAT_FOLLOW_CLUSTER,
   FAT_NEXT_FREE_CLUSTER,

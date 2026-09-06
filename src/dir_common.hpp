@@ -21,6 +21,7 @@
  */
 #ifndef _DIR_COMMON_H
 #define _DIR_COMMON_H
+#include <cstdint>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -36,7 +37,7 @@
 #define CAPA_LIST_DELETED 1
 #define CAPA_LIST_ADS 2
 
-enum copy_file_t
+enum copy_file_t : int8_t
 {
     CP_OK = 0,
     CP_STAT_FAILED = -1,
@@ -47,7 +48,7 @@ enum copy_file_t
     CP_CLOSE_FAILED = -6,
     CP_NOMEM = -7
 };
-enum dir_partition_t
+enum dir_partition_t : int8_t
 {
     DIR_PART_ENOIMP = -3,
     DIR_PART_ENOSYS = -2,

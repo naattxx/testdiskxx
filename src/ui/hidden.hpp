@@ -28,6 +28,6 @@
   @ requires \valid(disk);
   @ requires valid_disk(disk);
   @*/
-auto interface_check_hidden(const ftxui::Component root, disk_t &disk, const int hpa_dco) -> int;
+auto interface_check_hidden(const ftxui::Component &root, disk_t &disk, const int hpa_dco) -> int;
 
 #endif

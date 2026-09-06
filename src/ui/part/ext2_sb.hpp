@@ -31,7 +31,7 @@
     @ requires valid_list_part(list_part);
     @ requires separation: \separated(disk_car, list_part);
     @*/
-auto interface_superblock(const ftxui::Component root, disk_t &disk_car,
+auto interface_superblock(const ftxui::Component &root, disk_t &disk_car,
                           const list_part_t &list_part) -> int;
 
 #endif

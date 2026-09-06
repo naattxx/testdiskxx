@@ -15,7 +15,7 @@ auto log_open(std::string &logfile, TD_LOG create_log) -> bool
     }
     catch (const spdlog_ex &ex)
     {
-        std::cout << "Log init failed: " << ex.what() << std::endl;
+        std::cout << "Log init failed: " << ex.what() << '\n';
         return false;
     }
 

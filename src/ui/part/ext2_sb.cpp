@@ -36,7 +36,7 @@
 
 using namespace ftxui;
 
-auto interface_superblock(const Component root, disk_t &disk,
+auto interface_superblock(const Component &root, disk_t &disk,
                           const list_part_t &list_part) -> int
 {
   auto screen = App::Fullscreen();

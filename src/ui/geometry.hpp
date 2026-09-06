@@ -4,6 +4,6 @@
 #include "ftxui/component/app.hpp"
 #include "src/common.hpp"
 
-auto change_geometry(const ftxui::Component root, disk_t &disk) -> int;
+auto change_geometry(const ftxui::Component &root, disk_t &disk) -> int;
 
 #endif

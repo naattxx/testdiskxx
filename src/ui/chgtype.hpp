@@ -31,6 +31,6 @@
   @ requires \valid(partition);
   @ requires \separated(disk, partition);
   @*/
-void change_part_type_interface(const ftxui::Component root, const disk_t &disk, partition_t &partition);
+void change_part_type_interface(const ftxui::Component &root, const disk_t &disk, partition_t &partition);
 
 #endif

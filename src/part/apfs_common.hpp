@@ -13,7 +13,7 @@
 #define NX_MINIMUM_BLOCK_SIZE 4096
 #define NX_TX_MIN_CHECKPOINT_COUNT 4
 
-using nx_counter_id_t = enum
+using nx_counter_id_t = enum : uint8_t
 {
   NX_CNTR_OBJ_CKSUM_SET  = 0,
   NX_CNTR_OBJ_CKSUM_FAIL = 1,

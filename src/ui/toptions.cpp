@@ -8,7 +8,7 @@
 
 using namespace ftxui;
 
-void interface_options(const ftxui::Component root, bool &dump, bool &align,
+void interface_options(const ftxui::Component &root, bool &dump, bool &align,
                        bool &expert)
 {
   ButtonOption buttonOptions = ButtonOption();

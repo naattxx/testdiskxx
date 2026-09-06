@@ -23,6 +23,6 @@
 #define _TOPTIONS_H
 #include "ftxui/component/app.hpp"
 
-void interface_options(const ftxui::Component root, bool &dump, bool &align, bool &expert);
+void interface_options(const ftxui::Component &root, bool &dump, bool &align, bool &expert);
 
 #endif

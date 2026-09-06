@@ -169,7 +169,7 @@ static void adv_get_options_for_partition(const partition_t &partition,
     hasBoot = hasList = hasUndelete = hasSuperblock = false;
 }
 
-static void adv_menu_superblock_selected(const Component root, disk_t &disk,
+static void adv_menu_superblock_selected(const Component &root, disk_t &disk,
                                          partition_t &partition,
                                          const int verbose, const bool dump)
 {
@@ -235,7 +235,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
       ),
       Maybe(Button("[  Boot  ]", []() -> void {},
                    {
-                       .transform = [&](EntryState s) -> Element {
+                       .transform = [&](const EntryState &s) -> Element {
                          if (s.focused)
                          {
                            buttonDescription = text(adv_get_boot_description(
@@ -290,7 +290,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
                        []() -> void {}, buttonOptions
                    ));
   auto buttonsContainer =
-      Container::Horizontal(buttons) | CatchEvent([&](Event e) -> bool {
+      Container::Horizontal(buttons) | CatchEvent([&](const Event &e) -> bool {
         if (e == Event::ArrowUp && selected_part > 0)
         {
           selected_part--;

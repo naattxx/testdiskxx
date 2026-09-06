@@ -2697,13 +2697,13 @@ auto FAT_init_rootdir(disk_t &disk_car, partition_t &partition,
   return 0;
 }
 
-using fat_status_t = enum
+using fat_status_t = enum : uint8_t
 {
   FAT_UNREADABLE = 0,
   FAT_CORRUPTED  = 1,
   FAT_OK         = 2
 };
-using fat_repair_t = enum
+using fat_repair_t = enum : uint8_t
 {
   FAT_REPAIR_ASK = 0,
   FAT_REPAIR_YES = 1,

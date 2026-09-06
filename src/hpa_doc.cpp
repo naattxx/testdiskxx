@@ -20,6 +20,7 @@
 
  */
 
+#include <cstdint>
 #include <string>
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LINUX_TYPES_H
@@ -71,7 +72,7 @@
 #define SG_DRIVER_SENSE 0x08
 #define SG_CHECK_CONDITION 0x02
 
-enum
+enum : uint8_t
 {
     SG_CDB2_TLEN_NODATA = 0 << 0,
     SG_CDB2_TLEN_FEAT = 1 << 0,

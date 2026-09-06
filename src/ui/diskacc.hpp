@@ -28,6 +28,6 @@
   @ requires \valid(disk_car);
   @ requires valid_disk(disk_car);
   @*/
-auto interface_check_disk_access(const ftxui::Component root, disk_t &disk_car) -> int;
+auto interface_check_disk_access(const ftxui::Component &root, disk_t &disk_car) -> int;
 
 #endif
