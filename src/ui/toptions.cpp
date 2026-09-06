@@ -36,7 +36,7 @@ void interface_options(const ftxui::Component &root, bool &dump, bool &align,
   );
   auto dialog =
       Renderer(options,
-               [&]() -> Element { return vbox({options->Render()}); }) |
+               [&] -> Element { return vbox({options->Render()}); }) |
       size(WIDTH, GREATER_THAN, 20) | border | center;
   screen.Loop(root | Modal(dialog, &show_modal));
 

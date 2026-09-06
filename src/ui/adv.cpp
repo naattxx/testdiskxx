@@ -221,7 +221,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
       Button(
           "[  Type  ]"
           "Change type, this setting will not be saved on disk",
-          [&]() -> void {
+          [&] -> void {
             change_part_type_interface(root, disk, list_part[selected_part]);
 
             // refresh row
@@ -233,7 +233,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
           },
           buttonOptions
       ),
-      Maybe(Button("[  Boot  ]", []() -> void {},
+      Maybe(Button("[  Boot  ]", [] -> void {},
                    {
                        .transform = [&](const EntryState &s) -> Element {
                          if (s.focused)
@@ -253,7 +253,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
             &hasBoot),
       Maybe(Button(
                 "[Superblock]",
-                [&]() -> void {
+                [&] -> void {
                   adv_menu_superblock_selected(root, disk,
                                                list_part[selected_part],
                                                verbose, dump);
@@ -264,19 +264,19 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
       Maybe(Button(
                 "[  List  ]"
                 "List and copy files",
-                []() -> void {}, buttonOptions
+                [] -> void {}, buttonOptions
             ),
             &hasList),
       Maybe(Button(
                 "[Undelete]"
                 "File undelete",
-                []() -> void {}, buttonOptions
+                [] -> void {}, buttonOptions
             ),
             &hasUndelete),
       Button(
           "[Image Creation]"
           "Create an image",
-          []() -> void {}, buttonOptions
+          [] -> void {}, buttonOptions
       ),
       Button("[  Quit  ]"
              "Return to main menu",
@@ -287,7 +287,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
                    Button(
                        "[  Add   ]"
                        "Add temporary partition (Expert only)",
-                       []() -> void {}, buttonOptions
+                       [] -> void {}, buttonOptions
                    ));
   auto buttonsContainer =
       Container::Horizontal(buttons) | CatchEvent([&](const Event &e) -> bool {
@@ -314,7 +314,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
                                 partition));
   }
 
-  root = Renderer(buttonsContainer, [&]() -> Element {
+  root = Renderer(buttonsContainer, [&] -> Element {
     Table table(rows);
     table.SelectColumns(3, 6).Decorate(align_right);
     table.SelectRow(0).Decorate(center);

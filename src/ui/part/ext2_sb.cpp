@@ -81,7 +81,7 @@ auto interface_superblock(const Component &root, disk_t &disk,
   Render(screen, tableElement);
   log_info(screen.ToString());
 
-  auto dialog = Renderer(quitButton, [&]() -> Element {
+  auto dialog = Renderer(quitButton, [&] -> Element {
     return vbox({
                text(disk.description(disk)),
                separator(),

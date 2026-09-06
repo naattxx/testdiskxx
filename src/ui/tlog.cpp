@@ -43,7 +43,7 @@ auto ask_testdisk_log_creation(App &app) -> TD_LOG
         })
     );
   }
-  auto dialog = Renderer(menu, [&]() -> Element {
+  auto dialog = Renderer(menu, [&] -> Element {
     return window(text("Log creation"),
                   vbox({
                       hflow({text("TestDisk++ "), bold(text(VERSION)),

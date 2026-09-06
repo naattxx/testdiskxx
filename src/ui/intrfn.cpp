@@ -15,7 +15,7 @@ void display_message(const Component &root, std::string_view msg)
   auto okButton =
       Button("Ok", screen.ExitLoopClosure(), ButtonOption::Ascii());
 
-  auto dialog = Renderer(okButton, [&]() -> Element {
+  auto dialog = Renderer(okButton, [&] -> Element {
     return vbox({
                paragraph(msg),
                separator(),

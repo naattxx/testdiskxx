@@ -70,7 +70,7 @@ auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
           "[ Quick Search ]"
           "Analyse current partition structure and search for lost "
           "partitions",
-          [&]() -> void {
+          [&] -> void {
             //TODO:
             //interface_recovery(disk, list_part.get(), verbose, dump, align, false, expert);
           }, buttonOptions
@@ -78,7 +78,7 @@ auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
       Button(
           "[ Backup       ]"
           "Filesystem Utils",
-          [&]() -> void {
+          [&] -> void {
             log_info("Backup partition structure");
 
             if (partition_save(disk, list_part.get(), verbose) < 0)
@@ -93,7 +93,7 @@ auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
   });
   size_t frame = 0;
 
-  root = Renderer(options, [&]() -> Element {
+  root = Renderer(options, [&] -> Element {
     bool loaded = list_part.valid() &&
                   list_part.wait_for(std::chrono::milliseconds(10)) ==
                       std::future_status::ready;
@@ -127,7 +127,7 @@ auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
     });
   });
 
-  list_part = std::async([&]() -> list_part_t {
+  list_part = std::async([&] -> list_part_t {
     log_info("\nAnalyse {}", disk.description(disk));
     list_part_t list = disk.arch->read_part(disk, verbose, save_header);
     log_info("Current partition structure:");

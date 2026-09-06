@@ -43,7 +43,7 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
   auto headsInput =
       Input(&heads, std::to_string(disk.geom.heads_per_cylinder),
             {.multiline = false,
-             .on_change = [&]() -> void {
+             .on_change = [&] -> void {
                if (heads.empty())
                  return;
 
@@ -62,7 +62,7 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
   auto sectorsInput =
       Input(&sectors, std::to_string(disk.geom.sectors_per_head),
             {.multiline = false,
-             .on_change = [&]() -> void {
+             .on_change = [&] -> void {
                if (sectors.empty())
                  return;
 
@@ -96,7 +96,7 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
                          }});
   bool cancel{false};
   auto cancelButton = Button("Cancel ",
-                             [&]() -> void {
+                             [&] -> void {
                                cancel = true;
                                screen.Exit();
                              },
@@ -121,7 +121,7 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
           cancelButton,
       }),
   });
-  auto dialog    = Renderer(container, [&]() -> Element {
+  auto dialog    = Renderer(container, [&] -> Element {
     return vbox({
                text(disk.description(disk)),
                separator(),

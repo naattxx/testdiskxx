@@ -82,7 +82,7 @@ static void change_part_type_int(const Component &root, const disk_t &disk_car,
         return (event.is_character() && (!isxdigit(event.character()[0]) || out.size() >= 2));
       });
 
-  auto dialog = Renderer(input, [&]() -> Element {
+  auto dialog = Renderer(input, [&] -> Element {
     return vbox({
                text("List of partition types:"),
                separatorDashed(),
@@ -168,7 +168,7 @@ static void change_part_type_list(const Component &root, const disk_t &disk_car,
     return false;
   });
 
-  auto dialog = Renderer(grid, [&]() -> Element {
+  auto dialog = Renderer(grid, [&] -> Element {
     return vbox({
                text("Please choose the partition type, press Enter when done:"),
                separatorDashed(),
@@ -228,7 +228,7 @@ static void gpt_change_part_type(const Component &root, const disk_t &disk_car,
     return false;
   });
 
-  auto dialog = Renderer(grid, [&]() -> Element {
+  auto dialog = Renderer(grid, [&] -> Element {
     return vbox({
                text("Please choose the partition type, press Enter when done:"),
                separatorDashed(),
