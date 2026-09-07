@@ -36,7 +36,6 @@
 // #include "chgtypen.h"
 #include "addpart.hpp"
 #include "adv.hpp"
-#include "askloc.hpp"
 #include "dimage.hpp"
 #include "dirpart.hpp"
 #include "guid_cmp.hpp"
@@ -63,8 +62,6 @@ extern const arch_fnct_t arch_xbox;
 #define INTER_ADV_Y (LINES - 2)
 #define INTER_ADV (LINES - 2 - 7 - 1)
 #endif
-
-#define DEFAULT_IMAGE_NAME "image.dd"
 
 auto is_part_linux(const partition_t &partition) -> int
 {
@@ -126,34 +123,6 @@ static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition, const i
       return 1;
     }
     return 0;
-}
-
-static void adv_menu_image_selected(disk_t &disk, const partition_t &partition, char **current_cmd)
-{
-    char dst_path[4096];
-    dst_path[0] = '\0';
-#ifdef HAVE_NCURSES
-    if (*current_cmd != NULL)
-        td_getcwd(dst_path, sizeof(dst_path));
-    else
-    {
-        char msg[256];
-        snprintf(msg, sizeof(msg), "Please select where to store the file image.dd (%u MB), an image of the partition",
-                 (unsigned int)(partition.part_size / 1000 / 1000));
-        ask_location(dst_path, sizeof(dst_path), msg, "");
-    }
-#else
-    td_getcwd(dst_path, sizeof(dst_path));
-#endif
-    if (dst_path[0] != '\0')
-    {
-        char *filename = new char[strlen(dst_path) + 1 + strlen(DEFAULT_IMAGE_NAME) + 1];
-        strcpy(filename, dst_path);
-        strcat(filename, "/");
-        strcat(filename, DEFAULT_IMAGE_NAME);
-        disk_image(disk, partition, filename);
-        delete[] filename;
-    }
 }
 
 static void adv_menu_undelete_selected(disk_t &disk, const partition_t &partition, const int verbose,

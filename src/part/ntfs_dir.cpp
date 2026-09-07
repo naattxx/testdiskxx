@@ -25,6 +25,7 @@
  */
 #include <config.h>
 #include <cstdint>
+#include <format>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
@@ -282,17 +283,17 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
             ) < 0)
         {
           log_error("ERROR: Cannot translate name into current locale.\n");
-          snprintf(new_file.name, MAX_PATH, "%s:???", filename);
+          new_file.name = std::format("{}:???", filename);
         }
         else
         {
-          snprintf(new_file.name, MAX_PATH, "%s:%s", filename, stream_name);
+          new_file.name = std::format("{}:{}", filename, stream_name);
         }
         free(stream_name);
       }
       else
       {
-        new_file.name = strdup(filename);
+        new_file.name = filename;
       }
       ls->dir_list.push_front(new_file);
     }

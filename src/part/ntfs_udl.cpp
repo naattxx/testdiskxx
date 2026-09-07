@@ -26,6 +26,8 @@
  */
 #include "src/dir_common.hpp"
 #include <config.h>
+#include <filesystem>
+#include <format>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
@@ -99,7 +101,6 @@ extern "C"
 #include "ntfs_dir.hpp"
 #include "ntfs_inc.hpp"
 #include "ntfs_utl.hpp"
-#include "src/askloc.hpp"
 #include "src/dir.hpp"
 #include "src/setdate.hpp"
 
@@ -1168,8 +1169,7 @@ static auto ufile_to_file_data(const struct ufile *file, const struct data *d)
       (d->name == nullptr ? 0 : strlen(d->name) + 1) + 1;
   sprintf(inode_name, "inode_%llu",
           static_cast<long long unsigned>(file->inode));
-  new_file.name = new char[len];
-  sprintf(new_file.name, "%s%s%s%s%s",
+  new_file.name = std::format("{}{}{}{}{}",
           (file->pref_pname ? file->pref_pname : ""),
           (file->pref_pname ? "/" : ""),
           (file->pref_name ? file->pref_name : inode_name),
@@ -1709,7 +1709,7 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
   const auto *ls =
       static_cast<const struct ntfs_dir_struct *>(dir_data->private_dir_data);
   char *dst_path;
-  dst_path            = get_default_location();
+  dst_path            = strdup(std::filesystem::current_path().c_str());
   dir_data->local_dir = dst_path;
   opts.dest           = dst_path;
   for (const file_info_t &file_info : dir_list)
@@ -1805,7 +1805,6 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
     dir_list_t dir_list;
     scan_disk(ls->vol, dir_list);
     ntfs_undelete_menu(disk_car, partition, &dir_data, dir_list, current_cmd);
-    delete_list_file(dir_list);
     dir_data.close(&dir_data);
   }
   break;

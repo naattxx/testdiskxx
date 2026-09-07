@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <format>
 #include <iterator>
 #include <utility>
 #if __has_include(<sys/stat.h>)
@@ -446,11 +447,9 @@ static auto fat32_find_root_cluster(
             }
             {
               file_info_t new_file = dir_list.front();
-              new_file.name        = new char[32];
-              snprintf(new_file.name, 32, "DIR%05u", ++dir_nbr);
+              new_file.name        = std::format("DIR{:05}", ++dir_nbr);
               rootdir_list.push_front(new_file);
             }
-            delete_list_file(dir_list);
           }
         }
         else if (memcmp(entry1, entry2, 0x20) != 0)
@@ -604,14 +603,12 @@ static auto fat32_find_root_cluster(
                                              root_cluster))
                   {
                   case c_YES:
-                    delete_list_file(&dir_list);
                     delete (buffer);
                     return root_cluster;
                   case 'A':
                     interactive = 0;
                     break;
                   case 'Q':
-                    delete_list_file(&dir_list);
                     delete (buffer);
                     return 0;
                   default:
@@ -620,7 +617,6 @@ static auto fat32_find_root_cluster(
                 }
 #endif
               }
-              delete_list_file(dir_list);
             }
           }
         }
@@ -654,7 +650,6 @@ static auto fat32_find_root_cluster(
         }
       }
 #endif
-      delete_list_file(rootdir_list);
     }
     delete[] buffer;
   }
@@ -816,7 +811,6 @@ static int fat32_create_rootdir(disk_t &disk_car, const partition_t &partition,
     TD_INIT_LIST_HEAD(&dir_list.list);
     dir_fat_aux(buffer, cluster_size, 0, &dir_list);
     dir_aff_log(NULL, dir_list);
-    delete_list_file(&dir_list);
   }
 #endif
   delete (buffer);
@@ -1044,7 +1038,6 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
             if (cluster_prev == 0 && cluster == new_inode)
             {
               delete[] buffer_dir;
-              delete_list_file(dir_list);
               return ((dir_entries + (disk_car.sector_size / 32) - 1) /
                       (disk_car.sector_size / 32)) *
                      (disk_car.sector_size / 32);
@@ -1056,7 +1049,6 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
   }
   log_warning("No directory found\n");
   delete[] buffer_dir;
-  delete_list_file(dir_list);
   return root_size_max;
 }
 

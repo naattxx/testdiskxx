@@ -48,11 +48,6 @@ void log_list_file(const disk_t &disk_car, const partition_t &partition, const d
                    const dir_list_t &list);
 
 /*@
-  @ requires \valid(list);
-  @*/
-auto delete_list_file(dir_list_t &list) -> unsigned int;
-
-/*@
   @ requires \valid_read(disk_car);
   @ requires valid_disk(disk_car);
   @ requires \valid_read(partition);

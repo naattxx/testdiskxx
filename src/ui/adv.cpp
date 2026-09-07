@@ -7,9 +7,11 @@
 #include "ftxui/component/component_options.hpp"
 #include "ftxui/component/event.hpp"
 #include "ftxui/dom/elements.hpp"
+#include "ftxui/dom/node.hpp"
 #include "ftxui/dom/table.hpp"
 #include "src/adv.hpp"
 #include "src/common.hpp"
+#include "src/dimage.hpp"
 #include "src/guid_cmp.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
@@ -18,9 +20,12 @@
 #include "src/part/fat.hpp"
 #include "src/part/ntfs.hpp"
 #include "src/part/thfs.hpp"
+#include "src/ui/askloc.hpp"
 #include "src/ui/intrfn.hpp"
 #include "src/ui/part/ext2_sb.hpp"
 #include <cassert>
+#include <filesystem>
+#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -169,6 +174,24 @@ static void adv_get_options_for_partition(const partition_t &partition,
     hasBoot = hasList = hasUndelete = hasSuperblock = false;
 }
 
+static void adv_menu_image_selected(disk_t &disk, const partition_t &partition)
+{
+  static constexpr std::string DEFAULT_IMAGE_NAME{"image.dd"};
+
+  const std::string msg{
+      std::format("Please select where to store the file image.dd ({} MB), "
+                  "an image of the partition",
+                  partition.part_size / 1000 / 1000)};
+
+  std::filesystem::path dst_path;
+  ask_location(dst_path, sizeof(dst_path), msg, "");
+
+  if (!dst_path.empty())
+  {
+    disk_image(disk, partition, (dst_path / DEFAULT_IMAGE_NAME).c_str());
+  }
+}
+
 static void adv_menu_superblock_selected(const Component &root, disk_t &disk,
                                          partition_t &partition,
                                          const int verbose, const bool dump)
@@ -276,7 +299,10 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
       Button(
           "[Image Creation]"
           "Create an image",
-          [] -> void {}, buttonOptions
+          [&] -> void {
+            adv_menu_image_selected(disk, list_part[selected_part]);
+          },
+          buttonOptions
       ),
       Button("[  Quit  ]"
              "Return to main menu",

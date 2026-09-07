@@ -23,28 +23,15 @@
 #ifndef _ASKLOC_H
 #define _ASKLOC_H
 
-#ifdef DISABLED_FOR_FRAMAC
-#undef HAVE_NCURSES
-#endif
+#include <filesystem>
+#include <string_view>
 
-    /*@
-      @ requires \valid(buf + (0 .. size-1));
-      @ ensures  valid_string(buf);
-      @ ensures  \result == buf;
-      @*/
-    auto td_getcwd(char *buf, unsigned long size) -> char *;
-
-#ifdef HAVE_NCURSES
-    /*@
-      @ requires \valid(dst + (0 .. dst_size-1));
-      @ requires valid_read_string(msg);
-      @ requires \separated(dst, msg, src_dir);
-      @ assigns  *(dst + (0 .. dst_size-1));
-      @*/
-    void ask_location(char *dst, const unsigned int dst_size, const char *msg, const char *src_dir);
-#endif
-
-    // ensures \result == \null || (\freeable(\result) && valid_string(\result));
-    auto get_default_location() -> char *;
+/*@
+  @ requires \valid(dst + (0 .. dst_size-1));
+  @ requires valid_read_string(msg);
+  @ requires \separated(dst, msg, src_dir);
+  @ assigns  *(dst + (0 .. dst_size-1));
+  @*/
+void ask_location(std::filesystem::path &dst, const unsigned int dst_size, std::string_view msg, std::string_view src_dir);
 
 #endif

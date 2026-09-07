@@ -21,6 +21,7 @@
  */
 #include "src/dir_common.hpp"
 #include <config.h>
+#include <string>
 #include <utility>
 
 #ifdef DISABLED_FOR_FRAMAC
@@ -264,9 +265,8 @@ static auto list_dir_proc2(ext2_ino_t dir, int entry,
     const unsigned int thislen = ((dirent->name_len & 0xFF) < EXT2_NAME_LEN)
                                    ? (dirent->name_len & 0xFF)
                                    : EXT2_NAME_LEN;
-    new_file.name              = new char[thislen + 1];
-    memcpy(new_file.name, dirent->name, thislen);
-    new_file.name[thislen] = '\0';
+    new_file.name.resize(thislen);
+    memcpy(new_file.name.data(), dirent->name, thislen);
   }
   if (entry == DIRENT_DELETED_FILE)
     new_file.status = FILE_STATUS_DELETED;

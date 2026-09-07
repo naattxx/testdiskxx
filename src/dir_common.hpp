@@ -22,6 +22,7 @@
 #ifndef _DIR_COMMON_H
 #define _DIR_COMMON_H
 #include <cstdint>
+#include <string>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -58,7 +59,7 @@ enum dir_partition_t : int8_t
 
 struct file_info_t
 {
-    char *name;
+    std::string name;
     uint32_t st_ino;
     uint32_t st_mode;
     uint32_t st_uid;

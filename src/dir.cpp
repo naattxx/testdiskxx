@@ -239,19 +239,6 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
 #endif
 }
 
-auto delete_list_file(dir_list_t &dir_list) -> unsigned int
-{
-    unsigned int nbr = 0;
-#ifndef DISABLED_FOR_FRAMAC
-    for (file_info_t &tmp : dir_list)
-    {
-        delete (tmp.name);
-        nbr++;
-    }
-#endif
-    return nbr;
-}
-
 /*@
   @ requires \valid_read(current_file);
   @ requires \valid_read(inode_known + (0 .. dir_nbr-1));
@@ -264,7 +251,7 @@ static auto is_inode_valid(const file_info_t &current_file, const unsigned int d
     unsigned int i;
     if (new_inode < 2)
         return 0;
-    if (strcmp(current_file.name, "..") == 0)
+    if (current_file.name == "..")
         return 0;
     /*@
       @ loop assigns i;
@@ -303,18 +290,17 @@ static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partiti
     for (file_info_t &current_file : dir_list)
     {
         if (LINUX_S_ISDIR(current_file.st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0 &&
-            strlen(dir_data->current_directory) + 1 + strlen(current_file.name) <
+            strlen(dir_data->current_directory) + 1 + current_file.name.size() <
                 sizeof(dir_data->current_directory) - 1)
         {
             if (strcmp(dir_data->current_directory, "/"))
                 strcat(dir_data->current_directory, "/");
-            strcat(dir_data->current_directory, current_file.name);
+            strcat(dir_data->current_directory, current_file.name.c_str());
             dir_whole_partition_log_aux(disk, partition, dir_data, current_file.st_ino);
             /* restore current_directory name */
             dir_data->current_directory[current_directory_namelength] = '\0';
         }
     }
-    delete_list_file(dir_list);
     dir_nbr--;
     return 0;
 }
@@ -351,12 +337,12 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
     inode_known[dir_nbr++] = inode;
     for (file_info_t &current_file : dir_list)
     {
-        if (strlen(dir_data->current_directory) + 1 + strlen(current_file.name) <
+        if (strlen(dir_data->current_directory) + 1 + current_file.name.size() <
             sizeof(dir_data->current_directory) - 1)
         {
             if (strcmp(dir_data->current_directory, "/"))
                 strcat(dir_data->current_directory, "/");
-            strcat(dir_data->current_directory, current_file.name);
+            strcat(dir_data->current_directory, current_file.name.c_str());
             if (LINUX_S_ISDIR(current_file.st_mode) != 0)
             {
                 if (is_inode_valid(current_file, dir_nbr, inode_known) > 0)
@@ -375,7 +361,6 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
         /* restore current_directory name */
         dir_data->current_directory[current_directory_namelength] = '\0';
     }
-    delete_list_file(dir_list);
     dir_nbr--;
     return 0;
 }
@@ -405,19 +390,19 @@ auto filesort(const struct file_info_t &file_a, const struct file_info_t &file_b
     /* . and .. must listed before the other directories */
     /* Directories must be listed before files */
     /*@ assert valid_read_string(file_a->name); */
-    if ((file_a.st_mode & LINUX_S_IFDIR) && strcmp(file_a.name, ".") == 0)
+    if ((file_a.st_mode & LINUX_S_IFDIR) && file_a.name == ".")
         return true;
-    if ((file_a.st_mode & LINUX_S_IFDIR) && strcmp(file_a.name, "..") == 0 && strcmp(file_b.name, ".") != 0)
+    if ((file_a.st_mode & LINUX_S_IFDIR) && file_a.name == ".." && file_b.name != ".")
         return true;
     /*@ assert valid_read_string(file_b->name); */
-    if ((file_b.st_mode & LINUX_S_IFDIR) && strcmp(file_b.name, ".") == 0)
+    if ((file_b.st_mode & LINUX_S_IFDIR) && file_b.name == ".")
         return false;
-    if ((file_b.st_mode & LINUX_S_IFDIR) && strcmp(file_b.name, "..") == 0 && strcmp(file_a.name, ".") != 0)
+    if ((file_b.st_mode & LINUX_S_IFDIR) && file_b.name == ".." && file_a.name != ".")
         return false;
     if ((file_a.st_mode & LINUX_S_IFDIR) && !(file_b.st_mode & LINUX_S_IFDIR))
         return true;
     /* Files and directories are sorted by name */
-    return strcmp(file_a.name, file_b.name) <= 0;
+    return file_a.name <= file_b.name;
 }
 
 /*

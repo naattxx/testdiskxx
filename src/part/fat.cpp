@@ -1158,14 +1158,12 @@ static auto fat_has_EFI_entry(disk_t &disk, const partition_t &partition,
   dir_data.get_dir(disk, partition, &dir_data, 0, dir_list);
   for (const file_info_t &current_file : dir_list)
   {
-    if (strcmp(current_file.name, "EFI") == 0)
+    if (current_file.name == "EFI")
     {
-      delete_list_file(dir_list);
       dir_data.close(&dir_data);
       return 1;
     }
   }
-  delete_list_file(dir_list);
   dir_data.close(&dir_data);
 #endif
   return 0;

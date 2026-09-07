@@ -209,7 +209,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
       {
         log_info("NTFS listing using MFT:\n");
         dir_aff_log(&dir_data, dir_list);
-        if (delete_list_file(dir_list) > 2)
+        if (dir_list.size() > 2)
           res1++;
       }
       dir_data.close(&dir_data);
@@ -228,7 +228,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
       {
         log_info("NTFS listing using MFT mirror:\n");
         dir_aff_log(&dir_data, dir_list);
-        if (delete_list_file(dir_list) > 2)
+        if (dir_list.size() > 2)
           res2++;
       }
       dir_data.close(&dir_data);

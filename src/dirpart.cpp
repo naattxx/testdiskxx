@@ -202,7 +202,6 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
                 dir_list_t dir_list;
                 dir_data.get_dir(disk, partition, &dir_data, dir_data.current_inode, dir_list);
                 dir_aff_log(&dir_data, dir_list);
-                delete_list_file(dir_list);
             }
 #endif
         }
