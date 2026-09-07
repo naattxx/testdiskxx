@@ -293,6 +293,7 @@ sources = files(
   'src/ui/askloc.cpp',
   'src/ui/chgarch.cpp',
   'src/ui/chgtype.cpp',
+  'src/ui/dimage.cpp',
   'src/ui/diskacc.cpp',
   'src/ui/diskcapa.cpp',
   'src/ui/geometry.cpp',

@@ -11,7 +11,6 @@
 #include "ftxui/dom/table.hpp"
 #include "src/adv.hpp"
 #include "src/common.hpp"
-#include "src/dimage.hpp"
 #include "src/guid_cmp.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
@@ -21,6 +20,7 @@
 #include "src/part/ntfs.hpp"
 #include "src/part/thfs.hpp"
 #include "src/ui/askloc.hpp"
+#include "src/ui/dimage.hpp"
 #include "src/ui/intrfn.hpp"
 #include "src/ui/part/ext2_sb.hpp"
 #include <cassert>
@@ -188,7 +188,7 @@ static void adv_menu_image_selected(disk_t &disk, const partition_t &partition)
 
   if (!dst_path.empty())
   {
-    disk_image(disk, partition, (dst_path / DEFAULT_IMAGE_NAME).c_str());
+    disk_image_interface(disk, partition, dst_path / DEFAULT_IMAGE_NAME);
   }
 }
 

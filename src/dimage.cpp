@@ -23,8 +23,10 @@
 #include <config.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
-#include <cstdlib>
+#include <filesystem>
+#include <string_view>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -36,16 +38,10 @@
 #endif
 #include <cassert>
 #include <cerrno>
-#include <utility>
-#include <fcntl.h>
 #include <cstring>
-#ifdef __FRAMAC__
-#include "__fc_builtin.h"
-#endif
-// #include "types.h"
+#include <fcntl.h>
+#include <utility>
 #include "common.hpp"
-#include "intrf.hpp"
-// #include "intrfn.h"
 #include "dimage.hpp"
 #include "log.hpp"
 
@@ -60,214 +56,144 @@
 #define O_BINARY 0
 #endif
 
-static void disk_image_backward(int disk_dst, disk_t &disk, const uint64_t src_offset_start,
-                                const uint64_t src_offset_end, uint64_t dst_offset)
+static void disk_image_backward(int disk_dst, disk_t &disk,
+                                const uint64_t src_offset_start,
+                                const uint64_t src_offset_end,
+                                uint64_t dst_offset)
 {
-    uint64_t src_offset;
-    auto *buffer = new unsigned char[disk.sector_size];
-    for (src_offset = src_offset_end - disk.sector_size; src_offset > src_offset_start;
-         src_offset -= disk.sector_size, dst_offset -= disk.sector_size)
+  uint64_t src_offset;
+  auto *buffer = new unsigned char[disk.sector_size];
+  for (src_offset = src_offset_end - disk.sector_size;
+       src_offset > src_offset_start;
+       src_offset -= disk.sector_size, dst_offset -= disk.sector_size)
+  {
+    const ssize_t pread_res =
+        disk.pread(disk, buffer, disk.sector_size, src_offset);
+    if (std::cmp_not_equal(pread_res, disk.sector_size))
     {
-        const ssize_t pread_res = disk.pread(disk, buffer, disk.sector_size, src_offset);
-        if (std::cmp_not_equal(pread_res, disk.sector_size))
-        {
-          delete[] buffer;
-          return;
-        }
-#ifdef HAVE_PWRITE
-        if (pwrite(disk_dst, buffer, pread_res, src_offset) < 0)
-        {
-            delete[] (buffer);
-            return;
-        }
-#else
-        if (lseek(disk_dst, src_offset, SEEK_SET) < 0)
-        {
-          delete[] buffer;
-          return;
-        }
-        if (write(disk_dst, buffer, pread_res) != pread_res)
-        {
-          delete[] buffer;
-          return;
-        }
-#endif
+      delete[] buffer;
+      return;
     }
-    delete[] buffer;
+#ifdef HAVE_PWRITE
+    if (pwrite(disk_dst, buffer, pread_res, src_offset) < 0)
+    {
+      delete[] (buffer);
+      return;
+    }
+#else
+    if (lseek(disk_dst, src_offset, SEEK_SET) < 0)
+    {
+      delete[] buffer;
+      return;
+    }
+    if (write(disk_dst, buffer, pread_res) != pread_res)
+    {
+      delete[] buffer;
+      return;
+    }
+#endif
+  }
+  delete[] buffer;
 }
 
-auto disk_image(disk_t &disk, const partition_t &partition, const char *image_dd) -> int
+auto disk_image(disk_t &disk, const partition_t &partition,
+                const std::filesystem::path &image_dd,
+                float *out_percent, bool &in_stop) -> std::string_view
 {
-    int ind_stop = 0;
-    uint64_t nbr_read_error = 0;
-    uint64_t src_offset = partition.part_offset;
-    uint64_t src_offset_old;
-    uint64_t dst_offset = 0;
-    const uint64_t src_offset_end = partition.part_offset + partition.part_size;
-    const uint64_t offset_inc = (src_offset_end - src_offset) / 10000;
-    uint64_t src_offset_next = src_offset;
-    struct stat stat_buf;
-    auto *buffer = new unsigned char[READ_SIZE];
-    unsigned int readsize = READ_SIZE;
-    int disk_dst;
+  *out_percent = 0.f;
+  int ind_stop            = 0;
+  uint64_t nbr_read_error = 0;
+  uint64_t src_offset     = partition.part_offset;
+  uint64_t src_offset_old;
+  uint64_t dst_offset           = 0;
+  const uint64_t src_offset_end = partition.part_offset + partition.part_size;
+  const uint64_t offset_inc     = (src_offset_end - src_offset) / 10000;
+  uint64_t src_offset_next      = src_offset;
+  auto *buffer          = new unsigned char[READ_SIZE];
+  unsigned int readsize = READ_SIZE;
+  int disk_dst;
 #ifdef HAVE_PWRITE
-    int use_pwrite = 1;
+  int use_pwrite = 1;
 #endif
-#ifdef HAVE_NCURSES
-    WINDOW *window;
-#endif
-    assert(disk.sector_size > 0);
-    assert(disk.sector_size <= READ_SIZE);
-    if ((disk_dst = open(image_dd, O_CREAT | O_LARGEFILE | O_RDWR | O_BINARY, 0644)) < 0)
-    {
-        log_error("Can't create file {}.\n", image_dd);
-        // display_message("Can't create file!\n");
-        delete[] buffer;
-        return -1;
-    }
-#ifndef DISABLED_FOR_FRAMAC
-    if (fstat(disk_dst, &stat_buf) == 0)
-    {
-        int res = 1;
-#ifdef HAVE_NCURSES
-        if (stat_buf.st_size > 0)
-            res = ask_confirmation("Append to existing file ? (Y/N)");
-#endif
-        if (res > 0)
-        {
-            dst_offset = stat_buf.st_size;
-            src_offset += dst_offset;
-        }
-    }
-#endif
-    src_offset_old = src_offset;
-#ifdef HAVE_NCURSES
-    window = newwin(LINES, COLS, 0, 0); /* full screen */
-    aff_copy(window);
-    wmove(window, 5, 0);
-    wprintw(window, "%s\n", disk->description_short(disk));
-    wmove(window, 6, 0);
-    aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
-    wmove(window, 10, 0);
-    waddstr(window, "Disk images are mainly used ");
-    wmove(window, 11, 0);
-    waddstr(window, "- for forensic purposes");
-    wmove(window, 12, 0);
-    waddstr(window, "- or to deal with media with bad sectors");
-#ifdef WIN32
-    wmove(window, 14, 0);
-    waddstr(window, "To use TestDisk or PhotoRec with this disk image, go in command line and run");
-    wmove(window, 15, 0);
-    waddstr(window, "   testdisk_win.exe image.dd");
-    wmove(window, 16, 0);
-    waddstr(window, "or photorec_win.exe image.dd");
-#else
-    wmove(window, 14, 0);
-    waddstr(window, "To use TestDisk or PhotoRec with this disk image, start a Terminal and run");
-    wmove(window, 15, 0);
-    waddstr(window, "   testdisk image.dd");
-    wmove(window, 16, 0);
-    waddstr(window, "or photorec image.dd");
-#endif
-    wmove(window, 22, 0);
-    wattrset(window, A_REVERSE);
-    waddstr(window, "  Stop  ");
-    wattroff(window, A_REVERSE);
-#endif
-    while (ind_stop == 0 && src_offset < src_offset_end)
-    {
-        ssize_t pread_res;
-        int update = 0;
-        readsize   = std::min<uint64_t>(src_offset_end - src_offset, readsize);
-        pread_res = disk.pread(disk, buffer, readsize, src_offset);
-        if (pread_res > 0)
-        {
-#ifdef HAVE_PWRITE
-          if (use_pwrite > 0 &&
-              pwrite(disk_dst, buffer, pread_res, dst_offset) < 0)
-#endif
-            {
-#ifdef HAVE_PWRITE
-                use_pwrite = 0;
-#endif
-                if (lseek(disk_dst, dst_offset, SEEK_SET) < 0)
-                {
-                    ind_stop = 2;
-                    log_critical("disk_image lseek() failed: {}\n", strerror(errno));
-                }
-                else if (write(disk_dst, buffer, pread_res) != pread_res)
-                {
-                    log_critical("disk_image write() failed: {}\n", strerror(errno));
-                    ind_stop = 2;
-                }
-            }
-            if (src_offset_old + SKIP_SIZE == src_offset)
-            {
-                disk_image_backward(disk_dst, disk, src_offset_old, src_offset, dst_offset);
-            }
-        }
-        src_offset_old = src_offset;
-        if (std::cmp_equal(pread_res, readsize))
-        {
-            src_offset += readsize;
-            dst_offset += readsize;
-            readsize = READ_SIZE;
-        }
-        else
-        {
-            update = 1;
-            nbr_read_error++;
-            readsize = disk.sector_size;
-            src_offset += SKIP_SIZE;
-            dst_offset += SKIP_SIZE;
-        }
-        if (src_offset > src_offset_next)
-        {
-            update = 1;
-            src_offset_next = src_offset + offset_inc;
-        }
-        if (update && ind_stop == 0)
-        {
-#ifdef HAVE_NCURSES
-            unsigned int i;
-            const float percent = (src_offset - partition.part_offset) * 100.00 / partition.part_size;
-            wmove(window, 7, 0);
-            wprintw(window, "%3.2f %% ", percent);
-            for (i = 0; i < percent * 3 / 5; i++)
-                wprintw(window, "=");
-            wprintw(window, ">");
-            wrefresh(window);
-            ind_stop = check_enter_key_or_s(window);
-#endif
-        }
-    }
-    close(disk_dst);
-#ifdef HAVE_NCURSES
-    delwin(window);
-    (void)clearok(stdscr, TRUE);
-#ifdef HAVE_TOUCHWIN
-    touchwin(stdscr);
-#endif
-#endif
-    if (ind_stop == 2)
-    {
-        // display_message("No space left for the file image.\n");
-        delete[] buffer;
-        return -2;
-    }
-    if (ind_stop)
-    {
-        if (nbr_read_error == 0)
-            ; // display_message("Incomplete image created.\n");
-        else
-            ; // display_message("Incomplete image created: read errors have occured.\n");
-        delete[] buffer;
-        return 0;
-    }
-    if (nbr_read_error == 0)
-        ; // display_message("Image created successfully.\n");
-    else
-        ; // display_message("Image created successfully but read errors have occured.\n");
+  assert(disk.sector_size > 0);
+  assert(disk.sector_size <= READ_SIZE);
+  if ((disk_dst = open(image_dd.c_str(),
+                       O_CREAT | O_LARGEFILE | O_RDWR | O_BINARY, 0644)) < 0)
+  {
+    log_error("Can't create file {}.", image_dd.string());
     delete[] buffer;
-    return 0;
+    return "Can't create file!";
+  }
+  src_offset_old = src_offset;
+
+  while (ind_stop == 0 && !in_stop && src_offset < src_offset_end)
+  {
+    ssize_t pread_res;
+    int update = 0;
+    readsize   = std::min<uint64_t>(src_offset_end - src_offset, readsize);
+    pread_res  = disk.pread(disk, buffer, readsize, src_offset);
+    if (pread_res > 0)
+    {
+#ifdef HAVE_PWRITE
+      if (use_pwrite > 0 && pwrite(disk_dst, buffer, pread_res, dst_offset) < 0)
+#endif
+      {
+#ifdef HAVE_PWRITE
+        use_pwrite = 0;
+#endif
+        if (lseek(disk_dst, dst_offset, SEEK_SET) < 0)
+        {
+          ind_stop = 2;
+          log_critical("disk_image lseek() failed: {}\n", strerror(errno));
+        }
+        else if (write(disk_dst, buffer, pread_res) != pread_res)
+        {
+          log_critical("disk_image write() failed: {}\n", strerror(errno));
+          ind_stop = 2;
+        }
+      }
+      if (src_offset_old + SKIP_SIZE == src_offset)
+      {
+        disk_image_backward(disk_dst, disk, src_offset_old, src_offset,
+                            dst_offset);
+      }
+    }
+    src_offset_old = src_offset;
+    if (std::cmp_equal(pread_res, readsize))
+    {
+      src_offset += readsize;
+      dst_offset += readsize;
+      readsize = READ_SIZE;
+    }
+    else
+    {
+      update = 1;
+      nbr_read_error++;
+      readsize = disk.sector_size;
+      src_offset += SKIP_SIZE;
+      dst_offset += SKIP_SIZE;
+    }
+    if (src_offset > src_offset_next)
+    {
+      update          = 1;
+      src_offset_next = src_offset + offset_inc;
+    }
+    if (update && ind_stop == 0 && !in_stop)
+    {
+      *out_percent = static_cast<float>(src_offset - partition.part_offset) / partition.part_size;
+    }
+  }
+  close(disk_dst);
+  delete[] buffer;
+  if (ind_stop == 2)
+    return "No space left for the file image.";
+  if (ind_stop || in_stop)
+  {
+    if (nbr_read_error == 0)
+      return "Incomplete image created";
+    return "Incomplete image created: read errors have occured.";
+  }
+  if (nbr_read_error == 0)
+    return "Image created successfully.";
+  return "Image created successfully but read errors have occured.";
 }

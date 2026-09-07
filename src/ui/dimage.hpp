@@ -23,7 +23,6 @@
 #define _DIMAGE_H
 #include "src/common.hpp"
 #include <filesystem>
-#include <string_view>
 
 /*@
   @ requires \valid(disk_car);
@@ -32,8 +31,7 @@
   @ requires valid_read_string(image_dd);
   @ requires \separated(disk_car, partition, image_dd);
   @*/
-auto disk_image(disk_t &disk_car, const partition_t &partition,
-                const std::filesystem::path &image_dd, float *progress,
-                bool &stop) -> std::string_view;
+void disk_image_interface(disk_t &disk_car, const partition_t &partition,
+                          const std::filesystem::path &image_dd);
 
 #endif
