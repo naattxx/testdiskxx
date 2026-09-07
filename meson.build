@@ -31,6 +31,10 @@ conf_data.set(
   'HAVE_LSTAT',
   compiler.has_function('lstat', prefix: '#include <sys/stat.h>'),
 )
+conf_data.set(
+  'HAVE_PWRITE',
+  compiler.has_function('pwrite', prefix: '#include <unistd.h>'),
+)
 
 libewf = compiler.find_library('libewf', required: false)
 libntfs = compiler.find_library('libntfs', required: false)
