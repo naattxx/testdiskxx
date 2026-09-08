@@ -1,6 +1,6 @@
 #include "log.hpp"
 #include "spdlog/sinks/basic_file_sink.h"
-#include <iostream>
+#include <spdlog/spdlog.h>
 
 using namespace spdlog;
 
@@ -15,7 +15,7 @@ auto log_open(std::string &logfile, TD_LOG create_log) -> bool
     }
     catch (const spdlog_ex &ex)
     {
-        std::cout << "Log init failed: " << ex.what() << '\n';
+        spdlog::error("Log init failed: {}", ex.what());
         return false;
     }
 
