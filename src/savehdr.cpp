@@ -229,7 +229,7 @@ auto partition_save(disk_t &disk_car, const list_part_t &list_part,
                disk_car.description(disk_car));
   for (const partition_t &partition : list_part)
   {
-    std::println(f_backup, "{:2} : start={:9}, size={:10}, Id={:02X}, {}",
+    std::println(f_backup, "{:2} : start = {:9}, size = {:10}, Id = {:02X}, {}",
                  (partition.order < 100 ? partition.order : 0),
                  static_cast<unsigned long>(partition.part_offset /
                                             disk_car.sector_size),
