@@ -680,7 +680,7 @@ auto test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
 #ifndef DISABLED_FOR_FRAMAC
   if (verbose > 1 || dump_ind != 0)
   {
-    ; // log_trace("test_FAT\n");
+    log_trace("test_FAT");
     log_partition(disk_car, partition);
   }
 #endif

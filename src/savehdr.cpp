@@ -42,7 +42,7 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
     int res = 0;
     if (verbose > 1)
     {
-        // log_trace("save_header\n");
+        log_trace("save_header");
     }
     std::ofstream f_backup = std::ofstream("header.log", std::ios::app | std::ios::binary);
     if (!f_backup.is_open())
@@ -119,7 +119,7 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
 
     if (verbose > 1)
     {
-        // log_trace("partition_load\n");
+        log_trace("partition_load");
     }
     f_backup = fopen("backup.log", "r");
     if (!f_backup)

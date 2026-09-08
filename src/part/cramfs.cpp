@@ -90,7 +90,7 @@ auto recover_cramfs(const disk_t &disk_car, const struct cramfs_super *sb,
     return 1;
   if (verbose > 0 || dump_ind != 0)
   {
-    ; // log_trace("\nrecover_cramfs\n");
+    log_trace("recover_cramfs");
     if (dump_ind != 0)
     {
       ; // dump_log(sb,DEFAULT_SECTOR_SIZE);

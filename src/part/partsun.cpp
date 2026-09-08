@@ -182,7 +182,7 @@ static auto get_geometry_from_sunmbr(const unsigned char *buffer,
 #ifndef DISABLED_FOR_FRAMAC
   if (verbose > 1)
   {
-    ; // log_trace("get_geometry_from_sunmbr\n");
+    log_trace("get_geometry_from_sunmbr");
   }
 #endif
   geometry->cylinders          = 0;

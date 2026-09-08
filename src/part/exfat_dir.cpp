@@ -517,10 +517,10 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
                 << exfat_header->blocksize_bits;
   clus_blocknr   = le32(exfat_header->clus_blocknr);
   total_clusters = le32(exfat_header->total_clusters);
-  // log_trace("exfat_copy dst=%s first_cluster={} ({}) size={}\n", new_file,
-  //     cluster,
-  //     (long long unsigned)(((cluster-2) << exfat_header->block_per_clus_bits)
-  //     + clus_blocknr), (long unsigned)file_size);
+  log_trace("exfat_copy dst={} first_cluster={} ({}) size={}", new_file,
+      cluster,
+      (long long unsigned)(((cluster-2) << exfat_header->block_per_clus_bits)
+      + clus_blocknr), (long unsigned)file_size);
 
   while (cluster >= 2 && cluster <= total_clusters && file_size > 0)
   {

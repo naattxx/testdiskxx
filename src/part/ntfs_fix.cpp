@@ -62,7 +62,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
    * 2: fix MFT using MFT mirror */
   uint64_t mft_pos;
   uint64_t mftmirr_pos;
-  ; // log_trace("repair_MFT\n");
+  log_trace("repair_MFT");
   if (check_NTFS(disk_car, partition, verbose, 0) != 0)
   {
     ; // display_message("Boot sector not valid, can't repair MFT.\n");

@@ -489,7 +489,7 @@ static auto get_geometry_from_i386mbr(const unsigned char *buffer,
 #ifndef DISABLED_FOR_FRAMAC
   if (verbose > 1)
   {
-    ; // log_trace("get_geometry_from_i386mbr\n");
+    log_trace("get_geometry_from_i386mbr");
   }
 #endif
   if ((buffer[0x1FE] != static_cast<unsigned char>(0x55)) ||
@@ -950,7 +950,7 @@ static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part,
   buffer_org = new unsigned char[disk_car.sector_size];
   if (verbose > 0)
   {
-    ; // log_trace("\nwrite_mbr_i386: starting...\n");
+    log_trace("write_mbr_i386: starting...");
   }
   if (disk_car.pread(disk_car, buffer_org, DEFAULT_SECTOR_SIZE,
                      static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
@@ -1031,7 +1031,7 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
   partition_t bloc_nextext;
   int res = 0;
   if (verbose > 0)
-    ; // log_trace("write_all_log_i386: starting...\n");
+    log_trace("write_all_log_i386: starting...");
   for (; element != list_part.cend(); element = std::next(element))
   {
     if (element->status == STATUS_EXT)

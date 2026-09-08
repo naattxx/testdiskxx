@@ -377,7 +377,7 @@ static auto fat32_find_root_cluster(
   const uint64_t start_data       = reserved + fats * fat_length;
   const unsigned int cluster_size = sectors_per_cluster * disk_car.sector_size;
   if (verbose > 0)
-    ; // log_trace("fat32_find_root_cluster(sectors_per_cluster={},no_of_cluster={},reserved={},fat_length={},expert={},first_free_cluster={})\n",sectors_per_cluster,no_of_cluster,reserved,fat_length,expert,first_free_cluster);
+    log_trace("fat32_find_root_cluster(sectors_per_cluster={},no_of_cluster={},reserved={},fat_length={},expert={},first_free_cluster={})",sectors_per_cluster,no_of_cluster,reserved,fat_length,expert,first_free_cluster);
   if (sectors_per_cluster == 0)
     return 0;
   {
@@ -1885,10 +1885,9 @@ static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
   auto *buffer = new unsigned char[disk_car.sector_size];
   if (verbose > 0)
   {
-    ; // log_trace("fat_find_type(max_offset={}, p_fat12=%d, p_fat16=%d,
-      // p_fat32=%d, debug=%d, dump_ind=%d)\n",
-      //    (long unsigned)(max_offset/disk_car.sector_size), p_fat12, p_fat16,
-      //    p_fat32, verbose, dump_ind);
+    log_trace("fat_find_type(max_offset={}, p_fat12={}, p_fat16={}, p_fat32={}, debug={}, dump_ind={})",
+         (long unsigned)(max_offset/disk_car.sector_size), p_fat12, p_fat16,
+         p_fat32, verbose, dump_ind);
   }
 #ifdef HAVE_NCURSES
   wmove(stdscr, 8, 0);

@@ -536,8 +536,7 @@ static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
 #ifndef DISABLED_FOR_FRAMAC
   if (dir_data->verbose > 1)
   {
-    ; // log_trace("fat1x_rootdir root_size={}
-      // sectors\n",root_size/disk_car.sector_size);
+     log_trace("fat1x_rootdir root_size={} sectors",root_size/disk_car.sector_size);
   }
 #endif
   {
@@ -658,10 +657,10 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
                    disk_car.sector_size;
   no_of_cluster = (part_size - start_data) / sectors_per_cluster;
 #ifndef DISABLED_FOR_FRAMAC
-  ; // log_trace("fat_copy dst=%s first_cluster={} ({}) size={}\n", new_file,
-    //     cluster,
-    //     (long long unsigned)start_data+(cluster-2)*sectors_per_cluster,
-    //     (long unsigned)file_size);
+  log_trace("fat_copy dst={} first_cluster={} ({}) size={}", new_file,
+        cluster,
+        (long long unsigned)start_data+(cluster-2)*sectors_per_cluster,
+        (long unsigned)file_size);
 #endif
 
   /*@
