@@ -47,13 +47,6 @@
 
 static long secwest = 0;
 
-// #if ! defined(HAVE_LOCALTIME_R) && ! defined(__MINGW32__) && !defined(DISABLED_FOR_FRAMAC)
-// struct tm *localtime_r(const time_t *timep, struct tm *result)
-// {
-//   return localtime(timep);
-// }
-// #endif
-
 void partition_t::set_name(std::string_view src)
 {
   fsname = src.substr(0, src.find('\0'));

@@ -665,13 +665,6 @@ auto td_ntfs2utc(int64_t ntfstime) -> time_t;
 #ifndef OPENBSD_MAXPARTITIONS
 #define OPENBSD_MAXPARTITIONS 16
 #endif
-#if !defined(HAVE_LOCALTIME_R) && !defined(__MINGW32__) && !defined(DISABLED_FOR_FRAMAC)
-/*@
-  @ requires valid_timer: \valid_read(timep);
-  @ requires \valid(result);
-  @*/
-auto localtime_r(const time_t *timep, struct tm *result) -> struct tm *;
-#endif
 
 /*@
   @ requires \valid(current_cmd);

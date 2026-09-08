@@ -3,7 +3,7 @@ project(
   'cpp',
   version: '0.1.0-WIP',
   meson_version: '>=1.3.0',
-  default_options: ['cpp_std=c++23'],
+  default_options: ['cpp_std=c++26'],
 )
 
 compiler = meson.get_compiler('cpp')
@@ -23,10 +23,6 @@ conf_data.set('_ARM_', target_machine.cpu_family() == 'arm')
 conf_data.set('_ARM64_', target_machine.cpu_family() == 'aarch64')
 
 conf_data.set('TESTDISK_LSB', host_machine.endian() == 'little')
-conf_data.set(
-  'HAVE_LOCALTIME_R',
-  compiler.has_function('localtime_r', prefix: '#include <ctime>'),
-)
 conf_data.set(
   'HAVE_LSTAT',
   compiler.has_function('lstat', prefix: '#include <sys/stat.h>'),
