@@ -19,6 +19,8 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <fstream>
+#include <ios>
 #include <print>
 #include <cstring>
 #include <chrono>
@@ -212,13 +214,12 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
 auto partition_save(disk_t &disk_car, const list_part_t &list_part,
                     const int verbose) -> int
 {
-  std::FILE *f_backup;
   if (verbose > 0)
   {
     log_trace("partition_save\n");
   }
-  f_backup = std::fopen("backup.log", "a");
-  if (!f_backup)
+  std::ofstream f_backup("backup.log", std::ios::app);
+  if (!f_backup.is_open())
   {
     log_critical("Can't create backup.log file: {}\n", strerror(errno));
     return -1;
@@ -239,6 +240,5 @@ auto partition_save(disk_t &disk_car, const list_part_t &list_part,
                       : 0),
                  static_cast<char>(partition.status));
   }
-  std::fclose(f_backup);
   return 0;
 }
