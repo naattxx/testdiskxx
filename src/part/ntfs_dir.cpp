@@ -415,14 +415,14 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
        * char replace ':' by '_' instead */
       stream_name--;
       *stream_name = '_';
-      f_out        = fopen_local(&new_file, dir_data->local_dir,
+      f_out        = fopen_local(&new_file, dir_data->local_dir.c_str(),
                                  dir_data->current_directory);
     }
     else
-      f_out = fopen_local(&new_file, dir_data->local_dir,
+      f_out = fopen_local(&new_file, dir_data->local_dir.c_str(),
                           dir_data->current_directory);
 #else
-    f_out = fopen_local(&new_file, dir_data->local_dir,
+    f_out = fopen_local(&new_file, dir_data->local_dir.c_str(),
                         dir_data->current_directory);
 #endif
     if (!f_out)
@@ -565,7 +565,7 @@ extern "C"
       dir_data->get_dir          = &ntfs_dir;
       dir_data->copy_file        = &ntfs_copy;
       dir_data->close            = &dir_partition_ntfs_close;
-      dir_data->local_dir        = nullptr;
+      dir_data->local_dir.clear();
       dir_data->private_dir_data = ls;
     }
     return DIR_PART_OK;

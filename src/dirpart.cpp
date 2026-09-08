@@ -96,7 +96,6 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
 #endif
     dir_partition_t res;
     fflush(stderr);
-    dir_data.local_dir = nullptr;
     res = dir_partition_init(disk, partition, verbose, expert, &dir_data);
 #ifdef HAVE_NCURSES
     window = newwin(LINES, COLS, 0, 0); /* full screen */
@@ -220,6 +219,5 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
     wrefresh(stdscr);
 #endif
     fflush(stderr);
-    delete (dir_data.local_dir);
     return res;
 }

@@ -467,7 +467,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->copy_file        = &exfat_copy;
   dir_data->close            = &dir_partition_exfat_close;
-  dir_data->local_dir        = nullptr;
+  dir_data->local_dir.clear();
   dir_data->private_dir_data = ls;
   dir_data->get_dir          = &exfat_dir;
   return DIR_PART_OK;
@@ -503,7 +503,7 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
   unsigned long int clus_blocknr;
   unsigned long int total_clusters;
   f_out =
-      fopen_local(&new_file, dir_data->local_dir, dir_data->current_directory);
+      fopen_local(&new_file, dir_data->local_dir.c_str(), dir_data->current_directory);
   if (!f_out)
   {
     log_critical("Can't create file: {}", new_file);

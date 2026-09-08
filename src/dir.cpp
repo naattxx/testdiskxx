@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <filesystem>
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_CHMOD
 #endif
@@ -370,17 +371,7 @@ void dir_whole_partition_copy(disk_t &disk, const partition_t &partition, dir_da
 {
     unsigned int copy_ok = 0;
     unsigned int copy_bad = 0;
-    char *dst_directory = new char[4096];
-    dst_directory[0] = '.';
-    dst_directory[1] = '\0';
-#ifdef HAVE_GETCWD
-    if (getcwd(dst_directory, 4096) == NULL)
-    {
-        delete[] (dst_directory);
-        return;
-    }
-#endif
-    dir_data->local_dir = dst_directory;
+    dir_data->local_dir = std::filesystem::current_path();
     dir_whole_partition_copy_aux(disk, partition, dir_data, inode, &copy_ok, &copy_bad);
     log_info("Copy done! {} ok, {} failed", copy_ok, copy_bad);
 }

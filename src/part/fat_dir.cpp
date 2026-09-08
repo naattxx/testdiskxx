@@ -593,7 +593,7 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->copy_file        = &fat_copy;
   dir_data->close            = &dir_partition_fat_close;
-  dir_data->local_dir        = nullptr;
+  dir_data->local_dir.clear();
   dir_data->private_dir_data = ls;
   dir_data->get_dir          = &fat_dir;
   return DIR_PART_OK;
@@ -635,7 +635,7 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
   uint64_t start_fat1, start_data, part_size;
   unsigned long int no_of_cluster, fat_length;
   f_out =
-      fopen_local(&new_file, dir_data->local_dir, dir_data->current_directory);
+      fopen_local(&new_file, dir_data->local_dir.c_str(), dir_data->current_directory);
   if (!f_out)
   {
 #ifndef DISABLED_FOR_FRAMAC

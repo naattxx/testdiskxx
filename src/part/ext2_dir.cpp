@@ -324,7 +324,7 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
       static_cast<const struct ext2_dir_struct *>(dir_data->private_dir_data);
   char *new_file;
   f_out =
-      fopen_local(&new_file, dir_data->local_dir, dir_data->current_directory);
+      fopen_local(&new_file, dir_data->local_dir.c_str(), dir_data->current_directory);
   if (!f_out)
   {
     log_critical("Can't create file %s: %s\n", new_file, strerror(errno));
@@ -422,7 +422,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
   dir_data->get_dir          = &ext2_dir;
   dir_data->copy_file        = &ext2_copy;
   dir_data->close            = &dir_partition_ext2_close;
-  dir_data->local_dir        = nullptr;
+  dir_data->local_dir.clear();
   dir_data->private_dir_data = ls;
   return DIR_PART_OK;
 #else

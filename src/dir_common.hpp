@@ -22,6 +22,7 @@
 #ifndef _DIR_COMMON_H
 #define _DIR_COMMON_H
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
@@ -85,7 +86,7 @@ struct dir_data_t
     copy_file_t (*copy_file)(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
                              const file_info_t &file);
     void (*close)(dir_data_t *dir_data);
-    char *local_dir;
+    std::filesystem::path local_dir;
     void *private_dir_data;
 };
 

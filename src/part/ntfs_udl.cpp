@@ -106,7 +106,7 @@ extern "C"
 
 struct options
 {
-  char *dest; /* Save file to this directory */
+  std::filesystem::path dest; /* Save file to this directory */
 };
 
 struct filename
@@ -959,7 +959,7 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
     }
 
     // dir_data->local_dir;
-    create_pathname(opts.dest, file->pref_pname, name, d->name, pathname,
+    create_pathname(opts.dest.c_str(), file->pref_pname, name, d->name, pathname,
                     sizeof(pathname));
     if (d->resident)
     {
@@ -1574,7 +1574,7 @@ static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
         if (current_file != &dir_list->list &&
             LINUX_S_ISDIR(file_info->st_mode) == 0)
         {
-          if (dir_data->local_dir == NULL)
+          if (dir_data->local_dir.empty())
           {
             char dst_directory[4096];
             dst_directory[0] = '\0';
@@ -1590,10 +1590,9 @@ static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
                   file_info->name
               );
             if (dst_directory[0] != '\0')
-              dir_data->local_dir = strdup(dst_directory);
-            opts.dest = dir_data->local_dir;
+              dir_data->local_dir = opts.dest = dst_directory;
           }
-          if (dir_data->local_dir != NULL)
+          if (!dir_data->local_dir.empty())
           {
             int res = -1;
             wmove(window, 5, 0);
@@ -1638,10 +1637,9 @@ static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
                        "will be copied.",
                        NULL);
           if (dst_directory[0] != '\0')
-            dir_data->local_dir = strdup(dst_directory);
-          opts.dest = dir_data->local_dir;
+            dir_data->local_dir = opts.dest = dst_directory;
         }
-        if (dir_data->local_dir != NULL)
+        if (!dir_data->local_dir.empty())
         {
           unsigned int file_ok  = 0;
           unsigned int file_bad = 0;
@@ -1708,10 +1706,8 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
   unsigned int file_bad = 0;
   const auto *ls =
       static_cast<const struct ntfs_dir_struct *>(dir_data->private_dir_data);
-  char *dst_path;
-  dst_path            = strdup(std::filesystem::current_path().c_str());
-  dir_data->local_dir = dst_path;
-  opts.dest           = dst_path;
+
+  dir_data->local_dir = opts.dest = std::filesystem::current_path();
   for (const file_info_t &file_info : dir_list)
   {
     if (undelete_file(ls->vol, file_info.st_ino) < 0)
@@ -1720,9 +1716,8 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
       file_ok++;
   }
   log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
-  delete dst_path;
-  dir_data->local_dir = nullptr;
-  opts.dest           = nullptr;
+  dir_data->local_dir.clear();
+  opts.dest.clear();
 }
 
 static void ntfs_undelete_menu(const disk_t &disk_car,

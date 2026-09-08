@@ -34,10 +34,6 @@
 #include <ranges>
 #include <string>
 #include <vector>
-#ifdef DISABLED_FOR_FRAMAC
-#undef HAVE_GETCWD
-#endif
-
 #include "ftxui/component/app.hpp"
 #include <config.h>
 #include <cstdio>
