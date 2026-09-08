@@ -522,6 +522,7 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
       (long long unsigned)(((cluster-2) << exfat_header->block_per_clus_bits)
       + clus_blocknr), (long unsigned)file_size);
 
+  f_out.exceptions(std::ios::badbit);
   while (cluster >= 2 && cluster <= total_clusters && file_size > 0)
   {
     unsigned int toread = 1 << cluster_shift;

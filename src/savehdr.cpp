@@ -86,6 +86,7 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
                  static_cast<unsigned long>(partition.part_size / disk_car.sector_size));
     }
     try {
+      f_backup.exceptions(std::ios::badbit);
       f_backup.write(buffer, DEFAULT_SECTOR_SIZE);
     } catch (std::ios::failure &e) {
       log_critical("Error while writing header.log: {}", e.what());

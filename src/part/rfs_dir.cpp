@@ -560,10 +560,7 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
       log_error("Error while reading rfs file %s\n", dir_data->current_directory);
       error = CP_READ_FAILED;
     }
-    else try {
-      f_out.write(buf, file_size);
-    }
-    catch (std::ios::failure &e)
+    else if (f_out.write(buf, file_size).bad())
     {
       log_error("Error while writing file {}", new_file);
       error = CP_NOSPACE;
@@ -584,6 +581,7 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
         error = CP_READ_FAILED;
       }
       else try {
+        f_out.exceptions(std::ios::badbit);
         f_out.write(buf, read_size);
       }
       catch (std::ios::failure &e)

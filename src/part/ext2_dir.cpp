@@ -365,6 +365,7 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
       if (got == 0)
         break;
       try {
+        f_out.exceptions(std::ios::badbit);
         f_out.write(buffer, got);
       } catch (std::ios::failure &e) {
         log_error("Error while writing file {}: {}", new_file, e.what());

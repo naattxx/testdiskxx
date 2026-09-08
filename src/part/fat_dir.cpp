@@ -663,6 +663,7 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
         (long unsigned)file_size);
 #endif
 
+  f_out.exceptions(std::ios::badbit);
   /*@
     @ loop variant file_size;
     @*/

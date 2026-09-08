@@ -461,6 +461,7 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
         break;
 
       try {
+        f_out.exceptions(std::ios::badbit);
         f_out.write(buffer, bytes_read);
       } catch (const std::ios::failure &e) {
         log_error("ERROR: Couldn't output all data! {}", e.what());
