@@ -23,6 +23,7 @@
 #define _DIR_H
 #include "dir_common.hpp"
 #include <cstdio>
+#include <fstream>
 
 /*@
   @ requires \valid(datestr + (0 .. 17));
@@ -84,7 +85,7 @@ auto set_mode(const char *pathname, unsigned int mode) -> int;
   @ requires valid_read_string(filename);
   @ requires \separated(localfilename, localroot, filename);
   @*/
-auto fopen_local(char **localfilename, const char *localroot, const char *filename) -> FILE *;
+auto fopen_local(char **localfilename, const char *localroot, const char *filename) -> std::ofstream;
 
 /*@
   @ requires valid_read_string(filename);

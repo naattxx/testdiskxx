@@ -29,6 +29,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <fstream>
+#include <ios>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -621,25 +623,24 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
     -> copy_file_t
 {
   char *new_file;
-  FILE *f_out;
   const auto *ls =
       static_cast<const struct fat_dir_struct *>(dir_data->private_dir_data);
   const struct fat_boot_sector *fat_header = ls->boot_sector;
   const unsigned int sectors_per_cluster   = fat_header->sectors_per_cluster;
   const unsigned int block_size =
       fat_sector_size(fat_header) * sectors_per_cluster;
-  auto *buffer_file = new unsigned char[block_size];
+  auto *buffer_file = new char[block_size];
   unsigned int cluster;
   unsigned int file_size = file.st_size;
   fat_method_t fat_meth  = FAT_FOLLOW_CLUSTER;
   uint64_t start_fat1, start_data, part_size;
   unsigned long int no_of_cluster, fat_length;
-  f_out =
+  std::ofstream f_out =
       fopen_local(&new_file, dir_data->local_dir.c_str(), dir_data->current_directory);
-  if (!f_out)
+  if (!f_out.is_open())
   {
 #ifndef DISABLED_FOR_FRAMAC
-    log_critical("Can't create file %s: \n", new_file);
+    log_critical("Can't create file {}: ", new_file);
 #endif
     delete new_file;
     delete[] buffer_file;
@@ -680,12 +681,12 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
       log_error("fat_copy: Can't read cluster {}.\n", cluster);
 #endif
     }
-    if (fwrite(buffer_file, 1, toread, f_out) != toread)
-    {
+    try {
+      f_out.write(buffer_file, toread);
+    } catch (std::ios::failure &e) {
 #ifndef DISABLED_FOR_FRAMAC
-      log_error("fat_copy: failed to write data %s\n", strerror(errno));
+      log_error("fat_copy: failed to write data {}", e.what());
 #endif
-      fclose(f_out);
       set_date(new_file, file.td_atime, file.td_mtime);
       delete new_file;
       delete[] buffer_file;
@@ -717,7 +718,6 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
       }
     }
   }
-  fclose(f_out);
   set_date(new_file, file.td_atime, file.td_mtime);
   delete new_file;
   delete[] buffer_file;

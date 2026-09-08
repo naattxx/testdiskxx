@@ -41,6 +41,8 @@
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/setdate.hpp"
+#include <fstream>
+#include <ios>
 
 #ifdef HAVE_LIBREISERFS
 #include "dal/dal.h"
@@ -523,32 +525,30 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
                                dir_data_t *dir_data, const file_info_t *file)
 {
   reiserfs_file_t *in;
-  FILE *f_out;
   char *new_file;
   struct rfs_dir_struct *ls =
       (struct rfs_dir_struct *)dir_data->private_dir_data;
   copy_file_t error = CP_OK;
   uint64_t file_size;
-  f_out =
+  std::ofstream f_out =
       fopen_local(&new_file, dir_data->local_dir, dir_data->current_directory);
-  if (!f_out)
+  if (!f_out.is_open())
   {
-    log_critical("Can't create file %s: %s\n", new_file, strerror(errno));
+    log_critical("Can't create file {}: {}", new_file, strerror(errno));
     delete (new_file);
     return CP_CREATE_FAILED;
   }
-  log_error("Try to open rfs file %s\n", dir_data->current_directory);
+  log_info("Try to open rfs file {}", dir_data->current_directory);
   log_flush();
   in =
       reiserfs_file_open(ls->current_fs, dir_data->current_directory, O_RDONLY);
   if (in == NULL)
   {
-    log_error("Error while opening rfs file %s\n", dir_data->current_directory);
+    log_error("Error while opening rfs file {}", dir_data->current_directory);
     delete (new_file);
-    fclose(f_out);
     return CP_OPEN_FAILED;
   }
-  log_error("open rfs file %s done\n", dir_data->current_directory);
+  log_info("open rfs file {} done", dir_data->current_directory);
   log_flush();
   file_size = reiserfs_file_size(in);
 #if 0
@@ -560,9 +560,12 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
       log_error("Error while reading rfs file %s\n", dir_data->current_directory);
       error = CP_READ_FAILED;
     }
-    else if (fwrite(buf, file_size, 1, f_out) != 1)
+    else try {
+      f_out.write(buf, file_size);
+    }
+    catch (std::ios::failure &e)
     {
-      log_error("Error while writing file %s\n", new_file);
+      log_error("Error while writing file {}", new_file);
       error = CP_NOSPACE;
     }
     delete (buf);
@@ -580,9 +583,12 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
                   dir_data->current_directory);
         error = CP_READ_FAILED;
       }
-      else if (fwrite(buf, read_size, 1, f_out) != 1)
+      else try {
+        f_out.write(buf, read_size);
+      }
+      catch (std::ios::failure &e)
       {
-        log_error("Error while writing file %s\n", new_file);
+        log_error("Error while writing file {}: {}", new_file, e.what());
         error = CP_NOSPACE;
       }
       file_size -= read_size;
@@ -590,7 +596,6 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
   }
 #endif
   reiserfs_file_close(in);
-  fclose(f_out);
   set_date(new_file, file->td_atime, file->td_mtime);
   (void)set_mode(new_file, file->st_mode);
   delete (new_file);

@@ -26,6 +26,8 @@
 #include <config.h>
 #include <cstdint>
 #include <format>
+#include <fstream>
+#include <ios>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
@@ -367,7 +369,7 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
     char *buffer;
     char *new_file;
     ntfs_attr *attr = nullptr;
-    FILE *f_out;
+    std::ofstream f_out;
     char *stream_name;
     s64 offset;
     u32 block_size;
@@ -425,9 +427,9 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
     f_out = fopen_local(&new_file, dir_data->local_dir.c_str(),
                         dir_data->current_directory);
 #endif
-    if (!f_out)
+    if (!f_out.is_open())
     {
-      log_critical("Can't create file %s: %s\n", new_file, strerror(errno));
+      log_critical("Can't create file {}: {}", new_file, strerror(errno));
       delete new_file;
       ntfs_attr_close(attr);
       delete[] buffer;
@@ -458,16 +460,15 @@ static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
       if (!bytes_read)
         break;
 
-      written = fwrite(buffer, 1, bytes_read, f_out);
-      if (written != bytes_read)
-      {
-        log_error("ERROR: Couldn't output all data!");
+      try {
+        f_out.write(buffer, bytes_read);
+      } catch (const std::ios::failure &e) {
+        log_error("ERROR: Couldn't output all data! {}", e.what());
         res = CP_NOSPACE;
         break;
       }
       offset += bytes_read;
     }
-    fclose(f_out);
     set_date(new_file, file.td_atime, file.td_mtime);
     delete new_file;
     ntfs_attr_close(attr);

@@ -39,20 +39,18 @@
 
 auto save_header(disk_t &disk_car, const partition_t &partition, const int verbose) -> int
 {
-    unsigned char *buffer;
-    FILE *f_backup;
     int res = 0;
     if (verbose > 1)
     {
         // log_trace("save_header\n");
     }
-    f_backup = fopen("header.log", "ab");
-    if (!f_backup)
+    std::ofstream f_backup = std::ofstream("header.log", std::ios::app | std::ios::binary);
+    if (!f_backup.is_open())
     {
-        log_critical("Can't create header.log file: {}\n", strerror(errno));
+        log_critical("Can't create header.log file: {}", strerror(errno));
         return -1;
     }
-    buffer = new unsigned char[256 * DEFAULT_SECTOR_SIZE];
+    auto *buffer = new char[256 * DEFAULT_SECTOR_SIZE];
     memset(buffer, 0, DEFAULT_SECTOR_SIZE);
     {
         char status = 'D';
@@ -87,14 +85,25 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
                  offset2sector(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
                  static_cast<unsigned long>(partition.part_size / disk_car.sector_size));
     }
-    if (fwrite(buffer, DEFAULT_SECTOR_SIZE, 1, f_backup) != 1)
-        res = -1;
+    try {
+      f_backup.write(buffer, DEFAULT_SECTOR_SIZE);
+    } catch (std::ios::failure &e) {
+      log_critical("Error while writing header.log: {}", e.what());
+      res = -1;
+    }
     if (res >= 0 && disk_car.pread(disk_car, buffer, 256 * DEFAULT_SECTOR_SIZE, partition.part_offset) !=
                         256 * DEFAULT_SECTOR_SIZE)
         res = -1;
-    if (res >= 0 && fwrite(buffer, DEFAULT_SECTOR_SIZE, 256, f_backup) != 256)
+    if (res >= 0)
+      try
+      {
+        f_backup.write(buffer, 256 * DEFAULT_SECTOR_SIZE);
+      }
+      catch (std::ios::failure &e)
+      {
+        log_critical("Error while writing header.log: {}", e.what());
         res = -1;
-    fclose(f_backup);
+      }
     delete[] buffer;
     return res;
 }

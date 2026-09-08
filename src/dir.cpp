@@ -20,6 +20,8 @@
 
  */
 #include <filesystem>
+#include <fstream>
+#include <ios>
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_CHMOD
 #endif
@@ -768,7 +770,7 @@ void mkdir_local_for_file(const char *filename)
     free(dir);
 }
 
-auto fopen_local(char **localfilename, const char *localroot, const char *filename) -> FILE *
+auto fopen_local(char **localfilename, const char *localroot, const char *filename) -> std::ofstream
 {
 #ifdef DISABLED_FOR_FRAMAC
     return NULL;
@@ -779,13 +781,12 @@ auto fopen_local(char **localfilename, const char *localroot, const char *filena
     char *dst = new char[l1 + l2 + 1];
     const char *src_org = filename;
     char *dst_org = dst;
-    FILE *f_out;
     memcpy(dst, localroot, l1);
     memcpy(dst + l1, filename, l2 + 1);
     *localfilename = dst;
     strip_fn(dst);
-    f_out = fopen(dst, "wb");
-    if (f_out)
+    std::ofstream f_out(dst, std::ios::binary);
+    if (f_out.is_open())
         return f_out;
     /* Need to create the parent and maybe convert the pathname */
     src = filename;
@@ -830,10 +831,11 @@ auto fopen_local(char **localfilename, const char *localroot, const char *filena
 #endif
         }
     }
-    f_out = fopen(*localfilename, "wb");
-    if (f_out)
+    f_out.open(*localfilename, std::ios::binary);
+    if (f_out.is_open())
         return f_out;
     filename_convert(dst_org, src_org, l2);
-    return fopen(*localfilename, "wb");
+    f_out.open(*localfilename, std::ios::binary);
+    return f_out;
 #endif
 }

@@ -26,6 +26,8 @@
 #include <config.h>
 #include <cstdint>
 #include <cstdio>
+#include <fstream>
+#include <ios>
 #include <optional>
 #if __has_include(<iconv.h>)
 #include <iconv.h>
@@ -489,22 +491,21 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
     -> copy_file_t
 {
   char *new_file;
-  FILE *f_out;
   const auto *ls =
       static_cast<const struct exfat_dir_struct *>(dir_data->private_dir_data);
   const struct exfat_super_block *exfat_header = ls->boot_sector;
   const unsigned int cluster_shift =
       exfat_header->block_per_clus_bits + exfat_header->blocksize_bits;
-  auto *buffer_file = new unsigned char[1 << cluster_shift];
+  auto *buffer_file = new char[1 << cluster_shift];
   unsigned int cluster;
   uint64_t file_size        = file.st_size;
   exfat_method_t exfat_meth = exFAT_FOLLOW_CLUSTER;
   uint64_t start_exfat1;
   unsigned long int clus_blocknr;
   unsigned long int total_clusters;
-  f_out =
+  std::ofstream f_out =
       fopen_local(&new_file, dir_data->local_dir.c_str(), dir_data->current_directory);
-  if (!f_out)
+  if (!f_out.is_open())
   {
     log_critical("Can't create file: {}", new_file);
     delete new_file;
@@ -531,10 +532,12 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
     {
       log_error("exfat_copy: Can't read cluster {}.\n", cluster);
     }
-    if (fwrite(buffer_file, 1, toread, f_out) != toread)
+    try {
+      f_out.write(buffer_file, toread);
+    }
+    catch (const std::ios::failure &e)
     {
-      log_error("exfat_copy: no space left on destination.\n");
-      fclose(f_out);
+      log_error("exfat_copy: {}.", e.what());
       set_date(new_file, file.td_atime, file.td_mtime);
       delete new_file;
       delete[] buffer_file;
@@ -566,7 +569,6 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
       }
     }
   }
-  fclose(f_out);
   set_date(new_file, file.td_atime, file.td_mtime);
   delete new_file;
   delete[] buffer_file;

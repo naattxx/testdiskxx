@@ -21,6 +21,8 @@
  */
 #include "src/dir_common.hpp"
 #include <config.h>
+#include <fstream>
+#include <ios>
 #include <string>
 #include <utility>
 
@@ -319,13 +321,12 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
     -> copy_file_t
 {
   copy_file_t error = CP_OK;
-  FILE *f_out;
   const auto *ls =
       static_cast<const struct ext2_dir_struct *>(dir_data->private_dir_data);
   char *new_file;
-  f_out =
+  std::ofstream f_out =
       fopen_local(&new_file, dir_data->local_dir.c_str(), dir_data->current_directory);
-  if (!f_out)
+  if (!f_out.is_open())
   {
     log_critical("Can't create file %s: %s\n", new_file, strerror(errno));
     delete new_file;
@@ -340,7 +341,6 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
     if (ext2fs_read_inode(ls->current_fs, file.st_ino, &inode) != 0)
     {
       delete new_file;
-      fclose(f_out);
       return CP_STAT_FAILED;
     }
 
@@ -350,12 +350,10 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
       log_error("Error while opening ext2 file %s\n",
                 dir_data->current_directory);
       delete new_file;
-      fclose(f_out);
       return CP_OPEN_FAILED;
     }
     while (error != CP_NOSPACE)
     {
-      int nbytes;
       unsigned int got;
       retval = ext2fs_file_read(e2_file, buffer, sizeof(buffer), &got);
       if (retval)
@@ -366,10 +364,10 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
       }
       if (got == 0)
         break;
-      nbytes = fwrite(buffer, 1, got, f_out);
-      if (std::cmp_not_equal(nbytes, got))
-      {
-        log_error("Error while writing file %s\n", new_file);
+      try {
+        f_out.write(buffer, got);
+      } catch (std::ios::failure &e) {
+        log_error("Error while writing file {}: {}", new_file, e.what());
         error = CP_NOSPACE;
       }
     }
@@ -379,7 +377,6 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
       log_error("Error while closing ext2 file\n");
       error = CP_CLOSE_FAILED;
     }
-    fclose(f_out);
     set_date(new_file, file.td_atime, file.td_mtime);
     (void)set_mode(new_file, file.st_mode);
   }
