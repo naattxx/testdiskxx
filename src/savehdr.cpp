@@ -75,7 +75,7 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
             status = 'D';
             break;
         }
-        snprintf(reinterpret_cast<char *>(buffer), 256 * DEFAULT_SECTOR_SIZE, "%s\n%2u %c Sys=%02X %5u %3u %2u %5u %3u %2u %10lu\n",
+        snprintf(buffer, 256 * DEFAULT_SECTOR_SIZE, "%s\n%2u %c Sys=%02X %5u %3u %2u %5u %3u %2u %10lu\n",
                  disk_car.description(disk_car).data(), partition.order, status,
                  (disk_car.arch->get_part_type != nullptr ? disk_car.arch->get_part_type(partition) : 0),
                  offset2cylinder(disk_car, partition.part_offset), offset2head(disk_car, partition.part_offset),
