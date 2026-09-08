@@ -184,7 +184,7 @@ static void adv_menu_image_selected(disk_t &disk, const partition_t &partition)
                   partition.part_size / 1000 / 1000)};
 
   std::filesystem::path dst_path;
-  ask_location(dst_path, sizeof(dst_path), msg, "");
+  ask_location(dst_path, msg, "");
 
   if (!dst_path.empty())
   {

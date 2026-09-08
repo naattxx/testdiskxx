@@ -30,8 +30,8 @@
   @ requires \valid(dst + (0 .. dst_size-1));
   @ requires valid_read_string(msg);
   @ requires \separated(dst, msg, src_dir);
-  @ assigns  *(dst + (0 .. dst_size-1));
+  @ assigns  *dst;
   @*/
-void ask_location(std::filesystem::path &dst, const unsigned int dst_size, std::string_view msg, std::string_view src_dir);
+void ask_location(std::filesystem::path &dst, std::string_view msg, std::string_view src_dir);
 
 #endif

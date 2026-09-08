@@ -148,8 +148,7 @@ auto get_dir_list(std::filesystem::path dst_directory) -> dir_list_t
   return dir_list;
 };
 
-void ask_location(std::filesystem::path &dst_directory,
-                  const unsigned int dst_size, std::string_view msg,
+void ask_location(std::filesystem::path &dst_directory, std::string_view msg,
                   std::string_view src_dir)
 {
   if (dst_directory.empty())
