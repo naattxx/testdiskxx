@@ -6,6 +6,7 @@
 #include "hdcache.hpp"
 #include "log.hpp"
 #include "src/ui/intrface.hpp"
+#include "src/ui/intrfn.hpp"
 #include "ui/tdisksel.hpp"
 #include "utils.hpp"
 #include "ui/tlog.hpp"
@@ -240,9 +241,11 @@ auto main(int argc, char **argv) -> int
 
         if (create_log != TD_LOG::NONE && !log_opened)
         {
-            // TODO: implament ask_log_location()
-            std::cout << "TODO: implament ask_log_location()\n";
-            return 1;
+            std::string filename = ask_log_location(args::get(log_name));
+            if(filename.empty())
+                create_log = TD_LOG::NONE;
+            else
+                log_opened = log_open(filename, create_log);
         }
     }
     log_info(std::format("{}", std::chrono::system_clock::now()));

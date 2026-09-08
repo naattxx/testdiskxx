@@ -4,6 +4,10 @@
 #include "ftxui/component/component_options.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/terminal.hpp"
+#include <cerrno>
+#include <cstring>
+#include <format>
+#include <string>
 #include <string_view>
 
 using namespace ftxui;
@@ -35,6 +39,40 @@ auto ask_confirmation(std::string_view msg) -> bool
 
   screen.Loop(dialog);
   return result;
+}
+
+auto ask_log_location(const std::string &failed_filename) -> std::string
+{
+  auto screen = App::Fullscreen();
+
+  std::string content;
+  auto input = Input(&content, failed_filename,
+                     {
+                         .multiline = false,
+                         .on_enter  = screen.ExitLoopClosure(),
+                     });
+
+  auto dialog = Renderer(input, [&] -> Element {
+    return vbox({
+               !failed_filename.empty()
+                   ? text(std::format("Cannot open {}: {}", failed_filename,
+                                      std::strerror(errno)))
+                   : emptyElement(),
+               hflow({
+                   text("Please enter the full log filename or press "),
+                   text("Enter") | bold,
+                   text("to abort log file creation."),
+               }),
+               separator(),
+               input->Render(),
+           }) |
+           size(WIDTH, ftxui::LESS_THAN, Terminal::Size().dimx * 0.75f) |
+           borderHeavy | center;
+  });
+
+  screen.Loop(dialog);
+
+  return content;
 }
 
 void display_message(const Component &root, std::string_view msg)
