@@ -77,7 +77,7 @@ static void disk_image_backward(int disk_dst, disk_t &disk,
 #ifdef HAVE_PWRITE
     if (pwrite(disk_dst, buffer, pread_res, src_offset) < 0)
     {
-      delete[] (buffer);
+      delete[] buffer;
       return;
     }
 #else
