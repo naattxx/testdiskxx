@@ -110,10 +110,8 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
 
 auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_list_t
 {
-    FILE *f_backup;
     char *buffer;
     char *pos = nullptr;
-    int taille;
     backup_disk_t *new_backup = nullptr;
     backup_disk_list_t list_backup;
 
@@ -121,14 +119,15 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
     {
         log_trace("partition_load");
     }
-    f_backup = fopen("backup.log", "r");
-    if (!f_backup)
+    std::ifstream f_backup("backup.log");
+    if (!f_backup.is_open())
     {
-        log_error("Can't open backup.log file: {}\n", strerror(errno));
+        log_error("Can't open backup.log file: {}", strerror(errno));
         return list_backup;
     }
     buffer = new char[BACKUP_MAXSIZE];
-    taille = fread(buffer, 1, BACKUP_MAXSIZE, f_backup);
+    f_backup.read(buffer, BACKUP_MAXSIZE);
+    int taille = f_backup.gcount();
     buffer[(taille < BACKUP_MAXSIZE ? taille : BACKUP_MAXSIZE - 1)] = '\0';
     if (verbose > 1)
     {
@@ -215,7 +214,6 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
     }
     if (new_backup != nullptr)
         list_backup.push_front(new_backup);
-    fclose(f_backup);
     delete[] buffer;
     return list_backup;
 }

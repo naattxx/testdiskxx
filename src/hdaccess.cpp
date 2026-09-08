@@ -20,6 +20,7 @@
 
  */
 #include <config.h>
+#include <fstream>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -999,23 +1000,20 @@ static void rtrim(char *buf)
   @*/
 static auto read_device_sysfs_file(char *buf, disk_t &disk_car, const char *file) -> int
 {
-    FILE *f;
+    std::ifstream f;
 #ifndef DISABLED_FOR_FRAMAC
     char name_buf[128];
     snprintf(name_buf, 127, "/sys/block/%s/device/%s", basename(disk_car.device.data()), file);
-    if ((f = fopen(name_buf, "r")) == nullptr)
-        return -1;
+    f.open(name_buf);
 #else
-    if ((f = fopen("/sys/block/hda/device/vendor", "r")) == NULL)
-        return -1;
+    f.open("/sys/block/hda/device/vendor");
 #endif
-    if (fgets(buf, 255, f) == nullptr)
+    if (!f.is_open())
+        return -1;
+    if (f.get(buf, 255).bad())
     {
-        fclose(f);
         return -1;
     }
-    /*@ assert valid_string(buf); */
-    fclose(f);
     /*@ assert valid_string(buf); */
     rtrim(buf);
     return 0;
@@ -1129,48 +1127,53 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
     struct stat stat_rec;
     if (fstat(hd_h, &stat_rec) >= 0 && S_ISBLK(stat_rec.st_mode))
     {
-        FILE *f;
+        std::ifstream f;
         char name_buf[4096];
         if (dev.model.empty())
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/model", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
-            if ((f = fopen(name_buf, "r")) != nullptr)
+            f.open(name_buf);
+            if (f.is_open())
             {
                 char tmp[41];
-                if (fgets(tmp, 40, f) != nullptr)
+                if (!f.get(tmp, 40).bad())
                 {
                     dev.model = strip_dup(tmp);
                 }
-                fclose(f);
+                f.close();
             }
+            else f.clear();
         }
         if (dev.serial_no.empty())
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/serial", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
-            if ((f = fopen(name_buf, "r")) != nullptr)
+            f.open(name_buf);
+            if (f.is_open())
             {
                 char tmp[41];
-                if (fgets(tmp, 40, f) != nullptr)
+                if (!f.get(tmp, 40).bad())
                 {
                     dev.serial_no = strip_dup(tmp);
                 }
-                fclose(f);
+                f.close();
             }
+            else f.clear();
         }
         if (dev.fw_rev.empty())
         {
             snprintf(name_buf, sizeof(name_buf), "/sys/dev/block/%u:%u/device/rev", major(stat_rec.st_rdev),
                      minor(stat_rec.st_rdev));
-            if ((f = fopen(name_buf, "r")) != nullptr)
+            f.open(name_buf);
+            if (f.is_open())
             {
                 char tmp[41];
-                if (fgets(tmp, 40, f) != nullptr)
+                if (!f.get(tmp, 40).bad())
                 {
                     dev.fw_rev = strip_dup(tmp);
                 }
-                fclose(f);
+                f.close();
             }
         }
     }
@@ -2023,6 +2026,6 @@ void hd_update_all_geometry(list_disk_t &list_disk, const int verbose)
 
 disk_t::disk_t():
     description_txt("\0")
-    
+
 {
 }
