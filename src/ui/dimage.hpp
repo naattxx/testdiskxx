@@ -19,8 +19,8 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
-#ifndef _DIMAGE_H
-#define _DIMAGE_H
+#ifndef _UI_DIMAGE_H
+#define _UI_DIMAGE_H
 #include "src/common.hpp"
 #include <filesystem>
 
