@@ -25,7 +25,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "src/dir_common.hpp"
+#include <algorithm>
 #include <config.h>
+#include <cstdint>
 #include <filesystem>
 #include <format>
 
@@ -92,6 +94,8 @@ extern "C"
 #include <ntfs-3g/mft.h>
 #include <ntfs-3g/ntfstime.h>
 }
+#undef min
+#undef max
 #endif
 
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
@@ -437,8 +441,8 @@ static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
       space            = name->name_space;
     }
 
-    file->max_size = max(file->max_size, name->size_alloc);
-    file->max_size = max(file->max_size, name->size_data);
+    file->max_size = std::max(file->max_size, name->size_alloc);
+    file->max_size = std::max(file->max_size, name->size_data);
 
     file->name.push_back(name);
     count++;
@@ -524,8 +528,8 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
       log_debug("Couldn't decompress the data runs.\n");
     }
 
-    file->max_size = max(file->max_size, data->size_data);
-    file->max_size = max(file->max_size, data->size_init);
+    file->max_size = std::max(file->max_size, data->size_data);
+    file->max_size = std::max(file->max_size, data->size_init);
 
     file->data.push_front(data);
     count++;
@@ -752,7 +756,7 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
 
     data->percent = (clusters_free * 100) / (clusters_inuse + clusters_free);
 
-    percent = max(percent, data->percent);
+    percent = std::max(percent, data->percent);
   }
   return percent;
 }
@@ -1181,7 +1185,7 @@ static auto ufile_to_file_data(const struct ufile *file, const struct data *d)
   new_file.st_uid = 0;
   new_file.st_gid = 0;
 
-  new_file.st_size  = max(d->size_init, d->size_data);
+  new_file.st_size  = std::max(d->size_init, d->size_data);
   new_file.td_atime = new_file.td_ctime = new_file.td_mtime = file->date;
   new_file.status                                           = 0;
   return new_file;
@@ -1230,7 +1234,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
   {
     int64_t size;
     unsigned int j;
-    uint64_t read_count = min((bmpsize - i), BUFSIZE);
+    uint64_t read_count = std::min<uint64_t>((bmpsize - i), BUFSIZE);
     size                = ntfs_attr_pread(attr, i, read_count, buffer);
     if (size < 0)
       break;
