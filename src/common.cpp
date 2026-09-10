@@ -20,7 +20,9 @@
 
  */
 #include <algorithm>
+#include <chrono>
 #include <config.h>
+#include <cstdint>
 #include <string_view>
 
 #ifdef DISABLED_FOR_FRAMAC
@@ -104,131 +106,36 @@ auto strip_dup(char *str) -> char *
  * time:  5 - 10: min	(0 -  59)
  * time: 11 - 15: hour	(0 -  23)
  */
-#define SECS_PER_MIN 60
-#define SECS_PER_HOUR (60 * 60)
-#define SECS_PER_DAY (SECS_PER_HOUR * 24)
-/* days between 1.1.70 and 1.1.80 (2 leap days) */
-#define DAYS_DELTA (365 * 10 + 2)
-/* 120 (2100 - 1980) isn't leap year */
-#define YEAR_2100 120
-#define IS_LEAP_YEAR(y) (!((y) & 3) && (y) != YEAR_2100)
-
-/*@
-  @ requires 0 <= year <= 127;
-  @ terminates \true;
-  @ ensures 0 <= \result <= 32;
-  @ assigns \nothing;
-  @*/
-static auto _date_get_leap_day(const unsigned long int year, const unsigned long int month) -> unsigned int
-{
-    unsigned long int leap_day;
-    if (year > YEAR_2100) /* 2100 isn't leap year */
-    {
-        /*@ assert YEAR_2100 < year <= 127; */
-        leap_day = (year + 3) / 4;
-        /*@ assert leap_day <= 32; */
-        leap_day--;
-        /*@ assert leap_day < 32; */
-    }
-    else
-    {
-        /*@ assert year <= YEAR_2100; */
-        leap_day = (year + 3) / 4;
-        /*@ assert leap_day <= (YEAR_2100 + 3)/4; */
-    }
-    /*@ assert 0 <= leap_day < 32; */
-    if (IS_LEAP_YEAR(year) && month > 2)
-        leap_day++;
-    /*@ assert 0 <= leap_day <= 32; */
-    return leap_day;
-}
-
-/*@
-  @ requires 0 <= days <= 334;
-  @ requires 0 <= year <= 127;
-  @ requires 0 <= leap_day <= 32;
-  @ requires 0 <= day <= 30;
-  @ terminates \true;
-  @ ensures 0 <= \result <= 334 + 127 * 365 + 32 + 30 + DAYS_DELTA;
-  @ assigns \nothing;
-  @*/
-static auto _date_get_days(const unsigned long int days, const unsigned long int year,
-                                        const unsigned long int leap_day, const unsigned long int day) -> unsigned long int
-{
-    return days + year * 365 + leap_day + day + DAYS_DELTA;
-}
-/*@
-  @ requires 0 <= seconds2 <= 31;
-  @ terminates \true;
-  @ ensures 0 <= \result <= 62;
-  @ assigns \nothing;
-  @*/
-static auto _date_get_seconds(const unsigned long int seconds2) -> unsigned long int
-{
-    return seconds2 << 1;
-}
-
-/*@
-  @ requires 0 <= m <= 0x3f;
-  @ terminates \true;
-  @ ensures 0 <= \result <= 0x3f * SECS_PER_MIN;
-  @ assigns \nothing;
-  @*/
-static auto _date_min_to_seconds(const unsigned long int m) -> unsigned long int
-{
-    return m * SECS_PER_MIN;
-}
-
-/*@
-  @ requires 0 <= h <= 0x3f;
-  @ terminates \true;
-  @ ensures 0 <= \result <= 0x3f * SECS_PER_HOUR;
-  @ assigns \nothing;
-  @*/
-static auto _date_hours_to_seconds(const unsigned long int h) -> unsigned long int
-{
-    return h * SECS_PER_HOUR;
-}
 
 /*@
   @ requires -14*3600 <= secwest <= 12*3600;
-  @ requires f_time <= 0xffffffff;
-  @ requires f_date <= 0xffffffff;
   @ terminates \true;
   @ assigns \nothing;
   @*/
-auto date_dos2unix(const unsigned short f_time, const unsigned short f_date) -> time_t
+auto date_dos2unix(const uint16_t f_time, const uint16_t f_date) -> time_t
 {
-    static const unsigned int days_in_year[] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 0, 0, 0};
-    /* JanFebMarApr May Jun Jul Aug Sep Oct Nov Dec */
+  short year  = (f_date >> 9) + 1980;
+  short month = std::max(1, (f_date >> 5) & 0xf);
+  short day   = std::max(1, f_date & 0x1f);
+  std::chrono::year_month_day ymd{
+      std::chrono::year{year},
+      std::chrono::month{static_cast<unsigned>(month)},
+      std::chrono::day{
+                        static_cast<unsigned>(day),
+                        }
+  };
 
-    unsigned long int day, leap_day, month, year, days;
-    unsigned long int secs;
-    year = f_date >> 9;
-    /*@ assert 0 <= year <= 127; */
-    month = std::max(1, (f_date >> 5) & 0xf);
-    /*@ assert 1 <= month <= 15; */
-    day = std::max(1, f_date & 0x1f) - 1;
-    /*@ assert 0 <= day <= 30; */
-    leap_day = _date_get_leap_day(year, month);
-    /*@ assert 0 <= leap_day <= 32; */
-    days = days_in_year[month];
-    /*@ assert 0 <= days <= 334; */
-    days = _date_get_days(days, year, leap_day, day);
-    /*@ assert 0 <= days <= 334 + 127 * 365 + 32 + 30 + DAYS_DELTA; */
-    secs = _date_get_seconds(f_time & 0x1f);
-    /*@ assert secs <= 62; */
-    secs += _date_min_to_seconds((f_time >> 5) & 0x3f);
-    /*@ assert secs <= 0x3f * SECS_PER_MIN + 62; */
-    secs += _date_hours_to_seconds(f_time >> 11);
-    /*@ assert secs <= 0x3f * SECS_PER_HOUR + 0x3f * SECS_PER_MIN + 62; */
-    secs += days * SECS_PER_DAY;
-    /*@ assert secs <= (334 + 127 * 365 + 32 + 30 + DAYS_DELTA)* SECS_PER_DAY + 0x3f * SECS_PER_HOUR + 0x3f *
-     * SECS_PER_MIN + 62; */
+  short hour   = (f_time >> 11) & 0x1F;
+  short minute = (f_time >> 5) & 0x3F;
+  short second = (f_time & 0x1F) * 2;
+
+  auto tp = std::chrono::sys_days{ymd} + std::chrono::hours{hour} +
+            std::chrono::minutes{minute} + std::chrono::seconds{second};
+
 #ifdef __FRAMAC__
-    return secs;
+  return std::chrono::system_clock::to_time_t(tp);
 #else
-    return secs + secwest;
+  return std::chrono::system_clock::to_time_t(tp) + secwest;
 #endif
 }
 
