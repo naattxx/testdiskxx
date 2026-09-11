@@ -332,9 +332,9 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
       reinterpret_cast<const unsigned char *>(attrnr);
   const uint32_t attr_len    = le32(attrnr->header.cbAttribute);
   const uint16_t offDataRuns = le16(attrnr->offDataRuns);
-  uint8_t b;                                /* Current byte offset in buf. */
-  const unsigned char *attr_end;            /* End of attribute. */
-  auto deltaxcn = static_cast<int64_t>(-1); /* Change in [vl]cn. */
+  uint8_t b;                     /* Current byte offset in buf. */
+  const unsigned char *attr_end; /* End of attribute. */
+  int64_t deltaxcn = -1;         /* Change in [vl]cn. */
   if ((const char *)attr_start + sizeof(ntfs_attribnonresident) > end)
     return 0;
 
@@ -357,7 +357,7 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
     log_error("Attribut AT_DATA: bad size\n");
     return 0;
   }
-  for (deltaxcn = static_cast<int8_t>(buf[b--]); b; b--)
+  for (deltaxcn = static_cast<int64_t>(buf[b--]); b; b--)
     deltaxcn = (deltaxcn << 8) + static_cast<uint8_t>(buf[b]);
   /* Assume a negative length to indicate data corruption */
   if (deltaxcn < 0)
@@ -380,7 +380,7 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
       log_error("Attribut AT_DATA: bad size\n");
       return 0;
     }
-    for (deltaxcn = static_cast<int8_t>(buf[b--]); b > b2; b--)
+    for (deltaxcn = static_cast<int64_t>(buf[b--]); b > b2; b--)
       deltaxcn = (deltaxcn << 8) + static_cast<uint8_t>(buf[b]);
     /* Change the current lcn to it's new value. */
     lcn += deltaxcn;
@@ -447,7 +447,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
       unsigned int volume_name_length = le32(attrib->cbAttribData);
       volume_name_length /= 2; /* Unicode */
       volume_name_length =
-          std::min<size_t>(volume_name_length, sizeof(partition.fsname) - 1);
+          std::min<size_t>(volume_name_length, partition.fsname.size() - 1);
       name_it = ntfs_getattributedata(
           attrib, reinterpret_cast<char *>(buffer + mft_record_size)
       );

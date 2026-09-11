@@ -1205,7 +1205,6 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
 {
   uint64_t nr_mft_records;
   const unsigned int BUFSIZE = 8192;
-  char *buffer               = nullptr;
   unsigned int results       = 0;
   ntfs_attr *attr;
   uint64_t bmpsize;
@@ -1226,7 +1225,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
   }
   bmpsize = attr->initialized_size;
 
-  buffer = new char[BUFSIZE];
+  auto *buffer = new unsigned char[BUFSIZE];
 
   nr_mft_records = vol->mft_na->initialized_size >> vol->mft_record_size_bits;
 

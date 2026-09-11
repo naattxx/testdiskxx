@@ -61,9 +61,9 @@
 #define MD_RESERVED_BLOCKS (MD_RESERVED_BYTES / BLOCK_SIZE)
 
 #define MD_NEW_SIZE_SECTORS(x)                             \
-  ((x & ~(MD_RESERVED_SECTORS - 1)) - MD_RESERVED_SECTORS)
+  (((x) & ~(MD_RESERVED_SECTORS - 1)) - MD_RESERVED_SECTORS)
 #define MD_NEW_SIZE_BLOCKS(x)                            \
-  ((x & ~(MD_RESERVED_BLOCKS - 1)) - MD_RESERVED_BLOCKS)
+  (((x) & ~(MD_RESERVED_BLOCKS - 1)) - MD_RESERVED_BLOCKS)
 
 #define MD_SB_BYTES 4096
 #define MD_SB_WORDS (MD_SB_BYTES / 4)

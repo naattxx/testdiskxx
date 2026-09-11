@@ -173,7 +173,7 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
             {
                 // log_verbose("new partition\n");
             }
-            if (sscanf(pos, "%2u : start=%10lu, size=%10lu, Id=%02X, %c\n", &new_partition.order, &part_offset,
+            if (sscanf(pos, "%2u : start = %lu, size = %lu, Id = %02X, %c\n", &new_partition.order, &part_offset,
                        &part_size, &part_type, &status) == 5)
             {
                 new_partition.part_offset = static_cast<uint64_t>(part_offset) * disk_car.sector_size;

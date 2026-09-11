@@ -1208,7 +1208,7 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
 static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE],
                  const unsigned char buffer_org[DEFAULT_SECTOR_SIZE]) -> int
 {
-  if (memcmp(buffer, buffer_org, DEFAULT_SECTOR_SIZE))
+  if (memcmp(buffer, buffer_org, DEFAULT_SECTOR_SIZE) != 0)
   {
     unsigned int j;
     log_info("\nSectors are different.\n");

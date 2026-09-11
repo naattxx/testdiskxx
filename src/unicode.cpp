@@ -21,6 +21,7 @@
  */
 
 #include <config.h>
+#include <cstdint>
 #include <span>
 // #include "types.h"
 #include "common.hpp"
@@ -55,7 +56,7 @@ auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) -> u
       @*/
     for (i = 0; (i < len) && from[i]; i++)
     {
-        to[i] = le16(from[i]);
+        to[i] = le16(static_cast<uint16_t>(from[i]));
     }
     if (i < len)
         to[i] = '\0';

@@ -2023,9 +2023,3 @@ void hd_update_all_geometry(list_disk_t &list_disk, const int verbose)
         /*@ assert \valid(disk); */
     }
 }
-
-disk_t::disk_t():
-    description_txt("\0")
-
-{
-}

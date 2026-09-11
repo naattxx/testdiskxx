@@ -1129,7 +1129,7 @@ static void menu_write_fat_boot_sector(disk_t &disk_car, partition_t &partition,
     wmove(stdscr, 8, 0);
 #endif
     if (memcmp(newboot, orgboot,
-               DEFAULT_SECTOR_SIZE)) /* Only compare the first sector */
+               DEFAULT_SECTOR_SIZE) != 0) /* Only compare the first sector */
     {
 #ifdef HAVE_NCURSES
       const struct fat_boot_sector *org_fat_header =
@@ -1312,9 +1312,9 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
 
   /* I have seen a FAT32 partition that Win98 2nd edition was unable to read
    * because this name was missing! */
-  if (memcmp(fat_header->system_id, "MSDOS5.0", 8) &&
-      memcmp(fat_header->system_id, "MSWIN4.0", 8) &&
-      memcmp(fat_header->system_id, "MSWIN4.1", 8))
+  if (memcmp(fat_header->system_id, "MSDOS5.0", 8) != 0 &&
+      memcmp(fat_header->system_id, "MSWIN4.0", 8) != 0 &&
+      memcmp(fat_header->system_id, "MSWIN4.1", 8) != 0)
     memcpy(fat_header->system_id, "MSWIN4.1", 8);
   /* FIXME, need to know where the extended or logical partition start */
 #if 0
@@ -1479,7 +1479,7 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
     exit(1);
   }
   if (memcmp(newboot, orgboot,
-             1 * DEFAULT_SECTOR_SIZE)) /* Only compare the first sector */
+             1 * DEFAULT_SECTOR_SIZE) != 0) /* Only compare the first sector */
   {
     log_warning("             New / Current boot sector");
     log_fat2_info(fat_header, org_fat_header, upart_type, disk_car.sector_size);

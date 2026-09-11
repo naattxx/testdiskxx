@@ -45,9 +45,9 @@
 #include "dimage.hpp"
 #include "log.hpp"
 
-#define READ_SIZE 256 * 512
+constexpr size_t READ_SIZE = 256 * 512;
 /* Skip 10Mb when there is a read error */
-#define SKIP_SIZE 10 * 1024 * 1024
+constexpr size_t SKIP_SIZE = 10 * 1024 * 1024;
 
 #ifndef O_LARGEFILE
 #define O_LARGEFILE 0

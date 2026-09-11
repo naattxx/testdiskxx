@@ -52,8 +52,8 @@
 #include "src/setdate.hpp"
 
 #define EXFAT_MKMODE(a, m)                                                   \
-  ((m & ((a & ATTR_RO) ? LINUX_S_IRUGO | LINUX_S_IXUGO : LINUX_S_IRWXUGO)) | \
-   ((a & ATTR_DIR) ? LINUX_S_IFDIR : LINUX_S_IFREG))
+  (((m) & (((a) & ATTR_RO) ? LINUX_S_IRUGO | LINUX_S_IXUGO : LINUX_S_IRWXUGO)) | \
+   (((a) & ATTR_DIR) ? LINUX_S_IFDIR : LINUX_S_IFREG))
 struct exfat_dir_struct
 {
   struct exfat_super_block *boot_sector;

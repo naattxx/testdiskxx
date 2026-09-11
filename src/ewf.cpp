@@ -99,7 +99,7 @@ struct info_fewf_struct
 #ifdef HAVE_LIBEWF_V2_API
 auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
 {
-  unsigned int num_files=0;
+  int num_files=0;
   char **filenames= nullptr;
   disk_t disk;
   struct info_fewf_struct *data;
@@ -125,7 +125,7 @@ auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
        strlen(data->file_name),
        LIBEWF_FORMAT_UNKNOWN,
        &filenames,
-       reinterpret_cast<int *>(&num_files),
+       &num_files,
        &ewf_error) < 0 )
   {
     char buffer[4096];

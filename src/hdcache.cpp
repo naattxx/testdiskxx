@@ -32,8 +32,8 @@
 #include "hdcache.hpp"
 #include "log.hpp"
 
-#define CACHE_BUFFER_NBR 16
-#define CACHE_DEFAULT_SIZE 64 * 512
+constexpr unsigned int CACHE_BUFFER_NBR = 16;
+constexpr unsigned int CACHE_DEFAULT_SIZE = 64 * 512;
 // #define DEBUG_CACHE 1
 
 struct cache_buffer_struct

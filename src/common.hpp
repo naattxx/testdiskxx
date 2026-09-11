@@ -520,7 +520,7 @@ struct disk_t
     std::string model;
     std::string serial_no;
     std::string fw_rev;
-    disk_t();
+    disk_t() = default;
     ~disk_t();
     void update_fields();
     void update_geometry(const int verbose);

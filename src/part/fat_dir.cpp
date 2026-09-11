@@ -48,8 +48,8 @@
 #include "src/setdate.hpp"
 
 #define MSDOS_MKMODE(a, m)                                                   \
-  ((m & ((a & ATTR_RO) ? LINUX_S_IRUGO | LINUX_S_IXUGO : LINUX_S_IRWXUGO)) | \
-   ((a & ATTR_DIR) ? LINUX_S_IFDIR : LINUX_S_IFREG))
+  (((m) & (((a) & ATTR_RO) ? LINUX_S_IRUGO | LINUX_S_IXUGO : LINUX_S_IRWXUGO)) | \
+   (((a) & ATTR_DIR) ? LINUX_S_IFDIR : LINUX_S_IFREG))
 struct fat_dir_struct
 {
   struct fat_boot_sector *boot_sector;
@@ -116,10 +116,8 @@ auto dir_fat_aux(const unsigned char *buffer, const unsigned int size,
   unsigned int status;
   unsigned int inode;
   int utf8 = 1;
-#ifdef HAVE_WCTOMB
-  if (wctomb(NULL, 0) < 0)
+  if (std::wctomb(nullptr, 0) < 0)
     utf8 = 0;
-#endif
 #ifndef DISABLED_FOR_FRAMAC
 GetNew:
   status     = 0;
@@ -306,11 +304,7 @@ RecEnd:
       {
         if (utf8 && unicode[i] > 0x7f)
         {
-#ifdef HAVE_WCTOMB
-          const int sizec = wctomb(&new_file.name[o], unicode[i]);
-#else
-          const int sizec = unicode[i];
-#endif
+          const int sizec = std::wctomb(&new_file.name[o], unicode[i]);
           if (sizec <= 0)
           {
             new_file.name[o++] = unicode[i];

@@ -362,7 +362,7 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
   */
   ntfs_header->checksum = le32(0);
   ntfs_header->marker   = le16(0xAA55);
-  if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE))
+  if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE) != 0)
   {
     log_warning("             New / Current boot sector\n");
     log_ntfs2_info(ntfs_header, org_ntfs_header);

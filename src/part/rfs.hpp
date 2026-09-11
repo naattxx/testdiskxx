@@ -34,7 +34,7 @@
 #define REISERFS_MIN_BLOCK_AMOUNT 100
 
 /* 8*512 for offset + 512 for format40_super */
-#define REISERFS_SUPER_BLOCK_SIZE 9 * 512
+constexpr int REISERFS_SUPER_BLOCK_SIZE = 9 * 512;
 
 struct [[gnu::gcc_struct, gnu::packed]] reiserfs_super_block
 {

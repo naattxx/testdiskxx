@@ -159,7 +159,7 @@
 #define UFS_TYPE_UFS2 0x00010000
 
 /* fs_inodefmt options */
-#define UFS_42INODEFMT -1
+#define UFS_42INODEFMT (-1)
 #define UFS_44INODEFMT 2
 
 /* mount options */
@@ -477,7 +477,7 @@ struct [[gnu::gcc_struct, gnu::packed]] ufs_super_block
 /*
  * Rotational layout table format types
  */
-#define UFS_42POSTBLFMT -1     /* 4.2BSD rotational table format */
+#define UFS_42POSTBLFMT (-1)     /* 4.2BSD rotational table format */
 #define UFS_DYNAMICPOSTBLFMT 1 /* dynamic rotational table format */
 
 /*@

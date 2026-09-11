@@ -80,14 +80,14 @@ static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, co
         if (hpa_dco != 0)
         {
             if (disk.sector_size != 0)
-                std::cout << "size       " << static_cast<long long unsigned>(disk.disk_real_size / disk.sector_size)
+                std::cout << "size       " << disk.disk_real_size / disk.sector_size
                           << " sectors\n";
             if (disk.user_max != 0)
-                std::cout << "user_max   " << static_cast<long long unsigned>(disk.user_max) << " sectors\n";
+                std::cout << "user_max   " << disk.user_max << " sectors\n";
             if (disk.native_max != 0)
-                std::cout << "native_max " << static_cast<long long unsigned>(disk.native_max + 1) << " sectors\n";
+                std::cout << "native_max " << disk.native_max + 1 << " sectors\n";
             if (disk.dco != 0)
-                std::cout << "dco        " << static_cast<long long unsigned>(disk.dco + 1) << " sectors\n";
+                std::cout << "dco        " << disk.dco + 1 << " sectors\n";
             if (hpa_dco & 1)
                 std::cout << "Host Protected Area (HPA) present.\n";
             if (hpa_dco & 2)
@@ -160,10 +160,10 @@ auto main(int argc, char **argv) -> int
 
         if (cmd || path) {
             std::optional<disk_t> disk_car=file_test_availability(path.Get().c_str(), verbose, testdisk_mode);
-            if (!disk_car.has_value())
+            if (disk_car.has_value())
+                insert_new_disk(list_disk, disk_car.value());
+            else
                 throw args::ParseError(std::format("Unable to open file or device \"{}\": {}", path.Get(), strerror(errno)));
-
-            insert_new_disk(list_disk,disk_car.value());
         }
     }
     catch (const args::Completion &e)

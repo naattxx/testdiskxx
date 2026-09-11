@@ -296,7 +296,7 @@ static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partiti
             strlen(dir_data->current_directory) + 1 + current_file.name.size() <
                 sizeof(dir_data->current_directory) - 1)
         {
-            if (strcmp(dir_data->current_directory, "/"))
+            if (strcmp(dir_data->current_directory, "/") != 0)
                 strcat(dir_data->current_directory, "/");
             strcat(dir_data->current_directory, current_file.name.c_str());
             dir_whole_partition_log_aux(disk, partition, dir_data, current_file.st_ino);
@@ -343,7 +343,7 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
         if (strlen(dir_data->current_directory) + 1 + current_file.name.size() <
             sizeof(dir_data->current_directory) - 1)
         {
-            if (strcmp(dir_data->current_directory, "/"))
+            if (strcmp(dir_data->current_directory, "/") != 0)
                 strcat(dir_data->current_directory, "/");
             strcat(dir_data->current_directory, current_file.name.c_str());
             if (LINUX_S_ISDIR(current_file.st_mode) != 0)

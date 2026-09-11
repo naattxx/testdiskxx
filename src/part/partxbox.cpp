@@ -167,7 +167,7 @@ static auto read_part_xbox(disk_t &disk_car, const int verbose,
                           0xabe80000};
     unsigned int i;
     auto *xboxlabel = reinterpret_cast<struct xbox_partition *>(&buffer);
-    if (memcmp(xboxlabel->magic, "BRFR", 4))
+    if (memcmp(xboxlabel->magic, "BRFR", 4) != 0)
     {
       screen_buffer_add("\nBad XBOX partition, invalid signature\n");
       return new_list_part;
