@@ -257,7 +257,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
     ntfs_attr_search_ctx *ctx = nullptr;
     if (dt_type == NTFS_DT_DIR)
     {
-      new_file.name    = strdup(filename);
+      new_file.name    = filename;
       new_file.st_mode = LINUX_S_IFDIR | LINUX_S_IRUGO | LINUX_S_IXUGO;
       new_file.st_size = 0;
       ls->dir_list.push_front(new_file);

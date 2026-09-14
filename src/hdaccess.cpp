@@ -1822,7 +1822,7 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
     strncpy(disk_car.device, device, 2048);
     disk_car.device[2048 - 1] = '\0';
 #else
-    disk_car.device = strdup(device);
+    disk_car.device = device;
 #endif
     if (disk_car.device.empty())
     {
