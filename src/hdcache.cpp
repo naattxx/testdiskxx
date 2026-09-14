@@ -310,7 +310,7 @@ auto new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode) -> disk_t
     unsigned int i;
     auto *data = new struct cache_struct;
     disk_t new_disk_car = disk_car;
-    data->disk_car = &disk_car;
+    data->disk_car = new disk_t(disk_car);
 #ifdef DEBUG_CACHE
     data->nbr_fnct_sect = 0;
     data->nbr_pread_sect = 0;
@@ -345,7 +345,6 @@ auto new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode) -> disk_t
         data->cache[i].buffer = nullptr;
         data->cache[i].buffer_size = 0;
     }
-    std::swap(new_disk_car,disk_car);
     return new_disk_car;
 }
 #endif
