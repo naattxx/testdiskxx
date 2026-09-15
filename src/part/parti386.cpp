@@ -21,6 +21,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <iterator>
 #include <optional>
 #include <string_view>
@@ -288,7 +289,7 @@ static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C,
                          const unsigned int H, const unsigned int S)
     -> uint64_t;
 
-static const struct systypes i386_sys_types[] = {
+static constexpr auto i386_sys_types {std::to_array<const systypes>({
     {.part_type = P_NO_OS,        .name = "No partition"          },
     {.part_type = P_12FAT,        .name = "FAT12"                 },
     {.part_type = 0x02,           .name = "XENIX root"            },
@@ -384,7 +385,7 @@ static const struct systypes i386_sys_types[] = {
     {.part_type = P_RAID,         .name = "Linux RAID"            },
     {.part_type = 0xfe,           .name = "LANstep"               },
     {.part_type = 0xff,           .name = "Xenix bad block"       },
-};
+})};
 
 arch_fnct_t arch_i386 = {
     .part_name        = "Intel",

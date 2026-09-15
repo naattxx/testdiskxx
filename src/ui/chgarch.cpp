@@ -25,9 +25,15 @@ auto change_arch_type(const Component &root, disk_t &disk, const int verbose)
     -> int
 {
   // arch_list must match the order from entries
-  const std::array<const arch_fnct_t *, 7> arch_list{
-      &arch_i386, &arch_gpt, &arch_humax, &arch_mac,
-      &arch_none, &arch_sun, &arch_xbox};
+  constexpr auto arch_list{std::to_array<const arch_fnct_t *>({
+      &arch_i386,
+      &arch_gpt,
+      &arch_humax,
+      &arch_mac,
+      &arch_none,
+      &arch_sun,
+      &arch_xbox,
+  })};
 
   int selected;
   for (selected = 0; static_cast<unsigned>(selected) < arch_list.size() &&

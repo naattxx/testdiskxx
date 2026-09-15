@@ -133,7 +133,7 @@ static auto get_partition_typename_gpt(const partition_t &partition) -> std::str
   @*/
 static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view;
 
-extern const std::array<const struct systypes_gtp, 46> gpt_sys_types {{
+extern constexpr auto gpt_sys_types {std::to_array<const struct systypes_gtp>({
     {.part_type = GPT_ENT_TYPE_EFI,                 .name = "EFI System"          },
     {.part_type = GPT_ENT_TYPE_EBP,                 .name = "Extended Boot"       },
     {.part_type = GPT_ENT_TYPE_MBR,                 .name = "MBR"                 },
@@ -183,7 +183,7 @@ extern const std::array<const struct systypes_gtp, 46> gpt_sys_types {{
     {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED4,   .name = "Solaris Reserved4"   },
     {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED5,   .name = "Solaris Reserved5"   },
     {.part_type = GPT_ENT_TYPE_BEOS_BFS,            .name = "BeFS"                },
-}};
+})};
 
 arch_fnct_t arch_gpt = {.part_name        = "EFI GPT",
                         .part_name_option = "partition_gpt",

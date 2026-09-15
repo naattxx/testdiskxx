@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_MAC)
 #include <config.h>
@@ -120,7 +121,7 @@ static auto get_partition_typename_mac_aux(const unsigned int part_type_mac)
   @*/
 static auto get_part_type_mac(const partition_t &partition) -> unsigned int;
 
-static const struct systypes mac_sys_types[] = {
+static constexpr auto mac_sys_types {std::to_array<const systypes>({
     {.part_type = PMAC_DRIVER43,  .name = "Driver43"     },
     {.part_type = PMAC_DRIVERATA, .name = "Driver_ATA"   },
     {.part_type = PMAC_DRIVERIO,  .name = "Driver_IOKit" },
@@ -138,7 +139,7 @@ static const struct systypes mac_sys_types[] = {
     {.part_type = PMAC_MFS,       .name = "MFS"          },
     {.part_type = PMAC_PRODOS,    .name = "ProDOS"       },
     {.part_type = PMAC_FAT32,     .name = "DOS_FAT_32"   },
-};
+})};
 
 arch_fnct_t arch_mac = {.part_name        = "Mac",
                         .part_name_option = "partition_mac",

@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
 #include <config.h>
@@ -132,7 +133,7 @@ static auto get_partition_typename_sun_aux(const unsigned int part_type_sun)
   @*/
 static auto get_part_type_sun(const partition_t &partition) -> unsigned int;
 
-static const struct systypes sun_sys_types[] = {
+static constexpr auto sun_sys_types {std::to_array<const systypes>({
     {.part_type = 0x00,            .name = "Empty"                },
     {.part_type = PSUN_BOOT,       .name = "Boot"                 },
     {.part_type = PSUN_ROOT,       .name = "SunOS root"           },
@@ -148,7 +149,7 @@ static const struct systypes sun_sys_types[] = {
     {.part_type = PSUN_LINUX,      .name = "Linux native"         },
     {.part_type = PSUN_LVM,        .name = "Linux LVM"            },
     {.part_type = PSUN_RAID,       .name = "Linux raid autodetect"},
-};
+})};
 
 arch_fnct_t arch_sun = {.part_name        = "Sun",
                         .part_name_option = "partition_sun",

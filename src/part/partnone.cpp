@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <config.h>
 
 #include <cctype> /* tolower */
@@ -153,7 +154,7 @@ static auto get_part_type_none(const partition_t &partition) -> unsigned int;
   @*/
 static auto get_partition_typename_none(const partition_t &partition) -> std::string_view;
 
-static const struct systypes none_sys_types[] = {
+static constexpr auto none_sys_types {std::to_array<const systypes>({
     {.part_type = UP_APFS,          .name = "APFS"                 },
     {.part_type = UP_BEOS,          .name = "BeFS"                 },
     {.part_type = UP_BTRFS,         .name = "btrfs"                },
@@ -209,7 +210,7 @@ static const struct systypes none_sys_types[] = {
     {.part_type = UP_XFS4,          .name = "XFS 4"                },
     {.part_type = UP_XFS5,          .name = "XFS 5"                },
     {.part_type = UP_ZFS,           .name = "ZFS"                  },
-};
+})};
 
 arch_fnct_t arch_none = {.part_name              = "None",
                          .part_name_option       = "partition_none",

@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
 #include <config.h>
@@ -123,10 +124,10 @@ static auto get_partition_typename_xbox_aux(const unsigned int part_type_xbox)
   @*/
 static auto get_part_type_xbox(const partition_t &partition) -> unsigned int;
 
-static const struct systypes xbox_sys_types[] = {
+static constexpr auto xbox_sys_types {std::to_array<const systypes>({
     {.part_type = PXBOX_UNK,  .name = "Unknown"},
     {.part_type = PXBOX_FATX, .name = "FATX"   },
-};
+})};
 
 arch_fnct_t arch_xbox = {.part_name        = "XBox",
                          .part_name_option = "partition_xbox",
