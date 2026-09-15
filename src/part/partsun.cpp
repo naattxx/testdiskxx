@@ -249,7 +249,7 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
       insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
     }
   }
-  delete buffer;
+  delete[] buffer;
   /*@ assert valid_list_part(new_list_part); */
   return new_list_part;
 }
