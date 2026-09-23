@@ -43,7 +43,7 @@ static void change_part_type_int(const Component &root, const disk_t &disk_car,
   int current_part{0};
   {
     partition_t new_partition = partition;
-    for (int i = 0; i <= 0xFF; i++)
+    for (unsigned int i = 0; i <= 0xFF; i++)
     {
       if (partition.arch->set_part_type(new_partition, i) == 0)
       {
@@ -123,7 +123,7 @@ static void change_part_type_list(const Component &root, const disk_t &disk_car,
   {
     partition_t new_partition = partition;
     int current_part{0};
-    for (int i = 0; i <= 0xFF; i++)
+    for (unsigned int i = 0; i <= 0xFF; i++)
     {
       if (partition.arch->set_part_type(new_partition, i) == 0)
       {

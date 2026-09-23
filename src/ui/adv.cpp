@@ -234,7 +234,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
     return text(" " + s.label.substr(0, s.label.find(']') + 1) + " ");
   };
 
-  int selected_part{0};
+  unsigned int selected_part{0};
   std::vector<std::vector<std::string>> rows{
       {"", "", "Partition", "Start", "End", "Size in sectors", "", ""}
   };
