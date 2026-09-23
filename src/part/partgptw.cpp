@@ -39,7 +39,6 @@
 #include "src/common.hpp"
 #include "src/crc.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cmp.hpp"
 #include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 #include "src/unicode.hpp"

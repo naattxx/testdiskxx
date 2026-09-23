@@ -38,7 +38,6 @@
 #include "adv.hpp"
 #include "dimage.hpp"
 #include "dirpart.hpp"
-#include "guid_cmp.hpp"
 #include "part/fat.hpp"
 #include "part/fat1x.hpp"
 #include "part/fat32.hpp"

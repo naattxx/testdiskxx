@@ -5,7 +5,6 @@
 #include "ftxui/component/mouse.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "src/common.hpp"
-#include "src/guid_cmp.hpp"
 #include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"

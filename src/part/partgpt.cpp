@@ -69,7 +69,6 @@
 #include "refs.hpp"
 #endif
 #include "src/crc.hpp"
-#include "src/guid_cmp.hpp"
 #include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"

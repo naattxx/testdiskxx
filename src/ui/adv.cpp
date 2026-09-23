@@ -11,7 +11,6 @@
 #include "ftxui/dom/table.hpp"
 #include "src/adv.hpp"
 #include "src/common.hpp"
-#include "src/guid_cmp.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"

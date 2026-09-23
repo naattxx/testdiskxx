@@ -26,7 +26,6 @@
 #include "ftxui/dom/node.hpp"
 #include "ftxui/dom/table.hpp"
 #include "src/common.hpp"
-#include "src/guid_cmp.hpp"
 #include "src/intrf.hpp"
 #include "src/log.hpp"
 #include <config.h>
