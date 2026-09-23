@@ -49,12 +49,12 @@
 
 static long secwest = 0;
 
-void partition_t::set_name(std::string_view src)
+void partition_t::set_name(std::string_view src) noexcept
 {
   fsname = src.substr(0, src.find('\0'));
 }
 
-void partition_t::set_name_chomp(std::string_view src)
+void partition_t::set_name_chomp(std::string_view src) noexcept
 {
   fsname = src.substr(0, src.find('\0'));
 

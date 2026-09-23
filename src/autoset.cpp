@@ -31,7 +31,7 @@ extern const arch_fnct_t arch_humax;
 extern const arch_fnct_t arch_mac;
 #endif
 
-void disk_t::autoset_unit()
+void disk_t::autoset_unit() noexcept
 {
     if (
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)

@@ -201,7 +201,7 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
                                     const unsigned int sector_size) -> uint64_t;
 #endif
 
-disk_t::~disk_t()
+disk_t::~disk_t() noexcept
 {
     delete[] (rbuffer);
     delete[] (wbuffer);
@@ -937,7 +937,7 @@ static auto disk_get_size(const int hd_h, const char *device, const int verbose,
 }
 #endif
 
-void disk_t::update_fields()
+void disk_t::update_fields() noexcept
 {
     if (disk_real_size == 0)
     {
@@ -1620,7 +1620,7 @@ static auto file_sync(disk_t &disk_car) -> int
 // assigns disk->geom.bytes_per_sector;
 // ensures 0 < disk->geom.heads_per_cylinder <= 255;
 // ensures 0 < disk->geom.sectors_per_head <= 63;
-void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose)
+void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose) noexcept
 {
     /*@ assert 0 < disk->sector_size; */
     if ((arch)->get_geometry_from_mbr != nullptr)

@@ -1,13 +1,13 @@
 #include "common.hpp"
 
-void disk_t::set_cylinders_from_size_up()
+void disk_t::set_cylinders_from_size_up() noexcept
 {
   geom.cylinders=(disk_size / sector_size +
       geom.sectors_per_head * geom.heads_per_cylinder - 1) /
     (geom.sectors_per_head * geom.heads_per_cylinder);
 }
 
-auto disk_t::set_sector_size(const unsigned int sector_size) -> int
+auto disk_t::set_sector_size(const unsigned int sector_size) noexcept -> int
 {
   /* Using 3*512=1536 as sector size and */
   /* 63/3=21 for number of sectors is an easy way to test */

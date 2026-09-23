@@ -27,7 +27,7 @@
 #include "common.hpp"
 #include "unicode.hpp"
 
-auto UCSle2str(std::string &to, std::span<const uint16_t> from) -> unsigned int
+auto UCSle2str(std::string &to, std::span<const uint16_t> from) noexcept -> unsigned int
 {
     unsigned int i;
     to.resize(from.size());
@@ -47,7 +47,7 @@ auto UCSle2str(std::string &to, std::span<const uint16_t> from) -> unsigned int
     return i;
 }
 
-auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) -> unsigned int
+auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) noexcept -> unsigned int
 {
     unsigned int i;
     /*@

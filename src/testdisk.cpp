@@ -20,7 +20,7 @@
 
 using namespace ftxui;
 
-static void display_version()
+static void display_version() noexcept
 {
     std::cout << "\n"
                  "Version: " VERSION "\n"
@@ -40,7 +40,7 @@ static void display_version()
 }
 
 static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, const int create_backup, const int safe,
-                             const int saveheader, const UNIT unit, const int verbose) -> int
+                             const int saveheader, const UNIT unit, const int verbose) noexcept -> int
 {
     std::cout << "Please wait...\n";
     /* Scan for available device only if no device or image has been supplied in parameter */

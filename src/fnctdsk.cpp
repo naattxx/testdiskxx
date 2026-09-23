@@ -301,7 +301,7 @@ auto is_part_overlapping(const list_part_t &list_part) -> int
 // assigns partition.fsname[0];
 // assigns partition.partname[0];
 // assigns partition.info[0];
-void partition_t::reset(const arch_fnct_t *arch)
+void partition_t::reset(const arch_fnct_t *arch) noexcept
 {
     /* lba=0; Don't reset lba, used by search_part */
     part_size = static_cast<uint64_t>(0);
@@ -333,7 +333,7 @@ void partition_t::reset(const arch_fnct_t *arch)
   @*/
 // ensures valid_partition(\result);
 // ensures \result->arch == arch;
-partition_t::partition_t(const arch_fnct_t *arch)
+partition_t::partition_t(const arch_fnct_t *arch) noexcept
 {
     reset(arch);
 }

@@ -47,7 +47,7 @@ extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
 #endif
 
-void disk_t::autodetect_arch(const arch_fnct_t *default_arch)
+void disk_t::autodetect_arch(const arch_fnct_t *default_arch) noexcept
 {
     list_part_t list_part;
 #ifdef DEBUG_PARTAUTO

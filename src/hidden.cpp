@@ -23,7 +23,7 @@
 #include "common.hpp"
 #include "log.hpp"
 
-auto disk_t::is_hpa_or_dco() const -> int
+auto disk_t::is_hpa_or_dco() const noexcept -> int
 {
     int res = 0;
     if (native_max > 0 && user_max < native_max + 1)

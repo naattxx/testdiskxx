@@ -521,16 +521,16 @@ struct disk_t
     std::string serial_no;
     std::string fw_rev;
     disk_t() = default;
-    ~disk_t();
-    void update_fields();
+    ~disk_t() noexcept;
+    void update_fields() noexcept;
     void update_geometry(const int verbose);
-    void autoset_geometry(const unsigned char *buffer, const int verbose);
-    void set_cylinders_from_size_up();
-    auto set_sector_size(const unsigned int sector_size) -> int;
-    void autodetect_arch(const arch_fnct_t *arch);
-    void autoset_unit();
+    void autoset_geometry(const unsigned char *buffer, const int verbose) noexcept;
+    void set_cylinders_from_size_up() noexcept;
+    auto set_sector_size(const unsigned int sector_size) noexcept -> int;
+    void autodetect_arch(const arch_fnct_t *arch) noexcept;
+    void autoset_unit() noexcept;
     [[nodiscard]]
-    auto is_hpa_or_dco() const -> int;
+    auto is_hpa_or_dco() const noexcept -> int;
     std::string_view(*description)(disk_t &disk);
     std::string_view(*description_short)(disk_t &disk);
     int (*pread)(disk_t &disk, void *buf, const unsigned int count, const uint64_t offset);
@@ -591,11 +591,11 @@ struct partition_t
 {
     int to_be_removed;
 
-    void set_name(std::string_view src);
-    void set_name_chomp(std::string_view src);
-    void reset(const arch_fnct_t *arch);
+    void set_name(std::string_view src) noexcept;
+    void set_name_chomp(std::string_view src) noexcept;
+    void reset(const arch_fnct_t *arch) noexcept;
     partition_t() = default;
-    partition_t(const arch_fnct_t *arch);
+    partition_t(const arch_fnct_t *arch) noexcept;
 
     std::string fsname;
     std::string partname;

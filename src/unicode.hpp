@@ -32,7 +32,7 @@
       @ terminates \true;
       @ assigns to[0 .. len-1];
       @*/
-    auto UCSle2str(std::string &to, std::span<const uint16_t> from) -> unsigned int;
+    auto UCSle2str(std::string &to, std::span<const uint16_t> from) noexcept -> unsigned int;
 
     /*@
       @ requires \valid(to + ( 0 .. len-1));
@@ -41,6 +41,6 @@
       @ terminates \true;
       @ assigns to[0 .. len-1];
       @*/
-    auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) -> unsigned int;
+    auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) noexcept -> unsigned int;
 
 #endif
