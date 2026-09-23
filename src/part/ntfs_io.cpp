@@ -59,7 +59,6 @@ extern "C"
 #undef max
 #endif
 #include <cstdio>
-// #include "types.h"
 #include "src/common.hpp"
 #include "src/log.hpp"
 

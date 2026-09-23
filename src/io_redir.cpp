@@ -24,7 +24,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "common.hpp"
 #include "io_redir.hpp"
 #include "log.hpp"

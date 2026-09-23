@@ -24,7 +24,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "f2fs.hpp"
 #include "f2fs_fs.hpp"
 #include "src/common.hpp"

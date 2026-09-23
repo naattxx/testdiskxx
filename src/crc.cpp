@@ -22,7 +22,6 @@
  */
 
 #include <config.h>
-// #include "types.h"
 #include "common.hpp"
 #include "crc.hpp"
 

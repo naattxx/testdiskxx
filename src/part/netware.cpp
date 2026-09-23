@@ -23,7 +23,6 @@
 
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "netware.hpp"
 #include "src/common.hpp"
 

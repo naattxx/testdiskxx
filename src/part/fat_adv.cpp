@@ -35,7 +35,6 @@
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
-// #include "types.h"
 #include "fat.hpp"
 #include "fat_common.hpp"
 #include "src/common.hpp"

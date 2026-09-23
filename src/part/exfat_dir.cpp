@@ -40,7 +40,6 @@
 #endif
 #include <cerrno>
 #include <utility>
-// #include "types.h"
 #include "exfat.hpp"
 #include "exfat_dir.hpp"
 #include "fat.hpp"

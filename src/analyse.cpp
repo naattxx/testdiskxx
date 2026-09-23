@@ -23,7 +23,6 @@
 
 #include <cstdio>
 #include <cstring>
-// #include "types.h"
 #include "analyse.hpp"
 #include "common.hpp"
 #include "part/exfat.hpp"

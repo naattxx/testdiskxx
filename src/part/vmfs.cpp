@@ -23,7 +23,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/log.hpp"

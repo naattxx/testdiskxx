@@ -29,7 +29,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "parthumax.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"

@@ -23,7 +23,6 @@
 #include <config.h>
 #include <cstdint>
 #include <span>
-// #include "types.h"
 #include "common.hpp"
 #include "unicode.hpp"
 

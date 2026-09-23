@@ -24,7 +24,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "exfat.hpp"
 #include "src/common.hpp"
 #include "src/log.hpp"

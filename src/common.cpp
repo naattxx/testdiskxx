@@ -43,7 +43,6 @@
 #endif
 #include <cassert>
 #include <ctime>
-// #include "types.h"
 #include "common.hpp"
 #include "log.hpp"
 

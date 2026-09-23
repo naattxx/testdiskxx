@@ -24,7 +24,6 @@
 
 #include <cassert>
 #include <cstdio>
-// #include "types.h"
 #include "addpart.hpp"
 #include "common.hpp"
 #include "part/partgpt.hpp"

@@ -41,7 +41,6 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "src/common.hpp"
 #if __has_include(<fcntl.h>)
 #include <fcntl.h>

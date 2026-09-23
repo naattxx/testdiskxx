@@ -22,7 +22,6 @@
 #include <config.h>
 
 #include <cstring>
-// #include "types.h"
 #include "fatx.hpp"
 #include "src/common.hpp"
 static void set_FATX_info(partition_t &partition);

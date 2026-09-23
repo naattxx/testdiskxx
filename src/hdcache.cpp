@@ -27,7 +27,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "common.hpp"
 #include "hdcache.hpp"
 #include "log.hpp"

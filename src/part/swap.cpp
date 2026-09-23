@@ -25,7 +25,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <format>
-// #include "types.h"
 #include "src/common.hpp"
 #include "swap.hpp"
 static void set_Linux_SWAP_info(const union swap_header *swap_header,

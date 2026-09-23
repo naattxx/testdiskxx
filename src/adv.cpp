@@ -28,7 +28,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "common.hpp"
 #include "intrf.hpp"
 // #include "intrfn.h"

@@ -27,7 +27,6 @@
 #include <cstring>
 
 #include <utility>
-// #include "types.h"
 #include "fat.hpp"
 #include "fat_common.hpp"
 #include "hpfs.hpp"

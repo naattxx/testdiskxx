@@ -32,7 +32,6 @@
 #include <cstring>
 
 #include <utility>
-// #include "types.h"
 #include "ntfs.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"

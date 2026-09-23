@@ -24,7 +24,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "apfs_common.hpp"
 #include "src/common.hpp"
 #include "src/log.hpp"

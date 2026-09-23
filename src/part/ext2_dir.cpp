@@ -44,7 +44,6 @@
 #undef clamp
 #endif
 
-// #include "types.h"
 #include "ext2_dir.hpp"
 #include "ext2_inc.hpp"
 #include "src/common.hpp"

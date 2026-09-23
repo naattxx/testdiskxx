@@ -47,7 +47,6 @@
 #include <machine/endian.h>
 #endif
 #include <cstdarg>
-// #include "types.h"
 
 #ifdef HAVE_LIBNTFS
 #include <ntfs/attrib.h>

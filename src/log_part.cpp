@@ -1,6 +1,5 @@
 #include <cstdio>
 #include <format>
-// #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp"
 #include "intrf.hpp" /* aff_part_aux */

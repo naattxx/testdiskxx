@@ -23,7 +23,6 @@
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
 #include <stdio.h>
-//#include "types.h"
 #include "common.hpp"
 #include <stdlib.h>     /* free */
 #if __has_include(<windef.h>)

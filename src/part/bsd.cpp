@@ -23,7 +23,6 @@
 #include <cstdlib>
 
 // #include <stdio.h>
-// #include "types.h"
 #include "bsd.hpp"
 #include "src/common.hpp"
 #include "src/intrf.hpp"

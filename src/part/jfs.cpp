@@ -24,7 +24,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
-// #include "types.h"
 #include "jfs.hpp"
 #include "jfs_superblock.hpp"
 #include "src/common.hpp"

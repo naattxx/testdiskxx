@@ -31,7 +31,6 @@
 #include <cstring>
 
 #include <utility>
-// #include "types.h"
 #include "ntfs.hpp"
 #include "ntfs_dir.hpp"
 #include "ntfs_fix.hpp"

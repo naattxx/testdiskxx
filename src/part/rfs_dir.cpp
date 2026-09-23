@@ -33,7 +33,6 @@
 #endif
 #include <cerrno>
 #include <cstring>
-// #include "types.h"
 #include "rfs.hpp"
 #include "rfs_dir.hpp"
 #include "src/common.hpp"

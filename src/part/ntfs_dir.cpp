@@ -54,7 +54,6 @@
 #endif
 #include <cctype> /* isalpha */
 #include <cstdarg>
-// #include "types.h"
 
 #ifdef HAVE_LIBNTFS
 #include <ntfs/attrib.h>

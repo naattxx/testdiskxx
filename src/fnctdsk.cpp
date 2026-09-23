@@ -26,7 +26,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
-// #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp"
 #include "log.hpp"

@@ -25,7 +25,6 @@
 #undef HAVE_UTIME
 #endif
 
-// #include "types.h"
 #if __has_include("utime.h")
 #include <utime.h>
 #endif

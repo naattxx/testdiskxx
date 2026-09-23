@@ -24,7 +24,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-// #include "types.h"
 #include "gfs2.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"

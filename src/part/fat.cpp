@@ -30,7 +30,6 @@
 
 #include <string_view>
 #include <utility>
-// #include "types.h"
 #include "fat.hpp"
 #include "fat_dir.hpp"
 #include "src/common.hpp"

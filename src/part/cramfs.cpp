@@ -26,7 +26,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
-// #include "types.h"
 #include "cramfs.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"

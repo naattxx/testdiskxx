@@ -22,7 +22,6 @@
 #include <config.h>
 
 #include <cstring>
-// #include "types.h"
 #include "fat_common.hpp"
 #include "src/common.hpp"
 

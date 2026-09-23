@@ -25,7 +25,6 @@
 #include <cstring>
 #include <string>
 #include <vector>
-// #include "types.h"
 #include "src/common.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/node.hpp"

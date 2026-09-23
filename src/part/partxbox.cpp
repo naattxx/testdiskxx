@@ -30,7 +30,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include "types.h"
 #include "fatx.hpp"
 #include "partxbox.hpp"
 #include "src/common.hpp"

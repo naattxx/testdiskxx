@@ -50,7 +50,6 @@
 #include <sys/cygwin.h>
 #endif
 #include <cerrno>
-// #include "types.h"
 #include "common.hpp"
 // #include "lang.h"
 #include "fnctdsk.hpp"

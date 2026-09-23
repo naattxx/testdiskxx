@@ -48,7 +48,6 @@
 
 #include <cstdlib>     /* free */
 
-//#include "types.h"
 #include "common.hpp"
 #include "ewf.hpp"
 #include "fnctdsk.hpp"
