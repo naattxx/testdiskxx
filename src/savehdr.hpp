@@ -30,7 +30,7 @@ struct backup_disk_t
     char description[128];
     list_part_t list_part;
 };
-using backup_disk_list_t = std::list<backup_disk_t *>;
+using backup_disk_list_t = std::list<backup_disk_t>;
 
 /*@
   @ requires valid_disk(disk_car);

@@ -26,6 +26,7 @@
 #include <exception>
 #include <fstream>
 #include <ios>
+#include <optional>
 #include <print>
 #include <utility>
 #if __has_include(<sys/time.h>)
@@ -81,7 +82,7 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
 
 auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_list_t
 {
-    backup_disk_t *new_backup = nullptr;
+    std::optional<backup_disk_t> new_backup;
     backup_disk_list_t list_backup;
 
     if (verbose > 1)
@@ -99,10 +100,10 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
     {
         if (f_backup.peek() == '[')
         {
-          if (new_backup != nullptr)
-              list_backup.push_front(new_backup);
+          if (new_backup)
+              list_backup.push_front(std::move(*new_backup));
 
-          new_backup = new backup_disk_t;
+          new_backup = backup_disk_t();
           f_backup.ignore(); // skip '['
           f_backup >> new_backup->my_time;
 
@@ -114,7 +115,7 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
               // log_verbose("new disk: [{}] {}", new_backup->my_time, new_backup->description);
           }
         }
-        else if (new_backup != nullptr)
+        else if (new_backup)
         {
           partition_t new_partition(disk_car.arch);
           char status;
@@ -168,8 +169,8 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
           break;
         }
     }
-    if (new_backup != nullptr)
-        list_backup.push_front(new_backup);
+    if (new_backup)
+        list_backup.push_front(std::move(*new_backup));
     return list_backup;
 }
 
