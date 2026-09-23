@@ -595,7 +595,7 @@ struct partition_t
     void set_name_chomp(std::string_view src) noexcept;
     void reset(const arch_fnct_t *arch) noexcept;
     partition_t() = default;
-    partition_t(const arch_fnct_t *arch) noexcept;
+    explicit partition_t(const arch_fnct_t *arch) noexcept;
 
     std::string fsname;
     std::string partname;
