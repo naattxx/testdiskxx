@@ -19,27 +19,25 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <cerrno>
+#include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <exception>
 #include <fstream>
 #include <ios>
 #include <print>
-#include <cstring>
-#include <chrono>
+#include <utility>
 #if __has_include(<sys/time.h>)
 #include <sys/time.h>
 #endif
-#include <cstdio>
-#include <cstdlib>
-#include <cerrno>
-// #include "types.h"
 #include "common.hpp"
 #include "fnctdsk.hpp" /* get_LBA_part */
 #include "log.hpp"
 #include "savehdr.hpp"
-#define BACKUP_MAXSIZE 5120
 
 auto save_header(disk_t &disk_car, const partition_t &partition, const int verbose) -> int
 {
-    int res = 0;
     if (verbose > 1)
     {
         log_trace("save_header");
@@ -50,69 +48,39 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
         log_critical("Can't create header.log file: {}", strerror(errno));
         return -1;
     }
-    auto *buffer = new char[256 * DEFAULT_SECTOR_SIZE];
-    memset(buffer, 0, DEFAULT_SECTOR_SIZE);
-    {
-        char status = 'D';
-        switch (partition.status)
-        {
-        case STATUS_PRIM:
-            status = 'P';
-            break;
-        case STATUS_PRIM_BOOT:
-            status = '*';
-            break;
-        case STATUS_EXT:
-            status = 'E';
-            break;
-        case STATUS_EXT_IN_EXT:
-            status = 'X';
-            break;
-        case STATUS_LOG:
-            status = 'L';
-            break;
-        case STATUS_DELETED:
-            status = 'D';
-            break;
-        }
-        snprintf(buffer, 256 * DEFAULT_SECTOR_SIZE, "%s\n%2u %c Sys=%02X %5u %3u %2u %5u %3u %2u %10lu\n",
-                 disk_car.description(disk_car).data(), partition.order, status,
-                 (disk_car.arch->get_part_type != nullptr ? disk_car.arch->get_part_type(partition) : 0),
-                 offset2cylinder(disk_car, partition.part_offset), offset2head(disk_car, partition.part_offset),
-                 offset2sector(disk_car, partition.part_offset),
-                 offset2cylinder(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
-                 offset2head(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
-                 offset2sector(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
-                 static_cast<unsigned long>(partition.part_size / disk_car.sector_size));
-    }
     try {
       f_backup.exceptions(std::ios::badbit);
-      f_backup.write(buffer, DEFAULT_SECTOR_SIZE);
-    } catch (std::ios::failure &e) {
+      println(f_backup, "{} {}\n{:2} {} Sys={:02X} {:5} {:3} {:2} {:5} {:3} {:2} {:10}",
+              std::chrono::system_clock::now(), disk_car.description(disk_car), partition.order, std::to_underlying(partition.status),
+              (disk_car.arch->get_part_type != nullptr ? disk_car.arch->get_part_type(partition) : 0),
+              offset2cylinder(disk_car, partition.part_offset), offset2head(disk_car, partition.part_offset),
+              offset2sector(disk_car, partition.part_offset),
+              offset2cylinder(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
+              offset2head(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
+              offset2sector(disk_car, partition.part_offset + partition.part_size - disk_car.sector_size),
+              partition.part_size / disk_car.sector_size);
+    } catch (std::exception &e) {
       log_critical("Error while writing header.log: {}", e.what());
-      res = -1;
+      return -1;
     }
-    if (res >= 0 && disk_car.pread(disk_car, buffer, 256 * DEFAULT_SECTOR_SIZE, partition.part_offset) !=
+    char buffer[256 * DEFAULT_SECTOR_SIZE] {};
+    if (disk_car.pread(disk_car, buffer, 256 * DEFAULT_SECTOR_SIZE, partition.part_offset) !=
                         256 * DEFAULT_SECTOR_SIZE)
-        res = -1;
-    if (res >= 0)
-      try
-      {
-        f_backup.write(buffer, 256 * DEFAULT_SECTOR_SIZE);
-      }
-      catch (std::ios::failure &e)
-      {
-        log_critical("Error while writing header.log: {}", e.what());
-        res = -1;
-      }
-    delete[] buffer;
-    return res;
+      return -1;
+    try
+    {
+      f_backup.write(buffer, 256 * DEFAULT_SECTOR_SIZE);
+    }
+    catch (std::ios::failure &e)
+    {
+      log_critical("Error while writing header.log: {}", e.what());
+      return -1;
+    }
+    return 0;
 }
 
 auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_list_t
 {
-    char *buffer;
-    char *pos = nullptr;
     backup_disk_t *new_backup = nullptr;
     backup_disk_list_t list_backup;
 
@@ -126,96 +94,82 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
         log_error("Can't open backup.log file: {}", strerror(errno));
         return list_backup;
     }
-    buffer = new char[BACKUP_MAXSIZE];
-    f_backup.read(buffer, BACKUP_MAXSIZE);
-    int taille = f_backup.gcount();
-    buffer[(taille < BACKUP_MAXSIZE ? taille : BACKUP_MAXSIZE - 1)] = '\0';
-    if (verbose > 1)
+
+    while (!f_backup.eof())
     {
-        log_info("partition_load backup.log size={}\n", taille);
-    }
-    for (pos = buffer; pos < buffer + taille; pos++)
-    {
-        if (*pos == '\n')
+        if (f_backup.peek() == '[')
         {
-            *pos = '\0';
-        }
-    }
-    pos = buffer;
-    while (pos != nullptr && pos < buffer + taille)
-    {
-        if (*pos == '#')
-        {
-            pos++;
-            if (verbose > 1)
-            {
-                // log_verbose("new disk: {}",pos);
-            }
-            if (new_backup != nullptr)
-                list_backup.push_front(new_backup);
-            new_backup = new backup_disk_t;
-            new_backup->description[0] = '\0';
-            new_backup->my_time = strtol(pos, &pos, 10);
-            if (pos != nullptr)
-            {
-                strncpy(new_backup->description, ++pos, sizeof(new_backup->description));
-                new_backup->description[sizeof(new_backup->description) - 1] = '\0';
-            }
+          if (new_backup != nullptr)
+              list_backup.push_front(new_backup);
+
+          new_backup = new backup_disk_t;
+          f_backup.ignore(); // skip '['
+          f_backup >> new_backup->my_time;
+
+          f_backup.ignore(2);// "] "
+          f_backup.getline(new_backup->description, sizeof new_backup->description);
+
+          if (verbose > 1)
+          {
+              // log_verbose("new disk: [{}] {}", new_backup->my_time, new_backup->description);
+          }
         }
         else if (new_backup != nullptr)
         {
-            partition_t new_partition(disk_car.arch);
-            char status;
-            unsigned int part_type;
-            unsigned long part_size;
-            unsigned long part_offset;
-            if (verbose > 1)
-            {
-                // log_verbose("new partition\n");
-            }
-            if (sscanf(pos, "%2u : start = %lu, size = %lu, Id = %02X, %c\n", &new_partition.order, &part_offset,
-                       &part_size, &part_type, &status) == 5)
-            {
-                new_partition.part_offset = static_cast<uint64_t>(part_offset) * disk_car.sector_size;
-                new_partition.part_size = static_cast<uint64_t>(part_size) * disk_car.sector_size;
-                if (disk_car.arch->set_part_type != nullptr)
-                    disk_car.arch->set_part_type(new_partition, part_type);
-                switch (status)
-                {
-                case 'P':
-                    new_partition.status = STATUS_PRIM;
-                    break;
-                case '*':
-                    new_partition.status = STATUS_PRIM_BOOT;
-                    break;
-                case 'L':
-                    new_partition.status = STATUS_LOG;
-                    break;
-                default:
-                    new_partition.status = STATUS_DELETED;
-                    break;
-                }
-                {
-                    int _insert_error = 0;
-                    insert_new_partition(new_backup->list_part, new_partition, 0, &_insert_error);
-                }
-            }
-            else
-            {
-                log_critical("partition_load: sscanf failed\n");
-                pos = nullptr;
-            }
+          partition_t new_partition(disk_car.arch);
+          char status;
+          unsigned int part_type;
+          uint64_t part_size;
+          uint64_t part_offset;
+          f_backup >> new_partition.order;
+          f_backup.ignore(11); // skip ': start ='
+          f_backup >> part_offset;
+          f_backup.ignore(9); // skip ', size ='
+          f_backup >> part_size;
+          f_backup.ignore(7); // skip ', Id ='
+          f_backup >> part_type;
+          f_backup.ignore(2); // skip ', '
+          f_backup >> status;
+          if (f_backup.fail())
+          {
+              log_critical("partition_load: failed");
+              break;
+          }
+          if (verbose > 1)
+          {
+              // log_verbose("new partition\n");
+          }
+          new_partition.part_offset = part_offset * disk_car.sector_size;
+          new_partition.part_size = part_size * disk_car.sector_size;
+          if (disk_car.arch->set_part_type != nullptr)
+              disk_car.arch->set_part_type(new_partition, part_type);
+          switch (status)
+          {
+          case 'P':
+              new_partition.status = STATUS_PRIM;
+              break;
+          case '*':
+              new_partition.status = STATUS_PRIM_BOOT;
+              break;
+          case 'L':
+              new_partition.status = STATUS_LOG;
+              break;
+          default:
+              new_partition.status = STATUS_DELETED;
+              break;
+          }
+          {
+              int _insert_error = 0;
+              insert_new_partition(new_backup->list_part, new_partition, 0, &_insert_error);
+          }
         }
-        if (pos != nullptr)
-        {
-            while (*pos != '\0' && pos < buffer + taille)
-                pos++;
-            pos++;
+        else {
+          log_critical("partition_load: unexpected character: {}", f_backup.peek());
+          break;
         }
     }
     if (new_backup != nullptr)
         list_backup.push_front(new_backup);
-    delete[] buffer;
     return list_backup;
 }
 
@@ -224,7 +178,7 @@ auto partition_save(disk_t &disk_car, const list_part_t &list_part,
 {
   if (verbose > 0)
   {
-    log_trace("partition_save\n");
+    log_trace("partition_save");
   }
   std::ofstream f_backup("backup.log", std::ios::app);
   if (!f_backup.is_open())
@@ -232,8 +186,8 @@ auto partition_save(disk_t &disk_car, const list_part_t &list_part,
     log_critical("Can't create backup.log file: {}\n", strerror(errno));
     return -1;
   }
-  std::println(f_backup, "[{:%T}] {}",
-               std::chrono::system_clock::now(),
+  std::println(f_backup, "[{}] {}",
+               std::chrono::system_clock::now().time_since_epoch().count(),
                disk_car.description(disk_car));
   for (const partition_t &partition : list_part)
   {
