@@ -5,7 +5,8 @@
 #endif
 #include "utils.hpp"
 
-auto isAdmin() -> bool
+[[nodiscard]]
+auto isAdmin() noexcept -> bool
 {
     bool isAdmin = false;
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)

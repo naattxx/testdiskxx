@@ -1,3 +1,4 @@
 #pragma once
 
-auto isAdmin() -> bool;
+[[nodiscard]]
+auto isAdmin() noexcept -> bool;
