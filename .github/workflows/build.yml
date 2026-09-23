@@ -42,7 +42,7 @@ jobs:
           - os: windows-latest
             compiler: mingw-16.1.0
             cxx: g++
-        meson_version: ["1.12.0"]
+        meson_version: ["1.12.1"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
