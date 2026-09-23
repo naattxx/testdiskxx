@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <cstring>
 #include <exception>
+#include <format>
 #include <fstream>
 #include <ios>
 #include <optional>
@@ -37,7 +38,7 @@
 #include "log.hpp"
 #include "savehdr.hpp"
 
-auto save_header(disk_t &disk_car, const partition_t &partition, const int verbose) -> int
+auto save_header(disk_t &disk_car, const partition_t &partition, const int verbose) noexcept -> int
 {
     if (verbose > 1)
     {
@@ -80,7 +81,7 @@ auto save_header(disk_t &disk_car, const partition_t &partition, const int verbo
     return 0;
 }
 
-auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_list_t
+auto partition_load(const disk_t &disk_car, const int verbose) noexcept -> backup_disk_list_t
 {
     std::optional<backup_disk_t> new_backup;
     backup_disk_list_t list_backup;
@@ -175,7 +176,7 @@ auto partition_load(const disk_t &disk_car, const int verbose) -> backup_disk_li
 }
 
 auto partition_save(disk_t &disk_car, const list_part_t &list_part,
-                    const int verbose) -> int
+                    const int verbose) noexcept -> int
 {
   if (verbose > 0)
   {
@@ -187,21 +188,27 @@ auto partition_save(disk_t &disk_car, const list_part_t &list_part,
     log_critical("Can't create backup.log file: {}\n", strerror(errno));
     return -1;
   }
-  std::println(f_backup, "[{}] {}",
-               std::chrono::system_clock::now().time_since_epoch().count(),
-               disk_car.description(disk_car));
-  for (const partition_t &partition : list_part)
-  {
-    std::println(f_backup, "{:2} : start = {:9}, size = {:10}, Id = {:02X}, {}",
-                 (partition.order < 100 ? partition.order : 0),
-                 static_cast<unsigned long>(partition.part_offset /
-                                            disk_car.sector_size),
-                 static_cast<unsigned long>(partition.part_size /
-                                            disk_car.sector_size),
-                 (disk_car.arch->get_part_type != nullptr
-                      ? disk_car.arch->get_part_type(partition)
-                      : 0),
-                 static_cast<char>(partition.status));
+  try {
+    std::println(f_backup, "[{}] {}",
+                std::chrono::system_clock::now().time_since_epoch().count(),
+                disk_car.description(disk_car));
+    for (const partition_t &partition : list_part)
+    {
+      std::println(f_backup, "{:2} : start = {:9}, size = {:10}, Id = {:02X}, {}",
+                  (partition.order < 100 ? partition.order : 0),
+                  static_cast<unsigned long>(partition.part_offset /
+                                              disk_car.sector_size),
+                  static_cast<unsigned long>(partition.part_size /
+                                              disk_car.sector_size),
+                  (disk_car.arch->get_part_type != nullptr
+                        ? disk_car.arch->get_part_type(partition)
+                        : 0),
+                  static_cast<char>(partition.status));
+    }
+  }
+  catch (const std::format_error &e) {
+    log_critical("Error while writing to backup.log: {}", e.what());
+    return -1;
   }
   return 0;
 }
