@@ -160,8 +160,8 @@ auto main(int argc, char **argv) -> int
 
         if (cmd || path) {
             std::optional<disk_t> disk_car=file_test_availability(path.Get().c_str(), verbose, testdisk_mode);
-            if (disk_car.has_value())
-                insert_new_disk(list_disk, disk_car.value());
+            if (disk_car)
+                insert_new_disk(list_disk, *disk_car);
             else
                 throw args::ParseError(std::format("Unable to open file or device \"{}\": {}", path.Get(), strerror(errno)));
         }
