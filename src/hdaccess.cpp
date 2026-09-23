@@ -1066,7 +1066,7 @@ static auto scsi_query_product_info(const int sg_fd, char **vendor, char **produ
     unsigned char inqCmdBlk[INQ_CMD_LEN] = {INQUIRY, 0, 0, 0, INQ_REPLY_LEN, 0};
     scsi_inquiry_data_t inqBuff;
     unsigned char sense_buffer[32];
-    sg_io_hdr_t io_hdr;
+    sg_io_hdr_t io_hdr {};
     int k;
     char buf[32];
     *vendor = nullptr;
@@ -1076,7 +1076,6 @@ static auto scsi_query_product_info(const int sg_fd, char **vendor, char **produ
     if (ioctl(sg_fd, SG_GET_VERSION_NUM, &k) < 0 || k < 30000)
         return -1;
     /* Prepare INQUIRY command */
-    memset(&io_hdr, 0, sizeof(sg_io_hdr_t));
     io_hdr.interface_id = 'S';
     io_hdr.cmd_len = sizeof(inqCmdBlk);
     /* io_hdr.iovec_count = 0; */ /* memset takes care of this */
@@ -1182,8 +1181,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
     if (!dev.model.empty())
         return;
     {
-        struct hd_driveid hdi;
-        memset(&hdi, 0, sizeof(hdi));
+        struct hd_driveid hdi {};
         if (ioctl(hd_h, HDIO_GET_IDENTITY, &hdi) == 0)
         {
             char tmp[41];
@@ -1230,10 +1228,8 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         return;
     {
         /* Use modern /sys interface for SCSI device */
-        char vendor[256];
-        char product[256];
-        memset(&vendor, 0, sizeof(vendor));
-        memset(&product, 0, sizeof(product));
+        char vendor[256] {};
+        char product[256] {};
         if (read_device_sysfs_file(&vendor[0], dev, "vendor") == 0)
         {
             /*@ assert valid_string(&vendor[0]); */
@@ -1322,10 +1318,7 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
 static auto file_description(disk_t &disk) -> std::string_view
 {
     const auto *data = static_cast<const struct info_file_struct *>(disk.data);
-    char buffer_disk_size[100];
-#ifdef DISABLED_FOR_FRAMAC
-    memset(&buffer_disk_size, 0, sizeof(buffer_disk_size));
-#endif
+    char buffer_disk_size[100] {};
     size_to_unit(disk.disk_size, buffer_disk_size);
     if (disk.geom.heads_per_cylinder == 1 && disk.geom.sectors_per_head == 1)
       disk.description_txt = std::format(
@@ -1354,10 +1347,7 @@ static auto file_description(disk_t &disk) -> std::string_view
 static auto file_description_short(disk_t &disk_car) -> std::string_view
 {
     const auto *data = static_cast<const struct info_file_struct *>(disk_car.data);
-    char buffer_disk_size[100];
-#ifdef DISABLED_FOR_FRAMAC
-    memset(&buffer_disk_size, 0, sizeof(buffer_disk_size));
-#endif
+    char buffer_disk_size[100] {};
     size_to_unit(disk_car.disk_size, buffer_disk_size);
     if (disk_car.model.empty())
       disk_car.description_short_txt =

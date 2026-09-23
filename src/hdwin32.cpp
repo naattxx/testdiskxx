@@ -46,12 +46,10 @@
 void file_win32_disk_get_model(HANDLE handle, disk_t &dev, const int verbose)
 {
   DWORD               cbBytesReturned = 0;
-  STORAGE_PROPERTY_QUERY query;
-  char buffer [10240];
-  memset((void *) & query, 0, sizeof (query));
+  STORAGE_PROPERTY_QUERY query {};
+  char buffer [10240] {};
   query.PropertyId = StorageDeviceProperty;
   query.QueryType = PropertyStandardQuery;
-  memset(&buffer, 0, sizeof (buffer));
 
   if ( DeviceIoControl(handle, IOCTL_STORAGE_QUERY_PROPERTY,
 	&query,

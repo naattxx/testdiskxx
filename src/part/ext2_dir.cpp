@@ -124,10 +124,9 @@ static auto alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
 #ifdef DEBUG_EXT2
   log_info("alloc_io_channel start\n");
 #endif
-  ioch = static_cast<io_channel>(new struct struct_io_channel);
+  ioch = static_cast<io_channel>(new struct struct_io_channel {});
   if (ioch == nullptr)
     return nullptr;
-  memset(ioch, 0, sizeof(struct struct_io_channel));
   ioch->magic   = EXT2_ET_MAGIC_IO_CHANNEL;
   ioch->manager = &my_struct_manager;
   ioch->name    = strdup(my_data->partition.fsname.c_str());

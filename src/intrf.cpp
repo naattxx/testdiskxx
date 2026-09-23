@@ -64,10 +64,9 @@ int intr_nbr_line = 0;
 auto screen_buffer_add(const char *_format, ...) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
-    char tmp[BUFFER_LINE_LENGTH + 1];
+    char tmp[BUFFER_LINE_LENGTH + 1] {};
     const char *start = tmp;
     va_list ap;
-    memset(tmp, '\0', sizeof(tmp));
     va_start(ap, _format);
     vsnprintf(tmp, sizeof(tmp), _format, ap);
     va_end(ap);

@@ -751,8 +751,7 @@ static int fat32_create_rootdir(disk_t &disk_car, const partition_t &partition,
     );
   }
   cluster = root_cluster;
-  buffer  = new unsigned char[cluster_size];
-  memset(buffer, 0, cluster_size);
+  buffer  = new unsigned char[cluster_size] {};
   td_list_for_each(file_walker, &rootdir_list->list)
   {
     const file_info_t *current_file =

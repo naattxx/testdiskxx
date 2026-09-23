@@ -344,7 +344,7 @@ static auto exfat_dir(disk_t &disk, const partition_t &partition,
   const unsigned int cluster_shift =
       exfat_header->block_per_clus_bits + exfat_header->blocksize_bits;
   unsigned int cluster;
-  auto *buffer_dir = new unsigned char[NBR_CLUSTER_MAX << cluster_shift];
+  auto *buffer_dir = new unsigned char[NBR_CLUSTER_MAX << cluster_shift] {};
   unsigned int nbr_cluster;
   const unsigned int total_clusters = le32(exfat_header->total_clusters);
   exfat_method_t exfat_meth         = exFAT_FOLLOW_CLUSTER;
@@ -356,7 +356,6 @@ static auto exfat_dir(disk_t &disk, const partition_t &partition,
     cluster = le32(exfat_header->rootdir_clusnr);
   else
     cluster = first_cluster;
-  memset(buffer_dir, 0, NBR_CLUSTER_MAX << cluster_shift);
   nbr_cluster = 0;
   while (!is_EOC(cluster) && cluster >= 2 && nbr_cluster < NBR_CLUSTER_MAX &&
          stop == 0)

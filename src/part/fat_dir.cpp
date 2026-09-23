@@ -420,14 +420,13 @@ static auto fat_dir(disk_t &disk_car, const partition_t &partition,
   {
     const unsigned int cluster_size =
         fat_header->sectors_per_cluster * fat_sector_size(fat_header);
-    auto *buffer_dir = new unsigned char[32 * NBR_ENTRIES_MAX];
+    auto *buffer_dir = new unsigned char[32 * NBR_ENTRIES_MAX] {};
     unsigned int nbr_cluster;
     const unsigned int nbr_cluster_max = 32 * NBR_ENTRIES_MAX / cluster_size;
     int stop                           = 0;
     uint64_t start_fat1, start_data, part_size;
     unsigned long int no_of_cluster, fat_length;
     fat_method_t fat_meth = FAT_FOLLOW_CLUSTER;
-    memset(buffer_dir, 0, 32 * NBR_ENTRIES_MAX);
     fat_length = le16(fat_header->fat_length) > 0
                    ? le16(fat_header->fat_length)
                    : le32(fat_header->fat32_length);

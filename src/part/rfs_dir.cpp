@@ -302,10 +302,8 @@ dal_t *dal_open(struct dal_ops *myops, unsigned blocksize, int flags,
     return NULL;
   }
 
-  if (!(dal = (dal_t *)new unsigned char[sizeof(*dal)]))
+  if (!(dal = (dal_t *)new unsigned char[sizeof(*dal)] {}))
     return NULL;
-
-  memset(dal, 0, sizeof(*dal));
 
   dal->ops = myops;
 #ifdef HAVE_DAL_T_BLOCK_SIZE

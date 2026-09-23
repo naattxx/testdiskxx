@@ -138,21 +138,18 @@ static auto read_native_max(int fd) -> uint64_t
 static auto sg_read_native_max_ext(int fd) -> uint64_t
 {
 #ifdef SG_IO
-    unsigned char cdb[16];
-    unsigned char sb[32];
-    sg_io_hdr_t io_hdr;
+    unsigned char cdb[16] {};
+    unsigned char sb[32] {};
+    sg_io_hdr_t io_hdr {};
     const auto *desc = (const unsigned char *)(sb + 8);
     const auto *word = reinterpret_cast<const uint16_t *>(sb + 10);
 
-    memset(&cdb, 0, sizeof(cdb));
     cdb[0] = 0x85;
     cdb[1] = SG_ATA_PROTO_NON_DATA;
     cdb[2] = SG_CDB2_CHECK_COND;
     cdb[13] = 0x40;                    // dev; ATA_USING_LBA
     cdb[14] = WIN_READ_NATIVE_MAX_EXT; // command;
     cdb[1] |= SG_ATA_LBA48;
-    memset(&sb, 0, sizeof(sb));
-    memset(&io_hdr, 0, sizeof(io_hdr));
     io_hdr.interface_id = 'S';
     io_hdr.cmd_len = sizeof(cdb);
     io_hdr.mx_sb_len = sizeof(sb);
@@ -192,19 +189,15 @@ static auto sg_read_native_max_ext(int fd) -> uint64_t
 static auto sg_device_configuration_identify(int fd) -> uint64_t
 {
 #ifdef SG_IO
-    unsigned char data[512];
-    unsigned char sb[32];
-    unsigned char cdb[16];
+    unsigned char data[512] {};
+    unsigned char sb[32] {};
+    unsigned char cdb[16] {};
     uint64_t hdsize;
     unsigned int i;
     unsigned int sum = 0;
     auto *word = reinterpret_cast<uint16_t *>(&data);
-    sg_io_hdr_t io_hdr;
+    sg_io_hdr_t io_hdr {};
 
-    memset(&cdb, 0, sizeof(cdb));
-    memset(&sb, 0, sizeof(sb));
-    memset(&io_hdr, 0, sizeof(io_hdr));
-    memset(&data, 0, sizeof(data));
     cdb[0] = 0x85;
     cdb[1] = SG_ATA_PROTO_PIO_IN;
     cdb[2] = SG_CDB2_CHECK_COND;
@@ -267,11 +260,10 @@ static auto sg_device_configuration_identify(int fd) -> uint64_t
 
 void disk_get_hpa_dco(const int fd, disk_t &disk)
 {
-    unsigned char id_args[4 + 512];
+    unsigned char id_args[4 + 512] {};
     const auto *id_val = reinterpret_cast<const uint16_t *>(&id_args[4]);
     unsigned int flags = 0;
     /* Execute the IDENTIFY DEVICE command */
-    memset(id_args, 0, sizeof(id_args));
     id_args[0] = WIN_IDENTIFY;
     id_args[3] = 1;
 

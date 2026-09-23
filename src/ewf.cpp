@@ -104,8 +104,7 @@ auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
   disk_t disk;
   struct info_fewf_struct *data;
   libewf_error_t *ewf_error = nullptr;
-  data = new struct info_fewf_struct;
-  memset(data, 0, sizeof(struct info_fewf_struct));
+  data = new struct info_fewf_struct {};
   data->file_name = strdup(device);
   if(data->file_name==nullptr)
   {
@@ -300,8 +299,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
 #if __has_include(<glob.h>)
   glob_t globbuf;
 #endif
-  data=new struct info_fewf_struct;
-  memset(data, 0, sizeof(struct info_fewf_struct));
+  data=new struct info_fewf_struct {};
   data->file_name = strdup(device);
   if(data->file_name==NULL)
   {
