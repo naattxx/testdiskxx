@@ -35,7 +35,7 @@ auto exfat_cluster_to_offset(const struct exfat_super_block *exfat_header,
 {
   return (static_cast<uint64_t>(((cluster - 2)
                                  << exfat_header->block_per_clus_bits) +
-                                le32(exfat_header->clus_blocknr)))
+                                to_little_endian(exfat_header->clus_blocknr)))
       << exfat_header->blocksize_bits;
 }
 
@@ -92,7 +92,7 @@ auto check_exFAT(disk_t &disk, partition_t &partition) -> int
 
 auto test_exFAT(const struct exfat_super_block *exfat_header) -> int
 {
-  if (le16(exfat_header->signature) != 0xAA55)
+  if (to_little_endian(exfat_header->signature) != 0xAA55)
     return 1;
   if (memcmp(exfat_header->oem_id, "EXFAT   ", sizeof(exfat_header->oem_id)) !=
       0)
@@ -110,15 +110,15 @@ auto recover_exFAT(const disk_t &disk,
   partition.sb_size        = 12 << exfat_header->blocksize_bits;
   partition.part_type_i386 = P_EXFAT;
   partition.part_type_gpt  = GPT_ENT_TYPE_MS_BASIC_DATA;
-  partition.part_size      = le64(exfat_header->nr_sectors) * disk.sector_size;
+  partition.part_size      = to_little_endian(exfat_header->nr_sectors) * disk.sector_size;
 #ifdef DEBUG_exFAT
   log_info("recover_exFAT:\n");
   log_info("start_sector={}\n",
-           (long long unsigned)le64(exfat_header->start_sector));
+           (long long unsigned)to_little_endian(exfat_header->start_sector));
   log_info("blocksize={}\n", (12 << exfat_header->blocksize_bits));
   log_info("part_offset={}\n", partition.part_offset);
 #endif
-  if ((le64(exfat_header->start_sector) * disk.sector_size +
+  if ((to_little_endian(exfat_header->start_sector) * disk.sector_size +
            (12 << exfat_header->blocksize_bits) ==
        partition.part_offset) ||
       (disk.arch == &arch_none &&

@@ -71,7 +71,7 @@ auto check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
 static auto test_cramfs(const disk_t &disk_car, const struct cramfs_super *sb,
                         const partition_t &partition, const int verbose) -> int
 {
-  if (sb->magic != le32(CRAMFS_MAGIC))
+  if (sb->magic != to_little_endian(CRAMFS_MAGIC))
     return 1;
   if (verbose > 0)
     log_info("\ncramfs Marker at {}/{}/{}\n",

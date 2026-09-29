@@ -78,11 +78,11 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     return -1;
   }
   mft_pos = partition.part_offset +
-            (le16(ntfs_header->reserved) +
-             le64(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
+            (to_little_endian(ntfs_header->reserved) +
+             to_little_endian(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
                 ntfs_sector_size(ntfs_header);
-  mftmirr_pos = partition.part_offset + (le16(ntfs_header->reserved) +
-                                         le64(ntfs_header->mftmirr_lcn) *
+  mftmirr_pos = partition.part_offset + (to_little_endian(ntfs_header->reserved) +
+                                         to_little_endian(ntfs_header->mftmirr_lcn) *
                                              ntfs_header->sectors_per_cluster) *
                                             ntfs_sector_size(ntfs_header);
   if (ntfs_header->clusters_per_mft_record > 0)

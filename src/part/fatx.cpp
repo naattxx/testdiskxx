@@ -56,7 +56,7 @@ auto recover_FATX(const struct disk_fatx *fatx_block, partition_t &partition)
   partition.part_type_xbox = PXBOX_FATX;
   /* FIXME: Locate the partition but cannot get the part_size unfortunatly */
   partition.part_size =
-      static_cast<uint64_t> le32(fatx_block->cluster_size_in_sector) * 512;
+      static_cast<uint64_t>(to_little_endian(fatx_block->cluster_size_in_sector)) * 512;
   return 0;
 }
 

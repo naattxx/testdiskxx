@@ -217,7 +217,7 @@ static auto exfat_get_next_cluster(disk_t &disk_car,
    * 0xFFFFFFF7: bad cluster
    * 0xFFFFFFFF: EOC End of cluster
    * */
-  next_cluster = le32(p32[offset_o]);
+  next_cluster = to_little_endian(p32[offset_o]);
   delete[] buffer;
   return next_cluster;
 }
@@ -265,9 +265,9 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
       new_file.st_uid   = 0;
       new_file.st_gid   = 0;
       new_file.st_size  = 0;
-      new_file.td_atime = date_dos2unix(le16(entry->atime), le16(entry->adate));
-      new_file.td_ctime = date_dos2unix(le16(entry->ctime), le16(entry->cdate));
-      new_file.td_mtime = date_dos2unix(le16(entry->mtime), le16(entry->mdate));
+      new_file.td_atime = date_dos2unix(to_little_endian(entry->atime), to_little_endian(entry->adate));
+      new_file.td_ctime = date_dos2unix(to_little_endian(entry->ctime), to_little_endian(entry->cdate));
+      new_file.td_mtime = date_dos2unix(to_little_endian(entry->mtime), to_little_endian(entry->mdate));
       new_file.status =
           ((entry->type & 0x80) == 0x80 ? 0 : FILE_STATUS_DELETED);
       current_file = new_file;
@@ -282,8 +282,8 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
             reinterpret_cast<const struct exfat_stream_ext_entry *>(
                 &buffer[offset]
             );
-        current_file->st_size = le64(entry->data_length);
-        current_file->st_ino  = le32(entry->first_cluster);
+        current_file->st_size = to_little_endian(entry->data_length);
+        current_file->st_ino  = to_little_endian(entry->first_cluster);
 #if 0
 	if((entry->first_cluster&2)!=0)
 	  current_file->st_size=0;
@@ -345,14 +345,14 @@ static auto exfat_dir(disk_t &disk, const partition_t &partition,
   unsigned int cluster;
   auto *buffer_dir = new unsigned char[NBR_CLUSTER_MAX << cluster_shift] {};
   unsigned int nbr_cluster;
-  const unsigned int total_clusters = le32(exfat_header->total_clusters);
+  const unsigned int total_clusters = to_little_endian(exfat_header->total_clusters);
   exfat_method_t exfat_meth         = exFAT_FOLLOW_CLUSTER;
   int stop                          = 0;
   const uint64_t start_exfat1 =
-      static_cast<uint64_t> le32(exfat_header->fat_blocknr)
+      static_cast<uint64_t>(to_little_endian(exfat_header->fat_blocknr))
       << exfat_header->blocksize_bits;
   if (first_cluster < 2)
-    cluster = le32(exfat_header->rootdir_clusnr);
+    cluster = to_little_endian(exfat_header->rootdir_clusnr);
   else
     cluster = first_cluster;
   nbr_cluster = 0;
@@ -425,7 +425,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
     delete exfat_header;
     return DIR_PART_EIO;
   }
-  if (le16(exfat_header->signature) != 0xAA55 ||
+  if (to_little_endian(exfat_header->signature) != 0xAA55 ||
       memcmp(exfat_header->oem_id, "EXFAT   ", sizeof(exfat_header->oem_id)) !=
           0)
   {
@@ -443,16 +443,16 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
 #endif
 #ifdef DEBUG_EXFAT
   log_info("start_sector={}\n",
-           (long long unsigned)le64(exfat_header->start_sector));
+           (long long unsigned)to_little_endian(exfat_header->start_sector));
   log_info("nr_sectors  ={}\n",
-           (long long unsigned)le64(exfat_header->nr_sectors));
-  log_info("fat_blocknr ={}\n", le32(exfat_header->fat_blocknr));
-  log_info("fat_block_counts={}\n", le32(exfat_header->fat_block_counts));
-  log_info("clus_blocknr={}\n", le32(exfat_header->clus_blocknr));
-  log_info("total_clusters={}", le32(exfat_header->total_clusters));
-  log_info("rootdir_clusnr={}", le32(exfat_header->rootdir_clusnr));
-  log_info("serial_number=0x{:08x}", le32(exfat_header->serial_number));
-  log_info("state=0x{:x}", le16(exfat_header->state));
+           (long long unsigned)to_little_endian(exfat_header->nr_sectors));
+  log_info("fat_blocknr ={}\n", to_little_endian(exfat_header->fat_blocknr));
+  log_info("fat_block_counts={}\n", to_little_endian(exfat_header->fat_block_counts));
+  log_info("clus_blocknr={}\n", to_little_endian(exfat_header->clus_blocknr));
+  log_info("total_clusters={}", to_little_endian(exfat_header->total_clusters));
+  log_info("rootdir_clusnr={}", to_little_endian(exfat_header->rootdir_clusnr));
+  log_info("serial_number=0x{:08x}", to_little_endian(exfat_header->serial_number));
+  log_info("state=0x{:x}", to_little_endian(exfat_header->state));
   log_info("blocksize_bits={}", exfat_header->blocksize_bits);
   log_info("block_per_clus_bits={}", exfat_header->block_per_clus_bits);
   log_info("number_of_fats={}", exfat_header->number_of_fats);
@@ -511,10 +511,10 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
     return CP_CREATE_FAILED;
   }
   cluster        = file.st_ino;
-  start_exfat1   = static_cast<uint64_t> le32(exfat_header->fat_blocknr)
+  start_exfat1   = static_cast<uint64_t>(to_little_endian(exfat_header->fat_blocknr))
                 << exfat_header->blocksize_bits;
-  clus_blocknr   = le32(exfat_header->clus_blocknr);
-  total_clusters = le32(exfat_header->total_clusters);
+  clus_blocknr   = to_little_endian(exfat_header->clus_blocknr);
+  total_clusters = to_little_endian(exfat_header->total_clusters);
   log_trace("exfat_copy dst={} first_cluster={} ({}) size={}", new_file,
       cluster,
       (long long unsigned)(((cluster-2) << exfat_header->block_per_clus_bits)

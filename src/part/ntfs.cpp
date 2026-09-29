@@ -109,7 +109,7 @@ auto recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header,
     log_ntfs_info(ntfs_header);
   }
   part_size =
-      (le64(ntfs_header->sectors_nbr) + 1) * ntfs_sector_size(ntfs_header);
+      (to_little_endian(ntfs_header->sectors_nbr) + 1) * ntfs_sector_size(ntfs_header);
   partition.sborg_offset = 0;
   partition.sb_size      = 512;
   if (backup > 0)
@@ -159,13 +159,13 @@ auto test_NTFS(const disk_t &disk_car,
                const partition_t &partition, const int verbose,
                const int dump_ind) -> int
 {
-  if (le16(ntfs_header->marker) != 0xAA55 || le16(ntfs_header->reserved) > 0 ||
+  if (to_little_endian(ntfs_header->marker) != 0xAA55 || to_little_endian(ntfs_header->reserved) > 0 ||
       ntfs_header->fats > 0 || ntfs_header->dir_entries[0] != 0 ||
       ntfs_header->dir_entries[1] != 0 || ntfs_header->sectors[0] != 0 ||
-      ntfs_header->sectors[1] != 0 || le16(ntfs_header->fat_length) != 0 ||
-      le32(ntfs_header->total_sect) != 0 ||
+      ntfs_header->sectors[1] != 0 || to_little_endian(ntfs_header->fat_length) != 0 ||
+      to_little_endian(ntfs_header->total_sect) != 0 ||
       memcmp(ntfs_header->system_id, "NTFS", 4) != 0 ||
-      le64(ntfs_header->sectors_nbr) == 0)
+      to_little_endian(ntfs_header->sectors_nbr) == 0)
     return 1;
   switch (ntfs_header->sectors_per_cluster)
   {
@@ -188,24 +188,24 @@ auto test_NTFS(const disk_t &disk_car,
              offset2head(disk_car, partition.part_offset),
              offset2sector(disk_car, partition.part_offset));
   }
-  if (le16(ntfs_header->heads) != disk_car.geom.heads_per_cylinder)
+  if (to_little_endian(ntfs_header->heads) != disk_car.geom.heads_per_cylinder)
   {
     screen_buffer_add(
         "Warning: number of heads/cylinder mismatches {} (NTFS) != {} (HD)\n",
-        le16(ntfs_header->heads), disk_car.geom.heads_per_cylinder
+        to_little_endian(ntfs_header->heads), disk_car.geom.heads_per_cylinder
     );
     log_warning("heads/cylinder {} (NTFS) != {} (HD)\n",
-                le16(ntfs_header->heads), disk_car.geom.heads_per_cylinder);
+                to_little_endian(ntfs_header->heads), disk_car.geom.heads_per_cylinder);
   }
-  if (le16(ntfs_header->secs_track) != disk_car.geom.sectors_per_head)
+  if (to_little_endian(ntfs_header->secs_track) != disk_car.geom.sectors_per_head)
   {
     screen_buffer_add(
         "Warning: number of sectors per track mismatches {} (NTFS) != {} "
         "(HD)\n",
-        le16(ntfs_header->secs_track), disk_car.geom.sectors_per_head
+        to_little_endian(ntfs_header->secs_track), disk_car.geom.sectors_per_head
     );
     log_warning("sect/track {} (NTFS) != {} (HD)\n",
-                le16(ntfs_header->secs_track), disk_car.geom.sectors_per_head);
+                to_little_endian(ntfs_header->secs_track), disk_car.geom.sectors_per_head);
   }
   if (ntfs_sector_size(ntfs_header) != disk_car.sector_size)
   {
@@ -222,7 +222,7 @@ auto test_NTFS(const disk_t &disk_car,
   if (partition.part_size > 0)
   {
     uint64_t part_size;
-    part_size = le64(ntfs_header->sectors_nbr) + 1;
+    part_size = to_little_endian(ntfs_header->sectors_nbr) + 1;
 
     if (part_size * ntfs_sector_size(ntfs_header) > partition.part_size)
     {
@@ -254,10 +254,10 @@ static auto ntfs_getattributeheaders(const ntfs_recordheader *record)
     -> const ntfs_attribheader *
 {
   const char *location = reinterpret_cast<const char *>(record);
-  if (le32(record->magic) != NTFS_Magic ||
-      le16(record->attrs_offset) % 8 != 0 || le16(record->attrs_offset) < 42)
+  if (to_little_endian(record->magic) != NTFS_Magic ||
+      to_little_endian(record->attrs_offset) % 8 != 0 || to_little_endian(record->attrs_offset) < 42)
     return nullptr;
-  location += le16(record->attrs_offset);
+  location += to_little_endian(record->attrs_offset);
   return reinterpret_cast<const ntfs_attribheader *>(location);
 }
 
@@ -275,9 +275,9 @@ static auto ntfs_searchattribute(const ntfs_attribheader *attrib,
   /*@ loop assigns attrib; */
   while (reinterpret_cast<const char *>(attrib) + sizeof(ntfs_attribheader) <
              end &&
-         le32(attrib->type) != 0xffffffff)
+         to_little_endian(attrib->type) != 0xffffffff)
   {
-    const unsigned int attr_len = le32(attrib->cbAttribute);
+    const unsigned int attr_len = to_little_endian(attrib->cbAttribute);
     if (attr_len % 8 != 0 || attr_len < 0x18 || attr_len > 0x10000000 ||
         reinterpret_cast<const char *>(attrib) + attr_len >= end)
       return nullptr;
@@ -313,9 +313,9 @@ auto ntfs_getattributedata(const ntfs_attribresident *attrib, const char *end)
     -> const char *
 {
   const char *data =
-      (reinterpret_cast<const char *>(attrib)) + le16(attrib->offAttribData);
-  if (le16(attrib->offAttribData) + le32(attrib->cbAttribData) >
-          le32(attrib->header.cbAttribute) ||
+      (reinterpret_cast<const char *>(attrib)) + to_little_endian(attrib->offAttribData);
+  if (to_little_endian(attrib->offAttribData) + to_little_endian(attrib->cbAttribData) >
+          to_little_endian(attrib->header.cbAttribute) ||
       data > end)
     return nullptr;
   return data;
@@ -329,8 +329,8 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
   const unsigned char *buf;
   const auto *attr_start =
       reinterpret_cast<const unsigned char *>(attrnr);
-  const uint32_t attr_len    = le32(attrnr->header.cbAttribute);
-  const uint16_t offDataRuns = le16(attrnr->offDataRuns);
+  const uint32_t attr_len    = to_little_endian(attrnr->header.cbAttribute);
+  const uint16_t offDataRuns = to_little_endian(attrnr->offDataRuns);
   uint8_t b;                     /* Current byte offset in buf. */
   const unsigned char *attr_end; /* End of attribute. */
   int64_t deltaxcn = -1;         /* Change in [vl]cn. */
@@ -407,13 +407,13 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
   else
     mft_record_size = 1 << (-ntfs_header->clusters_per_mft_record);
   mft_pos = partition.part_offset +
-            (le16(ntfs_header->reserved) +
-             le64(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
+            (to_little_endian(ntfs_header->reserved) +
+             to_little_endian(ntfs_header->mft_lcn) * ntfs_header->sectors_per_cluster) *
                 ntfs_sector_size(ntfs_header);
   /* Record 3 = $Volume */
   mft_pos += 3 * mft_record_size;
 #ifdef NTFS_DEBUG
-  log_info("NTFS MFT cluster = {}\n", le64(ntfs_header->mft_lcn));
+  log_info("NTFS MFT cluster = {}\n", to_little_endian(ntfs_header->mft_lcn));
   log_info("NTFS cluster size =    %5u sectors\n",
            ntfs_header->sectors_per_cluster);
   log_info("NTFS MFT_record_size = %5u bytes\n", mft_record_size);
@@ -443,7 +443,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
     {
       char *dest;
       const char *name_it;
-      unsigned int volume_name_length = le32(attrib->cbAttribData);
+      unsigned int volume_name_length = to_little_endian(attrib->cbAttribData);
       volume_name_length /= 2; /* Unicode */
       volume_name_length =
           std::min<size_t>(volume_name_length, partition.fsname.size() - 1);
@@ -492,12 +492,12 @@ auto is_ntfs(const partition_t &partition) -> int
 auto log_ntfs_info(const struct ntfs_boot_sector *ntfs_header) -> int
 {
   log_info("filesystem size           {}\n",
-           (long long unsigned)le64(ntfs_header->sectors_nbr) + 1);
+           (long long unsigned)to_little_endian(ntfs_header->sectors_nbr) + 1);
   log_info("sectors_per_cluster       {}\n", ntfs_header->sectors_per_cluster);
   log_info("mft_lcn                   {}\n",
-           (long unsigned int)le64(ntfs_header->mft_lcn));
+           (long unsigned int)to_little_endian(ntfs_header->mft_lcn));
   log_info("mftmirr_lcn               {}\n",
-           (long unsigned int)le64(ntfs_header->mftmirr_lcn));
+           (long unsigned int)to_little_endian(ntfs_header->mftmirr_lcn));
   log_info("clusters_per_mft_record   %d\n",
            ntfs_header->clusters_per_mft_record);
   log_info("clusters_per_index_record %d\n",

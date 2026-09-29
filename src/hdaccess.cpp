@@ -1670,8 +1670,8 @@ void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose) no
   @*/
 static auto is_dosemu_image(const struct dosemu_image_header *hdr) -> int
 {
-    if (memcmp(&hdr->sig, "DOSEMU", 6) == 0 && 0 < le32(hdr->sectors) && le32(hdr->sectors) <= 63 &&
-        0 < le32(hdr->heads) && le32(hdr->heads) <= 255 && 0 < le32(hdr->cylinders) && 0 < le32(hdr->header_end))
+    if (memcmp(&hdr->sig, "DOSEMU", 6) == 0 && 0 < to_little_endian(hdr->sectors) && to_little_endian(hdr->sectors) <= 63 &&
+        0 < to_little_endian(hdr->heads) && to_little_endian(hdr->heads) <= 255 && 0 < to_little_endian(hdr->cylinders) && 0 < to_little_endian(hdr->header_end))
         return 1;
     return 0;
 }
@@ -1887,17 +1887,17 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
         if (is_dosemu_image(hdr))
         {
             log_info("{} DOSEMU", device);
-            disk_car.geom.cylinders = le32(hdr->cylinders);
+            disk_car.geom.cylinders = to_little_endian(hdr->cylinders);
             /*@ assert 0 < disk_car.geom.cylinders < 4294967296; */
-            disk_car.geom.heads_per_cylinder = le32(hdr->heads);
+            disk_car.geom.heads_per_cylinder = to_little_endian(hdr->heads);
             /*@ assert 0 < disk_car.geom.heads_per_cylinder <= 255; */
-            disk_car.geom.sectors_per_head = le32(hdr->sectors);
+            disk_car.geom.sectors_per_head = to_little_endian(hdr->sectors);
             /*@ assert 0 < disk_car.geom.sectors_per_head <= 63; */
             disk_car.disk_real_size = static_cast<uint64_t>(disk_car.geom.cylinders) * disk_car.geom.heads_per_cylinder *
                                        disk_car.geom.sectors_per_head * disk_car.sector_size;
-            disk_car.offset = le32(hdr->header_end);
+            disk_car.offset = to_little_endian(hdr->header_end);
         }
-        else if (memcmp(buffer, evf_file_signature, 8) == 0 && le16(ewf->fields_segment) == 1)
+        else if (memcmp(buffer, evf_file_signature, 8) == 0 && to_little_endian(ewf->fields_segment) == 1)
         {
           delete[] buffer;
           delete data;

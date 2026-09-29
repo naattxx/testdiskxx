@@ -38,9 +38,9 @@ static void set_gfs2_info(partition_t &partition)
 static auto test_gfs2(const disk_t &disk, const struct gfs2_sb *sb,
                       const partition_t &partition, const int dump_ind) -> int
 {
-  if (sb->sb_header.mh_magic != be32(GFS2_MAGIC))
+  if (sb->sb_header.mh_magic != to_big_endian(GFS2_MAGIC))
     return 1;
-  if (sb->sb_header.mh_format != be32(GFS2_FORMAT_SB))
+  if (sb->sb_header.mh_format != to_big_endian(GFS2_FORMAT_SB))
     return 1;
   if (dump_ind != 0)
   {

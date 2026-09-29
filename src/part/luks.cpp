@@ -31,7 +31,7 @@
 
 static void set_LUKS_info(const struct luks_phdr *sb, partition_t &partition)
 {
-  const unsigned int version = be16(sb->version);
+  const unsigned int version = to_big_endian(sb->version);
   partition.upart_type       = UP_LUKS;
   if (partition.part_size > 0)
     partition.info = std::format("LUKS {}", version);
@@ -89,7 +89,7 @@ auto recover_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
   partition.part_size =
-      static_cast<uint64_t>(be32(sb->payloadOffset)) * disk_car.sector_size;
+      static_cast<uint64_t>(to_big_endian(sb->payloadOffset)) * disk_car.sector_size;
   partition.blocksize    = 0;
   partition.sborg_offset = 0;
   partition.sb_offset    = 0;

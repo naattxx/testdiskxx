@@ -176,9 +176,9 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
     return new_list_part;
   }
   for (i = 0; i < 0x200 / 4; i++)
-    p32[i] = be32(p32[i]);
+    p32[i] = to_big_endian(p32[i]);
   ; // dump_log(buffer, DEFAULT_SECTOR_SIZE);
-  if (le16(humaxlabel->magic) != 0xAA55)
+  if (to_little_endian(humaxlabel->magic) != 0xAA55)
   {
     screen_buffer_add("Bad HUMAX partition\n");
     delete[] buffer;
@@ -196,9 +196,9 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
       new_partition.order           = i + 1;
       new_partition.part_type_humax = PHUMAX_PARTITION;
       new_partition.part_offset =
-          be32(humaxlabel->partitions[i].start_sector) * disk_car.sector_size;
+          to_big_endian(humaxlabel->partitions[i].start_sector) * disk_car.sector_size;
       new_partition.part_size =
-          static_cast<uint64_t>(be32(humaxlabel->partitions[i].num_sectors)) *
+          static_cast<uint64_t>(to_big_endian(humaxlabel->partitions[i].num_sectors)) *
           disk_car.sector_size;
       new_partition.status = STATUS_PRIM;
       //       disk_car.arch->check_part(disk_car,verbose,new_partition,saveheader);

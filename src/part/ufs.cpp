@@ -62,9 +62,9 @@ auto check_ufs(disk_t &disk_car, partition_t &partition, const int verbose)
 static auto test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
                      const partition_t &partition, const int verbose) -> int
 {
-  if (le32(sb->fs_magic) == UFS_MAGIC && le32(sb->fs_size) > 0 &&
-      (le32(sb->fs_fsize) == 512 || le32(sb->fs_fsize) == 1024 ||
-       le32(sb->fs_fsize) == 2048 || le32(sb->fs_fsize) == 4096))
+  if (to_little_endian(sb->fs_magic) == UFS_MAGIC && to_little_endian(sb->fs_size) > 0 &&
+      (to_little_endian(sb->fs_fsize) == 512 || to_little_endian(sb->fs_fsize) == 1024 ||
+       to_little_endian(sb->fs_fsize) == 2048 || to_little_endian(sb->fs_fsize) == 4096))
   {
     if (verbose > 1)
       log_info("\nUFS Marker at {}/{}/{}\n",
@@ -73,9 +73,9 @@ static auto test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
                offset2sector(disk_car, partition.part_offset));
     return 0;
   }
-  if (be32(sb->fs_magic) == UFS_MAGIC && be32(sb->fs_size) > 0 &&
-      (be32(sb->fs_fsize) == 512 || be32(sb->fs_fsize) == 1024 ||
-       be32(sb->fs_fsize) == 2048 || be32(sb->fs_fsize) == 4096))
+  if (to_big_endian(sb->fs_magic) == UFS_MAGIC && to_big_endian(sb->fs_size) > 0 &&
+      (to_big_endian(sb->fs_fsize) == 512 || to_big_endian(sb->fs_fsize) == 1024 ||
+       to_big_endian(sb->fs_fsize) == 2048 || to_big_endian(sb->fs_fsize) == 4096))
   {
     if (verbose > 1)
       log_info("\nUFS Marker at {}/{}/{}\n",
@@ -84,9 +84,9 @@ static auto test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
                offset2sector(disk_car, partition.part_offset));
     return 0;
   }
-  if (le32(sb->fs_magic) == UFS2_MAGIC && le64(sb->fs_u11.fs_u2.fs_size) > 0 &&
-      (le32(sb->fs_fsize) == 512 || le32(sb->fs_fsize) == 1024 ||
-       le32(sb->fs_fsize) == 2048 || le32(sb->fs_fsize) == 4096))
+  if (to_little_endian(sb->fs_magic) == UFS2_MAGIC && to_little_endian(sb->fs_u11.fs_u2.fs_size) > 0 &&
+      (to_little_endian(sb->fs_fsize) == 512 || to_little_endian(sb->fs_fsize) == 1024 ||
+       to_little_endian(sb->fs_fsize) == 2048 || to_little_endian(sb->fs_fsize) == 4096))
   {
     if (verbose > 1)
       log_info("\nUFS2 Marker at {}/{}/{}\n",
@@ -95,9 +95,9 @@ static auto test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
                offset2sector(disk_car, partition.part_offset));
     return 0;
   }
-  if (be32(sb->fs_magic) == UFS2_MAGIC && be64(sb->fs_u11.fs_u2.fs_size) > 0 &&
-      (be32(sb->fs_fsize) == 512 || be32(sb->fs_fsize) == 1024 ||
-       be32(sb->fs_fsize) == 2048 || be32(sb->fs_fsize) == 4096))
+  if (to_big_endian(sb->fs_magic) == UFS2_MAGIC && to_big_endian(sb->fs_u11.fs_u2.fs_size) > 0 &&
+      (to_big_endian(sb->fs_fsize) == 512 || to_big_endian(sb->fs_fsize) == 1024 ||
+       to_big_endian(sb->fs_fsize) == 2048 || to_big_endian(sb->fs_fsize) == 4096))
   {
     if (verbose > 1)
       log_info("\nUFS2 Marker at {}/{}/{}\n",
@@ -125,48 +125,48 @@ auto recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
   {
   case UP_UFS_LE:
     partition.part_size =
-        static_cast<uint64_t> le32(sb->fs_size) * le32(sb->fs_fsize);
+        static_cast<uint64_t>(to_little_endian(sb->fs_size)) * to_little_endian(sb->fs_fsize);
     if (verbose > 1)
     {
-      log_info("fs_size {}, fs_fsize {}\n", (long unsigned)le32(sb->fs_size),
-               (long unsigned)le32(sb->fs_fsize));
-      log_info("fs_sblkno {}\n", (long unsigned)le32(sb->fs_sblkno));
+      log_info("fs_size {}, fs_fsize {}\n", (long unsigned)to_little_endian(sb->fs_size),
+               (long unsigned)to_little_endian(sb->fs_fsize));
+      log_info("fs_sblkno {}\n", (long unsigned)to_little_endian(sb->fs_sblkno));
     }
     break;
   case UP_UFS2_LE:
-    partition.part_size = le64(sb->fs_u11.fs_u2.fs_size) * le32(sb->fs_fsize);
+    partition.part_size = to_little_endian(sb->fs_u11.fs_u2.fs_size) * to_little_endian(sb->fs_fsize);
     if (verbose > 1)
     {
       log_info("fs_size {}, fs_fsize {}\n",
-               (long unsigned)le64(sb->fs_u11.fs_u2.fs_size),
-               (long unsigned)le32(sb->fs_fsize));
-      log_info("fs_sblkno {}\n", (long unsigned)le32(sb->fs_sblkno));
+               (long unsigned)to_little_endian(sb->fs_u11.fs_u2.fs_size),
+               (long unsigned)to_little_endian(sb->fs_fsize));
+      log_info("fs_sblkno {}\n", (long unsigned)to_little_endian(sb->fs_sblkno));
       log_info("fs_sblockloc {}\n",
-               (long long unsigned)le64(sb->fs_u11.fs_u2.fs_sblockloc));
+               (long long unsigned)to_little_endian(sb->fs_u11.fs_u2.fs_sblockloc));
     }
     break;
   case UP_UFS:
     partition.part_size =
-        static_cast<uint64_t>(be32(sb->fs_size)) * be32(sb->fs_fsize);
+        static_cast<uint64_t>(to_big_endian(sb->fs_size)) * to_big_endian(sb->fs_fsize);
     if (verbose > 1)
     {
-      log_info("fs_size {}, fs_fsize {}\n", (long unsigned)be32(sb->fs_size),
-               (long unsigned)be32(sb->fs_fsize));
-      log_info("fs_sblkno {}\n", (long unsigned)be32(sb->fs_sblkno));
+      log_info("fs_size {}, fs_fsize {}\n", (long unsigned)to_big_endian(sb->fs_size),
+               (long unsigned)to_big_endian(sb->fs_fsize));
+      log_info("fs_sblkno {}\n", (long unsigned)to_big_endian(sb->fs_sblkno));
     }
     break;
   case UP_UFS2:
     partition.part_size =
-        static_cast<uint64_t>(be64(sb->fs_u11.fs_u2.fs_size)) *
-        be32(sb->fs_fsize);
+        static_cast<uint64_t>(to_big_endian(sb->fs_u11.fs_u2.fs_size)) *
+        to_big_endian(sb->fs_fsize);
     if (verbose > 1)
     {
       log_info("fs_size {}, fs_fsize {}\n",
-               (long unsigned)be64(sb->fs_u11.fs_u2.fs_size),
-               (long unsigned)be32(sb->fs_fsize));
-      log_info("fs_sblkno {}\n", (long unsigned)be32(sb->fs_sblkno));
+               (long unsigned)to_big_endian(sb->fs_u11.fs_u2.fs_size),
+               (long unsigned)to_big_endian(sb->fs_fsize));
+      log_info("fs_sblkno {}\n", (long unsigned)to_big_endian(sb->fs_sblkno));
       log_info("fs_sblockloc {}\n",
-               (long long unsigned)be64(sb->fs_u11.fs_u2.fs_sblockloc));
+               (long long unsigned)to_big_endian(sb->fs_u11.fs_u2.fs_sblockloc));
     }
     break;
   default: /* BUG if hit*/
@@ -205,29 +205,29 @@ static void set_ufs_info(const struct ufs_super_block *sb,
 {
   partition.fsname[0] = '\0';
   partition.info[0]   = '\0';
-  if (le32(sb->fs_magic) == UFS_MAGIC)
+  if (to_little_endian(sb->fs_magic) == UFS_MAGIC)
   {
     partition.upart_type = UP_UFS_LE;
-    partition.blocksize  = le32(sb->fs_fsize);
+    partition.blocksize  = to_little_endian(sb->fs_fsize);
     partition.set_name(
         std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
         sizeof(sb->fs_u11.fs_u1.fs_fsmnt))
     );
     partition.info = std::format("UFS1 blocksize={}", partition.blocksize);
   }
-  if (be32(sb->fs_magic) == UFS_MAGIC)
+  if (to_big_endian(sb->fs_magic) == UFS_MAGIC)
   {
     partition.upart_type = UP_UFS;
-    partition.blocksize  = be32(sb->fs_fsize);
+    partition.blocksize  = to_big_endian(sb->fs_fsize);
     partition.set_name(
         std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u1.fs_fsmnt),
         sizeof(sb->fs_u11.fs_u1.fs_fsmnt))
     );
     partition.info = std::format("UFS1 blocksize={}", partition.blocksize);
   }
-  if (le32(sb->fs_magic) == UFS2_MAGIC)
+  if (to_little_endian(sb->fs_magic) == UFS2_MAGIC)
   {
-    partition.blocksize  = le32(sb->fs_fsize);
+    partition.blocksize  = to_little_endian(sb->fs_fsize);
     partition.upart_type = UP_UFS2_LE;
     partition.set_name(
         std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
@@ -235,10 +235,10 @@ static void set_ufs_info(const struct ufs_super_block *sb,
     );
     partition.info = std::format("UFS2 blocksize={}", partition.blocksize);
   }
-  if (be32(sb->fs_magic) == UFS2_MAGIC)
+  if (to_big_endian(sb->fs_magic) == UFS2_MAGIC)
   {
     partition.upart_type = UP_UFS2;
-    partition.blocksize  = be32(sb->fs_fsize);
+    partition.blocksize  = to_big_endian(sb->fs_fsize);
     partition.set_name(
         std::string_view(reinterpret_cast<const char *>(sb->fs_u11.fs_u2.fs_fsmnt),
         sizeof(sb->fs_u11.fs_u2.fs_fsmnt))

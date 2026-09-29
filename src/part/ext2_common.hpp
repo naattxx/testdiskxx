@@ -56,11 +56,11 @@
  * Feature set definitions
  */
 #define EXT2_HAS_COMPAT_FEATURE(sb, mask)        \
-  (le32(EXT2_SB(sb)->s_feature_compat) & (mask))
+  (to_little_endian(EXT2_SB(sb)->s_feature_compat) & (mask))
 #define EXT2_HAS_RO_COMPAT_FEATURE(sb, mask)        \
-  (le32(EXT2_SB(sb)->s_feature_ro_compat) & (mask))
+  (to_little_endian(EXT2_SB(sb)->s_feature_ro_compat) & (mask))
 #define EXT2_HAS_INCOMPAT_FEATURE(sb, mask)        \
-  (le32(EXT2_SB(sb)->s_feature_incompat) & (mask))
+  (to_little_endian(EXT2_SB(sb)->s_feature_incompat) & (mask))
 
 #define EXT2_FEATURE_COMPAT_DIR_PREALLOC 0x0001
 #define EXT2_FEATURE_COMPAT_IMAGIC_INODES 0x0002
@@ -227,8 +227,8 @@ auto td_ext2fs_free_blocks_count(const struct ext2_super_block *super)
   @ requires \separated(sb, partition);
   @ terminates \true;
   @ assigns  \nothing;
-  @ ensures  \result == 7 ==> le32(sb->s_log_block_size) > 6;
-  @ ensures  \result == 0 ==> le32(sb->s_log_block_size) <= 6;
+  @ ensures  \result == 7 ==> to_little_endian(sb->s_log_block_size) > 6;
+  @ ensures  \result == 0 ==> to_little_endian(sb->s_log_block_size) <= 6;
   @ */
 auto test_EXT2(const struct ext2_super_block *sb, const partition_t &partition)
     -> int;

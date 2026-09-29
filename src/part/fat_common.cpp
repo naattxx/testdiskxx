@@ -64,8 +64,8 @@ auto fat_sectors(const struct fat_boot_sector *fat_header) -> unsigned int
 auto fat_get_cluster_from_entry(const struct msdos_dir_entry *entry)
     -> unsigned int
 {
-  const unsigned int hi = le16(entry->starthi);
-  const unsigned int lo = le16(entry->start);
+  const unsigned int hi = to_little_endian(entry->starthi);
+  const unsigned int lo = to_little_endian(entry->start);
   /*@ assert 0 <= hi < 1<<16; */
   /*@ assert 0 <= hi<<16 < 1<<32; */
   /*@ assert 0 <= lo < 1<<16; */

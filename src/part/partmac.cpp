@@ -176,7 +176,7 @@ static auto read_part_mac(disk_t &disk_car, const int verbose,
     return new_list_part;
   {
     auto *maclabel = reinterpret_cast<mac_Block0 *>(&buffer);
-    if (be16(maclabel->sbSig) != BLOCK0_SIGNATURE)
+    if (to_big_endian(maclabel->sbSig) != BLOCK0_SIGNATURE)
     {
       screen_buffer_add("Bad MAC partition, invalid block0 signature\n");
       /* continue, even if the first sector have been overwritten by an Intel
@@ -190,7 +190,7 @@ static auto read_part_mac(disk_t &disk_car, const int verbose,
                        static_cast<uint64_t>(i) * PBLOCK_SIZE) !=
         sizeof(buffer))
       return new_list_part;
-    if (be16(dpme->dpme_signature) != DPME_SIGNATURE)
+    if (to_big_endian(dpme->dpme_signature) != DPME_SIGNATURE)
     {
       screen_buffer_add("read_part_mac: bad DPME signature\n");
       return new_list_part;
@@ -242,16 +242,16 @@ static auto read_part_mac(disk_t &disk_car, const int verbose,
       log_error("%s\n", dpme->dpme_type);
     }
     new_partition.part_offset =
-        static_cast<uint64_t>(be32(dpme->dpme_pblock_start)) * PBLOCK_SIZE;
+        static_cast<uint64_t>(to_big_endian(dpme->dpme_pblock_start)) * PBLOCK_SIZE;
     new_partition.part_size =
-        static_cast<uint64_t>(be32(dpme->dpme_pblocks)) * PBLOCK_SIZE;
+        static_cast<uint64_t>(to_big_endian(dpme->dpme_pblocks)) * PBLOCK_SIZE;
     new_partition.status = STATUS_PRIM;
     check_part_mac(disk_car, verbose, new_partition, saveheader);
     aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
     insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
     if (i == 1)
     {
-      limit = be32(dpme->dpme_map_entries);
+      limit = to_big_endian(dpme->dpme_map_entries);
     }
   }
   return new_list_part;

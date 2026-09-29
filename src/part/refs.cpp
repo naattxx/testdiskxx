@@ -36,9 +36,9 @@ static void set_ReFS_info(partition_t &partition)
 
 static auto test_ReFS(const struct ReFS_boot_sector *refs_header) -> int
 {
-  if (refs_header->fsname != be32(0x52654653u))
+  if (refs_header->fsname != to_big_endian(0x52654653u))
     return 1;
-  if (refs_header->identifier != be32(0x46535253u))
+  if (refs_header->identifier != to_big_endian(0x46535253u))
     return 1;
   return 0;
 }

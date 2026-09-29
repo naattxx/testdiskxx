@@ -35,11 +35,11 @@ static void set_JFS_info(const struct jfs_superblock *sb,
                          partition_t &partition)
 {
   partition.upart_type = UP_JFS;
-  partition.blocksize  = le32(sb->s_bsize);
-  partition.info = std::format("JFS {}, blocksize={}", le32(sb->s_version),
+  partition.blocksize  = to_little_endian(sb->s_bsize);
+  partition.info = std::format("JFS {}, blocksize={}", to_little_endian(sb->s_version),
                                partition.blocksize);
   partition.fsname.clear();
-  if (le32(sb->s_version) == 1)
+  if (to_little_endian(sb->s_version) == 1)
   {
     partition.set_name(std::string_view(sb->s_fpack, 11));
   }
@@ -51,8 +51,8 @@ static auto test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
   if (memcmp(sb->s_magic, "JFS1", 4) != 0)
     return 1;
   /* Blocksize must be a multiple of 512 */
-  if (le32(sb->s_bsize) < 512 ||
-      ((le32(sb->s_bsize) - 1) & le32(sb->s_bsize)) != 0)
+  if (to_little_endian(sb->s_bsize) < 512 ||
+      ((to_little_endian(sb->s_bsize) - 1) & to_little_endian(sb->s_bsize)) != 0)
     return 1;
   if (dump_ind != 0)
   {
@@ -64,10 +64,10 @@ static auto test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
     ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
   }
   /*
-  if( le32(sb->s_agsize) >= (1 << L2BPERDMAP) ) {
+  if( to_little_endian(sb->s_agsize) >= (1 << L2BPERDMAP) ) {
     return 2;
   }
-  if(partition.part_size!=0 && (partition.part_size<le64(sb->s_size)))
+  if(partition.part_size!=0 && (partition.part_size<to_little_endian(sb->s_size)))
     return 8;
     */
   return 0;
@@ -108,9 +108,9 @@ auto recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
   partition.part_type_mac  = PMAC_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
   partition.part_size =
-      static_cast<uint64_t> le32(sb->s_pbsize) * le64(sb->s_size) +
-      static_cast<uint64_t> le32(sb->s_bsize) *
-          (le24(sb->s_fsckpxd.len) + le24(sb->s_logpxd.len));
+      static_cast<uint64_t>(to_little_endian(sb->s_pbsize) * to_little_endian(sb->s_size)) +
+      static_cast<uint64_t>(to_little_endian(sb->s_bsize) *
+          (to_little_endian(sb->s_fsckpxd.len) + to_little_endian(sb->s_logpxd.len)));
   partition.sborg_offset = 64 * 512;
   partition.sb_size      = JFS_SUPERBLOCK_SIZE;
   partition.sb_offset    = 0;
@@ -120,9 +120,9 @@ auto recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
   {
     log_info("\n");
     log_info("recover_JFS: s_blocksize={}\n", partition.blocksize);
-    log_info("recover_JFS: s_size {}\n", (long unsigned int)le64(sb->s_size));
-    log_info("recover_JFS: s_fsckpxd.len:%d\n", (int)le24(sb->s_fsckpxd.len));
-    log_info("recover_JFS: s_logpxd.len:%d\n", (int)le24(sb->s_logpxd.len));
+    log_info("recover_JFS: s_size {}\n", (long unsigned int)to_little_endian(sb->s_size));
+    log_info("recover_JFS: s_fsckpxd.len:%d\n", (int)to_little_endian(sb->s_fsckpxd.len));
+    log_info("recover_JFS: s_logpxd.len:%d\n", (int)to_little_endian(sb->s_logpxd.len));
     log_info("recover_JFS: part_size {}\n",
              (long unsigned)(partition.part_size / disk_car.sector_size));
   }

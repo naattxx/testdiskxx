@@ -254,7 +254,7 @@ GetNew:
       long_slots = 0;
   }
 RecEnd:
-  inode = (le16(de->starthi) << 16) | le16(de->start);
+  inode = (to_little_endian(de->starthi) << 16) | to_little_endian(de->start);
   if ((param & FLAG_LIST_MASK12) != 0)
     inode &= 0xfff;
   else if ((param & FLAG_LIST_MASK16) != 0)
@@ -322,13 +322,13 @@ RecEnd:
                        (LINUX_S_IRWXUGO & ~(LINUX_S_IWGRP | LINUX_S_IWOTH)));
       new_file.st_uid  = 0;
       new_file.st_gid  = 0;
-      new_file.st_size = le32(de->size);
+      new_file.st_size = to_little_endian(de->size);
       //      new_file->st_blksize=cluster_size;
       new_file.td_atime = new_file.td_ctime = new_file.td_mtime =
-          date_dos2unix(le16(de->time), le16(de->date));
+          date_dos2unix(to_little_endian(de->time), to_little_endian(de->date));
       new_file.status = status;
       /* log_debug("fat: new file %s de=%p
-       * size={}\n",new_file.name,de,le32(de->size)); */
+       * size={}\n",new_file.name,de,to_little_endian(de->size)); */
       dir_list.push_front(new_file);
     }
   }
@@ -400,17 +400,17 @@ static auto fat_dir(disk_t &disk_car, const partition_t &partition,
   {
     if (partition.upart_type != UP_FAT32)
       return fat1x_rootdir(disk_car, partition, dir_data, fat_header, dir_list);
-    if (le32(fat_header->root_cluster) < 2)
+    if (to_little_endian(fat_header->root_cluster) < 2)
     {
 #ifndef DISABLED_FOR_FRAMAC
       log_error("FAT32: Can't list files, bad root cluster.\n");
 #endif
       return -1;
     }
-    cluster = le32(fat_header->root_cluster);
+    cluster = to_little_endian(fat_header->root_cluster);
   }
   if (get_next_cluster(disk_car, partition, partition.upart_type,
-                       le16(fat_header->reserved), cluster) == 0)
+                       to_little_endian(fat_header->reserved), cluster) == 0)
   {
 #ifndef DISABLED_FOR_FRAMAC
     log_warning("FAT: Directory entry is marked as free.\n");
@@ -426,12 +426,12 @@ static auto fat_dir(disk_t &disk_car, const partition_t &partition,
     uint64_t start_fat1, start_data, part_size;
     unsigned long int no_of_cluster, fat_length;
     fat_method_t fat_meth = FAT_FOLLOW_CLUSTER;
-    fat_length = le16(fat_header->fat_length) > 0
-                   ? le16(fat_header->fat_length)
-                   : le32(fat_header->fat32_length);
+    fat_length = to_little_endian(fat_header->fat_length) > 0
+                   ? to_little_endian(fat_header->fat_length)
+                   : to_little_endian(fat_header->fat32_length);
     part_size  = (fat_sectors(fat_header) > 0 ? fat_sectors(fat_header)
-                                              : le32(fat_header->total_sect));
-    start_fat1 = le16(fat_header->reserved);
+                                              : to_little_endian(fat_header->total_sect));
+    start_fat1 = to_little_endian(fat_header->reserved);
     start_data = start_fat1 + fat_header->fats * fat_length +
                  (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) /
                      disk_car.sector_size;
@@ -537,9 +537,9 @@ static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
     unsigned char *buffer_dir;
     buffer_dir = new unsigned char[root_size];
     start      = partition.part_offset +
-                 static_cast<uint64_t>((le16(fat_header->reserved) +
+                 static_cast<uint64_t>((to_little_endian(fat_header->reserved) +
                                         fat_header->fats *
-                                            le16(fat_header->fat_length)) *
+                                            to_little_endian(fat_header->fat_length)) *
                                        disk_car.sector_size);
     if (std::cmp_not_equal(
             disk_car.pread(disk_car, buffer_dir, root_size, start), root_size
@@ -638,12 +638,12 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
     return CP_CREATE_FAILED;
   }
   cluster    = file.st_ino;
-  fat_length = le16(fat_header->fat_length) > 0
-                 ? le16(fat_header->fat_length)
-                 : le32(fat_header->fat32_length);
+  fat_length = to_little_endian(fat_header->fat_length) > 0
+                 ? to_little_endian(fat_header->fat_length)
+                 : to_little_endian(fat_header->fat32_length);
   part_size  = (fat_sectors(fat_header) > 0 ? fat_sectors(fat_header)
-                                            : le32(fat_header->total_sect));
-  start_fat1 = le16(fat_header->reserved);
+                                            : to_little_endian(fat_header->total_sect));
+  start_fat1 = to_little_endian(fat_header->reserved);
   start_data = start_fat1 + fat_header->fats * fat_length +
                (get_dir_entries(fat_header) * 32 + disk_car.sector_size - 1) /
                    disk_car.sector_size;

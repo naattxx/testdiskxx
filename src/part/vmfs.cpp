@@ -31,13 +31,13 @@
 static void set_VMFS_info(const struct vmfs_volume *sb, partition_t &partition)
 {
   partition.upart_type = UP_VMFS;
-  partition.info       = std::format("VMFS {}", le32(sb->version));
+  partition.info       = std::format("VMFS {}", to_little_endian(sb->version));
 }
 
 static auto test_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
                       const partition_t &partition, const int dump_ind) -> int
 {
-  if (le32(sb->magic) != 0xc001d00d || le32(sb->version) > 20)
+  if (to_little_endian(sb->magic) != 0xc001d00d || to_little_endian(sb->version) > 20)
     return 1;
   if (dump_ind != 0)
   {
@@ -80,7 +80,7 @@ auto recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
     return 1;
   set_VMFS_info(sb, partition);
   partition.part_type_i386 = P_VMFS;
-  partition.part_size      = le64(lvm->size);
+  partition.part_size      = to_little_endian(lvm->size);
   partition.blocksize      = 0;
   partition.sborg_offset   = 0;
   partition.sb_offset      = 0;

@@ -497,7 +497,7 @@ static void search_add_hints(const disk_t &disk, uint64_t *try_offset,
     /* Hint for NTFS backup */
     const unsigned int gpt_entries_size = 128 * sizeof(struct gpt_ent);
     const uint64_t hdr_lba_end =
-        le64((disk.disk_size - 1 - gpt_entries_size) / disk.sector_size - 1);
+        to_little_endian((disk.disk_size - 1 - gpt_entries_size) / disk.sector_size - 1);
     const uint64_t ntfs_backup_offset =
         (hdr_lba_end - 1) * disk.sector_size / (2048 * 512) * (2048 * 512) -
         disk.sector_size;
@@ -763,25 +763,25 @@ static auto search_part(disk_t &disk_car, const list_part_t &list_part_org,
                              partition, verbose, dump_ind) == 0)
               {
                 const auto *sb1 = (const struct mdp_superblock_1 *)buffer_disk;
-                if (le32(sb1->md_magic) == (unsigned int)MD_SB_MAGIC)
+                if (to_little_endian(sb1->md_magic) == (unsigned int)MD_SB_MAGIC)
                 {
-                  if (le32(sb1->major_version) == 0)
+                  if (to_little_endian(sb1->major_version) == 0)
                     partition.part_offset -=
                         (uint64_t)MD_NEW_SIZE_SECTORS(partition.part_size /
                                                       512) *
                         512;
                   else
-                    partition.part_offset -= le64(sb1->super_offset) * 512;
+                    partition.part_offset -= to_little_endian(sb1->super_offset) * 512;
                 }
                 else
                 {
-                  if (be32(sb1->major_version) == 0)
+                  if (to_big_endian(sb1->major_version) == 0)
                     partition.part_offset -=
                         (uint64_t)MD_NEW_SIZE_SECTORS(partition.part_size /
                                                       512) *
                         512;
                   else
-                    partition.part_offset -= be64(sb1->super_offset) * 512;
+                    partition.part_offset -= to_big_endian(sb1->super_offset) * 512;
                 }
                 res = 1;
               }
@@ -889,8 +889,8 @@ static auto search_part(disk_t &disk_car, const list_part_t &list_part_org,
                                    search_location) == 1024)
                 {
                   const auto *sb = (const struct ext2_super_block *)buffer_disk;
-                  if (le16(sb->s_magic) == EXT2_SUPER_MAGIC &&
-                      le16(sb->s_block_group_nr) > 0 &&
+                  if (to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC &&
+                      to_little_endian(sb->s_block_group_nr) > 0 &&
                       recover_EXT2(disk_car, sb, partition, verbose,
                                    dump_ind) == 0)
                     res = 1;

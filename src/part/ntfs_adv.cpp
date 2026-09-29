@@ -61,13 +61,13 @@ static auto testdisk_ffs(int x) -> int;
 static int ncurses_ntfs_info(const struct ntfs_boot_sector *ntfs_header)
 {
   wprintw(stdscr, "filesystem size           %llu\n",
-          (long long unsigned)(le64(ntfs_header->sectors_nbr) + 1));
+          (long long unsigned)(to_little_endian(ntfs_header->sectors_nbr) + 1));
   wprintw(stdscr, "sectors_per_cluster       %u\n",
           ntfs_header->sectors_per_cluster);
   wprintw(stdscr, "mft_lcn                   %llu\n",
-          (long long unsigned int)le64(ntfs_header->mft_lcn));
+          (long long unsigned int)to_little_endian(ntfs_header->mft_lcn));
   wprintw(stdscr, "mftmirr_lcn               %llu\n",
-          (long long unsigned int)le64(ntfs_header->mftmirr_lcn));
+          (long long unsigned int)to_little_endian(ntfs_header->mftmirr_lcn));
   wprintw(stdscr, "clusters_per_mft_record   %d\n",
           ntfs_header->clusters_per_mft_record);
   wprintw(stdscr, "clusters_per_index_record %d\n",
@@ -79,16 +79,16 @@ static int ncurses_ntfs2_info(const struct ntfs_boot_sector *nh1,
                               const struct ntfs_boot_sector *nh2)
 {
   wprintw(stdscr, "filesystem size           %llu %llu\n",
-          (long long unsigned)(le64(nh1->sectors_nbr) + 1),
-          (long long unsigned)(le64(nh2->sectors_nbr) + 1));
+          (long long unsigned)(to_little_endian(nh1->sectors_nbr) + 1),
+          (long long unsigned)(to_little_endian(nh2->sectors_nbr) + 1));
   wprintw(stdscr, "sectors_per_cluster       %u %u\n", nh1->sectors_per_cluster,
           nh2->sectors_per_cluster);
   wprintw(stdscr, "mft_lcn                   %llu %llu\n",
-          (long long unsigned int)le64(nh1->mft_lcn),
-          (long long unsigned int)le64(nh2->mft_lcn));
+          (long long unsigned int)to_little_endian(nh1->mft_lcn),
+          (long long unsigned int)to_little_endian(nh2->mft_lcn));
   wprintw(stdscr, "mftmirr_lcn               %llu %llu\n",
-          (long long unsigned int)le64(nh1->mftmirr_lcn),
-          (long long unsigned int)le64(nh2->mftmirr_lcn));
+          (long long unsigned int)to_little_endian(nh1->mftmirr_lcn),
+          (long long unsigned int)to_little_endian(nh2->mftmirr_lcn));
   wprintw(stdscr, "clusters_per_mft_record   %d %d\n",
           nh1->clusters_per_mft_record, nh2->clusters_per_mft_record);
   wprintw(stdscr, "clusters_per_index_record %d %d\n",
@@ -320,23 +320,23 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
   ntfs_header->sector_size[0]      = disk_car.sector_size & 0xFF;
   ntfs_header->sector_size[1]      = disk_car.sector_size >> 8;
   ntfs_header->sectors_per_cluster = cluster_size / disk_car.sector_size;
-  ntfs_header->reserved            = le16(0);
+  ntfs_header->reserved            = to_little_endian(0);
   ntfs_header->fats                = 0;
   ntfs_header->dir_entries[0]      = 0;
   ntfs_header->dir_entries[1]      = 0;
   ntfs_header->sectors[0]          = 0;
   ntfs_header->sectors[1]          = 0;
   ntfs_header->media               = 0xF8;
-  ntfs_header->fat_length          = le16(0);
-  ntfs_header->secs_track          = le16(disk_car.geom.sectors_per_head);
-  ntfs_header->heads               = le16(disk_car.geom.heads_per_cylinder);
+  ntfs_header->fat_length          = to_little_endian(0);
+  ntfs_header->secs_track          = to_little_endian(disk_car.geom.sectors_per_head);
+  ntfs_header->heads               = to_little_endian(disk_car.geom.heads_per_cylinder);
   /* absolute sector address from the beginning of the disk (!= FAT) */
-  ntfs_header->hidden     = le32(partition.part_offset / disk_car.sector_size);
-  ntfs_header->total_sect = le32(0);
+  ntfs_header->hidden     = to_little_endian(partition.part_offset / disk_car.sector_size);
+  ntfs_header->total_sect = to_little_endian(0);
   ntfs_header->sectors_nbr =
-      le64(partition.part_size / disk_car.sector_size - 1);
-  ntfs_header->mft_lcn     = le64(mft_lcn);
-  ntfs_header->mftmirr_lcn = le64(mftmirr_lcn);
+      to_little_endian(partition.part_size / disk_car.sector_size - 1);
+  ntfs_header->mft_lcn     = to_little_endian(mft_lcn);
+  ntfs_header->mftmirr_lcn = to_little_endian(mftmirr_lcn);
   ntfs_header->clusters_per_mft_record =
       (mft_record_size >= cluster_size ? mft_record_size / cluster_size
                                        : -(testdisk_ffs(mft_record_size) - 1));
@@ -356,11 +356,11 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
     uint32_t checksum;
     for (checksum = 0,u=(uint32_t*)ntfs_header; u <
   (uint32_t*)(&ntfs_header->checksum); u++) checksum += NTFS_GETU32(u);
-    ntfs_header->checksum=le32(checksum);
+    ntfs_header->checksum=to_little_endian(checksum);
   }
   */
-  ntfs_header->checksum = le32(0);
-  ntfs_header->marker   = le16(0xAA55);
+  ntfs_header->checksum = to_little_endian(0);
+  ntfs_header->marker   = to_little_endian(0xAA55);
   if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE) != 0)
   {
     log_warning("             New / Current boot sector\n");
@@ -403,7 +403,7 @@ static auto read_mft_info(disk_t &disk_car, const partition_t &partition,
     ; // display_message("NTFS: Can't read mft_sector\n");
     return 1;
   }
-  *mft_record_size = le32(record->bytes_allocated);
+  *mft_record_size = to_little_endian(record->bytes_allocated);
   if (*mft_record_size < 42)
   {
     if (verbose > 0)
@@ -570,9 +570,9 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
       const auto *record =
           reinterpret_cast<const struct ntfs_mft_record *>(&buffer);
       if (memcmp(buffer, "FILE", 4) == 0 &&
-          le16(record->attrs_offset) % 8 == 0 &&
-          le16(record->attrs_offset) >= 42 &&
-          le16(record->flags) == 1) /* MFT_RECORD_IN_USE */
+          to_little_endian(record->attrs_offset) % 8 == 0 &&
+          to_little_endian(record->attrs_offset) >= 42 &&
+          to_little_endian(record->flags) == 1) /* MFT_RECORD_IN_USE */
       {
         const ntfs_attribheader *attr30;
         int res = 0;
@@ -658,9 +658,9 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
       const auto *record =
           reinterpret_cast<const struct ntfs_mft_record *>(&buffer);
       if (memcmp(buffer, "FILE", 4) == 0 &&
-          le16(record->attrs_offset) % 8 == 0 &&
-          le16(record->attrs_offset) >= 42 &&
-          le16(record->flags) == 1) /* MFT_RECORD_IN_USE */
+          to_little_endian(record->attrs_offset) % 8 == 0 &&
+          to_little_endian(record->attrs_offset) >= 42 &&
+          to_little_endian(record->flags) == 1) /* MFT_RECORD_IN_USE */
       {
         const ntfs_attribheader *attr30;
         int res = 0;
@@ -808,7 +808,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
               buffer + mft_record_size
           ));
       if (index_root)
-        index_block_size = le32(index_root->index_block_size);
+        index_block_size = to_little_endian(index_root->index_block_size);
     }
     if (index_block_size % 512 != 0 || index_block_size == 0)
       index_block_size = 4096;
@@ -864,16 +864,16 @@ auto log_ntfs2_info(const struct ntfs_boot_sector *nh1,
                     const struct ntfs_boot_sector *nh2) -> int
 {
   log_info("filesystem size           {} {}\n",
-           (long long unsigned)(le64(nh1->sectors_nbr) + 1),
-           (long long unsigned)(le64(nh2->sectors_nbr) + 1));
+           (long long unsigned)(to_little_endian(nh1->sectors_nbr) + 1),
+           (long long unsigned)(to_little_endian(nh2->sectors_nbr) + 1));
   log_info("sectors_per_cluster       {} {}\n", nh1->sectors_per_cluster,
            nh2->sectors_per_cluster);
   log_info("mft_lcn                   {} {}\n",
-           (long long unsigned int)le64(nh1->mft_lcn),
-           (long long unsigned int)le64(nh2->mft_lcn));
+           (long long unsigned int)to_little_endian(nh1->mft_lcn),
+           (long long unsigned int)to_little_endian(nh2->mft_lcn));
   log_info("mftmirr_lcn               {} {}\n",
-           (long long unsigned int)le64(nh1->mftmirr_lcn),
-           (long long unsigned int)le64(nh2->mftmirr_lcn));
+           (long long unsigned int)to_little_endian(nh1->mftmirr_lcn),
+           (long long unsigned int)to_little_endian(nh2->mftmirr_lcn));
   log_info("clusters_per_mft_record   %d %d\n", nh1->clusters_per_mft_record,
            nh2->clusters_per_mft_record);
   log_info("clusters_per_index_record %d %d\n", nh1->clusters_per_index_record,

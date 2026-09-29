@@ -63,7 +63,7 @@ static void set_Linux_SWAP_info(const union swap_header *swap_header,
     partition.blocksize  = 4096;
     partition.info =
         std::format("SWAP version {}, pagesize={}",
-                    le32(swap_header->info.version), partition.blocksize);
+                    to_little_endian(swap_header->info.version), partition.blocksize);
   }
   else if (memcmp(swap_header->magic.magic, "SWAPSPACE2", 10) == 0)
   {
@@ -71,7 +71,7 @@ static void set_Linux_SWAP_info(const union swap_header *swap_header,
     partition.blocksize  = 4096;
     partition.info =
         std::format("SWAP2 version {}, pagesize={}",
-                    le32(swap_header->info.version), partition.blocksize);
+                    to_little_endian(swap_header->info.version), partition.blocksize);
     /* set_part_name(partition,swap_header->info.volume_name,16); */
   }
   else if (memcmp(swap_header->magic8k.magic, "SWAP-SPACE", 10) == 0)
@@ -80,24 +80,24 @@ static void set_Linux_SWAP_info(const union swap_header *swap_header,
     partition.blocksize  = 8192;
     partition.info =
         std::format("SWAP version {}, pagesize={}",
-                    le32(swap_header->info.version), partition.blocksize);
+                    to_little_endian(swap_header->info.version), partition.blocksize);
   }
   else if (memcmp(swap_header->magic8k.magic, "SWAPSPACE2", 10) == 0)
   {
     partition.blocksize = 8192;
-    if (le32(swap_header->info.version) <= be32(swap_header->info.version))
+    if (to_little_endian(swap_header->info.version) <= to_big_endian(swap_header->info.version))
     {
       partition.upart_type = UP_LINSWAP2_8K;
       partition.info =
           std::format("SWAP2 version {}, pagesize={}",
-                      le32(swap_header->info.version), partition.blocksize);
+                      to_little_endian(swap_header->info.version), partition.blocksize);
     }
     else
     {
       partition.upart_type = UP_LINSWAP2_8KBE;
       partition.info =
           std::format("SWAP2 version {}, pagesize={}",
-                      be32(swap_header->info.version), partition.blocksize);
+                      to_big_endian(swap_header->info.version), partition.blocksize);
     }
   }
 }
@@ -146,7 +146,7 @@ auto recover_Linux_SWAP(const union swap_header *swap_header,
       partition.part_size = PAGE_SIZE;
     else
       partition.part_size =
-          static_cast<uint64_t>(le32(swap_header->info.last_page) - 1) *
+          static_cast<uint64_t>(to_little_endian(swap_header->info.last_page) - 1) *
           PAGE_SIZE;
     break;
   case UP_LINSWAP_8K: {
@@ -172,7 +172,7 @@ auto recover_Linux_SWAP(const union swap_header *swap_header,
       partition.part_size = PAGE_8K;
     else
       partition.part_size =
-          static_cast<uint64_t>(le32(swap_header->info.last_page) - 1) *
+          static_cast<uint64_t>(to_little_endian(swap_header->info.last_page) - 1) *
           PAGE_8K;
     break;
   case UP_LINSWAP2_8KBE:
@@ -180,7 +180,7 @@ auto recover_Linux_SWAP(const union swap_header *swap_header,
       partition.part_size = PAGE_8K;
     else
       partition.part_size =
-          static_cast<uint64_t>(be32(swap_header->info.last_page) - 1) *
+          static_cast<uint64_t>(to_big_endian(swap_header->info.last_page) - 1) *
           PAGE_8K;
     break;
   default:

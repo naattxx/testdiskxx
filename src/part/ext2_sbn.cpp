@@ -125,7 +125,7 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
                        partition.part_offset + hd_offset) == 1024)
     {
       /* ext2/ext3/ext4 */
-      if (le16(sb->s_magic) == EXT2_SUPER_MAGIC)
+      if (to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC)
       {
         new_partition = partition;
         new_partition.part_offset += hd_offset;
@@ -145,8 +145,8 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
               "Ext2 superblock found at sector {} (block={}, blocksize={})",
               hd_offset / DEFAULT_SECTOR_SIZE,
               hd_offset >>
-                  (EXT2_MIN_BLOCK_LOG_SIZE + le32(sb->s_log_block_size)),
-              EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size)
+                  (EXT2_MIN_BLOCK_LOG_SIZE + to_little_endian(sb->s_log_block_size)),
+              EXT2_MIN_BLOCK_SIZE << to_little_endian(sb->s_log_block_size)
           );
 #ifdef HAVE_NCURSES
           wmove(stdscr, 10 + nbr_sb, 0);
@@ -155,8 +155,8 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
                   "blocksize=%u)        \n",
                   (long long unsigned)hd_offset / DEFAULT_SECTOR_SIZE,
                   (long long unsigned)hd_offset >>
-                      (EXT2_MIN_BLOCK_LOG_SIZE + le32(sb->s_log_block_size)),
-                  EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
+                      (EXT2_MIN_BLOCK_LOG_SIZE + to_little_endian(sb->s_log_block_size)),
+                  EXT2_MIN_BLOCK_SIZE << to_little_endian(sb->s_log_block_size));
 #endif
           insert_new_partition(list_part, new_partition, 1, &insert_error);
           new_partition = partition_t(disk_car.arch);

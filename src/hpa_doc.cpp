@@ -241,7 +241,7 @@ static auto sg_device_configuration_identify(int fd) -> uint64_t
     if ((sb[8 + 3] & 1) != 0)
         return 0;
     for (i = 0; i < 0x100; i++)
-        word[i] = le16(word[i]);
+        word[i] = to_little_endian(word[i]);
     /* Check the signature presence */
     if ((word[255] & 0xff) != 0xa5)
         return 0;

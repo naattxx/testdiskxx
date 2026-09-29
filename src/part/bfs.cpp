@@ -34,7 +34,7 @@ static void set_BeFS_info(const struct disk_super_block *beos_block,
                           partition_t &partition)
 {
   partition.upart_type = UP_BEOS;
-  partition.blocksize  = 1 << le32(beos_block->block_shift);
+  partition.blocksize  = 1 << to_little_endian(beos_block->block_shift);
   partition.info       = std::format("BeFS blocksize={}", partition.blocksize);
   partition.set_name(std::string_view(beos_block->name, B_OS_NAME_LENGTH));
 }
@@ -43,9 +43,9 @@ static auto test_BeFS(const disk_t &disk_car,
                       const struct disk_super_block *beos_block,
                       const partition_t &partition, const int dump_ind) -> int
 {
-  if (beos_block->magic1 != le32(SUPER_BLOCK_MAGIC1) &&
-      beos_block->magic2 != le32(SUPER_BLOCK_MAGIC2) &&
-      beos_block->magic3 != le32(SUPER_BLOCK_MAGIC3))
+  if (beos_block->magic1 != to_little_endian(SUPER_BLOCK_MAGIC1) &&
+      beos_block->magic2 != to_little_endian(SUPER_BLOCK_MAGIC2) &&
+      beos_block->magic3 != to_little_endian(SUPER_BLOCK_MAGIC3))
     return 1;
   if (dump_ind != 0)
   {
@@ -86,8 +86,8 @@ auto recover_BeFS(const disk_t &disk_car,
   if (test_BeFS(disk_car, beos_block, partition, dump_ind) != 0)
     return 1;
   set_BeFS_info(beos_block, partition);
-  partition.part_size      = le64(beos_block->num_blocks)
-                          << le32(beos_block->block_shift);
+  partition.part_size      = to_little_endian(beos_block->num_blocks)
+                          << to_little_endian(beos_block->block_shift);
   partition.part_type_i386 = static_cast<unsigned char>(P_BEOS);
   partition.part_type_mac  = PMAC_BEOS;
   partition.part_type_gpt  = GPT_ENT_TYPE_BEOS_BFS;

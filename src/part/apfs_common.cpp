@@ -45,7 +45,7 @@ static auto fletcher64(const uint32_t *data, const size_t cnt,
   for (k = 0; k < cnt; k++)
   {
     /* @assert k < cnt; */
-    sum1 = (sum1 + le32(data[k]));
+    sum1 = (sum1 + to_little_endian(data[k]));
     sum2 = (sum2 + sum1);
   }
   sum1 = sum1 % 0xFFFFFFFF;
@@ -71,14 +71,14 @@ static auto VerifyBlock(const void *block, const size_t size) -> uint64_t
 
 auto test_APFS(const nx_superblock_t *sb, const partition_t &partition) -> int
 {
-  if (le32(sb->nx_magic) != 0x4253584e)
+  if (to_little_endian(sb->nx_magic) != 0x4253584e)
     return 1;
-  if (static_cast<uint64_t> le32(sb->nx_xp_desc_blocks) +
-          le32(sb->nx_xp_data_blocks) >
-      le64(sb->nx_block_count))
+  if (static_cast<uint64_t>(to_little_endian(sb->nx_xp_desc_blocks)) +
+          to_little_endian(sb->nx_xp_data_blocks) >
+      to_little_endian(sb->nx_block_count))
     return 2;
-  if (le32(sb->nx_block_size) < NX_MINIMUM_BLOCK_SIZE ||
-      le32(sb->nx_block_size) > NX_MAXIMUM_BLOCK_SIZE)
+  if (to_little_endian(sb->nx_block_size) < NX_MINIMUM_BLOCK_SIZE ||
+      to_little_endian(sb->nx_block_size) > NX_MAXIMUM_BLOCK_SIZE)
     return 3;
   if (VerifyBlock(sb, 4096) != 0)
     return 4;

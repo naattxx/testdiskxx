@@ -35,7 +35,7 @@ static void set_f2fs_info(partition_t &partition,
                           const struct f2fs_super_block *hdr)
 {
   partition.upart_type = UP_F2FS;
-  partition.blocksize  = 1 << le32(hdr->log_blocksize);
+  partition.blocksize  = 1 << to_little_endian(hdr->log_blocksize);
   partition.fsname[0]  = '\0';
   if (partition.sb_offset == 0)
     partition.info = std::format("F2FS, blocksize={}", partition.blocksize);
@@ -65,21 +65,21 @@ auto check_f2fs(disk_t &disk, partition_t &partition) -> int
 
 auto test_f2fs(const struct f2fs_super_block *hdr) -> int
 {
-  if (le32(hdr->magic) != F2FS_SUPER_MAGIC)
+  if (to_little_endian(hdr->magic) != F2FS_SUPER_MAGIC)
     return 1;
   /* Currently, support 512/1024/2048/4096 bytes sector size */
-  if (le32(hdr->log_sectorsize) < 9 || le32(hdr->log_sectorsize) > 12)
+  if (to_little_endian(hdr->log_sectorsize) < 9 || to_little_endian(hdr->log_sectorsize) > 12)
     return 1;
   /* Currently, support only 4KB block size */
-  if (le32(hdr->log_blocksize) != F2FS_BLKSIZE_BITS)
+  if (to_little_endian(hdr->log_blocksize) != F2FS_BLKSIZE_BITS)
     return 1;
-  if (le32(hdr->log_sectorsize) + le32(hdr->log_sectors_per_block) !=
-      le32(hdr->log_blocksize))
+  if (to_little_endian(hdr->log_sectorsize) + to_little_endian(hdr->log_sectors_per_block) !=
+      to_little_endian(hdr->log_blocksize))
     return 1;
   /* check log blocks per segment */
-  if (le32(hdr->log_blocks_per_seg) != 9)
+  if (to_little_endian(hdr->log_blocks_per_seg) != 9)
     return 1;
-  if (le64(hdr->block_count) == 0)
+  if (to_little_endian(hdr->block_count) == 0)
     return 1;
   return 0;
 }
@@ -93,7 +93,7 @@ auto recover_f2fs(const disk_t &disk, const struct f2fs_super_block *hdr,
   partition.sb_size        = F2FS_BLKSIZE;
   partition.part_type_i386 = P_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_MS_BASIC_DATA;
-  partition.part_size      = le64(hdr->block_count) << le32(hdr->log_blocksize);
+  partition.part_size      = to_little_endian(hdr->block_count) << to_little_endian(hdr->log_blocksize);
   set_f2fs_info(partition, hdr);
   return 0;
 }

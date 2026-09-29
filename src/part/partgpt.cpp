@@ -236,23 +236,23 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   }
   if (verbose > 0)
   {
-    log_info("hdr_size={}\n", (long long unsigned)le32(gpt->hdr_size));
-    log_info("hdr_lba_self={}\n", (long long unsigned)le64(gpt->hdr_lba_self));
+    log_info("hdr_size={}\n", (long long unsigned)to_little_endian(gpt->hdr_size));
+    log_info("hdr_lba_self={}\n", (long long unsigned)to_little_endian(gpt->hdr_lba_self));
     log_info("hdr_lba_alt={} (expected {})\n",
-             (long long unsigned)le64(gpt->hdr_lba_alt),
+             (long long unsigned)to_little_endian(gpt->hdr_lba_alt),
              (hdr_lba == 1 ? (long long unsigned)((disk_car.disk_size - 1) /
                                                   disk_car.sector_size)
                            : 1));
     log_info("hdr_lba_start={}\n",
-             (long long unsigned)le64(gpt->hdr_lba_start));
-    log_info("hdr_lba_end={}\n", (long long unsigned)le64(gpt->hdr_lba_end));
+             (long long unsigned)to_little_endian(gpt->hdr_lba_start));
+    log_info("hdr_lba_end={}\n", (long long unsigned)to_little_endian(gpt->hdr_lba_end));
     log_info("hdr_lba_table={}\n",
-             (long long unsigned)le64(gpt->hdr_lba_table));
-    log_info("hdr_entries={}\n", (long long unsigned)le32(gpt->hdr_entries));
-    log_info("hdr_entsz={}\n", (long long unsigned)le32(gpt->hdr_entsz));
+             (long long unsigned)to_little_endian(gpt->hdr_lba_table));
+    log_info("hdr_entries={}\n", (long long unsigned)to_little_endian(gpt->hdr_entries));
+    log_info("hdr_entsz={}\n", (long long unsigned)to_little_endian(gpt->hdr_entsz));
   }
   /* Check header size */
-  if (le32(gpt->hdr_size) < 92 || le32(gpt->hdr_size) > disk_car.sector_size)
+  if (to_little_endian(gpt->hdr_size) < 92 || to_little_endian(gpt->hdr_size) > disk_car.sector_size)
   {
     screen_buffer_add("GPT: invalid header size.\n");
     delete[] gpt;
@@ -261,54 +261,54 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   { /* CRC check */
     uint32_t crc;
     uint32_t origcrc;
-    origcrc           = le32(gpt->hdr_crc_self);
-    gpt->hdr_crc_self = le32(0);
-    crc = get_crc32(gpt, le32(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF;
+    origcrc           = to_little_endian(gpt->hdr_crc_self);
+    gpt->hdr_crc_self = to_little_endian(0);
+    crc = get_crc32(gpt, to_little_endian(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF;
     if (crc != origcrc)
     {
       screen_buffer_add("Bad GPT partition, invalid header checksum.\n");
       delete[] gpt;
       return new_list_part;
     }
-    gpt->hdr_crc_self = le32(origcrc);
+    gpt->hdr_crc_self = to_little_endian(origcrc);
   }
-  if (le64(gpt->hdr_lba_self) != hdr_lba)
+  if (to_little_endian(gpt->hdr_lba_self) != hdr_lba)
   {
     screen_buffer_add("Bad GPT partition, invalid LBA self location.\n");
     delete[] gpt;
     return new_list_part;
   }
-  if (le64(gpt->hdr_lba_start) >= le64(gpt->hdr_lba_end))
+  if (to_little_endian(gpt->hdr_lba_start) >= to_little_endian(gpt->hdr_lba_end))
   {
     screen_buffer_add("Bad GPT partition, invalid LBA start/end location.\n");
     delete[] gpt;
     return new_list_part;
   }
-  if (le32(gpt->hdr_revision) != GPT_HDR_REVISION)
+  if (to_little_endian(gpt->hdr_revision) != GPT_HDR_REVISION)
   {
     screen_buffer_add("GPT: Warning - not revision 1.0\n");
   }
-  if (le32(gpt->__reserved) != 0)
+  if (to_little_endian(gpt->__reserved) != 0)
   {
     screen_buffer_add("GPT: Warning - __reserved!=0\n");
   }
-  if (le32(gpt->hdr_entries) == 0 || le32(gpt->hdr_entries) > 4096)
+  if (to_little_endian(gpt->hdr_entries) == 0 || to_little_endian(gpt->hdr_entries) > 4096)
   {
     screen_buffer_add("GPT: invalid number ({}) of partition entries.\n",
-                      le32(gpt->hdr_entries));
+                      to_little_endian(gpt->hdr_entries));
     delete[] gpt;
     return new_list_part;
   }
-  /* le32(gpt->hdr_entsz)==128 */
-  if (le32(gpt->hdr_entsz) % 8 != 0 || le32(gpt->hdr_entsz) < 128 ||
-      le32(gpt->hdr_entsz) > 4096)
+  /* to_little_endian(gpt->hdr_entsz)==128 */
+  if (to_little_endian(gpt->hdr_entsz) % 8 != 0 || to_little_endian(gpt->hdr_entsz) < 128 ||
+      to_little_endian(gpt->hdr_entsz) > 4096)
   {
     screen_buffer_add("GPT: invalid partition entry size.\n");
     delete[] gpt;
     return new_list_part;
   }
 
-  gpt_entries_size = le32(gpt->hdr_entries) * le32(gpt->hdr_entsz);
+  gpt_entries_size = to_little_endian(gpt->hdr_entries) * to_little_endian(gpt->hdr_entsz);
   if (gpt_entries_size < 16384)
   {
     screen_buffer_add(
@@ -318,12 +318,12 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
     delete[] gpt;
     return new_list_part;
   }
-  gpt_entries_offset = le64(gpt->hdr_lba_table) * disk_car.sector_size;
+  gpt_entries_offset = to_little_endian(gpt->hdr_lba_table) * disk_car.sector_size;
   if (hdr_lba == 1)
   {
-    if (le64(gpt->hdr_lba_self) + le32(gpt->hdr_size) - 1 >=
+    if (to_little_endian(gpt->hdr_lba_self) + to_little_endian(gpt->hdr_size) - 1 >=
             gpt_entries_offset ||
-        gpt_entries_offset >= le64(gpt->hdr_lba_start) * disk_car.sector_size)
+        gpt_entries_offset >= to_little_endian(gpt->hdr_lba_start) * disk_car.sector_size)
     {
       screen_buffer_add(
           "GPT: The primary GUID Partition Entry array must be located after "
@@ -335,7 +335,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
     }
   }
 
-  gpt_entries = new struct gpt_ent[le32(gpt->hdr_entries)];
+  gpt_entries = new struct gpt_ent[to_little_endian(gpt->hdr_entries)];
   if (std::cmp_not_equal(disk_car.pread(disk_car, gpt_entries, gpt_entries_size,
                                         gpt_entries_offset),
                          gpt_entries_size))
@@ -347,7 +347,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   { /* CRC check */
     uint32_t crc;
     crc = get_crc32(gpt_entries, gpt_entries_size, 0xFFFFFFFF) ^ 0xFFFFFFFF;
-    if (crc != le32(gpt->hdr_crc_table))
+    if (crc != to_little_endian(gpt->hdr_crc_table))
     {
       screen_buffer_add("Bad GPT partition entries, invalid checksum.\n");
       delete[] gpt_entries;
@@ -355,12 +355,12 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
       return new_list_part;
     }
   }
-  for (i = 0; i < le32(gpt->hdr_entries); i++)
+  for (i = 0; i < to_little_endian(gpt->hdr_entries); i++)
   {
     const struct gpt_ent *gpt_entry;
     gpt_entry = gpt_entries + i;
     if (gpt_entry->ent_type != GPT_ENT_TYPE_UNUSED &&
-        le64(gpt_entry->ent_lba_start) < le64(gpt_entry->ent_lba_end))
+        to_little_endian(gpt_entry->ent_lba_start) < to_little_endian(gpt_entry->ent_lba_end))
     {
       int _insert_error = 0;
       partition_t new_partition(&arch_gpt);
@@ -368,9 +368,9 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
       new_partition.part_uuid = gpt_entry->ent_uuid;
       new_partition.part_type_gpt = gpt_entry->ent_type;
       new_partition.part_offset =
-          le64(gpt_entry->ent_lba_start) * disk_car.sector_size;
+          to_little_endian(gpt_entry->ent_lba_start) * disk_car.sector_size;
       new_partition.part_size =
-          (le64(gpt_entry->ent_lba_end) - le64(gpt_entry->ent_lba_start) + 1) *
+          (to_little_endian(gpt_entry->ent_lba_end) - to_little_endian(gpt_entry->ent_lba_start) + 1) *
           disk_car.sector_size;
       new_partition.status = STATUS_PRIM;
       UCSle2str(new_partition.partname,
@@ -379,7 +379,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
                 ));
       check_part_gpt(disk_car, verbose, new_partition, saveheader);
       /* log_debug("{} ent_attr %08llx\n", new_partition.order, (long long
-       * unsigned)le64(gpt_entry->ent_attr));
+       * unsigned)to_little_endian(gpt_entry->ent_attr));
        */
       aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
                       new_partition);

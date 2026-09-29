@@ -34,12 +34,12 @@ auto UCSle2str(std::string &to, std::span<const uint16_t> from) noexcept -> unsi
       @ loop assigns i, to[0 .. i];
       @ loop variant len - i;
       @*/
-    for (i = 0; i < from.size() && le16(from[i]) != 0; i++)
+    for (i = 0; i < from.size() && to_little_endian(from[i]) != 0; i++)
     {
-        if (le16(from[i]) & 0xff00)
+        if (to_little_endian(from[i]) & 0xff00)
             to[i] = '?';
         else
-            to[i] = static_cast<char>(le16(from[i]));
+            to[i] = static_cast<char>(to_little_endian(from[i]));
     }
     if (i < from.size())
         to[i] = '\0';
@@ -55,7 +55,7 @@ auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) noex
       @*/
     for (i = 0; (i < len) && from[i]; i++)
     {
-        to[i] = le16(static_cast<uint16_t>(from[i]));
+        to[i] = to_little_endian(static_cast<uint16_t>(from[i]));
     }
     if (i < len)
         to[i] = '\0';

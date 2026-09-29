@@ -68,8 +68,8 @@ static auto test_sun_i386(const disk_t &disk_car,
                           const partition_t &partition, const int verbose)
     -> int
 {
-  if ((le16(sunlabel->magic) != SUN_LABEL_MAGIC) ||
-      (le32(sunlabel->magic_start) != SUN_LABEL_MAGIC_START))
+  if ((to_little_endian(sunlabel->magic) != SUN_LABEL_MAGIC) ||
+      (to_little_endian(sunlabel->magic_start) != SUN_LABEL_MAGIC_START))
     return 1;
   if (verbose > 0)
     log_info("\nSUN Marker at {}/{}/{}\n",
@@ -91,11 +91,11 @@ static auto test_sun_i386(const disk_t &disk_car,
         new_partition.part_type_sun = sunlabel->partitions[i].id;
         new_partition.part_offset =
             partition.part_offset +
-            static_cast<uint64_t> le32(sunlabel->partitions[i].start_sector) *
-                le16(sunlabel->sector_size);
+            static_cast<uint64_t>(to_little_endian(sunlabel->partitions[i].start_sector)) *
+                to_little_endian(sunlabel->sector_size);
         new_partition.part_size =
-            static_cast<uint64_t> le32(sunlabel->partitions[i].num_sectors) *
-            le16(sunlabel->sector_size);
+            static_cast<uint64_t>(to_little_endian(sunlabel->partitions[i].num_sectors)) *
+            to_little_endian(sunlabel->sector_size);
         new_partition.status = STATUS_PRIM;
         log_partition(disk_car, new_partition);
       }
@@ -121,8 +121,8 @@ auto recover_sun_i386(const disk_t &disk_car,
     }
   }
   partition.part_size =
-      static_cast<uint64_t> le32(sunlabel->partitions[2].num_sectors) *
-      le16(sunlabel->sector_size);
+      static_cast<uint64_t>(to_little_endian(sunlabel->partitions[2].num_sectors)) *
+      to_little_endian(sunlabel->sector_size);
   set_sun_info_i386(partition);
   partition.part_type_i386 = P_SUN;
   partition.part_type_gpt  = GPT_ENT_TYPE_SOLARIS_ROOT;

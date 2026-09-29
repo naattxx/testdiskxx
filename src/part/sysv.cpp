@@ -83,8 +83,8 @@ static auto test_sysv4(const disk_t &disk_car,
                        const struct sysv4_super_block *sbd,
                        const partition_t &partition, const int verbose) -> int
 {
-  if (static_cast<unsigned>(sbd->s_magic) != le32(0xfd187e20) &&
-      static_cast<unsigned>(sbd->s_magic) != be32(0xfd187e20))
+  if (static_cast<unsigned>(sbd->s_magic) != to_little_endian(0xfd187e20) &&
+      static_cast<unsigned>(sbd->s_magic) != to_big_endian(0xfd187e20))
     return 1;
   if (verbose > 0)
     log_info("\nSYSV4 Marker at {}/{}/{}\n",
@@ -110,13 +110,13 @@ auto recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd,
   }
   switch (static_cast<unsigned>(sbd->s_magic))
   {
-  case le32(0xfd187e20):
-    partition.part_size = static_cast<uint64_t> le32(sbd->s_fsize) *
-                          (512 << (le32(sbd->s_type) - 1));
+  case to_little_endian(0xfd187e20):
+    partition.part_size = static_cast<uint64_t>(to_little_endian(sbd->s_fsize)) *
+                          (512 << (to_little_endian(sbd->s_type) - 1));
     break;
-  case be32(0xfd187e20):
-    partition.part_size = static_cast<uint64_t>(be32(sbd->s_fsize)) *
-                          (512 << (be32(sbd->s_type) - 1));
+  case to_big_endian(0xfd187e20):
+    partition.part_size = static_cast<uint64_t>(to_big_endian(sbd->s_fsize)) *
+                          (512 << (to_big_endian(sbd->s_type) - 1));
     break;
   }
   set_sysv4_info(sbd, partition);

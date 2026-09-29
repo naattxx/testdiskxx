@@ -186,8 +186,8 @@ static auto get_geometry_from_sunmbr(const unsigned char *buffer,
   }
 #endif
   geometry->cylinders          = 0;
-  geometry->heads_per_cylinder = be16(sunlabel->ntrks);
-  geometry->sectors_per_head   = be16(sunlabel->nsect);
+  geometry->heads_per_cylinder = to_big_endian(sunlabel->ntrks);
+  geometry->sectors_per_head   = to_big_endian(sunlabel->nsect);
 #ifndef DISABLED_FOR_FRAMAC
   if (geometry->sectors_per_head > 0)
   {
@@ -218,7 +218,7 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
     delete[] buffer;
     return new_list_part;
   }
-  if (be16(sunlabel->magic) != SUN_LABEL_MAGIC)
+  if (to_big_endian(sunlabel->magic) != SUN_LABEL_MAGIC)
   {
     screen_buffer_add("Bad SUN partition\n");
     delete[] buffer;
@@ -236,11 +236,11 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
       partition_t new_partition(&arch_sun);
       new_partition.order         = i;
       new_partition.part_type_sun = sunlabel->infos[i].id;
-      new_partition.part_offset = be32(sunlabel->partitions[i].start_cylinder) *
-                                  be16(sunlabel->ntrks) *
-                                  be16(sunlabel->nsect) * disk_car.sector_size;
+      new_partition.part_offset = to_big_endian(sunlabel->partitions[i].start_cylinder) *
+                                  to_big_endian(sunlabel->ntrks) *
+                                  to_big_endian(sunlabel->nsect) * disk_car.sector_size;
       new_partition.part_size =
-          static_cast<uint64_t>(be32(sunlabel->partitions[i].num_sectors)) *
+          static_cast<uint64_t>(to_big_endian(sunlabel->partitions[i].num_sectors)) *
           disk_car.sector_size;
       new_partition.status = STATUS_PRIM;
       check_part_sun(disk_car, verbose, new_partition, saveheader);

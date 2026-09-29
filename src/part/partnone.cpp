@@ -244,15 +244,15 @@ static auto get_geometry_from_nonembr(const unsigned char *buffer,
     const auto *fat_header =
         reinterpret_cast<const struct fat_boot_sector *>(buffer);
     /*@ assert \valid_read(fat_header); */
-    if (le16(fat_header->marker) == 0xAA55)
+    if (to_little_endian(fat_header->marker) == 0xAA55)
     {
-      if (le16(fat_header->secs_track) > 0 &&
-          le16(fat_header->secs_track) <= 63 && le16(fat_header->heads) > 0 &&
-          le16(fat_header->heads) <= 255 && fat_sector_size(fat_header) > 0 &&
+      if (to_little_endian(fat_header->secs_track) > 0 &&
+          to_little_endian(fat_header->secs_track) <= 63 && to_little_endian(fat_header->heads) > 0 &&
+          to_little_endian(fat_header->heads) <= 255 && fat_sector_size(fat_header) > 0 &&
           fat_sector_size(fat_header) % 512 == 0)
       {
-        geometry->sectors_per_head   = le16(fat_header->secs_track);
-        geometry->heads_per_cylinder = le16(fat_header->heads);
+        geometry->sectors_per_head   = to_little_endian(fat_header->secs_track);
+        geometry->heads_per_cylinder = to_little_endian(fat_header->heads);
         geometry->bytes_per_sector   = fat_sector_size(fat_header);
       }
     }
@@ -360,8 +360,8 @@ static auto read_part_none(disk_t &disk, const int verbose,
         const auto *sb =
             reinterpret_cast<const struct ext2_super_block *>(buffer_disk);
         partition.part_offset = hd_offset;
-        if (le16(sb->s_block_group_nr) > 0 &&
-            le16(sb->s_magic) == EXT2_SUPER_MAGIC &&
+        if (to_little_endian(sb->s_block_group_nr) > 0 &&
+            to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC &&
             recover_EXT2(disk, sb, partition, 0, 0) == 0)
           res = 1;
         if (res > 0 && partition.part_offset != 0)

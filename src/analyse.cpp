@@ -71,7 +71,7 @@ auto search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partit
         const auto *ntfs_header = reinterpret_cast<const struct ntfs_boot_sector *>(buffer);
 #ifndef DISABLED_FOR_FRAMAC
         /* NTFS recovery using backup sector */
-        if (le16(ntfs_header->marker) == 0xAA55 &&
+        if (to_little_endian(ntfs_header->marker) == 0xAA55 &&
             recover_NTFS(disk, ntfs_header, partition, verbose, dump_ind, 1) == 0)
             return 1;
 #endif
@@ -89,13 +89,13 @@ auto search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
         const auto *hfs_mdb = reinterpret_cast<const hfs_mdb_t *>(buffer);
         const auto *vh = reinterpret_cast<const struct hfsp_vh *>(buffer);
         /* HFS recovery using backup sector */
-        if (hfs_mdb->drSigWord == be16(HFS_SUPER_MAGIC) &&
+        if (hfs_mdb->drSigWord == to_big_endian(HFS_SUPER_MAGIC) &&
             recover_HFS(disk, hfs_mdb, partition, verbose, dump_ind, 1) == 0)
         {
             partition.info = "HFS found using backup sector!";
             return 1;
         }
-        if ((be16(vh->version) == 4 || be16(vh->version) == 5) &&
+        if ((to_big_endian(vh->version) == 4 || to_big_endian(vh->version) == 5) &&
             recover_HFSP(disk, vh, partition, verbose, dump_ind, 1) == 0)
         {
             partition.info = "HFS+ found using backup sector!";
@@ -113,7 +113,7 @@ auto search_exFAT_backup(unsigned char *buffer, disk_t &disk, partition_t &parti
     {
         const auto *exfat_header = reinterpret_cast<const struct exfat_super_block *>(buffer);
         /* EXFAT recovery using backup sector */
-        if (le16(exfat_header->signature) == 0xAA55 && recover_exFAT(disk, exfat_header, partition) == 0)
+        if (to_little_endian(exfat_header->signature) == 0xAA55 && recover_exFAT(disk, exfat_header, partition) == 0)
         {
             /* part_offset has already been updated if found using backup sector */
             return 1;
@@ -130,7 +130,7 @@ auto search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
     {
         const auto *fat_header = reinterpret_cast<const struct fat_boot_sector *>(buffer);
         /* FAT32 recovery using backup sector */
-        if (le16(fat_header->marker) == 0xAA55 && recover_FAT(disk, fat_header, partition, verbose, dump_ind, 1) == 0)
+        if (to_little_endian(fat_header->marker) == 0xAA55 && recover_FAT(disk, fat_header, partition, verbose, dump_ind, 1) == 0)
             return 1;
     }
     return 0;
@@ -174,7 +174,7 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
     //    log_trace("search_type_0 lba={}\n",
     // (long unsigned)(partition.part_offset/disk->sector_size));
   }
-  if (le32(apfs->nx_magic) == 0x4253584e &&
+  if (to_little_endian(apfs->nx_magic) == 0x4253584e &&
       recover_APFS(disk, apfs, partition, verbose, dump_ind) == 0)
     return 1;
   if ((memcmp(swap_header->magic.magic, "SWAP", 4) == 0 ||
@@ -185,25 +185,25 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
           0 &&
       recover_LVM(disk, pv, partition, verbose, dump_ind) == 0)
     return 1;
-  if (le16(fat_header->marker) == 0xAA55 &&
+  if (to_little_endian(fat_header->marker) == 0xAA55 &&
       recover_FAT(disk, fat_header, partition, verbose, dump_ind, 0) == 0)
     return 1;
-  if (le16(exfat_header->signature) == 0xAA55 &&
+  if (to_little_endian(exfat_header->signature) == 0xAA55 &&
       recover_exFAT(disk, exfat_header, partition) == 0)
     return 1;
-  if (le16(fat_header->marker) == 0xAA55 &&
+  if (to_little_endian(fat_header->marker) == 0xAA55 &&
       recover_HPFS(disk, fat_header, partition, verbose) == 0)
     return 1;
-  if (le16(fat_header->marker) == 0xAA55 &&
+  if (to_little_endian(fat_header->marker) == 0xAA55 &&
       recover_OS2MB(disk, fat_header, partition, verbose, dump_ind) == 0)
     return 1;
-  if (le16(ntfs_header->marker) == 0xAA55 &&
+  if (to_little_endian(ntfs_header->marker) == 0xAA55 &&
       recover_NTFS(disk, ntfs_header, partition, verbose, dump_ind, 0) == 0)
     return 1;
   if (memcmp(netware_block->magic, "Nw_PaRtItIoN", 12) == 0 &&
       recover_netware(disk, netware_block, partition) == 0)
     return 1;
-  if (xfs->sb_magicnum == be32(XFS_SB_MAGIC) &&
+  if (xfs->sb_magicnum == to_big_endian(XFS_SB_MAGIC) &&
       recover_xfs(disk, xfs, partition, verbose, dump_ind) == 0)
     return 1;
   if (memcmp(fatx_block->magic, "FATX", 4) == 0 &&
@@ -212,22 +212,22 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
   if (memcmp(luks->magic, LUKS_MAGIC, LUKS_MAGIC_L) == 0 &&
       recover_LUKS(disk, luks, partition, verbose, dump_ind) == 0)
     return 1;
-  if (refs_header->fsname == be32(0x52654653u) &&
+  if (refs_header->fsname == to_big_endian(0x52654653u) &&
       recover_ReFS(disk, refs_header, partition) == 0)
     return 1;
   /* MD 1.1 */
-  if (le32(sb1->major_version) == 1 &&
+  if (to_little_endian(sb1->major_version) == 1 &&
       recover_MD(disk,
                  reinterpret_cast<const struct mdp_superblock_t *>(buffer),
                  partition, verbose, dump_ind) == 0)
   {
-    partition.part_offset -= le64(sb1->super_offset) * 512;
+    partition.part_offset -= to_little_endian(sb1->super_offset) * 512;
     return 1;
   }
   if (memcmp(&wbfs->magic, "WBFS", 4) == 0 &&
       recover_WBFS(disk, wbfs, partition, verbose, dump_ind) == 0)
     return 1;
-  if (cramfs->magic == le32(CRAMFS_MAGIC) &&
+  if (cramfs->magic == to_little_endian(CRAMFS_MAGIC) &&
       recover_cramfs(disk, cramfs, partition, verbose, dump_ind) == 0)
     return 1;
 #endif
@@ -266,25 +266,25 @@ auto search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t 
     //    log_trace("search_type_1 lba={}\n",
     // (long unsigned)(partition.part_offset/disk->sector_size));
   }
-  if (le32(bsd_header->d_magic) == DISKMAGIC &&
-      le32(bsd_header->d_magic2) == DISKMAGIC &&
+  if (to_little_endian(bsd_header->d_magic) == DISKMAGIC &&
+      to_little_endian(bsd_header->d_magic2) == DISKMAGIC &&
       recover_BSD(disk, bsd_header, partition, verbose, dump_ind) == 0)
     return 1;
-  if (beos_block->magic1 == le32(SUPER_BLOCK_MAGIC1) &&
+  if (beos_block->magic1 == to_little_endian(SUPER_BLOCK_MAGIC1) &&
       recover_BeFS(disk, beos_block, partition, dump_ind) == 0)
     return 1;
-  if (cramfs->magic == le32(CRAMFS_MAGIC) &&
+  if (cramfs->magic == to_little_endian(CRAMFS_MAGIC) &&
       recover_cramfs(disk, cramfs, partition, verbose, dump_ind) == 0)
     return 1;
-  if ((static_cast<unsigned>(sysv4->s_magic) == le32(0xfd187e20) ||
-       static_cast<unsigned>(sysv4->s_magic) == be32(0xfd187e20)) &&
+  if ((static_cast<unsigned>(sysv4->s_magic) == to_little_endian(0xfd187e20) ||
+       static_cast<unsigned>(sysv4->s_magic) == to_big_endian(0xfd187e20)) &&
       recover_sysv(disk, sysv4, partition, verbose, dump_ind) == 0)
     return 1;
   if (memcmp(reinterpret_cast<const char *>(lvm2->type), LVM2_LABEL,
              sizeof(lvm2->type)) == 0 &&
       recover_LVM2(disk, (buffer + 0x200), partition, verbose, dump_ind) == 0)
     return 1;
-  if (le32(sunlabel->magic_start) == SUN_LABEL_MAGIC_START &&
+  if (to_little_endian(sunlabel->magic_start) == SUN_LABEL_MAGIC_START &&
       recover_sun_i386(disk, sunlabel, partition, verbose, dump_ind) == 0)
     return 1;
 #endif
@@ -310,16 +310,16 @@ auto search_type_2(const unsigned char *buffer, disk_t &disk, partition_t &parti
     //    log_trace("search_type_2 lba={}\n",
     // (long unsigned)(partition.part_offset/disk->sector_size));
   }
-  if (le16(sb->s_magic) == EXT2_SUPER_MAGIC &&
+  if (to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC &&
       recover_EXT2(disk, sb, partition, verbose, dump_ind) == 0)
     return 1;
-  if (hfs_mdb->drSigWord == be16(HFS_SUPER_MAGIC) &&
+  if (hfs_mdb->drSigWord == to_big_endian(HFS_SUPER_MAGIC) &&
       recover_HFS(disk, hfs_mdb, partition, verbose, dump_ind, 0) == 0)
     return 1;
-  if ((be16(vh->version) == 4 || be16(vh->version) == 5) &&
+  if ((to_big_endian(vh->version) == 4 || to_big_endian(vh->version) == 5) &&
       recover_HFSP(disk, vh, partition, verbose, dump_ind, 0) == 0)
     return 1;
-  if (sb_f2fs->magic == le32(F2FS_SUPER_MAGIC) &&
+  if (sb_f2fs->magic == to_little_endian(F2FS_SUPER_MAGIC) &&
       recover_f2fs(disk, sb_f2fs, partition) == 0)
     return 1;
 #endif
@@ -338,10 +338,10 @@ auto search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, 
 #ifndef DISABLED_FOR_FRAMAC
     { /* MD 1.2 */
         const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
-        if (le32(sb1->major_version) == 1 &&
+        if (to_little_endian(sb1->major_version) == 1 &&
             recover_MD(disk, reinterpret_cast<const struct mdp_superblock_t *>(buffer), partition, verbose, dump_ind) == 0)
         {
-            partition.part_offset -= le64(sb1->super_offset) * 512 - 4096;
+            partition.part_offset -= to_little_endian(sb1->super_offset) * 512 - 4096;
             return 1;
         }
     }
@@ -365,11 +365,11 @@ auto search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition,
         const auto *ufs = reinterpret_cast<const struct ufs_super_block *>(buffer);
         const auto *zfs = reinterpret_cast<const struct vdev_boot_header *>(buffer);
         /* Test UFS */
-        if ((le32(ufs->fs_magic) == UFS_MAGIC || be32(ufs->fs_magic) == UFS_MAGIC ||
-             le32(ufs->fs_magic) == UFS2_MAGIC || be32(ufs->fs_magic) == UFS2_MAGIC) &&
+        if ((to_little_endian(ufs->fs_magic) == UFS_MAGIC || to_big_endian(ufs->fs_magic) == UFS_MAGIC ||
+             to_little_endian(ufs->fs_magic) == UFS2_MAGIC || to_big_endian(ufs->fs_magic) == UFS2_MAGIC) &&
             recover_ufs(disk, ufs, partition, verbose, dump_ind) == 0)
             return 1;
-        if (le64(zfs->vb_magic) == VDEV_BOOT_MAGIC && recover_ZFS(disk, zfs, partition, verbose, dump_ind) == 0)
+        if (to_little_endian(zfs->vb_magic) == VDEV_BOOT_MAGIC && recover_ZFS(disk, zfs, partition, verbose, dump_ind) == 0)
             return 1;
     }
 #endif
@@ -423,13 +423,13 @@ auto search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition
             recover_rfs(disk, rfs, partition, verbose, dump_ind) == 0)
             return 1;
         /* Test UFS2 */
-        if ((le32(ufs->fs_magic) == UFS_MAGIC || be32(ufs->fs_magic) == UFS_MAGIC ||
-             le32(ufs->fs_magic) == UFS2_MAGIC || be32(ufs->fs_magic) == UFS2_MAGIC) &&
+        if ((to_little_endian(ufs->fs_magic) == UFS_MAGIC || to_big_endian(ufs->fs_magic) == UFS_MAGIC ||
+             to_little_endian(ufs->fs_magic) == UFS2_MAGIC || to_big_endian(ufs->fs_magic) == UFS2_MAGIC) &&
             recover_ufs(disk, ufs, partition, verbose, dump_ind) == 0)
             return 1;
         if (memcmp(&btrfs->magic, BTRFS_MAGIC, 8) == 0 && recover_btrfs(disk, btrfs, partition, verbose, dump_ind) == 0)
             return 1;
-        if (gfs2->sb_header.mh_magic == be32(GFS2_MAGIC) && recover_gfs2(disk, gfs2, partition, dump_ind) == 0)
+        if (gfs2->sb_header.mh_magic == to_big_endian(GFS2_MAGIC) && recover_gfs2(disk, gfs2, partition, dump_ind) == 0)
             return 1;
     }
 #endif
@@ -449,7 +449,7 @@ auto search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partitio
 #ifndef DISABLED_FOR_FRAMAC
     {
         const auto *sb_vmfs = reinterpret_cast<const struct vmfs_volume *>(buffer);
-        if (le32(sb_vmfs->magic) == 0xc001d00d && recover_VMFS(disk, sb_vmfs, partition, verbose, dump_ind) == 0)
+        if (to_little_endian(sb_vmfs->magic) == 0xc001d00d && recover_VMFS(disk, sb_vmfs, partition, verbose, dump_ind) == 0)
             return 1;
     }
 #endif

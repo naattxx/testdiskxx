@@ -62,7 +62,7 @@ auto recover_netware(const disk_t &disk_car,
     return 1;
   partition.upart_type     = UP_NETWARE;
   partition.part_type_i386 = P_NETWARE;
-  partition.part_size = static_cast<uint64_t> le32(netware_block->nbr_sectors) *
+  partition.part_size = static_cast<uint64_t>(to_little_endian(netware_block->nbr_sectors)) *
                         disk_car.sector_size;
   partition.fsname[0] = '\0';
   partition.info[0]   = '\0';

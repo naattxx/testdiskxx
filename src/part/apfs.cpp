@@ -76,7 +76,7 @@ auto recover_APFS(const disk_t &disk, const nx_superblock_t *sb,
   partition.part_type_mac  = PMAC_LINUX;
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_MAC_APFS;
-  partition.part_size      = le32(sb->nx_block_size) * le64(sb->nx_block_count);
+  partition.part_size      = to_little_endian(sb->nx_block_size) * to_little_endian(sb->nx_block_count);
   partition.part_uuid =
       efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->nx_uuid));
   if (verbose > 0)
@@ -84,13 +84,13 @@ auto recover_APFS(const disk_t &disk, const nx_superblock_t *sb,
     log_info("\n");
   }
   partition.sborg_offset = 0;
-  partition.sb_size      = le32(sb->nx_block_size);
+  partition.sb_size      = to_little_endian(sb->nx_block_size);
   partition.sb_offset    = 0;
   if (verbose > 0)
   {
     log_info("recover_APFS: s_blocksize={}", partition.blocksize);
     log_info("recover_APFS: s_blocks_count {}",
-             (long unsigned int)le64(sb->nx_block_count));
+             (long unsigned int)to_little_endian(sb->nx_block_count));
     // if (disk == NULL)
     //     log_info("recover_APFS: part_size {}\n", (long
     //     unsigned)(partition.part_size / DEFAULT_SECTOR_SIZE));

@@ -33,13 +33,13 @@ static void set_ZFS_info(const struct vdev_boot_header *sb,
 {
   partition.upart_type = UP_ZFS;
   partition.info =
-      std::format("ZFS {} (Data size unknown)", le64(sb->vb_version));
+      std::format("ZFS {} (Data size unknown)", to_little_endian(sb->vb_version));
 }
 
 static auto test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,
                      const partition_t &partition, const int dump_ind) -> int
 {
-  if (le64(sb->vb_magic) != VDEV_BOOT_MAGIC)
+  if (to_little_endian(sb->vb_magic) != VDEV_BOOT_MAGIC)
     return 1;
   if (dump_ind != 0)
   {
@@ -83,7 +83,7 @@ auto recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,
   partition.part_type_mac  = PMAC_LINUX;
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_SOLARIS_USR;
-  partition.part_size      = le64(sb->vb_offset);
+  partition.part_size      = to_little_endian(sb->vb_offset);
   partition.blocksize      = 0;
   partition.sborg_offset   = 0;
   partition.sb_offset      = 0;

@@ -31,7 +31,7 @@
 static auto test_WBFS(const disk_t &disk, const struct wbfs_head *sb,
                       const partition_t &partition, const int dump_ind) -> int
 {
-  if (be32(sb->magic) != WBFS_MAGIC)
+  if (to_big_endian(sb->magic) != WBFS_MAGIC)
     return 1;
   if (dump_ind != 0)
   {
@@ -78,7 +78,7 @@ auto recover_WBFS(const disk_t &disk, const struct wbfs_head *sb,
     return 1;
   set_WBFS_info(partition);
   partition.part_type_i386 = P_NTFS;
-  partition.part_size      = static_cast<uint64_t>(be32(sb->n_hd_sec))
+  partition.part_size      = static_cast<uint64_t>(to_big_endian(sb->n_hd_sec))
                           << (sb->hd_sec_sz_s);
   partition.blocksize      = 0;
   partition.sborg_offset   = 0;

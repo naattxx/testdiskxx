@@ -1,4 +1,6 @@
 #pragma once
+#include <bit>
+#include <concepts>
 #include <utility>
 #include <array>
 #include <cstddef>
@@ -113,58 +115,57 @@ struct [[gnu::packed]] efi_guid_t
 #define PXBOX_UNK 0
 #define PXBOX_FATX 1
 
+[[nodiscard]] constexpr auto to_big_endian(std::integral auto x)
+  requires(sizeof(x) > 1)
+{
 #ifdef TESTDISK_LSB
-#define be16(x) std::byteswap(x)
-#define be24(x) std::byteswap(x)
-#define be32(x) std::byteswap(x)
-#define be64(x) std::byteswap(x)
-#define le16(x) (x) /* x as little endian */
-#define le24(x) (x)
-#define le32(x) (x)
-#define le64(x) (x)
-#else /* bigendian */
-#define be16(x) (x)
-#define be24(x) (x)
-#define be32(x) (x)
-#define be64(x) (x)
-#define le16(x) std::byteswap(x)
-#define le24(x) std::byteswap(x)
-#define le32(x) std::byteswap(x)
-#define le64(x) std::byteswap(x)
+  return std::byteswap(x);
+#else
+  return x;
 #endif
+}
+[[nodiscard]] constexpr auto to_little_endian(std::integral auto x)
+  requires(sizeof(x) > 1)
+{
+#ifdef TESTDISK_LSB
+  return x;
+#else
+  return std::byteswap(x);
+#endif
+}
 
 constexpr efi_guid_t GPT_ENT_TYPE_UNUSED
     {
-        .time_low=le32(0x00000000), .time_mid=le16(0x0000), .time_hi_and_version=le16(0x0000), .clock_seq_hi_and_reserved=0x00, .clock_seq_low=0x00, .node={0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+        .time_low=to_little_endian(0x00000000), .time_mid=to_little_endian(0x0000), .time_hi_and_version=to_little_endian(0x0000), .clock_seq_hi_and_reserved=0x00, .clock_seq_low=0x00, .node={0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_EFI
     {
-        .time_low=le32(0xc12a7328), .time_mid=le16(0xf81f), .time_hi_and_version=le16(0x11d2), .clock_seq_hi_and_reserved=0xba, .clock_seq_low=0x4b, .node={0x00, 0xa0, 0xc9, 0x3e, 0xc9, 0x3b}
+        .time_low=to_little_endian(0xc12a7328), .time_mid=to_little_endian(0xf81f), .time_hi_and_version=to_little_endian(0x11d2), .clock_seq_hi_and_reserved=0xba, .clock_seq_low=0x4b, .node={0x00, 0xa0, 0xc9, 0x3e, 0xc9, 0x3b}
     };
 /* Extended Boot Partition */
 constexpr efi_guid_t GPT_ENT_TYPE_EBP
     {
-        .time_low=le32(0xbc13c2ff), .time_mid=le16(0x59e6), .time_hi_and_version=le16(0x4262), .clock_seq_hi_and_reserved=0xa3, .clock_seq_low=0x52, .node={0xb2, 0x75, 0xfd, 0x6f, 0x71, 0x72}
+        .time_low=to_little_endian(0xbc13c2ff), .time_mid=to_little_endian(0x59e6), .time_hi_and_version=to_little_endian(0x4262), .clock_seq_hi_and_reserved=0xa3, .clock_seq_low=0x52, .node={0xb2, 0x75, 0xfd, 0x6f, 0x71, 0x72}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MBR
     {
-        .time_low=le32(0x024dee41), .time_mid=le16(0x33e7), .time_hi_and_version=le16(0x11d3), .clock_seq_hi_and_reserved=0x9d, .clock_seq_low=0x69, .node={0x00, 0x08, 0xc7, 0x81, 0xf3, 0x9f}
+        .time_low=to_little_endian(0x024dee41), .time_mid=to_little_endian(0x33e7), .time_hi_and_version=to_little_endian(0x11d3), .clock_seq_hi_and_reserved=0x9d, .clock_seq_low=0x69, .node={0x00, 0x08, 0xc7, 0x81, 0xf3, 0x9f}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_FREEBSD
     {
-        .time_low=le32(0x516e7cb4), .time_mid=le16(0x6ecf), .time_hi_and_version=le16(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
+        .time_low=to_little_endian(0x516e7cb4), .time_mid=to_little_endian(0x6ecf), .time_hi_and_version=to_little_endian(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_FREEBSD_SWAP
     {
-        .time_low=le32(0x516e7cb5), .time_mid=le16(0x6ecf), .time_hi_and_version=le16(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
+        .time_low=to_little_endian(0x516e7cb5), .time_mid=to_little_endian(0x6ecf), .time_hi_and_version=to_little_endian(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_FREEBSD_UFS
     {
-        .time_low=le32(0x516e7cb6), .time_mid=le16(0x6ecf), .time_hi_and_version=le16(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
+        .time_low=to_little_endian(0x516e7cb6), .time_mid=to_little_endian(0x6ecf), .time_hi_and_version=to_little_endian(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_FREEBSD_ZFS
     {
-        .time_low=le32(0x516e7cb), .time_mid=le16(0x6ecf), .time_hi_and_version=le16(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
+        .time_low=to_little_endian(0x516e7cb), .time_mid=to_little_endian(0x6ecf), .time_hi_and_version=to_little_endian(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
     };
 /*
  * The following is unused but documented here to avoid reuse.
@@ -172,171 +173,171 @@ constexpr efi_guid_t GPT_ENT_TYPE_FREEBSD_ZFS
 [[maybe_unused, gnu::unused]]
  constexpr efi_guid_t GPT_ENT_TYPE_FREEBSD_UFS2
     {
-        .time_low=le32(0x516e7cb7),.time_mid=le16(0x6ecf),.time_hi_and_version=le16(0x11d6),.clock_seq_hi_and_reserved=0x8f,.clock_seq_low=0xf8,.node={0x00,0x02,0x2d,0x09,0x71,0x2b}
+        .time_low=to_little_endian(0x516e7cb7),.time_mid=to_little_endian(0x6ecf),.time_hi_and_version=to_little_endian(0x11d6),.clock_seq_hi_and_reserved=0x8f,.clock_seq_low=0xf8,.node={0x00,0x02,0x2d,0x09,0x71,0x2b}
     };
 
 constexpr efi_guid_t GPT_ENT_TYPE_FREEBSD_VINUM
     {
-        .time_low=le32(0x516e7cb8), .time_mid=le16(0x6ecf), .time_hi_and_version=le16(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
+        .time_low=to_little_endian(0x516e7cb8), .time_mid=to_little_endian(0x6ecf), .time_hi_and_version=to_little_endian(0x11d6), .clock_seq_hi_and_reserved=0x8f, .clock_seq_low=0xf8, .node={0x00, 0x02, 0x2d, 0x09, 0x71, 0x2b}
     };
 
 constexpr efi_guid_t GPT_ENT_TYPE_MS_BASIC_DATA
     {
-        .time_low=le32(0xebd0a0a2), .time_mid=le16(0xb9e5), .time_hi_and_version=le16(0x4433), .clock_seq_hi_and_reserved=0x87, .clock_seq_low=0xc0, .node={0x68, 0xb6, 0xb7, 0x26, 0x99, 0xc7}
+        .time_low=to_little_endian(0xebd0a0a2), .time_mid=to_little_endian(0xb9e5), .time_hi_and_version=to_little_endian(0x4433), .clock_seq_hi_and_reserved=0x87, .clock_seq_low=0xc0, .node={0x68, 0xb6, 0xb7, 0x26, 0x99, 0xc7}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MS_LDM_DATA
     {
-        .time_low=le32(0xaf9b60a0), .time_mid=le16(0x1431), .time_hi_and_version=le16(0x4f62), .clock_seq_hi_and_reserved=0xbc, .clock_seq_low=0x68, .node={0x33, 0x11, 0x71, 0x4a, 0x69, 0xad}
+        .time_low=to_little_endian(0xaf9b60a0), .time_mid=to_little_endian(0x1431), .time_hi_and_version=to_little_endian(0x4f62), .clock_seq_hi_and_reserved=0xbc, .clock_seq_low=0x68, .node={0x33, 0x11, 0x71, 0x4a, 0x69, 0xad}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MS_LDM_METADATA
     {
-        .time_low=le32(0x5808c8aa), .time_mid=le16(0x7e8f), .time_hi_and_version=le16(0x42e0), .clock_seq_hi_and_reserved=0x85, .clock_seq_low=0xd2, .node={0xe1, 0xe9, 0x04, 0x34, 0xcf, 0xb3}
+        .time_low=to_little_endian(0x5808c8aa), .time_mid=to_little_endian(0x7e8f), .time_hi_and_version=to_little_endian(0x42e0), .clock_seq_hi_and_reserved=0x85, .clock_seq_low=0xd2, .node={0xe1, 0xe9, 0x04, 0x34, 0xcf, 0xb3}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MS_RECOVERY
     {
-        .time_low=le32(0xde94bba4), .time_mid=le16(0x06d1), .time_hi_and_version=le16(0x4d40), .clock_seq_hi_and_reserved=0xa1, .clock_seq_low=0x6a, .node={0xbf, 0xd5, 0x01, 0x79, 0xd6, 0xac}
+        .time_low=to_little_endian(0xde94bba4), .time_mid=to_little_endian(0x06d1), .time_hi_and_version=to_little_endian(0x4d40), .clock_seq_hi_and_reserved=0xa1, .clock_seq_low=0x6a, .node={0xbf, 0xd5, 0x01, 0x79, 0xd6, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MS_RESERVED
     {
-        .time_low=le32(0xe3c9e316), .time_mid=le16(0x0b5c), .time_hi_and_version=le16(0x4db8), .clock_seq_hi_and_reserved=0x81, .clock_seq_low=0x7d, .node={0xf9, 0x2d, 0xf0, 0x02, 0x15, 0xae}
+        .time_low=to_little_endian(0xe3c9e316), .time_mid=to_little_endian(0x0b5c), .time_hi_and_version=to_little_endian(0x4db8), .clock_seq_hi_and_reserved=0x81, .clock_seq_low=0x7d, .node={0xf9, 0x2d, 0xf0, 0x02, 0x15, 0xae}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MS_SPACES
     {
-        .time_low=le32(0xe75caf8f), .time_mid=le16(0xf680), .time_hi_and_version=le16(0x4cee), .clock_seq_hi_and_reserved=0xaf, .clock_seq_low=0xa3, .node={0xb0, 0x01, 0xe5, 0x6e, 0xfc, 0x2d}
+        .time_low=to_little_endian(0xe75caf8f), .time_mid=to_little_endian(0xf680), .time_hi_and_version=to_little_endian(0x4cee), .clock_seq_hi_and_reserved=0xaf, .clock_seq_low=0xa3, .node={0xb0, 0x01, 0xe5, 0x6e, 0xfc, 0x2d}
     };
 
 constexpr efi_guid_t GPT_ENT_TYPE_LINUX_DATA
     {
-        .time_low=le32(0x0fc63daf), .time_mid=le16(0x8483), .time_hi_and_version=le16(0x4772), .clock_seq_hi_and_reserved=0x8e, .clock_seq_low=0x79, .node={0x3d, 0x69, 0xd8, 0x47, 0x7d, 0xe4}
+        .time_low=to_little_endian(0x0fc63daf), .time_mid=to_little_endian(0x8483), .time_hi_and_version=to_little_endian(0x4772), .clock_seq_hi_and_reserved=0x8e, .clock_seq_low=0x79, .node={0x3d, 0x69, 0xd8, 0x47, 0x7d, 0xe4}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_LINUX_HOME
     {
-        .time_low=le32(0x933ac7e1), .time_mid=le16(0x2eb4), .time_hi_and_version=le16(0x4f13), .clock_seq_hi_and_reserved=0xb8, .clock_seq_low=0x44, .node={0x0e, 0x14, 0xe2, 0xae, 0xf9, 0x15}
+        .time_low=to_little_endian(0x933ac7e1), .time_mid=to_little_endian(0x2eb4), .time_hi_and_version=to_little_endian(0x4f13), .clock_seq_hi_and_reserved=0xb8, .clock_seq_low=0x44, .node={0x0e, 0x14, 0xe2, 0xae, 0xf9, 0x15}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_LINUX_LVM
     {
-        .time_low=le32(0xe6d6d379), .time_mid=le16(0xf507), .time_hi_and_version=le16(0x44c2), .clock_seq_hi_and_reserved=0xa2, .clock_seq_low=0x3c, .node={0x23, 0x8f, 0x2a, 0x3d, 0xf9, 0x28}
+        .time_low=to_little_endian(0xe6d6d379), .time_mid=to_little_endian(0xf507), .time_hi_and_version=to_little_endian(0x44c2), .clock_seq_hi_and_reserved=0xa2, .clock_seq_low=0x3c, .node={0x23, 0x8f, 0x2a, 0x3d, 0xf9, 0x28}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_LINUX_RAID
     {
-        .time_low=le32(0xa19d880f), .time_mid=le16(0x05fc), .time_hi_and_version=le16(0x4d3b), .clock_seq_hi_and_reserved=0xa0, .clock_seq_low=0x06, .node={0x74, 0x3f, 0x0f, 0x84, 0x91, 0x1e}
+        .time_low=to_little_endian(0xa19d880f), .time_mid=to_little_endian(0x05fc), .time_hi_and_version=to_little_endian(0x4d3b), .clock_seq_hi_and_reserved=0xa0, .clock_seq_low=0x06, .node={0x74, 0x3f, 0x0f, 0x84, 0x91, 0x1e}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_LINUX_RESERVED
     {
-        .time_low=le32(0x8da63339), .time_mid=le16(0x0007), .time_hi_and_version=le16(0x60c0), .clock_seq_hi_and_reserved=0xc4, .clock_seq_low=0x36, .node={0x08, 0x3a, 0xc8, 0x23, 0x09, 0x08}
+        .time_low=to_little_endian(0x8da63339), .time_mid=to_little_endian(0x0007), .time_hi_and_version=to_little_endian(0x60c0), .clock_seq_hi_and_reserved=0xc4, .clock_seq_low=0x36, .node={0x08, 0x3a, 0xc8, 0x23, 0x09, 0x08}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_LINUX_SRV
     {
-        .time_low=le32(0x3b8f8425), .time_mid=le16(0x20e0), .time_hi_and_version=le16(0x4f3b), .clock_seq_hi_and_reserved=0x90, .clock_seq_low=0x7f, .node={0x1a, 0x25, 0xa7, 0x6f, 0x98, 0xe8}
+        .time_low=to_little_endian(0x3b8f8425), .time_mid=to_little_endian(0x20e0), .time_hi_and_version=to_little_endian(0x4f3b), .clock_seq_hi_and_reserved=0x90, .clock_seq_low=0x7f, .node={0x1a, 0x25, 0xa7, 0x6f, 0x98, 0xe8}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_LINUX_SWAP
     {
-        .time_low=le32(0x0657fd6d), .time_mid=le16(0xa4ab), .time_hi_and_version=le16(0x43c4), .clock_seq_hi_and_reserved=0x84, .clock_seq_low=0xe5, .node={0x09, 0x33, 0xc8, 0x4b, 0x4f, 0x4f}
+        .time_low=to_little_endian(0x0657fd6d), .time_mid=to_little_endian(0xa4ab), .time_hi_and_version=to_little_endian(0x43c4), .clock_seq_hi_and_reserved=0x84, .clock_seq_low=0xe5, .node={0x09, 0x33, 0xc8, 0x4b, 0x4f, 0x4f}
     };
 
 constexpr efi_guid_t GPT_ENT_TYPE_HPUX_DATA
     {
-        .time_low=le32(0x75894c1e), .time_mid=le16(0x3aeb), .time_hi_and_version=le16(0x11d3), .clock_seq_hi_and_reserved=0xb7, .clock_seq_low=0xc1, .node={0x7b, 0x03, 0xa0, 0x00, 0x00, 0x00}
+        .time_low=to_little_endian(0x75894c1e), .time_mid=to_little_endian(0x3aeb), .time_hi_and_version=to_little_endian(0x11d3), .clock_seq_hi_and_reserved=0xb7, .clock_seq_low=0xc1, .node={0x7b, 0x03, 0xa0, 0x00, 0x00, 0x00}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_HPUX_SERVICE
     {
-        .time_low=le32(0xe2a1e728), .time_mid=le16(0x32e3), .time_hi_and_version=le16(0x11d6), .clock_seq_hi_and_reserved=0xa6, .clock_seq_low=0x82, .node={0x7b, 0x03, 0xa0, 0x00, 0x00, 0x00}
+        .time_low=to_little_endian(0xe2a1e728), .time_mid=to_little_endian(0x32e3), .time_hi_and_version=to_little_endian(0x11d6), .clock_seq_hi_and_reserved=0xa6, .clock_seq_low=0x82, .node={0x7b, 0x03, 0xa0, 0x00, 0x00, 0x00}
     };
 
 constexpr efi_guid_t GPT_ENT_TYPE_APPLE_CORE_STORAGE
     {
-        .time_low=le32(0x53746F72), .time_mid=le16(0x6167), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x53746F72), .time_mid=to_little_endian(0x6167), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_APFS
     {
-        .time_low=le32(0x7c3457ef), .time_mid=le16(0x0000), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x7c3457ef), .time_mid=to_little_endian(0x0000), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_BOOT
     {
-        .time_low=le32(0x426f6f74), .time_mid=le16(0x0000), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x426f6f74), .time_mid=to_little_endian(0x0000), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_HFS
     {
-        .time_low=le32(0x48465300), .time_mid=le16(0x0000), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x48465300), .time_mid=to_little_endian(0x0000), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_LABEL
     {
-        .time_low=le32(0x4c616265), .time_mid=le16(0x6c00), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x4c616265), .time_mid=to_little_endian(0x6c00), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_RAID
     {
-        .time_low=le32(0x52414944), .time_mid=le16(0x0000), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x52414944), .time_mid=to_little_endian(0x0000), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_RAID_OFFLINE
     {
-        .time_low=le32(0x52414944), .time_mid=le16(0x5f4f), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x52414944), .time_mid=to_little_endian(0x5f4f), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_TV_RECOVERY
     {
-        .time_low=le32(0x5265636f), .time_mid=le16(0x7665), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x5265636f), .time_mid=to_little_endian(0x7665), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_UFS
     {
-        .time_low=le32(0x55465300), .time_mid=le16(0x0000), .time_hi_and_version=le16(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
+        .time_low=to_little_endian(0x55465300), .time_mid=to_little_endian(0x0000), .time_hi_and_version=to_little_endian(0x11aa), .clock_seq_hi_and_reserved=0xaa, .clock_seq_low=0x11, .node={0x00, 0x30, 0x65, 0x43, 0xec, 0xac}
     };
 
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_BACKUP
     {
-        .time_low=le32(0x6a8b642b), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a8b642b), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_BOOT
     {
-        .time_low=le32(0x6a82cb45), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a82cb45), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_ROOT
     {
-        .time_low=le32(0x6a85cf4d), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a85cf4d), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_SWAP
     {
-        .time_low=le32(0x6a87c46f), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a87c46f), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_USR
     {
-        .time_low=le32(0x6a898cc3), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a898cc3), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_MAC_ZFS = GPT_ENT_TYPE_SOLARIS_USR;
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_VAR
     {
-        .time_low=le32(0x6a8ef2e9), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a8ef2e9), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x99, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_HOME
     {
-        .time_low=le32(0x6a90ba39), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a90ba39), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_EFI_ALTSCTR
     {
-        .time_low=le32(0x6a9283a5), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a9283a5), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_RESERVED1
     {
-        .time_low=le32(0x6a945a3b), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a945a3b), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_RESERVED2
     {
-        .time_low=le32(0x6a9630d1), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a9630d1), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_RESERVED3
     {
-        .time_low=le32(0x6a980767), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a980767), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_RESERVED4
     {
-        .time_low=le32(0x6a96237f), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a96237f), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 constexpr efi_guid_t GPT_ENT_TYPE_SOLARIS_RESERVED5
     {
-        .time_low=le32(0x6a8d2ac7), .time_mid=le16(0x1dd2), .time_hi_and_version=le16(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
+        .time_low=to_little_endian(0x6a8d2ac7), .time_mid=to_little_endian(0x1dd2), .time_hi_and_version=to_little_endian(0x11b2), .clock_seq_hi_and_reserved=0x96, .clock_seq_low=0xa6, .node={0x08, 0x00, 0x20, 0x73, 0x66, 0x31}
     };
 
 constexpr efi_guid_t GPT_ENT_TYPE_BEOS_BFS
     {
-        .time_low=le32(0x42465331), .time_mid=le16(0x3ba3), .time_hi_and_version=le16(0x10f1), .clock_seq_hi_and_reserved=0x80, .clock_seq_low=0x2a, .node={0x48, 0x61, 0x69, 0x6b, 0x75, 0x21}
+        .time_low=to_little_endian(0x42465331), .time_mid=to_little_endian(0x3ba3), .time_hi_and_version=to_little_endian(0x10f1), .clock_seq_hi_and_reserved=0x80, .clock_seq_low=0x2a, .node={0x48, 0x61, 0x69, 0x6b, 0x75, 0x21}
     };
 
 #define TESTDISK_O_RDONLY 00

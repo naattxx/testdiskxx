@@ -47,7 +47,7 @@ static auto test_HPFS(const disk_t &disk_car,
                       const int dump_ind) -> int
 {
   const char *buffer = reinterpret_cast<const char *>(hpfs_header);
-  if (le16(hpfs_header->marker) == 0xAA55)
+  if (to_little_endian(hpfs_header->marker) == 0xAA55)
   {
     if (memcmp(buffer + 3, "IBM", 3) == 0)
     { /* D'apres une analyse de OS2 sur systeme FAT...
@@ -82,7 +82,7 @@ auto recover_HPFS(const disk_t &disk_car,
   partition.part_size =
       static_cast<uint64_t>(fat_sectors(hpfs_header) > 0
                                 ? fat_sectors(hpfs_header)
-                                : le32(hpfs_header->total_sect)) *
+                                : to_little_endian(hpfs_header->total_sect)) *
       fat_sector_size(hpfs_header);
   return 0;
 }

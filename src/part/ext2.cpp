@@ -72,7 +72,7 @@ static void set_EXT2_info(const struct ext2_super_block *sb,
     partition.upart_type = UP_EXT3;
   else
     partition.upart_type = UP_EXT2;
-  partition.blocksize = EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size);
+  partition.blocksize = EXT2_MIN_BLOCK_SIZE << to_little_endian(sb->s_log_block_size);
   partition.set_name(std::string_view(sb->s_volume_name, 16));
   /* sb->s_last_mounted seems to be unemployed in kernel 2.2.16 */
   if (EXT2_HAS_RO_COMPAT_FEATURE(sb, EXT4_FEATURE_RO_COMPAT_HUGE_FILE) != 0 ||
@@ -94,12 +94,12 @@ static void set_EXT2_info(const struct ext2_super_block *sb,
     partition.info += " Recover";
   if (EXT2_HAS_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_JOURNAL_DEV) != 0)
     partition.info += " Journal_dev";
-  if (le16(sb->s_block_group_nr) != 0)
+  if (to_little_endian(sb->s_block_group_nr) != 0)
   {
     partition.info += " Backup_SB";
     if (verbose > 0)
     {
-      log_warning("\nblock_group_nr {}\n", le16(sb->s_block_group_nr));
+      log_warning("\nblock_group_nr {}\n", to_little_endian(sb->s_block_group_nr));
     }
   }
   /* last mounted => date */
@@ -130,7 +130,7 @@ auto recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb,
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
   partition.part_size      = td_ext2fs_blocks_count(sb) * EXT2_MIN_BLOCK_SIZE
-                          << le32(sb->s_log_block_size);
+                          << to_little_endian(sb->s_log_block_size);
   partition.part_uuid =
     efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->s_uuid));
   if (verbose > 0)
@@ -139,20 +139,20 @@ auto recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb,
   }
   partition.sborg_offset = 0x400;
   partition.sb_size      = EXT2_SUPERBLOCK_SIZE;
-  if (le16(sb->s_block_group_nr) > 0)
+  if (to_little_endian(sb->s_block_group_nr) > 0)
   {
     const unsigned long int block_nr =
-        (le32(sb->s_first_data_block) +
-         le16(sb->s_block_group_nr) * le32(sb->s_blocks_per_group));
+        (to_little_endian(sb->s_first_data_block) +
+         to_little_endian(sb->s_block_group_nr) * to_little_endian(sb->s_blocks_per_group));
     if (partition.part_offset <
         static_cast<uint64_t>(block_nr) *
-            (EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size)))
+            (EXT2_MIN_BLOCK_SIZE << to_little_endian(sb->s_log_block_size)))
     {
       log_error("recover_EXT2: part_offset problem\n");
       return 1;
     }
     partition.sb_offset = static_cast<uint64_t>(block_nr) *
-                          (EXT2_MIN_BLOCK_SIZE << le32(sb->s_log_block_size));
+                          (EXT2_MIN_BLOCK_SIZE << to_little_endian(sb->s_log_block_size));
     partition.part_offset -= partition.sb_offset;
     log_warning("recover_EXT2: \"e2fsck -b {} -B {} device\" may be needed\n",
                 block_nr, partition.blocksize);
@@ -166,12 +166,12 @@ auto recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb,
     log_info(
         "recover_EXT2: s_block_group_nr={}/{}, s_mnt_count={}/{}, "
         "s_blocks_per_group={}, s_inodes_per_group={}\n",
-        le16(sb->s_block_group_nr),
+        to_little_endian(sb->s_block_group_nr),
         (unsigned int)(td_ext2fs_blocks_count(sb) /
-                       le32(sb->s_blocks_per_group)),
-        le16(sb->s_mnt_count), le16(sb->s_max_mnt_count),
-        (unsigned int)le32(sb->s_blocks_per_group),
-        (unsigned int)le32(sb->s_inodes_per_group)
+                       to_little_endian(sb->s_blocks_per_group)),
+        to_little_endian(sb->s_mnt_count), to_little_endian(sb->s_max_mnt_count),
+        (unsigned int)to_little_endian(sb->s_blocks_per_group),
+        (unsigned int)to_little_endian(sb->s_inodes_per_group)
     );
     log_info("recover_EXT2: s_blocksize={}\n", partition.blocksize);
     log_info("recover_EXT2: s_blocks_count {}\n",
@@ -185,12 +185,12 @@ auto recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb,
   }
   if (sb->s_mkfs_time > 0)
   {
-    const time_t tm = le32(sb->s_mkfs_time);
+    const time_t tm = to_little_endian(sb->s_mkfs_time);
     log_info("Filesystem created: {}", ctime(&tm));
   }
   if (sb->s_mtime > 0)
   {
-    const time_t tm = le32(sb->s_mtime);
+    const time_t tm = to_little_endian(sb->s_mtime);
     log_info("Last mount time:    {}", ctime(&tm));
   }
   return 0;

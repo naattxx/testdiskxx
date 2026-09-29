@@ -48,7 +48,7 @@ static void set_rfs4_info(const struct reiser4_master_sb *sb4,
 {
   partition.upart_type = UP_RFS4;
   partition.fsname.clear();
-  partition.blocksize = le16(sb4->blocksize);
+  partition.blocksize = to_little_endian(sb4->blocksize);
   partition.info = std::format("ReiserFS 4 blocksize={}", partition.blocksize);
 }
 
@@ -99,23 +99,23 @@ static auto test_rfs(const disk_t &disk_car,
    * sanity checks.
    */
 
-  if (le32(sb->s_block_count) < le32(sb->s_free_blocks))
+  if (to_little_endian(sb->s_block_count) < to_little_endian(sb->s_free_blocks))
     return 1;
 
-  if (le32(sb->s_block_count) < REISERFS_MIN_BLOCK_AMOUNT)
+  if (to_little_endian(sb->s_block_count) < REISERFS_MIN_BLOCK_AMOUNT)
     return 1;
 
-  if ((le16(sb->s_state) != REISERFS_VALID_FS) &&
-      (le16(sb->s_state) != REISERFS_ERROR_FS))
+  if ((to_little_endian(sb->s_state) != REISERFS_VALID_FS) &&
+      (to_little_endian(sb->s_state) != REISERFS_ERROR_FS))
     return 1;
 
-  if (le16(sb->s_oid_maxsize) % 2 != 0) /* must be even */
+  if (to_little_endian(sb->s_oid_maxsize) % 2 != 0) /* must be even */
     return 1;
 
-  if (le16(sb->s_oid_maxsize) < le16(sb->s_oid_cursize))
+  if (to_little_endian(sb->s_oid_maxsize) < to_little_endian(sb->s_oid_cursize))
     return 1;
 
-  if ((le16(sb->s_blocksize) != 4096) && (le16(sb->s_blocksize) != 8192))
+  if ((to_little_endian(sb->s_blocksize) != 4096) && (to_little_endian(sb->s_blocksize) != 8192))
     return 1;
 
   if (verbose > 0)
@@ -141,7 +141,7 @@ static auto test_rfs4(const disk_t &disk_car,
   /*
    * sanity checks.
    */
-  if (le16(sb->blocksize) != 4096)
+  if (to_little_endian(sb->blocksize) != 4096)
     return 1;
   /* if a value > 4096 become legal, the code will break while reading the
    * filesystem size (read out of bound) */
@@ -158,15 +158,15 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
     if (verbose > 0 || dump_ind != 0)
     {
       log_info("\nrecover_rfs\n");
-      log_info("block_count={}\n", (unsigned int)le32(sb->s_block_count));
-      log_info("block_size={}\n", le16(sb->s_blocksize));
+      log_info("block_count={}\n", (unsigned int)to_little_endian(sb->s_block_count));
+      log_info("block_size={}\n", to_little_endian(sb->s_blocksize));
       if (dump_ind != 0)
       {
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
       }
     }
     partition.part_size =
-        static_cast<uint64_t> le32(sb->s_block_count) * le16(sb->s_blocksize);
+        static_cast<uint64_t>(to_little_endian(sb->s_block_count)) * to_little_endian(sb->s_blocksize);
     partition.part_type_i386 = P_LINUX;
     partition.part_type_mac  = PMAC_LINUX;
     partition.part_type_sun  = PSUN_LINUX;
@@ -179,21 +179,21 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
   if (test_rfs4(disk_car, sb4, partition, verbose) == 0)
   {
     const auto *fmt40_super = reinterpret_cast<const struct format40_super *>(
-        reinterpret_cast<const char *>(sb4) + le16(sb4->blocksize)
+        reinterpret_cast<const char *>(sb4) + to_little_endian(sb4->blocksize)
     );
     if (verbose > 0 || dump_ind != 0)
     {
       log_info("\nrecover_rfs\n");
       log_info("block_count={}\n",
-               (unsigned long int)le64(fmt40_super->sb_block_count));
-      log_info("block_size={}\n", le16(sb4->blocksize));
+               (unsigned long int)to_little_endian(fmt40_super->sb_block_count));
+      log_info("block_size={}\n", to_little_endian(sb4->blocksize));
       if (dump_ind != 0)
       {
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
       }
     }
     partition.part_size =
-        le64(fmt40_super->sb_block_count) * le16(sb4->blocksize);
+        to_little_endian(fmt40_super->sb_block_count) * to_little_endian(sb4->blocksize);
     partition.part_type_i386 = P_LINUX;
     partition.part_type_mac  = PMAC_LINUX;
     partition.part_type_sun  = PSUN_LINUX;
@@ -209,7 +209,7 @@ static void set_rfs_info(const struct reiserfs_super_block *sb,
                          partition_t &partition)
 {
   partition.fsname.clear();
-  partition.blocksize = le16(sb->s_blocksize);
+  partition.blocksize = to_little_endian(sb->s_blocksize);
   if (memcmp(sb->s_magic, REISERFS_SUPER_MAGIC, sizeof(REISERFS_SUPER_MAGIC)) ==
       0)
   {
@@ -231,11 +231,11 @@ static void set_rfs_info(const struct reiserfs_super_block *sb,
                   sizeof(REISERFS3_SUPER_MAGIC)) == 0)
   {
     partition.upart_type = UP_RFS3;
-    if (le16(sb->sb_version) == 1)
+    if (to_little_endian(sb->sb_version) == 1)
       partition.info =
           std::format("ReiserFS 3.5 with non standard journal blocksize={}",
                       partition.blocksize);
-    else if (le16(sb->sb_version) == 2)
+    else if (to_little_endian(sb->sb_version) == 2)
       partition.info =
           std::format("ReiserFS 3.6 with non standard journal blocksize={}",
                       partition.blocksize);
@@ -245,7 +245,7 @@ static void set_rfs_info(const struct reiserfs_super_block *sb,
                       partition.blocksize);
     partition.set_name(std::string_view(reinterpret_cast<const char *>(sb->s_label), 16));
   }
-  if (le16(sb->s_state) == REISERFS_ERROR_FS)
+  if (to_little_endian(sb->s_state) == REISERFS_ERROR_FS)
   {
     partition.info += ", need recovery";
   }

@@ -36,22 +36,22 @@ static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
   unsigned int i;
   const uint16_t *cp;
   uint16_t crc;
-  if (le32(bsd_header->d_magic) != DISKMAGIC ||
-      le32(bsd_header->d_magic2) != DISKMAGIC)
+  if (to_little_endian(bsd_header->d_magic) != DISKMAGIC ||
+      to_little_endian(bsd_header->d_magic2) != DISKMAGIC)
     return 0;
   if (verbose)
     log_info("\nBSD offset {}, nbr_part {}, CHS=({},{},{}) ",
              (long unsigned)(partition.part_offset / disk_car.sector_size),
-             (unsigned int)le16(bsd_header->d_npartitions),
-             (unsigned int)le32(bsd_header->d_ncylinders),
-             (unsigned int)le32(bsd_header->d_ntracks),
-             (unsigned int)le32(bsd_header->d_nsectors));
-  if (le16(bsd_header->d_npartitions) > max_partitions)
+             (unsigned int)to_little_endian(bsd_header->d_npartitions),
+             (unsigned int)to_little_endian(bsd_header->d_ncylinders),
+             (unsigned int)to_little_endian(bsd_header->d_ntracks),
+             (unsigned int)to_little_endian(bsd_header->d_nsectors));
+  if (to_little_endian(bsd_header->d_npartitions) > max_partitions)
     return 1;
   crc = 0;
   for (cp = reinterpret_cast<const uint16_t *>(bsd_header);
        cp < reinterpret_cast<const uint16_t *>(
-                &bsd_header->d_partitions[le16(bsd_header->d_npartitions)]
+                &bsd_header->d_partitions[to_little_endian(bsd_header->d_npartitions)]
             );
        cp++)
     crc ^= *cp;
@@ -64,7 +64,7 @@ static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
   }
   else
     log_error("Bad CRC! CRC must be xor'd by {:04X}", crc);
-  for (i = 0; i < le16(bsd_header->d_npartitions); i++)
+  for (i = 0; i < to_little_endian(bsd_header->d_npartitions); i++)
   {
     if (bsd_header->d_partitions[i].p_fstype > 0)
     {
@@ -88,13 +88,13 @@ static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
           break;
         }
         log_info(", offset {:9}, size {:9} ",
-                 (unsigned int)le32(bsd_header->d_partitions[i].p_offset),
-                 (unsigned int)le32(bsd_header->d_partitions[i].p_size));
-        log_CHS_from_LBA(disk_car, le32(bsd_header->d_partitions[i].p_offset));
+                 (unsigned int)to_little_endian(bsd_header->d_partitions[i].p_offset),
+                 (unsigned int)to_little_endian(bsd_header->d_partitions[i].p_size));
+        log_CHS_from_LBA(disk_car, to_little_endian(bsd_header->d_partitions[i].p_offset));
         log_info(" -> ");
         log_CHS_from_LBA(disk_car,
-                         le32(bsd_header->d_partitions[i].p_offset) +
-                             le32(bsd_header->d_partitions[i].p_size) - 1);
+                         to_little_endian(bsd_header->d_partitions[i].p_offset) +
+                             to_little_endian(bsd_header->d_partitions[i].p_size) - 1);
         log_info("\n");
       }
     }
@@ -147,16 +147,16 @@ auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
       if (bsd_header->d_partitions[i].p_fstype > 0)
       {
         if (i_max_p_offset == -1 ||
-            le32(bsd_header->d_partitions[i].p_offset) >
-                le32(bsd_header->d_partitions[i_max_p_offset].p_offset))
+            to_little_endian(bsd_header->d_partitions[i].p_offset) >
+                to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_offset))
           i_max_p_offset = i;
       }
     }
     if (i_max_p_offset >= 0)
       partition.part_size =
           static_cast<uint64_t>(
-              le32(bsd_header->d_partitions[i_max_p_offset].p_size) +
-              le32(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1
+              to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_size) +
+              to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1
           ) * disk_car.sector_size -
           partition.part_offset;
     else
@@ -175,16 +175,16 @@ auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
       if (bsd_header->d_partitions[i].p_fstype > 0)
       {
         if (i_max_p_offset == -1 ||
-            le32(bsd_header->d_partitions[i].p_offset) >
-                le32(bsd_header->d_partitions[i_max_p_offset].p_offset))
+            to_little_endian(bsd_header->d_partitions[i].p_offset) >
+                to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_offset))
           i_max_p_offset = i;
       }
     }
     if (i_max_p_offset >= 0)
       partition.part_size =
           static_cast<uint64_t>(
-              le32(bsd_header->d_partitions[i_max_p_offset].p_size) +
-              le32(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1
+              to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_size) +
+              to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_offset) - 1
           ) * disk_car.sector_size -
           partition.part_offset;
     else

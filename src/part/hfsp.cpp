@@ -32,14 +32,14 @@
 
 static void set_HFSP_info(partition_t &partition, const struct hfsp_vh *vh)
 {
-  partition.blocksize = be32(vh->blocksize);
+  partition.blocksize = to_big_endian(vh->blocksize);
   partition.fsname[0] = '\0';
-  if (be16(vh->version) == 4)
+  if (to_big_endian(vh->version) == 4)
   {
     partition.upart_type = UP_HFSP;
     partition.info = std::format("HFS+ blocksize={}", partition.blocksize);
   }
-  else if (be16(vh->version) == 5)
+  else if (to_big_endian(vh->version) == 5)
   {
     partition.upart_type = UP_HFSX;
     partition.info = std::format("HFSX blocksize={}", partition.blocksize);
@@ -83,7 +83,7 @@ auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
   if (test_HFSP(disk_car, vh, partition, verbose, dump_ind) != 0)
     return 1;
   part_size =
-      static_cast<uint64_t>(be32(vh->total_blocks)) * be32(vh->blocksize);
+      static_cast<uint64_t>(to_big_endian(vh->total_blocks)) * to_big_endian(vh->blocksize);
   partition.sborg_offset = 0x400;
   partition.sb_size      = HFSP_BOOT_SECTOR_SIZE;
   if (backup > 0)
@@ -124,14 +124,14 @@ auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
                const partition_t &partition, const int verbose,
                const int dump_ind) -> int
 {
-  if (be32(vh->free_blocks) > be32(vh->total_blocks))
+  if (to_big_endian(vh->free_blocks) > to_big_endian(vh->total_blocks))
     return 1;
   /* Blocksize must be a multiple of 512 */
-  if (be32(vh->blocksize) < 512 ||
-      ((be32(vh->blocksize) - 1) & be32(vh->blocksize)) != 0)
+  if (to_big_endian(vh->blocksize) < 512 ||
+      ((to_big_endian(vh->blocksize) - 1) & to_big_endian(vh->blocksize)) != 0)
     return 1;
   /* http://developer.apple.com/technotes/tn/tn1150.html */
-  if (be16(vh->version) == 4 && vh->signature == be16(HFSP_VOLHEAD_SIG))
+  if (to_big_endian(vh->version) == 4 && vh->signature == to_big_endian(HFSP_VOLHEAD_SIG))
   {
     if (verbose > 0 || dump_ind != 0)
     {
@@ -141,7 +141,7 @@ auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
                offset2sector(disk_car, partition.part_offset));
     }
   }
-  else if (be16(vh->version) == 5 && vh->signature == be16(HFSX_VOLHEAD_SIG))
+  else if (to_big_endian(vh->version) == 5 && vh->signature == to_big_endian(HFSX_VOLHEAD_SIG))
   {
     if (verbose > 0 || dump_ind != 0)
     {
@@ -162,9 +162,9 @@ auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
   }
   if (verbose > 1)
   {
-    log_info("blocksize {}\n", (unsigned)be32(vh->blocksize));
-    log_info("total_blocks {}\n", (unsigned)be32(vh->total_blocks));
-    log_info("free_blocks  {}\n", (unsigned)be32(vh->free_blocks));
+    log_info("blocksize {}\n", (unsigned)to_big_endian(vh->blocksize));
+    log_info("total_blocks {}\n", (unsigned)to_big_endian(vh->total_blocks));
+    log_info("free_blocks  {}\n", (unsigned)to_big_endian(vh->free_blocks));
   }
   return 0;
 }

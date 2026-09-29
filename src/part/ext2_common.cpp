@@ -29,8 +29,8 @@
 
 auto td_ext2fs_blocks_count(const struct ext2_super_block *super) -> uint64_t
 {
-  const uint64_t lo = le32(super->s_blocks_count);
-  const uint64_t hi = le32(super->s_blocks_count_hi);
+  const uint64_t lo = to_little_endian(super->s_blocks_count);
+  const uint64_t hi = to_little_endian(super->s_blocks_count_hi);
   /*@ assert lo < 1 << 32; */
   /*@ assert hi < 1 << 32; */
   /*@ assert hi << 32 < (1 << 64); */
@@ -42,8 +42,8 @@ auto td_ext2fs_blocks_count(const struct ext2_super_block *super) -> uint64_t
 auto td_ext2fs_free_blocks_count(const struct ext2_super_block *super)
     -> uint64_t
 {
-  const uint64_t lo = le32(super->s_free_blocks_count);
-  const uint64_t hi = le32(super->s_free_blocks_hi);
+  const uint64_t lo = to_little_endian(super->s_free_blocks_count);
+  const uint64_t hi = to_little_endian(super->s_free_blocks_hi);
   /*@ assert lo < 1 << 32; */
   /*@ assert hi < 1 << 32; */
   /*@ assert hi << 32 < (1 << 64); */
@@ -55,20 +55,20 @@ auto td_ext2fs_free_blocks_count(const struct ext2_super_block *super)
 auto test_EXT2(const struct ext2_super_block *sb, const partition_t &partition)
     -> int
 {
-  const unsigned int s_errors     = le16(sb->s_errors);
+  const unsigned int s_errors     = to_little_endian(sb->s_errors);
   const uint64_t blocks_count     = td_ext2fs_blocks_count(sb);
-  const uint32_t s_log_block_size = le32(sb->s_log_block_size);
+  const uint32_t s_log_block_size = to_little_endian(sb->s_log_block_size);
   /* There is a little offset ... */
-  if (le16(sb->s_magic) != EXT2_SUPER_MAGIC)
+  if (to_little_endian(sb->s_magic) != EXT2_SUPER_MAGIC)
     return 1;
   if (td_ext2fs_free_blocks_count(sb) > blocks_count)
     return 2;
-  if (le32(sb->s_free_inodes_count) > le32(sb->s_inodes_count))
+  if (to_little_endian(sb->s_free_inodes_count) > to_little_endian(sb->s_inodes_count))
     return 3;
   if (s_errors != 0 && (s_errors != EXT2_ERRORS_CONTINUE) &&
       (s_errors != EXT2_ERRORS_RO) && (s_errors != EXT2_ERRORS_PANIC))
     return 4;
-  if ((le16(sb->s_state) & ~(EXT2_VALID_FS | EXT2_ERROR_FS)) != 0)
+  if ((to_little_endian(sb->s_state) & ~(EXT2_VALID_FS | EXT2_ERROR_FS)) != 0)
     return 5;
   if (blocks_count == 0) /* reject empty filesystem */
     return 6;
@@ -86,7 +86,7 @@ auto test_EXT2(const struct ext2_super_block *sb, const partition_t &partition)
     return 7;
   }
   /*@ assert 0 <= s_log_block_size <= 6; */
-  if (le32(sb->s_blocks_per_group) == 0)
+  if (to_little_endian(sb->s_blocks_per_group) == 0)
     return 8;
   /*@ assert 0 <= EXT2_MIN_BLOCK_SIZE<<s_log_block_size <=
    * EXT2_MIN_BLOCK_SIZE<<6; */

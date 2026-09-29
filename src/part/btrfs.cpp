@@ -37,10 +37,10 @@ static void set_btrfs_info(const struct btrfs_super_block *sb,
                            partition_t &partition)
 {
   partition.upart_type = UP_BTRFS;
-  partition.blocksize  = le32(sb->dev_item.sector_size);
+  partition.blocksize  = to_little_endian(sb->dev_item.sector_size);
   partition.set_name(std::string_view(sb->label, sizeof(sb->label)));
   partition.info = std::format("btrfs blocksize={}", partition.blocksize);
-  if (le64(sb->bytenr) != partition.part_offset + BTRFS_SUPER_INFO_OFFSET)
+  if (to_little_endian(sb->bytenr) != partition.part_offset + BTRFS_SUPER_INFO_OFFSET)
   {
     partition.info += " Backup superblock";
   }
@@ -91,7 +91,7 @@ auto recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb,
   partition.part_type_mac  = PMAC_LINUX;
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
-  partition.part_size      = le64(sb->dev_item.total_bytes);
+  partition.part_size      = to_little_endian(sb->dev_item.total_bytes);
   partition.part_uuid =
       efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->fsid));
   if (verbose > 0)
@@ -105,7 +105,7 @@ auto recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb,
     // if (disk == NULL)
     //     log_info("recover_btrfs: part_size {}\n",
     //              (long unsigned)(partition.part_size /
-    //              le32(sb->dev_item.sector_size)));
+    //              to_little_endian(sb->dev_item.sector_size)));
     // else
     log_info("recover_btrfs: part_size {}\n",
              (long unsigned)(partition.part_size / disk.sector_size));
@@ -117,7 +117,7 @@ static auto test_btrfs(const struct btrfs_super_block *sb) -> int
 {
   if (memcmp(&sb->magic, BTRFS_MAGIC, 8) != 0)
     return 1;
-  if (le32(sb->dev_item.sector_size) == 0)
+  if (to_little_endian(sb->dev_item.sector_size) == 0)
     return 1;
   return 0;
 }

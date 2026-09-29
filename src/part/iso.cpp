@@ -75,10 +75,10 @@ auto check_ISO(disk_t &disk_car, partition_t &partition) -> int
 static void set_ISO_info(const struct iso_primary_descriptor *iso,
                          partition_t &partition)
 {
-  const unsigned int volume_space_size_le  = le32(iso->volume_space_size_le);
-  const unsigned int volume_space_size_be  = be32(iso->volume_space_size_be);
-  const unsigned int logical_block_size_le = le16(iso->logical_block_size_le);
-  const unsigned int logical_block_size_be = be16(iso->logical_block_size_be);
+  const unsigned int volume_space_size_le  = to_little_endian(iso->volume_space_size_le);
+  const unsigned int volume_space_size_be  = to_big_endian(iso->volume_space_size_be);
+  const unsigned int logical_block_size_le = to_little_endian(iso->logical_block_size_le);
+  const unsigned int logical_block_size_be = to_big_endian(iso->logical_block_size_be);
   partition.upart_type                     = UP_ISO;
   partition.set_name_chomp(std::string_view(iso->volume_id, 32));
   if (volume_space_size_le == volume_space_size_be &&
@@ -100,10 +100,10 @@ auto recover_ISO(const struct iso_primary_descriptor *iso,
   /*@ assert \valid_read(iso); */
   /*@ assert \valid(partition); */
   {
-    const unsigned int volume_space_size_le  = le32(iso->volume_space_size_le);
-    const unsigned int volume_space_size_be  = be32(iso->volume_space_size_be);
-    const unsigned int logical_block_size_le = le16(iso->logical_block_size_le);
-    const unsigned int logical_block_size_be = be16(iso->logical_block_size_be);
+    const unsigned int volume_space_size_le  = to_little_endian(iso->volume_space_size_le);
+    const unsigned int volume_space_size_be  = to_big_endian(iso->volume_space_size_be);
+    const unsigned int logical_block_size_le = to_little_endian(iso->logical_block_size_le);
+    const unsigned int logical_block_size_be = to_big_endian(iso->logical_block_size_be);
     if (volume_space_size_le == volume_space_size_be &&
         logical_block_size_le == logical_block_size_be)
     { /* ISO 9660 */

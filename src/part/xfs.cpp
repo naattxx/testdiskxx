@@ -34,8 +34,8 @@
 
 static void set_xfs_info(const struct xfs_sb *sb, partition_t &partition)
 {
-  const unsigned int version = be16(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS;
-  partition.blocksize        = be32(sb->sb_blocksize);
+  const unsigned int version = to_big_endian(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS;
+  partition.blocksize        = to_big_endian(sb->sb_blocksize);
   partition.fsname.clear();
   partition.info.clear();
   switch (version)
@@ -75,13 +75,13 @@ static void set_xfs_info(const struct xfs_sb *sb, partition_t &partition)
 static auto test_xfs(const disk_t &disk_car, const struct xfs_sb *sb,
                      const partition_t &partition, const int verbose) -> int
 {
-  if (sb->sb_magicnum != be32(XFS_SB_MAGIC) ||
-      static_cast<uint16_t>(be16(sb->sb_sectsize)) != (1U << sb->sb_sectlog) ||
-      static_cast<uint32_t>(be32(sb->sb_blocksize)) !=
+  if (sb->sb_magicnum != to_big_endian(XFS_SB_MAGIC) ||
+      static_cast<uint16_t>(to_big_endian(sb->sb_sectsize)) != (1U << sb->sb_sectlog) ||
+      static_cast<uint32_t>(to_big_endian(sb->sb_blocksize)) !=
           (1U << sb->sb_blocklog) ||
-      static_cast<uint16_t>(be16(sb->sb_inodesize)) != (1U << sb->sb_inodelog))
+      static_cast<uint16_t>(to_big_endian(sb->sb_inodesize)) != (1U << sb->sb_inodelog))
     return 1;
-  switch (be16(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS)
+  switch (to_big_endian(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS)
   {
   case XFS_SB_VERSION_1:
   case XFS_SB_VERSION_2:
@@ -91,7 +91,7 @@ static auto test_xfs(const disk_t &disk_car, const struct xfs_sb *sb,
     break;
   default:
     log_error("Unknown XFS version 0x%x\n",
-              be16(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS);
+              to_big_endian(sb->sb_versionnum) & XFS_SB_VERSION_NUMBITS);
     break;
   }
   if (verbose > 0)
@@ -139,7 +139,7 @@ auto recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb,
   }
   set_xfs_info(sb, partition);
   partition.part_size =
-      static_cast<uint64_t>(be64(sb->sb_dblocks)) * be32(sb->sb_blocksize);
+      static_cast<uint64_t>(to_big_endian(sb->sb_dblocks)) * to_big_endian(sb->sb_blocksize);
   partition.part_type_i386 = P_LINUX;
   partition.part_type_mac  = PMAC_LINUX;
   partition.part_type_sun  = PSUN_LINUX;

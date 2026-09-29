@@ -47,9 +47,9 @@ static void efi_generate_uuid(efi_guid_t *ent_uuid);
 
 static void swap_uuid_and_efi_guid(efi_guid_t *guid)
 {
-  guid->time_low            = le32(guid->time_low);
-  guid->time_mid            = le16(guid->time_mid);
-  guid->time_hi_and_version = le16(guid->time_hi_and_version);
+  guid->time_low            = to_little_endian(guid->time_low);
+  guid->time_mid            = to_little_endian(guid->time_mid);
+  guid->time_hi_and_version = to_little_endian(guid->time_hi_and_version);
 }
 
 static void efi_generate_uuid(efi_guid_t *ent_uuid)
@@ -81,7 +81,7 @@ static auto find_gpt_entry(const uint64_t lba_start,
     return -1;
   for (i = 0; i < 128; i++)
   {
-    if (gpt_entries_org[i].ent_lba_start == le64(lba_start) &&
+    if (gpt_entries_org[i].ent_lba_start == to_little_endian(lba_start) &&
         gpt_entries_org[i].ent_uuid != GPT_ENT_TYPE_UNUSED)
     {
       int j;
@@ -102,9 +102,9 @@ static void partition_generate_gpt_entry(struct gpt_ent *gpt_entry,
   const int entry = find_gpt_entry(partition.part_offset / disk_car.sector_size,
                                    gpt_entries_org);
   gpt_entry->ent_type = partition.part_type_gpt;
-  gpt_entry->ent_lba_start = le64(partition.part_offset / disk_car.sector_size);
+  gpt_entry->ent_lba_start = to_little_endian(partition.part_offset / disk_car.sector_size);
   gpt_entry->ent_lba_end =
-      le64((partition.part_offset + partition.part_size - 1) /
+      to_little_endian((partition.part_offset + partition.part_size - 1) /
            disk_car.sector_size);
   str2UCSle(gpt_entry->ent_name, partition.partname,
             sizeof(gpt_entry->ent_name) / 2);
@@ -114,7 +114,7 @@ static void partition_generate_gpt_entry(struct gpt_ent *gpt_entry,
     gpt_entry->ent_uuid = partition.part_uuid;
   else
     efi_generate_uuid(&gpt_entry->ent_uuid);
-  gpt_entry->ent_attr = le64(0); /* May need fixing */
+  gpt_entry->ent_attr = to_little_endian(0); /* May need fixing */
 }
 
 static auto write_part_gpt_i386(disk_t &disk_car, const list_part_t &list_part)
@@ -241,23 +241,23 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
     efi_generate_uuid(&gpt->hdr_guid);
 
   memcpy(gpt->hdr_sig, GPT_HDR_SIG, 8);
-  gpt->hdr_revision  = le32(GPT_HDR_REVISION);
-  gpt->hdr_size      = le32(92);
-  gpt->hdr_entries   = le32(hdr_entries);
-  gpt->hdr_entsz     = le32(sizeof(struct gpt_ent));
-  gpt->__reserved    = le32(0);
-  gpt->hdr_lba_start = le64(1 + gpt_entries_size / disk_car.sector_size + 1);
+  gpt->hdr_revision  = to_little_endian(GPT_HDR_REVISION);
+  gpt->hdr_size      = to_little_endian(92);
+  gpt->hdr_entries   = to_little_endian(hdr_entries);
+  gpt->hdr_entsz     = to_little_endian(sizeof(struct gpt_ent));
+  gpt->__reserved    = to_little_endian(0);
+  gpt->hdr_lba_start = to_little_endian(1 + gpt_entries_size / disk_car.sector_size + 1);
   gpt->hdr_lba_end =
-      le64((disk_car.disk_size - 1 - gpt_entries_size) / disk_car.sector_size -
+      to_little_endian((disk_car.disk_size - 1 - gpt_entries_size) / disk_car.sector_size -
            1);
   gpt->hdr_crc_table =
-      le32(get_crc32(gpt_entries, gpt_entries_size, 0xFFFFFFFF) ^ 0xFFFFFFFF);
-  gpt->hdr_lba_self  = le64(1);
-  gpt->hdr_lba_alt   = le64((disk_car.disk_size - 1) / disk_car.sector_size);
-  gpt->hdr_lba_table = le64(1 + 1);
-  gpt->hdr_crc_self  = le32(0);
+      to_little_endian(get_crc32(gpt_entries, gpt_entries_size, 0xFFFFFFFF) ^ 0xFFFFFFFF);
+  gpt->hdr_lba_self  = to_little_endian(1);
+  gpt->hdr_lba_alt   = to_little_endian((disk_car.disk_size - 1) / disk_car.sector_size);
+  gpt->hdr_lba_table = to_little_endian(1 + 1);
+  gpt->hdr_crc_self  = to_little_endian(0);
   gpt->hdr_crc_self =
-      le32(get_crc32(gpt, le32(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF);
+      to_little_endian(get_crc32(gpt, to_little_endian(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF);
 
 #ifdef DEBUG_GPT
   dump2_log(gpt_entries, gpt_entries_org, gpt_entries_size);
@@ -266,7 +266,7 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
 
   if (std::cmp_not_equal(
           disk_car.pwrite(disk_car, gpt_entries, gpt_entries_size,
-                          le64(gpt->hdr_lba_table) * disk_car.sector_size),
+                          to_little_endian(gpt->hdr_lba_table) * disk_car.sector_size),
           gpt_entries_size
       ))
   {
@@ -277,7 +277,7 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
     return 1;
   }
   if (std::cmp_not_equal(disk_car.pwrite(disk_car, gpt, disk_car.sector_size,
-                                         le64(gpt->hdr_lba_self) *
+                                         to_little_endian(gpt->hdr_lba_self) *
                                              disk_car.sector_size),
                          disk_car.sector_size))
   {
@@ -287,16 +287,16 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
     delete[] gpt_entries;
     return 1;
   }
-  gpt->hdr_lba_self = le64((disk_car.disk_size - 1) / disk_car.sector_size);
-  gpt->hdr_lba_alt  = le64(1);
+  gpt->hdr_lba_self = to_little_endian((disk_car.disk_size - 1) / disk_car.sector_size);
+  gpt->hdr_lba_alt  = to_little_endian(1);
   gpt->hdr_lba_table =
-      le64((disk_car.disk_size - 1 - gpt_entries_size) / disk_car.sector_size);
-  gpt->hdr_crc_self = le32(0);
+      to_little_endian((disk_car.disk_size - 1 - gpt_entries_size) / disk_car.sector_size);
+  gpt->hdr_crc_self = to_little_endian(0);
   gpt->hdr_crc_self =
-      le32(get_crc32(gpt, le32(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF);
+      to_little_endian(get_crc32(gpt, to_little_endian(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF);
   if (std::cmp_not_equal(
           disk_car.pwrite(disk_car, gpt_entries, gpt_entries_size,
-                          le64(gpt->hdr_lba_table) * disk_car.sector_size),
+                          to_little_endian(gpt->hdr_lba_table) * disk_car.sector_size),
           gpt_entries_size
       ))
   {
@@ -307,7 +307,7 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
     return 1;
   }
   if (std::cmp_not_equal(disk_car.pwrite(disk_car, gpt, disk_car.sector_size,
-                                         le64(gpt->hdr_lba_self) *
+                                         to_little_endian(gpt->hdr_lba_self) *
                                              disk_car.sector_size),
                          disk_car.sector_size))
   {

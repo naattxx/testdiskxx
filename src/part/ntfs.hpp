@@ -74,9 +74,9 @@ auto test_NTFS(const disk_t &disk_car,
                const int dump_ind) -> int;
 
 #define NTFS_GETU8(p) (*(const uint8_t *)(p))
-#define NTFS_GETU16(p) (le16(*(const uint16_t *)(p)))
-#define NTFS_GETU32(p) (le32(*(const uint32_t *)(p)))
-#define NTFS_GETU64(p) (le64(*(const uint64_t *)(p)))
+#define NTFS_GETU16(p) (to_little_endian(*(const uint16_t *)(p)))
+#define NTFS_GETU32(p) (to_little_endian(*(const uint32_t *)(p)))
+#define NTFS_GETU64(p) (to_little_endian(*(const uint64_t *)(p)))
 
 /*@
   @ requires \valid_read(ntfs_header);

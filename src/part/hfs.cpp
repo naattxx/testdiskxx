@@ -61,9 +61,9 @@ auto recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
   if (test_HFS(disk_car, hfs_mdb, partition, verbose, dump_ind) != 0)
     return 1;
   /* The extra 0x400 bytes are for the backup MDB */
-  part_size              = static_cast<uint64_t>(be16(hfs_mdb->drNmAlBlks)) *
-                               be32(hfs_mdb->drAlBlkSiz) +
-                           be16(hfs_mdb->drAlBlSt) * 512 + 0x400;
+  part_size              = static_cast<uint64_t>(to_big_endian(hfs_mdb->drNmAlBlks)) *
+                               to_big_endian(hfs_mdb->drAlBlkSiz) +
+                           to_big_endian(hfs_mdb->drAlBlSt) * 512 + 0x400;
   partition.sborg_offset = 0x400;
   partition.sb_size      = HFS_SUPERBLOCK_SIZE;
   if (backup > 0)
@@ -92,22 +92,22 @@ auto test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
               const int dump_ind) -> int
 {
   /* Check for HFS signature */
-  if (hfs_mdb->drSigWord != be16(HFS_SUPER_MAGIC))
+  if (hfs_mdb->drSigWord != to_big_endian(HFS_SUPER_MAGIC))
     return 1;
   /* Blocksize must be a multiple of 512 */
-  if (be32(hfs_mdb->drAlBlkSiz) < 512 ||
-      ((be32(hfs_mdb->drAlBlkSiz) - 1) & be32(hfs_mdb->drAlBlkSiz)) != 0)
+  if (to_big_endian(hfs_mdb->drAlBlkSiz) < 512 ||
+      ((to_big_endian(hfs_mdb->drAlBlkSiz) - 1) & to_big_endian(hfs_mdb->drAlBlkSiz)) != 0)
     return 1;
   /* Check for valid number of allocation blocks */
-  if (be16(hfs_mdb->drNmAlBlks) == 0)
+  if (to_big_endian(hfs_mdb->drNmAlBlks) == 0)
     return 1;
   /* Check for coherent block numbers */
-  if (be16(hfs_mdb->drFreeBks) > be16(hfs_mdb->drNmAlBlks))
+  if (to_big_endian(hfs_mdb->drFreeBks) > to_big_endian(hfs_mdb->drNmAlBlks))
     return 1;
   /* Size must be less than 2TB (tolerate a little bit more)*/
-  if (static_cast<uint64_t>(be16(hfs_mdb->drNmAlBlks)) *
-              be32(hfs_mdb->drAlBlkSiz) +
-          be16(hfs_mdb->drAlBlSt) * 512 + 0x400 >
+  if (static_cast<uint64_t>(to_big_endian(hfs_mdb->drNmAlBlks)) *
+              to_big_endian(hfs_mdb->drAlBlkSiz) +
+          to_big_endian(hfs_mdb->drAlBlSt) * 512 + 0x400 >
       static_cast<uint64_t>(2049) * 1024 * 1024 * 1024)
     return 1;
   if (verbose > 0 || dump_ind != 0)
@@ -124,10 +124,10 @@ auto test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
   }
   if (verbose > 1)
   {
-    log_info("drNmAlBlks {}\n", (unsigned)be16(hfs_mdb->drNmAlBlks));
-    log_info("drAlBlkSiz {}\n", (unsigned)be32(hfs_mdb->drAlBlkSiz));
-    log_info("drAlBlSt {}\n", (unsigned)be16(hfs_mdb->drAlBlSt));
-    log_info("drFreeBks {}\n", (unsigned)be16(hfs_mdb->drFreeBks));
+    log_info("drNmAlBlks {}\n", (unsigned)to_big_endian(hfs_mdb->drNmAlBlks));
+    log_info("drAlBlkSiz {}\n", (unsigned)to_big_endian(hfs_mdb->drAlBlkSiz));
+    log_info("drAlBlSt {}\n", (unsigned)to_big_endian(hfs_mdb->drAlBlSt));
+    log_info("drFreeBks {}\n", (unsigned)to_big_endian(hfs_mdb->drFreeBks));
   }
   return 0;
 }
@@ -136,7 +136,7 @@ static void set_HFS_info(partition_t &partition, const hfs_mdb_t *hfs_mdb)
 {
   unsigned int name_size = sizeof(hfs_mdb->drVN) - 1;
   partition.upart_type   = UP_HFS;
-  partition.blocksize    = be32(hfs_mdb->drAlBlkSiz);
+  partition.blocksize    = to_big_endian(hfs_mdb->drAlBlkSiz);
   partition.info         = std::format("HFS blocksize={}", partition.blocksize);
   name_size              = std::min<unsigned int>(name_size, hfs_mdb->drVN[0]);
   partition.fsname.reserve(name_size);

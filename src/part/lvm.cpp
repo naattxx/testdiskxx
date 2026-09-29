@@ -43,7 +43,7 @@ static auto test_LVM(const disk_t &disk_car, const pv_disk_t *pv,
 {
   if ((memcmp(reinterpret_cast<const char *>(pv->id), LVM_ID, sizeof(pv->id)) ==
        0) &&
-      (le16(pv->version) == 1 || le16(pv->version) == 2))
+      (to_little_endian(pv->version) == 1 || to_little_endian(pv->version) == 2))
   {
     uint32_t size;
     if (verbose > 0 || dump_ind != 0)
@@ -58,25 +58,25 @@ static auto test_LVM(const disk_t &disk_car, const pv_disk_t *pv,
       /* There is a little offset ... */
       ; // dump_log(pv,DEFAULT_SECTOR_SIZE);
     }
-    if (le32(pv->pv_size) > LVM_MAX_SIZE)
+    if (to_little_endian(pv->pv_size) > LVM_MAX_SIZE)
       return 1;
-    if (le32(pv->pv_status) != 0 && le32(pv->pv_status) != PV_ACTIVE)
+    if (to_little_endian(pv->pv_status) != 0 && to_little_endian(pv->pv_status) != PV_ACTIVE)
       return 1;
-    if (le32(pv->pv_allocatable) != 0 &&
-        le32(pv->pv_allocatable) != PV_ALLOCATABLE)
+    if (to_little_endian(pv->pv_allocatable) != 0 &&
+        to_little_endian(pv->pv_allocatable) != PV_ALLOCATABLE)
       return 1;
-    if (le32(pv->lv_cur) > MAX_LV)
+    if (to_little_endian(pv->lv_cur) > MAX_LV)
       return 1;
     if (strlen(reinterpret_cast<const char *>(pv->vg_name)) > NAME_LEN / 2)
       return 1;
-    size = le32(pv->pe_size) / LVM_MIN_PE_SIZE * LVM_MIN_PE_SIZE;
-    if ((le32(pv->pe_size) != size) || (le32(pv->pe_size) < LVM_MIN_PE_SIZE) ||
-        (le32(pv->pe_size) > LVM_MAX_PE_SIZE))
+    size = to_little_endian(pv->pe_size) / LVM_MIN_PE_SIZE * LVM_MIN_PE_SIZE;
+    if ((to_little_endian(pv->pe_size) != size) || (to_little_endian(pv->pe_size) < LVM_MIN_PE_SIZE) ||
+        (to_little_endian(pv->pe_size) > LVM_MAX_PE_SIZE))
       return 1;
 
-    if (le32(pv->pe_total) > (pv->pe_on_disk.size / sizeof(disk_pe_t)))
+    if (to_little_endian(pv->pe_total) > (pv->pe_on_disk.size / sizeof(disk_pe_t)))
       return 1;
-    if (le32(pv->pe_allocated) > le32(pv->pe_total))
+    if (to_little_endian(pv->pe_allocated) > to_little_endian(pv->pe_total))
       return 1;
     return 0;
   }
@@ -115,7 +115,7 @@ auto recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
   partition.part_type_sun  = PSUN_LVM;
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_LVM;
   partition.part_size =
-      static_cast<uint64_t> le32(pv->pv_size) * disk_car.sector_size;
+      static_cast<uint64_t>(to_little_endian(pv->pv_size)) * disk_car.sector_size;
   /* pv_uuid is bigger than part_uuid */
   partition.part_uuid =
     efi_guid_t::from(reinterpret_cast<const std::byte *>(&pv->pv_uuid));
@@ -149,7 +149,7 @@ static auto test_LVM2(const disk_t &disk_car,
                offset2head(disk_car, partition.part_offset),
                offset2sector(disk_car, partition.part_offset));
     }
-    if (le32(lh->offset_xl) > 400)
+    if (to_little_endian(lh->offset_xl) > 400)
       return 1;
     if (dump_ind != 0)
     {
@@ -198,8 +198,8 @@ auto recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
     const struct lvm2_pv_header *pvhdr;
     pvhdr =
         reinterpret_cast<const struct lvm2_pv_header *>(buf +
-                                                        le32(lh->offset_xl));
-    partition.part_size = le64(pvhdr->device_size_xl);
+                                                        to_little_endian(lh->offset_xl));
+    partition.part_size = to_little_endian(pvhdr->device_size_xl);
   }
   if (verbose > 0)
   {

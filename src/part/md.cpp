@@ -35,7 +35,7 @@
 static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
                     const partition_t &partition, const int dump_ind) -> int
 {
-  if (le32(sb->md_magic) != MD_SB_MAGIC)
+  if (to_little_endian(sb->md_magic) != MD_SB_MAGIC)
     return 1;
   log_info("\nRaid magic value at {}/{}/{}\n",
            offset2cylinder(disk_car, partition.part_offset),
@@ -43,13 +43,13 @@ static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
            offset2sector(disk_car, partition.part_offset));
   log_info("Raid apparent size: {} sectors\n",
            (long long unsigned)(sb->size << 1));
-  if (le32(sb->major_version) == 0)
+  if (to_little_endian(sb->major_version) == 0)
   {
     /* chunk_size may be 0 */
     log_info("Raid chunk size: {} bytes\n",
-             (long long unsigned)le32(sb->chunk_size));
+             (long long unsigned)to_little_endian(sb->chunk_size));
   }
-  if (le32(sb->major_version) > 1)
+  if (to_little_endian(sb->major_version) > 1)
     return 1;
   if (dump_ind != 0)
   {
@@ -63,7 +63,7 @@ static auto test_MD_be(const disk_t &disk_car,
                        const struct mdp_superblock_t *sb,
                        const partition_t &partition, const int dump_ind) -> int
 {
-  if (be32(sb->md_magic) != MD_SB_MAGIC)
+  if (to_big_endian(sb->md_magic) != MD_SB_MAGIC)
     return 1;
   log_info("\nRaid magic value at {}/{}/{}\n",
            offset2cylinder(disk_car, partition.part_offset),
@@ -71,13 +71,13 @@ static auto test_MD_be(const disk_t &disk_car,
            offset2sector(disk_car, partition.part_offset));
   log_info("Raid apparent size: {} sectors\n",
            (long long unsigned)(sb->size << 1));
-  if (be32(sb->major_version) == 0)
+  if (to_big_endian(sb->major_version) == 0)
   {
     /* chunk_size may be 0 */
     log_info("Raid chunk size: {} bytes\n",
-             (long long unsigned)be32(sb->chunk_size));
+             (long long unsigned)to_big_endian(sb->chunk_size));
   }
-  if (be32(sb->major_version) > 1)
+  if (to_big_endian(sb->major_version) > 1)
     return 1;
   if (dump_ind != 0)
   {
@@ -90,24 +90,24 @@ static auto test_MD_be(const disk_t &disk_car,
 static void set_MD_info(const struct mdp_superblock_t *sb,
                         partition_t &partition, const int verbose)
 {
-  if (le32(sb->major_version) == 0)
+  if (to_little_endian(sb->major_version) == 0)
   {
     unsigned int i;
     partition.upart_type = UP_MD;
-    partition.fsname     = std::format("md{}", le32(sb->md_minor));
+    partition.fsname     = std::format("md{}", to_little_endian(sb->md_minor));
     partition.info =
         std::format("md {}.{}.{} L.Endian Raid {}: devices",
-                    le32(sb->major_version), le32(sb->minor_version),
-                    le32(sb->patch_version), le32(sb->level));
+                    to_little_endian(sb->major_version), to_little_endian(sb->minor_version),
+                    to_little_endian(sb->patch_version), to_little_endian(sb->level));
     for (i = 0; i < MD_SB_DISKS; i++)
     {
-      if (le32(sb->disks[i].major) != 0 && le32(sb->disks[i].minor) != 0)
+      if (to_little_endian(sb->disks[i].major) != 0 && to_little_endian(sb->disks[i].minor) != 0)
       {
         partition.info +=
-            std::format(" {}({},{})", le32(sb->disks[i].number),
-                        le32(sb->disks[i].major), le32(sb->disks[i].minor));
-        if (le32(sb->disks[i].major) == le32(sb->this_disk.major) &&
-            le32(sb->disks[i].minor) == le32(sb->this_disk.minor))
+            std::format(" {}({},{})", to_little_endian(sb->disks[i].number),
+                        to_little_endian(sb->disks[i].major), to_little_endian(sb->disks[i].minor));
+        if (to_little_endian(sb->disks[i].major) == to_little_endian(sb->this_disk.major) &&
+            to_little_endian(sb->disks[i].minor) == to_little_endian(sb->this_disk.minor))
           partition.info += "*";
       }
     }
@@ -118,18 +118,18 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
     partition.upart_type = UP_MD1;
     partition.set_name(std::string_view(sb1->set_name, 32));
     partition.info = std::format("md {}.x L.Endian Raid {} - Array Slot : {}",
-                                 le32(sb1->major_version), le32(sb1->level),
-                                 le32(sb1->dev_number));
-    if (le32(sb1->max_dev) <= 384)
+                                 to_little_endian(sb1->major_version), to_little_endian(sb1->level),
+                                 to_little_endian(sb1->dev_number));
+    if (to_little_endian(sb1->max_dev) <= 384)
     {
       unsigned int i, d;
-      for (i = le32(sb1->max_dev); i > 0; i--)
-        if (le16(sb1->dev_roles[i - 1]) != 0xffff)
+      for (i = to_little_endian(sb1->max_dev); i > 0; i--)
+        if (to_little_endian(sb1->dev_roles[i - 1]) != 0xffff)
           break;
       partition.info += " (";
       for (d = 0; d < i; d++)
       {
-        const int role = le16(sb1->dev_roles[d]);
+        const int role = to_little_endian(sb1->dev_roles[d]);
         if (d)
           partition.info += ", ";
         if (role == 0xffff)
@@ -149,24 +149,24 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
 static void set_MD_info_be(const struct mdp_superblock_t *sb,
                            partition_t &partition, const int verbose)
 {
-  if (be32(sb->major_version) == 0)
+  if (to_big_endian(sb->major_version) == 0)
   {
     unsigned int i;
     partition.upart_type = UP_MD;
-    partition.fsname     = std::format("md{}", be32(sb->md_minor));
+    partition.fsname     = std::format("md{}", to_big_endian(sb->md_minor));
     partition.info =
         std::format("md {}.{}.{} B.Endian Raid {}: devices",
-                    be32(sb->major_version), be32(sb->minor_version),
-                    be32(sb->patch_version), be32(sb->level));
+                    to_big_endian(sb->major_version), to_big_endian(sb->minor_version),
+                    to_big_endian(sb->patch_version), to_big_endian(sb->level));
     for (i = 0; i < MD_SB_DISKS; i++)
     {
-      if (be32(sb->disks[i].major) != 0 && be32(sb->disks[i].minor) != 0)
+      if (to_big_endian(sb->disks[i].major) != 0 && to_big_endian(sb->disks[i].minor) != 0)
       {
         partition.info +=
-            std::format(" {}({},{})", be32(sb->disks[i].number),
-                        be32(sb->disks[i].major), be32(sb->disks[i].minor));
-        if (be32(sb->disks[i].major) == be32(sb->this_disk.major) &&
-            be32(sb->disks[i].minor) == be32(sb->this_disk.minor))
+            std::format(" {}({},{})", to_big_endian(sb->disks[i].number),
+                        to_big_endian(sb->disks[i].major), to_big_endian(sb->disks[i].minor));
+        if (to_big_endian(sb->disks[i].major) == to_big_endian(sb->this_disk.major) &&
+            to_big_endian(sb->disks[i].minor) == to_big_endian(sb->this_disk.minor))
           partition.info += "*";
       }
     }
@@ -177,18 +177,18 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
     partition.upart_type = UP_MD1;
     partition.set_name(std::string_view(sb1->set_name, 32));
     partition.info = std::format("md {}.x B.Endian Raid {} - Array Slot : {}",
-                                 be32(sb1->major_version), be32(sb1->level),
-                                 be32(sb1->dev_number));
-    if (be32(sb1->max_dev) <= 384)
+                                 to_big_endian(sb1->major_version), to_big_endian(sb1->level),
+                                 to_big_endian(sb1->dev_number));
+    if (to_big_endian(sb1->max_dev) <= 384)
     {
       unsigned int i, d;
-      for (i = be32(sb1->max_dev); i > 0; i--)
-        if (be16(sb1->dev_roles[i - 1]) != 0xffff)
+      for (i = to_big_endian(sb1->max_dev); i > 0; i--)
+        if (to_big_endian(sb1->dev_roles[i - 1]) != 0xffff)
           break;
       partition.info += " (";
       for (d = 0; d < i; d++)
       {
-        const int role = be16(sb1->dev_roles[d]);
+        const int role = to_big_endian(sb1->dev_roles[d]);
         if (d)
           partition.info += ", ";
         if (role == 0xffff)
@@ -216,8 +216,8 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
       MD_SB_BYTES)
   {
     const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
-    if (le32(sb1->md_magic) == MD_SB_MAGIC && le32(sb1->major_version) == 1 &&
-        le64(sb1->super_offset) == 0 &&
+    if (to_little_endian(sb1->md_magic) == MD_SB_MAGIC && to_little_endian(sb1->major_version) == 1 &&
+        to_little_endian(sb1->super_offset) == 0 &&
         test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                 partition, 0) == 0)
     {
@@ -227,8 +227,8 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
       delete[] buffer;
       return 0;
     }
-    if (be32(sb1->md_magic) == MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
-        be64(sb1->super_offset) == 0 &&
+    if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC && to_big_endian(sb1->major_version) == 1 &&
+        to_big_endian(sb1->super_offset) == 0 &&
         test_MD_be(disk_car,
                    reinterpret_cast<struct mdp_superblock_t *>(buffer),
                    partition, 0) == 0)
@@ -245,8 +245,8 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
                      partition.part_offset + 4096) == MD_SB_BYTES)
   {
     const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
-    if (le32(sb1->md_magic) == MD_SB_MAGIC && le32(sb1->major_version) == 1 &&
-        le64(sb1->super_offset) == 8 &&
+    if (to_little_endian(sb1->md_magic) == MD_SB_MAGIC && to_little_endian(sb1->major_version) == 1 &&
+        to_little_endian(sb1->super_offset) == 8 &&
         test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                 partition, 0) == 0)
     {
@@ -256,8 +256,8 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
       delete[] buffer;
       return 0;
     }
-    if (be32(sb1->md_magic) == MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
-        be64(sb1->super_offset) == 8 &&
+    if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC && to_big_endian(sb1->major_version) == 1 &&
+        to_big_endian(sb1->super_offset) == 8 &&
         test_MD_be(disk_car,
                    reinterpret_cast<struct mdp_superblock_t *>(buffer),
                    partition, 0) == 0)
@@ -282,7 +282,7 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
     if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
                        partition.part_offset + offset) == MD_SB_BYTES)
     {
-      if (le32(sb->md_magic) == MD_SB_MAGIC && le32(sb->major_version) == 0 &&
+      if (to_little_endian(sb->md_magic) == MD_SB_MAGIC && to_little_endian(sb->major_version) == 0 &&
           test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                   partition, 0) == 0)
       {
@@ -292,7 +292,7 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
         delete[] buffer;
         return 0;
       }
-      if (be32(sb->md_magic) == MD_SB_MAGIC && be32(sb->major_version) == 0 &&
+      if (to_big_endian(sb->md_magic) == MD_SB_MAGIC && to_big_endian(sb->major_version) == 0 &&
           test_MD_be(disk_car,
                      reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, 0) == 0)
@@ -320,8 +320,8 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
     {
       const auto *sb1 =
           reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
-      if (le32(sb1->md_magic) == MD_SB_MAGIC && le32(sb1->major_version) == 1 &&
-          le64(sb1->super_offset) == (offset / 512) &&
+      if (to_little_endian(sb1->md_magic) == MD_SB_MAGIC && to_little_endian(sb1->major_version) == 1 &&
+          to_little_endian(sb1->super_offset) == (offset / 512) &&
           test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
                   partition, 0) == 0)
       {
@@ -331,8 +331,8 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
         delete[] buffer;
         return 0;
       }
-      if (be32(sb1->md_magic) == MD_SB_MAGIC && be32(sb1->major_version) == 1 &&
-          be64(sb1->super_offset) == (offset / 512) &&
+      if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC && to_big_endian(sb1->major_version) == 1 &&
+          to_big_endian(sb1->super_offset) == (offset / 512) &&
           test_MD_be(disk_car,
                      reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, 0) == 0)
@@ -381,12 +381,12 @@ auto recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
     {
       const auto *sb1 =
           reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
-      if (le32(sb1->major_version) == 1 &&
+      if (to_little_endian(sb1->major_version) == 1 &&
           recover_MD(disk_car,
                      reinterpret_cast<struct mdp_superblock_t *>(buffer),
                      partition, verbose, 0) == 0)
       {
-        partition.part_offset -= le64(sb1->super_offset) * 512 - offset;
+        partition.part_offset -= to_little_endian(sb1->super_offset) * 512 - offset;
         delete[] buffer;
         return 0;
       }
@@ -409,9 +409,9 @@ auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
     partition.part_type_i386 = P_RAID;
     partition.part_type_sun  = PSUN_RAID;
     partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_RAID;
-    if (le32(sb->major_version) == 0)
+    if (to_little_endian(sb->major_version) == 0)
     {
-      partition.part_size = static_cast<uint64_t>(le32(sb->size) << 1) * 512 +
+      partition.part_size = static_cast<uint64_t>(to_little_endian(sb->size) << 1) * 512 +
                             MD_RESERVED_BYTES; /* 512-byte sectors */
       memcpy(&partition.part_uuid, &sb->set_uuid0, 4);
       memcpy(reinterpret_cast<char *>(&partition.part_uuid) + 4, &sb->set_uuid1,
@@ -420,7 +420,7 @@ auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
     else
     {
       const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
-      partition.part_size = le64(sb1->size) * 512 + 4096; /* 512-byte sectors */
+      partition.part_size = to_little_endian(sb1->size) * 512 + 4096; /* 512-byte sectors */
       memcpy(&partition.part_uuid, &sb1->set_uuid, 16);
     }
     return 0;
@@ -431,9 +431,9 @@ auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
     partition.part_type_i386 = P_RAID;
     partition.part_type_sun  = PSUN_RAID;
     partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_RAID;
-    if (be32(sb->major_version) == 0)
+    if (to_big_endian(sb->major_version) == 0)
     {
-      partition.part_size = static_cast<uint64_t>(be32(sb->size) << 1) * 512 +
+      partition.part_size = static_cast<uint64_t>(to_big_endian(sb->size) << 1) * 512 +
                             MD_RESERVED_BYTES; /* 512-byte sectors */
       memcpy(&partition.part_uuid, &sb->set_uuid0, 4);
       memcpy(reinterpret_cast<char *>(&partition.part_uuid) + 4, &sb->set_uuid1,
@@ -442,7 +442,7 @@ auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
     else
     {
       const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
-      partition.part_size = static_cast<uint64_t>(be64(sb1->size)) * 512 +
+      partition.part_size = static_cast<uint64_t>(to_big_endian(sb1->size)) * 512 +
                             4096; /* 512-byte sectors */
       memcpy(&partition.part_uuid, &sb1->set_uuid, 16);
     }
