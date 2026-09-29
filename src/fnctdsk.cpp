@@ -30,7 +30,6 @@
 #include "fnctdsk.hpp"
 #include "log.hpp"
 #include "log_part.hpp"
-// #include "guid_cpy.hpp"
 
 auto C_H_S2LBA(const disk_t &disk_car, const unsigned int C, const unsigned int H, const unsigned int S) -> unsigned long int
 {
@@ -312,10 +311,9 @@ void partition_t::reset(const arch_fnct_t *arch) noexcept
     part_type_sun = PSUN_UNK;
     part_type_mac = PMAC_UNK;
     part_type_xbox = PXBOX_UNK;
-    part_type_gpt = static_cast<const efi_guid_t>(GPT_ENT_TYPE_UNUSED);
+    part_type_gpt = GPT_ENT_TYPE_UNUSED;
 #ifndef DISABLED_FOR_FRAMAC
     part_uuid = GPT_ENT_TYPE_UNUSED;
-    // guid_cpy(&part_uuid, &GPT_ENT_TYPE_UNUSED);
 #endif
     upart_type = UP_UNK;
     status = STATUS_DELETED;

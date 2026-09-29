@@ -21,6 +21,7 @@
  */
 #include <config.h>
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -28,7 +29,6 @@
 #include "apfs.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
 static void set_APFS_info(const nx_superblock_t *sb, partition_t &partition)
@@ -77,8 +77,8 @@ auto recover_APFS(const disk_t &disk, const nx_superblock_t *sb,
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_MAC_APFS;
   partition.part_size      = le32(sb->nx_block_size) * le64(sb->nx_block_count);
-  guid_cpy(&partition.part_uuid,
-           reinterpret_cast<const efi_guid_t *>(&sb->nx_uuid));
+  partition.part_uuid =
+      efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->nx_uuid));
   if (verbose > 0)
   {
     log_info("\n");

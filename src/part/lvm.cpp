@@ -21,13 +21,13 @@
  */
 #include <config.h>
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "lvm.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
 static void set_LVM_info(partition_t &partition)
@@ -117,8 +117,8 @@ auto recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
   partition.part_size =
       static_cast<uint64_t> le32(pv->pv_size) * disk_car.sector_size;
   /* pv_uuid is bigger than part_uuid */
-  guid_cpy(&partition.part_uuid,
-           reinterpret_cast<const efi_guid_t *>(&pv->pv_uuid));
+  partition.part_uuid =
+    efi_guid_t::from(reinterpret_cast<const std::byte *>(&pv->pv_uuid));
   if (verbose > 0)
   {
     log_info("part_size {}\n",

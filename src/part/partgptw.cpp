@@ -39,7 +39,6 @@
 #include "src/common.hpp"
 #include "src/crc.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 #include "src/unicode.hpp"
 extern const arch_fnct_t arch_i386;
@@ -102,7 +101,7 @@ static void partition_generate_gpt_entry(struct gpt_ent *gpt_entry,
 {
   const int entry = find_gpt_entry(partition.part_offset / disk_car.sector_size,
                                    gpt_entries_org);
-  guid_cpy(&gpt_entry->ent_type, &partition.part_type_gpt);
+  gpt_entry->ent_type = partition.part_type_gpt;
   gpt_entry->ent_lba_start = le64(partition.part_offset / disk_car.sector_size);
   gpt_entry->ent_lba_end =
       le64((partition.part_offset + partition.part_size - 1) /
@@ -110,9 +109,9 @@ static void partition_generate_gpt_entry(struct gpt_ent *gpt_entry,
   str2UCSle(gpt_entry->ent_name, partition.partname,
             sizeof(gpt_entry->ent_name) / 2);
   if (entry >= 0)
-    guid_cpy(&gpt_entry->ent_uuid, &gpt_entries_org[entry].ent_uuid);
+    gpt_entry->ent_uuid = gpt_entries_org[entry].ent_uuid;
   else if (partition.part_uuid != GPT_ENT_TYPE_UNUSED)
-    guid_cpy(&gpt_entry->ent_uuid, &partition.part_uuid);
+    gpt_entry->ent_uuid = partition.part_uuid;
   else
     efi_generate_uuid(&gpt_entry->ent_uuid);
   gpt_entry->ent_attr = le64(0); /* May need fixing */
@@ -237,7 +236,7 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
   if (std::cmp_equal(disk_car.pread(disk_car, gpt_org, disk_car.sector_size,
                                     disk_car.sector_size),
                      disk_car.sector_size))
-    guid_cpy(&gpt->hdr_guid, &gpt_org->hdr_guid);
+    gpt->hdr_guid = gpt_org->hdr_guid;
   else
     efi_generate_uuid(&gpt->hdr_guid);
 

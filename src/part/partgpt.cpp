@@ -68,7 +68,6 @@
 #include "refs.hpp"
 #endif
 #include "src/crc.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
 #include "src/unicode.hpp"
@@ -366,8 +365,8 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
       int _insert_error = 0;
       partition_t new_partition(&arch_gpt);
       new_partition.order = i + 1;
-      guid_cpy(&new_partition.part_uuid, &gpt_entry->ent_uuid);
-      guid_cpy(&new_partition.part_type_gpt, &gpt_entry->ent_type);
+      new_partition.part_uuid = gpt_entry->ent_uuid;
+      new_partition.part_type_gpt = gpt_entry->ent_type;
       new_partition.part_offset =
           le64(gpt_entry->ent_lba_start) * disk_car.sector_size;
       new_partition.part_size =

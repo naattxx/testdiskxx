@@ -20,13 +20,13 @@
 
  */
 #include <config.h>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "luks.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
 static void set_LUKS_info(const struct luks_phdr *sb, partition_t &partition)
@@ -94,8 +94,8 @@ auto recover_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
   partition.sborg_offset = 0;
   partition.sb_offset    = 0;
   /* sb->uuid is bigger than part_uuid */
-  guid_cpy(&partition.part_uuid,
-           reinterpret_cast<const efi_guid_t *>(&sb->uuid));
+  partition.part_uuid =
+    efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->uuid));
   if (verbose > 0)
   {
     log_info("\n");

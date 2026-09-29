@@ -21,6 +21,7 @@
  */
 #include <config.h>
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -28,7 +29,6 @@
 #include "btrfs.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
 static auto test_btrfs(const struct btrfs_super_block *sb) -> int;
@@ -92,8 +92,8 @@ auto recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb,
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
   partition.part_size      = le64(sb->dev_item.total_bytes);
-  guid_cpy(&partition.part_uuid,
-           reinterpret_cast<const efi_guid_t *>(&sb->fsid));
+  partition.part_uuid =
+      efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->fsid));
   if (verbose > 0)
   {
     log_info("\n");

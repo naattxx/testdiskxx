@@ -10,7 +10,7 @@
 #include <string_view>
 #include <vector>
 
-struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
+struct [[gnu::packed]] efi_guid_t
 {
     uint32_t time_low;
     uint16_t time_mid;
@@ -19,6 +19,17 @@ struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
     uint8_t clock_seq_low;
     std::array<uint8_t, 6> node;
     auto operator<=>(const efi_guid_t &right) const = default;
+    [[nodiscard]] static constexpr auto from(const std::byte data[16]) noexcept -> efi_guid_t
+    {
+        return efi_guid_t{
+            .time_low=std::to_integer<uint32_t>(data[0]) | std::to_integer<uint32_t>(data[1]) << 8 | std::to_integer<uint32_t>(data[2]) << 16 | std::to_integer<uint32_t>(data[3]) << 24,
+            .time_mid=static_cast<uint16_t>(std::to_integer<uint16_t>(data[4]) | std::to_integer<uint16_t>(data[5]) << 8),
+            .time_hi_and_version=static_cast<uint16_t>(std::to_integer<uint16_t>(data[6]) | std::to_integer<uint16_t>(data[7]) << 8),
+            .clock_seq_hi_and_reserved=std::to_integer<uint8_t>(data[8]),
+            .clock_seq_low=std::to_integer<uint8_t>(data[9]),
+            .node={std::to_integer<uint8_t>(data[10]), std::to_integer<uint8_t>(data[11]), std::to_integer<uint8_t>(data[12]), std::to_integer<uint8_t>(data[13]), std::to_integer<uint8_t>(data[14]), std::to_integer<uint8_t>(data[15])}
+        };
+    }
 };
 
 #define DEFAULT_SECTOR_SIZE 0x200u

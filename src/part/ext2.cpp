@@ -21,6 +21,7 @@
  */
 #include <config.h>
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -30,7 +31,6 @@
 #include "ext2.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
 static void set_EXT2_info(const struct ext2_super_block *sb,
@@ -131,8 +131,8 @@ auto recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb,
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
   partition.part_size      = td_ext2fs_blocks_count(sb) * EXT2_MIN_BLOCK_SIZE
                           << le32(sb->s_log_block_size);
-  guid_cpy(&partition.part_uuid,
-           reinterpret_cast<const efi_guid_t *>(&sb->s_uuid));
+  partition.part_uuid =
+    efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->s_uuid));
   if (verbose > 0)
   {
     log_info("\n");

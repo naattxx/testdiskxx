@@ -20,6 +20,7 @@
 
  */
 #include <config.h>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -28,7 +29,6 @@
 #include "jfs_superblock.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
 static void set_JFS_info(const struct jfs_superblock *sb,
@@ -114,8 +114,8 @@ auto recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
   partition.sborg_offset = 64 * 512;
   partition.sb_size      = JFS_SUPERBLOCK_SIZE;
   partition.sb_offset    = 0;
-  guid_cpy(&partition.part_uuid,
-           reinterpret_cast<const efi_guid_t *>(&sb->s_uuid));
+  partition.part_uuid =
+    efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->s_uuid));
   if (verbose > 0)
   {
     log_info("\n");

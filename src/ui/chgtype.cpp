@@ -5,7 +5,6 @@
 #include "ftxui/component/mouse.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "src/common.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
 #include "src/part/partgpt.hpp"
@@ -239,8 +238,7 @@ static void gpt_change_part_type(const Component &root, const disk_t &disk_car,
   bool show_modal = true;
   screen.Loop(root | Modal(dialog, &show_modal));
 
-  guid_cpy(&partition.part_type_gpt,
-           &gpt_sys_types[row + col * thirdRoundedUp].part_type);
+  partition.part_type_gpt = gpt_sys_types[row + col * thirdRoundedUp].part_type;
 }
 
 void change_part_type_interface(const Component &root, const disk_t &disk_car,

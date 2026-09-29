@@ -22,6 +22,7 @@
 
 #include <config.h>
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -30,7 +31,6 @@
 #include "rfs.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 
 static void set_rfs_info(const struct reiserfs_super_block *sb,
@@ -171,8 +171,8 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
     partition.part_type_mac  = PMAC_LINUX;
     partition.part_type_sun  = PSUN_LINUX;
     partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
-    guid_cpy(&partition.part_uuid,
-             reinterpret_cast<const efi_guid_t *>(&sb->s_uuid));
+    partition.part_uuid =
+      efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->s_uuid));
     set_rfs_info(sb, partition);
     return 0;
   }
@@ -198,8 +198,7 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
     partition.part_type_mac  = PMAC_LINUX;
     partition.part_type_sun  = PSUN_LINUX;
     partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
-    guid_cpy(&partition.part_uuid,
-             reinterpret_cast<const efi_guid_t *>(&sb4->uuid));
+    partition.part_uuid = efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb4->uuid));
     set_rfs4_info(sb4, partition);
     return 0;
   }

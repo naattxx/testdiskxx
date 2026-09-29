@@ -22,13 +22,13 @@
 
 #include <config.h>
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
-#include "src/guid_cpy.hpp"
 #include "src/log.hpp"
 #include "xfs.hpp"
 
@@ -144,7 +144,6 @@ auto recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb,
   partition.part_type_mac  = PMAC_LINUX;
   partition.part_type_sun  = PSUN_LINUX;
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_DATA;
-  guid_cpy(&partition.part_uuid,
-           reinterpret_cast<const efi_guid_t *>(&sb->sb_uuid));
+  partition.part_uuid = efi_guid_t::from(reinterpret_cast<const std::byte *>(&sb->sb_uuid));
   return 0;
 }
