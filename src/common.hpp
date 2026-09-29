@@ -18,7 +18,7 @@ struct [[gnu::gcc_struct,gnu::packed]] efi_guid_t
     uint8_t clock_seq_hi_and_reserved;
     uint8_t clock_seq_low;
     std::array<uint8_t, 6> node;
-    auto operator<=>(const efi_guid_t &right) const -> bool = default;
+    auto operator<=>(const efi_guid_t &right) const = default;
 };
 
 #define DEFAULT_SECTOR_SIZE 0x200u
