@@ -115,7 +115,7 @@ struct [[gnu::packed]] efi_guid_t
 #define PXBOX_UNK 0
 #define PXBOX_FATX 1
 
-[[nodiscard]] constexpr auto to_big_endian(std::integral auto x)
+[[nodiscard]] constexpr auto to_big_endian(std::integral auto x) noexcept
   requires(sizeof(x) > 1)
 {
 #ifdef TESTDISK_LSB
@@ -124,7 +124,7 @@ struct [[gnu::packed]] efi_guid_t
   return x;
 #endif
 }
-[[nodiscard]] constexpr auto to_little_endian(std::integral auto x)
+[[nodiscard]] constexpr auto to_little_endian(std::integral auto x) noexcept
   requires(sizeof(x) > 1)
 {
 #ifdef TESTDISK_LSB
