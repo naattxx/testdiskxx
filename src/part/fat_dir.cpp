@@ -66,7 +66,7 @@ struct fat_dir_struct
   @ decreases 0;
   @*/
 static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
-                          const dir_data_t *dir_data,
+                          const dir_data_t &dir_data,
                           const struct fat_boot_sector *fat_header,
                           dir_list_t &dir_list) -> int;
 
@@ -80,13 +80,13 @@ static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
   @ requires \separated(disk_car, partition, dir_data, file);
   @*/
 static auto fat_copy(disk_t &disk_car, const partition_t &partition,
-                     dir_data_t *dir_data, const file_info_t &file)
+                     dir_data_t &dir_data, const file_info_t &file)
     -> copy_file_t;
 
 /*@
   @ requires \valid(dir_data);
   @*/
-static void dir_partition_fat_close(dir_data_t *dir_data);
+static void dir_partition_fat_close(dir_data_t &dir_data);
 
 /*@
   @ requires len > 0;
@@ -375,11 +375,11 @@ static auto is_EOC(const unsigned int cluster, const upart_type_t upart_type)
   @ decreases 0;
   @*/
 static auto fat_dir(disk_t &disk_car, const partition_t &partition,
-                    dir_data_t *dir_data, const unsigned long int first_cluster,
+                    dir_data_t &dir_data, const unsigned long int first_cluster,
                     dir_list_t &dir_list) -> int
 {
   const auto *ls =
-      static_cast<const struct fat_dir_struct *>(dir_data->private_dir_data);
+      static_cast<const struct fat_dir_struct *>(dir_data.private_dir_data);
   const struct fat_boot_sector *fat_header = ls->boot_sector;
   unsigned int cluster                     = first_cluster;
   if (fat_header->sectors_per_cluster < 1)
@@ -508,7 +508,7 @@ static auto fat_dir(disk_t &disk_car, const partition_t &partition,
       }
     }
     if (nbr_cluster > 0)
-      dir_fat_aux(buffer_dir, cluster_size * nbr_cluster, dir_data->param,
+      dir_fat_aux(buffer_dir, cluster_size * nbr_cluster, dir_data.param,
                   dir_list);
     delete[] buffer_dir;
     return 0;
@@ -516,7 +516,7 @@ static auto fat_dir(disk_t &disk_car, const partition_t &partition,
 }
 
 static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
-                          const dir_data_t *dir_data,
+                          const dir_data_t &dir_data,
                           const struct fat_boot_sector *fat_header,
                           dir_list_t &dir_list) -> int
 {
@@ -526,7 +526,7 @@ static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
   if (root_size == 0)
     return -1;
 #ifndef DISABLED_FOR_FRAMAC
-  if (dir_data->verbose > 1)
+  if (dir_data.verbose > 1)
   {
      log_trace("fat1x_rootdir root_size={} sectors",root_size/disk_car.sector_size);
   }
@@ -550,14 +550,14 @@ static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
 #endif
       /* Don't return yet, it may have been a partial read */
     }
-    res = dir_fat_aux(buffer_dir, root_size, dir_data->param, dir_list);
+    res = dir_fat_aux(buffer_dir, root_size, dir_data.param, dir_list);
     delete[] buffer_dir;
     return res;
   }
 }
 
 auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
-                            dir_data_t *dir_data, const int verbose)
+                            dir_data_t &dir_data, const int verbose)
     -> dir_partition_t
 {
   static unsigned char *buffer;
@@ -574,27 +574,27 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
   set_secwest();
   ls              = new struct fat_dir_struct;
   ls->boot_sector = reinterpret_cast<struct fat_boot_sector *>(buffer);
-  strncpy(dir_data->current_directory, "/",
-          sizeof(dir_data->current_directory));
-  dir_data->current_inode = 0;
-  dir_data->param         = FLAG_LIST_DELETED;
+  strncpy(dir_data.current_directory, "/",
+          sizeof(dir_data.current_directory));
+  dir_data.current_inode = 0;
+  dir_data.param         = FLAG_LIST_DELETED;
   if (partition.upart_type == UP_FAT12)
-    dir_data->param |= FLAG_LIST_MASK12;
+    dir_data.param |= FLAG_LIST_MASK12;
   else if (partition.upart_type == UP_FAT16)
-    dir_data->param |= FLAG_LIST_MASK16;
-  dir_data->verbose          = verbose;
-  dir_data->capabilities     = CAPA_LIST_DELETED;
-  dir_data->copy_file        = &fat_copy;
-  dir_data->close            = &dir_partition_fat_close;
-  dir_data->local_dir.clear();
-  dir_data->private_dir_data = ls;
-  dir_data->get_dir          = &fat_dir;
+    dir_data.param |= FLAG_LIST_MASK16;
+  dir_data.verbose          = verbose;
+  dir_data.capabilities     = CAPA_LIST_DELETED;
+  dir_data.copy_file        = &fat_copy;
+  dir_data.close            = &dir_partition_fat_close;
+  dir_data.local_dir.clear();
+  dir_data.private_dir_data = ls;
+  dir_data.get_dir          = &fat_dir;
   return DIR_PART_OK;
 }
 
-static void dir_partition_fat_close(dir_data_t *dir_data)
+static void dir_partition_fat_close(dir_data_t &dir_data)
 {
-  auto *ls = static_cast<struct fat_dir_struct *>(dir_data->private_dir_data);
+  auto *ls = static_cast<struct fat_dir_struct *>(dir_data.private_dir_data);
   delete (ls->boot_sector);
   delete ls;
 }
@@ -610,12 +610,12 @@ static void dir_partition_fat_close(dir_data_t *dir_data)
   @ decreases 0;
   @*/
 static auto fat_copy(disk_t &disk_car, const partition_t &partition,
-                     dir_data_t *dir_data, const file_info_t &file)
+                     dir_data_t &dir_data, const file_info_t &file)
     -> copy_file_t
 {
   char *new_file;
   const auto *ls =
-      static_cast<const struct fat_dir_struct *>(dir_data->private_dir_data);
+      static_cast<const struct fat_dir_struct *>(dir_data.private_dir_data);
   const struct fat_boot_sector *fat_header = ls->boot_sector;
   const unsigned int sectors_per_cluster   = fat_header->sectors_per_cluster;
   const unsigned int block_size =
@@ -627,7 +627,7 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
   uint64_t start_fat1, start_data, part_size;
   unsigned long int no_of_cluster, fat_length;
   std::ofstream f_out =
-      fopen_local(&new_file, dir_data->local_dir.c_str(), dir_data->current_directory);
+      fopen_local(&new_file, dir_data.local_dir.c_str(), dir_data.current_directory);
   if (!f_out.is_open())
   {
 #ifndef DISABLED_FOR_FRAMAC

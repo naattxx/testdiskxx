@@ -35,7 +35,7 @@ auto set_datestr(char *datestr, size_t n, const time_t timev) -> int;
   @ requires \valid_read(dir_list);
   @ requires \separated(dir_data, dir_list);
   @*/
-auto dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list) -> int;
+auto dir_aff_log(const std::optional<dir_data_t&> dir_data, const dir_list_t &dir_list) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -45,7 +45,7 @@ auto dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list) -> int;
   @ requires \valid_read(dir_data);
   @ requires \valid_read(list);
   @*/
-void log_list_file(const disk_t &disk_car, const partition_t &partition, const dir_data_t *dir_data,
+void log_list_file(const disk_t &disk_car, const partition_t &partition, const dir_data_t &dir_data,
                    const dir_list_t &list);
 
 /*@
@@ -56,7 +56,7 @@ void log_list_file(const disk_t &disk_car, const partition_t &partition, const d
   @ requires \valid_read(dir_data);
   @ requires \separated(disk_car, partition, dir_data);
   @*/
-auto dir_whole_partition_log(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+auto dir_whole_partition_log(disk_t &disk_car, const partition_t &partition, dir_data_t &dir_data,
                             const unsigned long int inode) -> int;
 
 /*@
@@ -67,7 +67,7 @@ auto dir_whole_partition_log(disk_t &disk_car, const partition_t &partition, dir
   @ requires \valid_read(dir_data);
   @ requires \separated(disk_car, partition, dir_data);
   @*/
-void dir_whole_partition_copy(disk_t &disk_car, const partition_t &partition, dir_data_t *dir_data,
+void dir_whole_partition_copy(disk_t &disk_car, const partition_t &partition, dir_data_t &dir_data,
                               const unsigned long int inode);
 
 /*@

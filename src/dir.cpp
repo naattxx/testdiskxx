@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <optional>
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_CHMOD
 #endif
@@ -180,10 +181,10 @@ auto set_datestr(char *datestr, size_t n, const time_t timev) -> int
     return 0;
 }
 
-auto dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list) -> int
+auto dir_aff_log(const std::optional<dir_data_t&> dir_data, const dir_list_t &dir_list) -> int
 {
     int test_date = 0;
-    if (dir_data != nullptr)
+    if (dir_data)
     {
         log_info("Directory {}", dir_data->current_directory);
     }
@@ -201,7 +202,7 @@ auto dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list) -> int
         log_info("{:7} {} {:5}  {:5} {:9} {} ", (unsigned long int)current_file.st_ino, str,
                  (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid,
                  (long long unsigned int)current_file.st_size, datestr);
-        if (dir_data != nullptr && (dir_data->param & FLAG_LIST_PATHNAME) != 0)
+        if (dir_data && (dir_data->param & FLAG_LIST_PATHNAME) != 0)
         {
             if (dir_data->current_directory[1] != '\0')
                 log_info("{}/", dir_data->current_directory);
@@ -214,15 +215,12 @@ auto dir_aff_log(const dir_data_t *dir_data, const dir_list_t &dir_list) -> int
     return test_date;
 }
 
-void log_list_file(const disk_t &disk, const partition_t &partition, const dir_data_t *dir_data,
+void log_list_file(const disk_t &disk, const partition_t &partition, const dir_data_t &dir_data,
                    const dir_list_t &list)
 {
 #ifndef DISABLED_FOR_FRAMAC
     log_partition(disk, partition);
-    if (dir_data != nullptr)
-    {
-        log_info("Directory {}", dir_data->current_directory);
-    }
+    log_info("Directory {}", dir_data.current_directory);
     for (const file_info_t &current_file : list)
     {
         char datestr[80];
@@ -274,40 +272,40 @@ static auto is_inode_valid(const file_info_t &current_file, const unsigned int d
   @ requires \separated(disk, partition, dir_data);
   @ decreases 0;
   @*/
-static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
+static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partition, dir_data_t &dir_data,
                                        const unsigned long int inode) -> int
 {
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
-    const unsigned int current_directory_namelength = strlen(dir_data->current_directory);
+    const unsigned int current_directory_namelength = strlen(dir_data.current_directory);
     dir_list_t dir_list;
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
-    if (dir_data->verbose > 0)
+    if (dir_data.verbose > 0)
         log_info("\ndir_partition inode={}\n", inode);
-    dir_data->get_dir(disk, partition, dir_data, inode, dir_list);
+    dir_data.get_dir(disk, partition, dir_data, inode, dir_list);
     dir_aff_log(dir_data, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
     for (file_info_t &current_file : dir_list)
     {
         if (LINUX_S_ISDIR(current_file.st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0 &&
-            strlen(dir_data->current_directory) + 1 + current_file.name.size() <
-                sizeof(dir_data->current_directory) - 1)
+            strlen(dir_data.current_directory) + 1 + current_file.name.size() <
+                sizeof(dir_data.current_directory) - 1)
         {
-            if (strcmp(dir_data->current_directory, "/") != 0)
-                strcat(dir_data->current_directory, "/");
-            strcat(dir_data->current_directory, current_file.name.c_str());
+            if (strcmp(dir_data.current_directory, "/") != 0)
+                strcat(dir_data.current_directory, "/");
+            strcat(dir_data.current_directory, current_file.name.c_str());
             dir_whole_partition_log_aux(disk, partition, dir_data, current_file.st_ino);
             /* restore current_directory name */
-            dir_data->current_directory[current_directory_namelength] = '\0';
+            dir_data.current_directory[current_directory_namelength] = '\0';
         }
     }
     dir_nbr--;
     return 0;
 }
 
-auto dir_whole_partition_log(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
+auto dir_whole_partition_log(disk_t &disk, const partition_t &partition, dir_data_t &dir_data,
                             const unsigned long int inode) -> int
 {
     log_partition(disk, partition);
@@ -325,26 +323,26 @@ auto dir_whole_partition_log(disk_t &disk, const partition_t &partition, dir_dat
   @ requires \separated(disk, partition, dir_data, copy_ok, copy_bad);
   @ decreases 0;
   @*/
-static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
+static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partition, dir_data_t &dir_data,
                                         const unsigned long int inode, unsigned int *copy_ok, unsigned int *copy_bad) -> int
 {
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
-    const unsigned int current_directory_namelength = strlen(dir_data->current_directory);
+    const unsigned int current_directory_namelength = strlen(dir_data.current_directory);
     dir_list_t dir_list;
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
-    dir_data->get_dir(disk, partition, dir_data, inode, dir_list);
+    dir_data.get_dir(disk, partition, dir_data, inode, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
     for (file_info_t &current_file : dir_list)
     {
-        if (strlen(dir_data->current_directory) + 1 + current_file.name.size() <
-            sizeof(dir_data->current_directory) - 1)
+        if (strlen(dir_data.current_directory) + 1 + current_file.name.size() <
+            sizeof(dir_data.current_directory) - 1)
         {
-            if (strcmp(dir_data->current_directory, "/") != 0)
-                strcat(dir_data->current_directory, "/");
-            strcat(dir_data->current_directory, current_file.name.c_str());
+            if (strcmp(dir_data.current_directory, "/") != 0)
+                strcat(dir_data.current_directory, "/");
+            strcat(dir_data.current_directory, current_file.name.c_str());
             if (LINUX_S_ISDIR(current_file.st_mode) != 0)
             {
                 if (is_inode_valid(current_file, dir_nbr, inode_known) > 0)
@@ -354,25 +352,25 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
             }
             else if (LINUX_S_ISREG(current_file.st_mode) != 0)
             {
-                if (dir_data->copy_file(disk, partition, dir_data, current_file) == 0)
+                if (dir_data.copy_file(disk, partition, dir_data, current_file) == 0)
                     (*copy_ok)++;
                 else
                     (*copy_bad)++;
             }
         }
         /* restore current_directory name */
-        dir_data->current_directory[current_directory_namelength] = '\0';
+        dir_data.current_directory[current_directory_namelength] = '\0';
     }
     dir_nbr--;
     return 0;
 }
 
-void dir_whole_partition_copy(disk_t &disk, const partition_t &partition, dir_data_t *dir_data,
+void dir_whole_partition_copy(disk_t &disk, const partition_t &partition, dir_data_t &dir_data,
                               const unsigned long int inode)
 {
     unsigned int copy_ok = 0;
     unsigned int copy_bad = 0;
-    dir_data->local_dir = std::filesystem::current_path();
+    dir_data.local_dir = std::filesystem::current_path();
     dir_whole_partition_copy_aux(disk, partition, dir_data, inode, &copy_ok, &copy_bad);
     log_info("Copy done! {} ok, {} failed", copy_ok, copy_bad);
 }

@@ -1315,7 +1315,7 @@ static struct td_list_head *ntfs_prev_non_deleted(
 
 static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
                                        const partition_t &partition,
-                                       dir_data_t *dir_data,
+                                       dir_data_t &dir_data,
                                        file_info_t *dir_list)
 {
   struct ntfs_dir_struct *ls =
@@ -1702,14 +1702,14 @@ static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
 }
 #endif
 
-static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
+static void ntfs_undelete_cli(dir_data_t &dir_data, const dir_list_t &dir_list)
 {
   unsigned int file_ok  = 0;
   unsigned int file_bad = 0;
   const auto *ls =
-      static_cast<const struct ntfs_dir_struct *>(dir_data->private_dir_data);
+      static_cast<const struct ntfs_dir_struct *>(dir_data.private_dir_data);
 
-  dir_data->local_dir = opts.dest = std::filesystem::current_path();
+  dir_data.local_dir = opts.dest = std::filesystem::current_path();
   for (const file_info_t &file_info : dir_list)
   {
     if (undelete_file(ls->vol, file_info.st_ino) < 0)
@@ -1718,13 +1718,13 @@ static void ntfs_undelete_cli(dir_data_t *dir_data, const dir_list_t &dir_list)
       file_ok++;
   }
   log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
-  dir_data->local_dir.clear();
+  dir_data.local_dir.clear();
   opts.dest.clear();
 }
 
 static void ntfs_undelete_menu(const disk_t &disk_car,
                                const partition_t &partition,
-                               dir_data_t *dir_data, dir_list_t &dir_list,
+                               dir_data_t &dir_data, dir_list_t &dir_list,
                                char **current_cmd)
 {
   log_list_file(disk_car, partition, dir_data, dir_list);
@@ -1750,7 +1750,7 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
   WINDOW *window;
 #endif
   dir_partition_t res =
-      dir_partition_ntfs_init(disk_car, partition, &dir_data, verbose, 0);
+      dir_partition_ntfs_init(disk_car, partition, dir_data, verbose, 0);
 #ifdef HAVE_NCURSES
   window           = newwin(LINES, COLS, 0, 0); /* full screen */
   dir_data.display = window;
@@ -1801,8 +1801,8 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
     auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
     dir_list_t dir_list;
     scan_disk(ls->vol, dir_list);
-    ntfs_undelete_menu(disk_car, partition, &dir_data, dir_list, current_cmd);
-    dir_data.close(&dir_data);
+    ntfs_undelete_menu(disk_car, partition, dir_data, dir_list, current_cmd);
+    dir_data.close(dir_data);
   }
   break;
   }

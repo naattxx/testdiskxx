@@ -20,6 +20,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include "src/dir_common.hpp"
 #include <config.h>
 
 #include <cstdio>
@@ -61,9 +62,9 @@ struct rfs_dir_struct
   int flags;
 };
 static int reiser_dir(disk_t &disk_car, const partition_t &partition,
-                      dir_data_t *dir_data, const unsigned long int cluster,
+                      dir_data_t &dir_data, const unsigned long int cluster,
                       file_info_t *dir_list);
-static void dir_partition_reiser_close(dir_data_t *dir_data);
+static void dir_partition_reiser_close(dir_data_t &dir_data);
 
 #ifdef HAVE_STRUCT_DAL_OPS_DEV
 dev_t dal_dev(dal_t *dal)
@@ -458,7 +459,7 @@ blk_t dal_len(dal_t *dal)
 }
 
 static int reiser_dir(disk_t &disk_car, const partition_t &partition,
-                      dir_data_t *dir_data, const unsigned long int cluster,
+                      dir_data_t &dir_data, const unsigned long int cluster,
                       file_info_t *dir_list)
 {
   struct rfs_dir_struct *ls =
@@ -509,7 +510,7 @@ static int reiser_dir(disk_t &disk_car, const partition_t &partition,
   return 0;
 }
 
-static void dir_partition_reiser_close(dir_data_t *dir_data)
+static void dir_partition_reiser_close(dir_data_t &dir_data)
 {
   struct rfs_dir_struct *ls =
       (struct rfs_dir_struct *)dir_data->private_dir_data;
@@ -519,7 +520,7 @@ static void dir_partition_reiser_close(dir_data_t *dir_data)
 }
 
 static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t *dir_data, const file_info_t *file)
+                               dir_data_t &dir_data, const file_info_t *file)
 {
   reiserfs_file_t *in;
   char *new_file;
@@ -599,7 +600,7 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
 #endif
 
 auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t *dir_data, const int verbose)
+                               dir_data_t &dir_data, const int verbose)
     -> dir_partition_t
 {
 #ifdef HAVE_LIBREISERFS

@@ -42,7 +42,7 @@ auto dir_fat_aux(const unsigned char *buffer, const unsigned int size,
   @ decreases 0;
   @*/
 auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
-                            dir_data_t *dir_data, const int verbose)
+                            dir_data_t &dir_data, const int verbose)
     -> dir_partition_t;
 
 #endif

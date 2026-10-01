@@ -1151,19 +1151,19 @@ static auto fat_has_EFI_entry(disk_t &disk, const partition_t &partition,
   dir_data_t dir_data;
   dir_list_t dir_list;
   const dir_partition_t res =
-      dir_partition_fat_init(disk, partition, &dir_data, verbose);
+      dir_partition_fat_init(disk, partition, dir_data, verbose);
   if (res != DIR_PART_OK)
     return 0;
-  dir_data.get_dir(disk, partition, &dir_data, 0, dir_list);
+  dir_data.get_dir(disk, partition, dir_data, 0, dir_list);
   for (const file_info_t &current_file : dir_list)
   {
     if (current_file.name == "EFI")
     {
-      dir_data.close(&dir_data);
+      dir_data.close(dir_data);
       return 1;
     }
   }
-  dir_data.close(&dir_data);
+  dir_data.close(dir_data);
 #endif
   return 0;
 }

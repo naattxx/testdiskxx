@@ -187,7 +187,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     /* Use MFT */
     io_redir_add_redir(disk_car, mftmirr_pos, mftmirr_size_bytes, 0,
                        buffer_mft);
-    res1 = dir_partition_ntfs_init(disk_car, partition, &dir_data, verbose, 0);
+    res1 = dir_partition_ntfs_init(disk_car, partition, dir_data, verbose, 0);
     if (res1 == DIR_PART_ENOSYS)
     {
       ; // display_message("Can't determine which MFT is correct, ntfslib is
@@ -202,35 +202,35 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     if (res1 == DIR_PART_OK)
     {
       dir_list_t dir_list;
-      dir_data.get_dir(disk_car, partition, &dir_data, dir_data.current_inode,
+      dir_data.get_dir(disk_car, partition, dir_data, dir_data.current_inode,
                        dir_list);
       if (!dir_list.empty())
       {
         log_info("NTFS listing using MFT:\n");
-        dir_aff_log(&dir_data, dir_list);
+        dir_aff_log(dir_data, dir_list);
         if (dir_list.size() > 2)
           res1++;
       }
-      dir_data.close(&dir_data);
+      dir_data.close(dir_data);
     }
     io_redir_del_redir(disk_car, mftmirr_pos);
     /* Use MFT mirror */
     io_redir_add_redir(disk_car, mft_pos, mftmirr_size_bytes, 0,
                        buffer_mftmirr);
-    res2 = dir_partition_ntfs_init(disk_car, partition, &dir_data, verbose, 0);
+    res2 = dir_partition_ntfs_init(disk_car, partition, dir_data, verbose, 0);
     if (res2 == DIR_PART_OK)
     {
       dir_list_t dir_list;
-      dir_data.get_dir(disk_car, partition, &dir_data, dir_data.current_inode,
+      dir_data.get_dir(disk_car, partition, dir_data, dir_data.current_inode,
                        dir_list);
       if (!dir_list.empty())
       {
         log_info("NTFS listing using MFT mirror:\n");
-        dir_aff_log(&dir_data, dir_list);
+        dir_aff_log(dir_data, dir_list);
         if (dir_list.size() > 2)
           res2++;
       }
-      dir_data.close(&dir_data);
+      dir_data.close(dir_data);
     }
     io_redir_del_redir(disk_car, mft_pos);
     /* */

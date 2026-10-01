@@ -31,6 +31,7 @@
 #include <ctime>
 #include <format>
 #include <iterator>
+#include <optional>
 #include <utility>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
@@ -442,7 +443,7 @@ static auto fat32_find_root_cluster(
             dir_fat_aux(buffer, cluster_size, 0, dir_list);
             if (verbose > 0)
             {
-              dir_aff_log(nullptr, dir_list);
+              dir_aff_log(std::nullopt, dir_list);
             }
             {
               file_info_t new_file = dir_list.front();
@@ -593,7 +594,7 @@ static auto fat32_find_root_cluster(
                 if (verbose > 0)
                 {
                   // log_verbose("Potential root_cluster {}\n",root_cluster);
-                  test_date = dir_aff_log(nullptr, dir_list);
+                  test_date = dir_aff_log(std::nullopt, dir_list);
                 }
 #ifdef HAVE_NCURSES
                 if (interactive > 0 && test_date > 0)
@@ -633,7 +634,7 @@ static auto fat32_find_root_cluster(
     }
     else
     {
-      dir_aff_log(nullptr, rootdir_list);
+      dir_aff_log(std::nullopt, rootdir_list);
 #ifdef HAVE_NCURSES
       if (expert > 0)
       {
@@ -977,7 +978,7 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
               dir_list);
   if (verbose > 1)
   {
-    dir_aff_log(nullptr, dir_list);
+    dir_aff_log(std::nullopt, dir_list);
   }
   for (const file_info_t &current_file : dir_list)
   {

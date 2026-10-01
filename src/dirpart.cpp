@@ -42,7 +42,7 @@
 #include "part/rfs_dir.hpp"
 
 static auto dir_partition_init(disk_t &disk, const partition_t &partition, const int verbose,
-                                          const int expert, dir_data_t *dir_data) -> dir_partition_t
+                                          const int expert, dir_data_t &dir_data) -> dir_partition_t
 {
     if (is_part_fat(partition))
     {
@@ -95,7 +95,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
 #endif
     dir_partition_t res;
     fflush(stderr);
-    res = dir_partition_init(disk, partition, verbose, expert, &dir_data);
+    res = dir_partition_init(disk, partition, verbose, expert, dir_data);
 #ifdef HAVE_NCURSES
     window = newwin(LINES, COLS, 0, 0); /* full screen */
     dir_data.display = window;
@@ -185,7 +185,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
             } while (do_continue == 1);
         }
         if (recursive > 0)
-            dir_whole_partition_log(disk, partition, &dir_data, dir_data.current_inode);
+            dir_whole_partition_log(disk, partition, dir_data, dir_data.current_inode);
         else
         {
 #ifdef HAVE_NCURSES
@@ -198,14 +198,14 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
             }
             {
                 dir_list_t dir_list;
-                dir_data.get_dir(disk, partition, &dir_data, dir_data.current_inode, dir_list);
-                dir_aff_log(&dir_data, dir_list);
+                dir_data.get_dir(disk, partition, dir_data, dir_data.current_inode, dir_list);
+                dir_aff_log(dir_data, dir_list);
             }
 #endif
         }
         if (copy_files > 0)
-            dir_whole_partition_copy(disk, partition, &dir_data, dir_data.current_inode);
-        dir_data.close(&dir_data);
+            dir_whole_partition_copy(disk, partition, dir_data, dir_data.current_inode);
+        dir_data.close(dir_data);
     }
     break;
     }
