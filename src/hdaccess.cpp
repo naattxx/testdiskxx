@@ -200,14 +200,6 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
                                     const unsigned int sector_size) -> uint64_t;
 #endif
 
-disk_t::~disk_t() noexcept
-{
-    delete[] (rbuffer);
-    delete[] (wbuffer);
-    rbuffer = nullptr;
-    wbuffer = nullptr;
-}
-
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
 static void insert_new_disk_nodup(list_disk_t &list_disk, disk_t &disk_car, const char *device_name,
                                           const int verbose)

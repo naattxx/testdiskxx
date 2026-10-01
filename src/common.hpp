@@ -533,8 +533,6 @@ struct disk_t
     std::string model;
     std::string serial_no;
     std::string fw_rev;
-    disk_t() = default;
-    ~disk_t() noexcept;
     void update_fields() noexcept;
     void update_geometry(const int verbose);
     void autoset_geometry(const unsigned char *buffer, const int verbose) noexcept;
@@ -558,10 +556,8 @@ struct disk_t
     uint64_t native_max{0};
     uint64_t dco{0};
     uint64_t offset{0}; /* offset to first sector, may be modified in the futur to handle broken raid */
-    char *rbuffer{nullptr};
-    char *wbuffer{nullptr};
-    unsigned int rbuffer_size{0};
-    unsigned int wbuffer_size{0};
+    std::vector<char> rbuffer;
+    std::vector<char> wbuffer;
     int write_used{0};
     int autodetect{0};
     int access_mode;

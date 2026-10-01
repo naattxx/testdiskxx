@@ -335,10 +335,8 @@ auto new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode) -> disk_t
     new_disk_car.clean = &cache_clean;
     new_disk_car.description = &cache_description;
     new_disk_car.description_short = &cache_description_short;
-    new_disk_car.rbuffer = nullptr;
-    new_disk_car.wbuffer = nullptr;
-    new_disk_car.rbuffer_size = 0;
-    new_disk_car.wbuffer_size = 0;
+    new_disk_car.rbuffer.clear();
+    new_disk_car.wbuffer.clear();
     for (i = 0; i < CACHE_BUFFER_NBR; i++)
     {
         data->cache[i].buffer = nullptr;
