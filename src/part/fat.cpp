@@ -567,7 +567,7 @@ auto set_next_cluster(disk_t &disk_car, const partition_t &partition,
                (to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0xF));
     else
       (*(reinterpret_cast<uint16_t *>(&buffer[offset_o]))) =
-          to_little_endian((next_cluster) |
+          to_little_endian(next_cluster |
                (to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0xF000));
     break;
   case UP_FAT16: {
