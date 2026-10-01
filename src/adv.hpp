@@ -28,6 +28,6 @@
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-auto is_part_linux(const partition_t &partition) -> int;
+auto is_part_linux(const partition_t &partition) noexcept -> int;
 
 #endif

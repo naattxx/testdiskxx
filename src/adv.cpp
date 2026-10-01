@@ -61,7 +61,7 @@ extern const arch_fnct_t arch_xbox;
 #define INTER_ADV (LINES - 2 - 7 - 1)
 #endif
 
-auto is_part_linux(const partition_t &partition) -> int
+auto is_part_linux(const partition_t &partition) noexcept -> int
 {
     if (partition.arch == &arch_i386 && partition.part_type_i386 == P_LINUX)
         return 1;

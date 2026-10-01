@@ -39,7 +39,8 @@ extern const arch_fnct_t arch_none;
 extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
 
-static auto is_part_hfs(const partition_t &partition) -> int
+[[nodiscard]]
+static auto is_part_hfs(const partition_t &partition) noexcept -> int
 {
   if (partition.part_type_i386 == P_HFS || partition.part_type_mac == PMAC_HFS)
     return 1;
@@ -48,7 +49,8 @@ static auto is_part_hfs(const partition_t &partition) -> int
   return 0;
 }
 
-static auto is_part_hfsp(const partition_t &partition) -> int
+[[nodiscard]]
+static auto is_part_hfsp(const partition_t &partition) noexcept -> int
 {
   if (partition.part_type_i386 == P_HFSP || partition.part_type_mac == PMAC_HFS)
     return 1;
@@ -57,23 +59,27 @@ static auto is_part_hfsp(const partition_t &partition) -> int
   return 0;
 }
 
-static auto is_exfat(const partition_t &partition) -> int
+[[nodiscard]]
+static auto is_exfat(const partition_t &partition) noexcept -> int
 {
   return (is_part_ntfs(partition) || partition.upart_type == UP_EXFAT);
 }
 
-static auto is_hfs(const partition_t &partition) -> int
+[[nodiscard]]
+static auto is_hfs(const partition_t &partition) noexcept -> int
 {
   return (is_part_hfs(partition) || partition.upart_type == UP_HFS);
 }
 
-static auto is_hfsp(const partition_t &partition) -> int
+[[nodiscard]]
+static auto is_hfsp(const partition_t &partition) noexcept -> int
 {
   return (is_part_hfsp(partition) || partition.upart_type == UP_HFSP ||
           partition.upart_type == UP_HFSX);
 }
 
-static auto is_linux(const partition_t &partition) -> int
+[[nodiscard]]
+static auto is_linux(const partition_t &partition) noexcept -> int
 {
   if (is_part_linux(partition))
     return 1;
@@ -100,7 +106,8 @@ static auto is_linux(const partition_t &partition) -> int
   return 0;
 }
 
-static auto adv_get_boot_description(const partition_t &partition)
+[[nodiscard]]
+static auto adv_get_boot_description(const partition_t &partition) noexcept
     -> std::string_view
 {
   if (is_part_linux(partition))
@@ -124,7 +131,8 @@ static auto adv_get_boot_description(const partition_t &partition)
 
 static void adv_get_options_for_partition(const partition_t &partition,
                                           bool &hasBoot, bool &hasSuperblock,
-                                          bool &hasList, bool &hasUndelete)
+                                          bool &hasList,
+                                          bool &hasUndelete) noexcept
 {
   if (is_part_fat(partition))
   {
