@@ -31,6 +31,10 @@ conf_data.set(
   'HAVE_PWRITE',
   compiler.has_function('pwrite', prefix: '#include <unistd.h>'),
 )
+conf_data.set(
+  'HAVE_MKDIR',
+  compiler.has_function('mkdir', prefix: '#include <io.h>'),
+)
 
 libewf = compiler.find_library('libewf', required: false)
 libntfs = compiler.find_library('libntfs', required: false)

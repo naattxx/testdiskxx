@@ -695,7 +695,7 @@ auto mkdir_local(const char *localroot, const char *pathname) -> char *
     if (localroot != nullptr)
         memcpy(localdir, localroot, l1);
     memcpy(localdir + l1, pathname, l2 + 1);
-#ifdef __linux__
+#ifdef HAVE_MKDIR
 #ifdef __MINGW32__
     if (mkdir(localdir) >= 0 || errno == EEXIST)
         return localdir;
