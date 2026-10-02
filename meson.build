@@ -325,6 +325,10 @@ deps = [
   libuuid,
 ]
 
+if compiler.get_define('__MINGW32__') != ''
+  deps += compiler.find_library('stdc++exp')
+endif
+
 executable(
   'testdisk',
   sources,
