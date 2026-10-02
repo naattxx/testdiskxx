@@ -1816,8 +1816,8 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
   return res;
 }
 #else
-int ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
-                       const int verbose, char **current_cmd)
+auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
+                       const int verbose, char **current_cmd) -> int
 {
 #ifdef HAVE_NCURSES
   WINDOW *window;

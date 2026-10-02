@@ -29,15 +29,15 @@
 #include <string_view>
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
 #include "common.hpp"
-#include <stdlib.h> /* free */
+#include <cstdlib> /* free */
 #if __has_include(<windef.h>)
 #include <windef.h>
 #endif
 #if __has_include(<winbase.h>)
-#include <stdarg.h>
+#include <cstdarg>
 #include <winbase.h>
 #endif
-#include <ctype.h> /* isspace */
+#include <cctype> /* isspace */
 #if __has_include(<winioctl.h>)
 #include <winioctl.h>
 #endif
@@ -55,30 +55,30 @@
 
 extern const arch_fnct_t arch_none;
 
-static unsigned int file_win32_compute_sector_size(HANDLE handle);
-static uint64_t filewin32_getfilesize(HANDLE handle, const char *device);
-static std::string_view file_win32_description(disk_t &disk_car);
-static std::string_view file_win32_description_short(disk_t &disk_car);
+static auto file_win32_compute_sector_size(HANDLE handle) -> unsigned int;
+static auto filewin32_getfilesize(HANDLE handle, const char *device) -> uint64_t;
+static auto file_win32_description(disk_t &disk_car) -> std::string_view;
+static auto file_win32_description_short(disk_t &disk_car) -> std::string_view;
 static void file_win32_clean(disk_t &disk_car);
-static int file_win32_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset);
-static int file_win32_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset);
-static int file_win32_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset);
-static int file_win32_sync(disk_t &disk_car);
-static uint64_t filewin32_setfilepointer(HANDLE handle, const char *device);
+static auto file_win32_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset) -> int;
+static auto file_win32_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int;
+static auto file_win32_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int;
+static auto file_win32_sync(disk_t &disk_car) -> int;
+static auto filewin32_setfilepointer(HANDLE handle, const char *device) -> uint64_t;
 
-unsigned int disk_get_sector_size_win32(HANDLE handle, const char *device, const int verbose)
+auto disk_get_sector_size_win32(HANDLE handle, const char *device, const int verbose) -> unsigned int
 {
     unsigned int sector_size;
     DWORD gotbytes;
     DISK_GEOMETRY geometry;
     DISK_GEOMETRY_EX geometry_ex;
-    if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, NULL, 0, &geometry_ex, sizeof(geometry_ex), &gotbytes,
-                        NULL))
+    if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, nullptr, 0, &geometry_ex, sizeof(geometry_ex), &gotbytes,
+                        nullptr))
     {
         if (geometry_ex.Geometry.BytesPerSector <= (1 << 24))
             return geometry_ex.Geometry.BytesPerSector;
     }
-    if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY, NULL, 0, &geometry, sizeof(geometry), &gotbytes, NULL))
+    if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY, nullptr, 0, &geometry, sizeof(geometry), &gotbytes, nullptr))
     {
         if (geometry.BytesPerSector <= (1 << 24))
             return geometry.BytesPerSector;
@@ -89,13 +89,13 @@ unsigned int disk_get_sector_size_win32(HANDLE handle, const char *device, const
     return sector_size;
 }
 
-uint64_t disk_get_size_win32(HANDLE handle, const char *device, const int verbose)
+auto disk_get_size_win32(HANDLE handle, const char *device, const int verbose) -> uint64_t
 {
     uint64_t disk_size = 0;
     {
         GET_LENGTH_INFORMATION buf;
         DWORD i;
-        if (DeviceIoControl(handle, IOCTL_DISK_GET_LENGTH_INFO, NULL, 0, &buf, sizeof(buf), &i, NULL))
+        if (DeviceIoControl(handle, IOCTL_DISK_GET_LENGTH_INFO, nullptr, 0, &buf, sizeof(buf), &i, nullptr))
         {
             disk_size = (uint64_t)buf.Length.QuadPart;
             log_info("disk_get_size_win32 IOCTL_DISK_GET_LENGTH_INFO(%s)=%llu\n", device,
@@ -121,8 +121,8 @@ uint64_t disk_get_size_win32(HANDLE handle, const char *device, const int verbos
     {
         DWORD gotbytes;
         DISK_GEOMETRY_EX geometry_ex;
-        if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, NULL, 0, &geometry_ex, sizeof(geometry_ex),
-                            &gotbytes, NULL))
+        if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, nullptr, 0, &geometry_ex, sizeof(geometry_ex),
+                            &gotbytes, nullptr))
         {
             disk_size = (uint64_t)geometry_ex.DiskSize.QuadPart;
             if (verbose > 1)
@@ -142,8 +142,8 @@ void disk_get_geometry_win32(CHSgeometry_t *geom, HANDLE handle, const char *dev
     {
         DWORD gotbytes;
         DISK_GEOMETRY_EX geometry_ex;
-        if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, NULL, 0, &geometry_ex, sizeof(geometry_ex),
-                            &gotbytes, NULL))
+        if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, nullptr, 0, &geometry_ex, sizeof(geometry_ex),
+                            &gotbytes, nullptr))
         {
             geom->cylinders = geometry_ex.Geometry.Cylinders.QuadPart;
             geom->heads_per_cylinder = geometry_ex.Geometry.TracksPerCylinder;
@@ -160,8 +160,8 @@ void disk_get_geometry_win32(CHSgeometry_t *geom, HANDLE handle, const char *dev
     {
         DWORD gotbytes;
         DISK_GEOMETRY geometry;
-        if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY, NULL, 0, &geometry, sizeof(geometry), &gotbytes,
-                            NULL))
+        if (DeviceIoControl(handle, IOCTL_DISK_GET_DRIVE_GEOMETRY, nullptr, 0, &geometry, sizeof(geometry), &gotbytes,
+                            nullptr))
         {
             geom->cylinders = geometry.Cylinders.QuadPart;
             geom->heads_per_cylinder = geometry.TracksPerCylinder;
@@ -188,7 +188,7 @@ struct info_file_win32_struct
     int mode;
 };
 
-static uint64_t filewin32_getfilesize(HANDLE handle, const char *device)
+static auto filewin32_getfilesize(HANDLE handle, const char *device) -> uint64_t
 {
     uint64_t disk_size;
     DWORD lpFileSizeLow;
@@ -198,8 +198,8 @@ static uint64_t filewin32_getfilesize(HANDLE handle, const char *device)
     {
         LPVOID lpMsgBuf;
         DWORD dw = GetLastError();
-        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
-                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, dw,
+                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
         log_error("filewin32_getfilesize(%s) GetFileSize err %s\n", device, (char *)lpMsgBuf);
         LocalFree(lpMsgBuf);
         return 0;
@@ -209,7 +209,7 @@ static uint64_t filewin32_getfilesize(HANDLE handle, const char *device)
     return disk_size;
 }
 
-static uint64_t filewin32_setfilepointer(HANDLE handle, const char *device)
+static auto filewin32_setfilepointer(HANDLE handle, const char *device) -> uint64_t
 {
     uint64_t disk_size;
     LARGE_INTEGER li;
@@ -219,8 +219,8 @@ static uint64_t filewin32_setfilepointer(HANDLE handle, const char *device)
     {
         LPVOID lpMsgBuf;
         DWORD dw = GetLastError();
-        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
-                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, dw,
+                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
         log_error("filewin32_setfilepointer(%s) SetFilePointer err %s\n", device, (char *)lpMsgBuf);
         LocalFree(lpMsgBuf);
         return 0;
@@ -230,7 +230,7 @@ static uint64_t filewin32_setfilepointer(HANDLE handle, const char *device)
     return disk_size;
 }
 
-std::optional<disk_t> file_test_availability_win32(const char *device, const int verbose, int testdisk_mode)
+auto file_test_availability_win32(const char *device, const int verbose, int testdisk_mode) -> std::optional<disk_t>
 {
     disk_t disk_car;
     HANDLE handle = INVALID_HANDLE_VALUE;
@@ -239,7 +239,7 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
     if ((testdisk_mode & TESTDISK_O_RDWR) == TESTDISK_O_RDWR)
     {
         mode = FILE_READ_DATA | FILE_WRITE_DATA;
-        handle = CreateFile(device, mode, (FILE_SHARE_WRITE | FILE_SHARE_READ), NULL, OPEN_EXISTING, 0, NULL);
+        handle = CreateFile(device, mode, (FILE_SHARE_WRITE | FILE_SHARE_READ), nullptr, OPEN_EXISTING, 0, nullptr);
         if (handle == INVALID_HANDLE_VALUE)
         {
             if (verbose > 1)
@@ -248,8 +248,8 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
                 log_error("file_test_availability_win32 RW failed {}", device);
 #else
                 LPVOID buf;
-                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
-                              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&buf, 0, NULL);
+                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, GetLastError(),
+                              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&buf, 0, nullptr);
                 log_error("file_test_availability_win32 RW failed: {}: {}", device, (const char *)buf);
                 LocalFree(buf);
 #endif
@@ -261,7 +261,7 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
     {
         testdisk_mode &= ~TESTDISK_O_RDWR;
         mode = FILE_READ_DATA;
-        handle = CreateFile(device, mode, (FILE_SHARE_WRITE | FILE_SHARE_READ), NULL, OPEN_EXISTING, 0, NULL);
+        handle = CreateFile(device, mode, (FILE_SHARE_WRITE | FILE_SHARE_READ), nullptr, OPEN_EXISTING, 0, nullptr);
         if (handle == INVALID_HANDLE_VALUE)
         {
             if (verbose > 1)
@@ -270,8 +270,8 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
                 log_error("file_test_availability_win32 RO {} error\n", device);
 #else
                 LPVOID buf;
-                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
-                              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&buf, 0, NULL);
+                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, GetLastError(),
+                              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&buf, 0, nullptr);
                 log_error("file_test_availability_win32 RO failed: {}: {}", device, (const char *)buf);
                 LocalFree(buf);
 #endif
@@ -283,7 +283,7 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
     {
         struct info_file_win32_struct *data;
         disk_car.arch = &arch_none;
-        disk_car.device = strdup(device);
+        disk_car.device = device;
         data = new struct info_file_win32_struct;
         data->handle = handle;
         data->mode = mode;
@@ -309,9 +309,9 @@ std::optional<disk_t> file_test_availability_win32(const char *device, const int
     return std::nullopt;
 }
 
-static std::string_view file_win32_description(disk_t &disk_car)
+static auto file_win32_description(disk_t &disk_car) -> std::string_view
 {
-    struct info_file_win32_struct *data = (struct info_file_win32_struct *)disk_car.data;
+    auto *data = (struct info_file_win32_struct *)disk_car.data;
     char buffer_disk_size[100];
     size_to_unit(disk_car.disk_size, buffer_disk_size);
     if (disk_car.device[0] == '\\' && disk_car.device[1] == '\\' && disk_car.device[2] == '.' &&
@@ -326,9 +326,9 @@ static std::string_view file_win32_description(disk_t &disk_car)
     return disk_car.description_txt;
 }
 
-static std::string_view file_win32_description_short(disk_t &disk_car)
+static auto file_win32_description_short(disk_t &disk_car) -> std::string_view
 {
-    struct info_file_win32_struct *data = (struct info_file_win32_struct *)disk_car.data;
+    auto *data = (struct info_file_win32_struct *)disk_car.data;
     char buffer_disk_size[100];
     size_to_unit(disk_car.disk_size, buffer_disk_size);
     if (disk_car.device[0] == '\\' && disk_car.device[1] == '\\' && disk_car.device[2] == '.' &&
@@ -359,16 +359,16 @@ static std::string_view file_win32_description_short(disk_t &disk_car)
 
 static void file_win32_clean(disk_t &disk)
 {
-    if (disk.data != NULL)
+    if (disk.data != nullptr)
     {
-        struct info_file_win32_struct *data = (struct info_file_win32_struct *)disk.data;
+        auto *data = (struct info_file_win32_struct *)disk.data;
         CloseHandle(data->handle);
         delete data;
         data = nullptr;
     }
 }
 
-static unsigned int file_win32_compute_sector_size(HANDLE handle)
+static auto file_win32_compute_sector_size(HANDLE handle) -> unsigned int
 {
     char *buffer = new char[4096];
     unsigned int sector_size;
@@ -376,7 +376,7 @@ static unsigned int file_win32_compute_sector_size(HANDLE handle)
     {
         long int ret;
         DWORD dwByteRead;
-        ret = ReadFile(handle, buffer, sector_size, &dwByteRead, NULL);
+        ret = ReadFile(handle, buffer, sector_size, &dwByteRead, nullptr);
         if (ret && dwByteRead == sector_size)
         {
             delete[] buffer;
@@ -387,7 +387,7 @@ static unsigned int file_win32_compute_sector_size(HANDLE handle)
     return 0;
 }
 
-static int file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset)
+static auto file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     long int ret;
     HANDLE fd = ((const struct info_file_win32_struct *)disk_car.data)->handle;
@@ -398,8 +398,8 @@ static int file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigne
     {
         LPVOID lpMsgBuf;
         DWORD dw = GetLastError();
-        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
-                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, dw,
+                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
         log_error("file_win32_pread({},{},buffer,{}({}/{}/{})) seek err {}", (size_t)fd,
                   (unsigned)(count / disk_car.sector_size), (long unsigned int)(offset / disk_car.sector_size),
                   offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset),
@@ -409,7 +409,7 @@ static int file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigne
     }
     {
         DWORD dwByteRead;
-        ret = ReadFile(fd, buf, count, &dwByteRead, NULL);
+        ret = ReadFile(fd, buf, count, &dwByteRead, nullptr);
         if (ret)
             ret = dwByteRead;
     }
@@ -425,8 +425,8 @@ static int file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigne
             {
                 LPVOID lpMsgBuf;
                 DWORD dw = GetLastError();
-                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
-                              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, dw,
+                              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
                 log_error("{}", (char *)lpMsgBuf);
                 LocalFree(lpMsgBuf);
             }
@@ -441,12 +441,12 @@ static int file_win32_pread_aux(const disk_t &disk_car, void *buf, const unsigne
     return ret;
 }
 
-static int file_win32_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset)
+static auto file_win32_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     return align_pread(&file_win32_pread_aux, disk_car, buf, count, offset);
 }
 
-static int file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
+static auto file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     long int ret;
     HANDLE fd = ((const struct info_file_win32_struct *)disk_car.data)->handle;
@@ -457,8 +457,8 @@ static int file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsign
     {
         LPVOID lpMsgBuf;
         DWORD dw = GetLastError();
-        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw,
-                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, dw,
+                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
         log_error("file_win32_pwrite({},{},buffer,{}({}/{}/{})) seek err {}", (size_t)fd,
                   (unsigned)(count / disk_car.sector_size), (long unsigned int)(offset / disk_car.sector_size),
                   offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset),
@@ -468,7 +468,7 @@ static int file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsign
     }
     {
         DWORD dwByteRead;
-        ret = WriteFile(fd, buf, count, &dwByteRead, NULL);
+        ret = WriteFile(fd, buf, count, &dwByteRead, nullptr);
         if (ret)
             ret = dwByteRead;
     }
@@ -482,23 +482,23 @@ static int file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsign
     return ret;
 }
 
-static int file_win32_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
+static auto file_win32_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     return align_pwrite(&file_win32_pread_aux, &file_win32_pwrite_aux, disk_car, buf, count, offset);
 }
 
-static int file_win32_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset)
+static auto file_win32_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
-    const struct info_file_win32_struct *data = (const struct info_file_win32_struct *)disk_car.data;
+    const auto *data = (const struct info_file_win32_struct *)disk_car.data;
     log_warning("file_win32_nopwrite({},{},buffer,{}({}/{}/{})) write refused", (size_t)data->handle,
                 (unsigned)(count / disk_car.sector_size), (long unsigned)(offset / disk_car.sector_size),
                 offset2cylinder(disk_car, offset), offset2head(disk_car, offset), offset2sector(disk_car, offset));
     return -1;
 }
 
-static int file_win32_sync(disk_t &disk_car)
+static auto file_win32_sync(disk_t &disk_car) -> int
 {
-    const struct info_file_win32_struct *data = (const struct info_file_win32_struct *)disk_car.data;
+    const auto *data = (const struct info_file_win32_struct *)disk_car.data;
     if (FlushFileBuffers(data->handle) == 0)
     {
         errno = EINVAL;

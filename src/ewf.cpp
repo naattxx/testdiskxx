@@ -585,7 +585,7 @@ auto td_ewf_version() -> const char*
 }
 #else
 #include "ewf.hpp"
-const char*td_ewf_version(void)
+auto td_ewf_version() -> const char*
 {
   return "none";
 }

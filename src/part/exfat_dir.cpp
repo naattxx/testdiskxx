@@ -114,12 +114,12 @@ static auto exfat_ucstoutf8(iconv_t cd, const unsigned char *ins,
  *      Returns size or zero for invalid input
  */
 
-static unsigned int makeutf8(char *utf8, const char *utf16, int length)
+static auto makeutf8(char *utf8, const char *utf16, int length) -> unsigned int
 {
   int i;
   unsigned int size;
   unsigned int rem;
-  enum
+  enum : uint8_t
   {
     BASE,
     SURR,

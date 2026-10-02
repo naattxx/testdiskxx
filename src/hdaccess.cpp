@@ -102,7 +102,7 @@
 #include <windef.h>
 #endif
 #if __has_include(<winbase.h>)
-#include <stdarg.h>
+#include <cstdarg>
 #include <winbase.h>
 #endif
 #if __has_include(<winioctl.h>)
@@ -265,13 +265,13 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
     }
 #elif defined(__CYGWIN__) || defined(__MINGW32__) || defined (_WIN32)
     {
-        char device_hd[] = "\\\\.\\PhysicalDrive00";
-        char device_cdrom[] = "\\\\.\\C:";
+        char device_hd[] = R"(\\.\PhysicalDrive00)";
+        char device_cdrom[] = R"(\\.\C:)";
         /* Disk */
         for (i = 0; i < 64; i++)
         {
             std::optional<disk_t> disk_car;
-            sprintf(device_hd, "\\\\.\\PhysicalDrive%u", i);
+            sprintf(device_hd, R"(\\.\PhysicalDrive%u)", i);
             disk_car = file_test_availability_win32(device_hd, verbose, testdisk_mode);
             if (disk_car)
                 insert_new_disk(list_disk, disk_car.value());
@@ -642,7 +642,7 @@ static auto disk_get_sector_size(const int hd_h, const char *device, const int v
     }
     {
         HANDLE handle;
-#if defined(__CYGWIN__)
+#ifdef __CYGWIN__
         handle = (HANDLE)get_osfhandle(hd_h);
 #else
         handle = (HANDLE)_get_osfhandle(hd_h);
@@ -802,7 +802,7 @@ static void disk_get_geometry(CHSgeometry_t *geom, const int hd_h, const char *d
 #if defined(__CYGWIN__) || defined(__MINGW32__)
     {
         HANDLE handle;
-#if defined(__CYGWIN__)
+#ifdef __CYGWIN__
         handle = (HANDLE)get_osfhandle(hd_h);
 #else
         handle = (HANDLE)_get_osfhandle(hd_h);
@@ -903,7 +903,7 @@ static auto disk_get_size(const int hd_h, const char *device, const int verbose,
 #if defined(__CYGWIN__) || defined(__MINGW32__)
     {
         HANDLE handle;
-#if defined(__CYGWIN__)
+#ifdef __CYGWIN__
         handle = (HANDLE)get_osfhandle(hd_h);
 #else
         handle = (HANDLE)_get_osfhandle(hd_h);
@@ -1238,7 +1238,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbo
         return;
     {
         HANDLE handle;
-#if defined(__CYGWIN__)
+#ifdef __CYGWIN__
         handle = (HANDLE)get_osfhandle(hd_h);
 #else
         handle = (HANDLE)_get_osfhandle(hd_h);

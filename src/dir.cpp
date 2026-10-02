@@ -571,7 +571,7 @@ static unsigned int filename_convert(char *dst, const char *src, const unsigned 
     return i;
 }
 #elif defined(__CYGWIN__) || defined(__MINGW32__)
-static inline unsigned char convert_char_win(unsigned char car)
+static inline auto convert_char_win(unsigned char car) -> unsigned char
 {
     if (car < 0x20)
         return '_';
@@ -600,7 +600,7 @@ static inline unsigned char convert_char_win(unsigned char car)
     return car;
 }
 
-static unsigned int filename_convert(char *dst, const char *src, const unsigned int n)
+static auto filename_convert(char *dst, const char *src, const unsigned int n) -> unsigned int
 {
     unsigned int i;
     for (i = 0; i < n && src[i] != '\0'; i++)
@@ -613,7 +613,7 @@ static unsigned int filename_convert(char *dst, const char *src, const unsigned 
     return i;
 }
 #elifdef __APPLE__
-static unsigned int filename_convert(char *dst, const char *src, const unsigned int n)
+static auto filename_convert(char *dst, const char *src, const unsigned int n) -> unsigned int
 {
     unsigned int i, j;
     const unsigned char *p; /* pointers to actual position in source buffer */

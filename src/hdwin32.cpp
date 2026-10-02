@@ -22,17 +22,17 @@
 #include <config.h>
 
 #if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32)
-#include <stdio.h>
+#include <cstdio>
 #include "common.hpp"
-#include <stdlib.h>     /* free */
+#include <cstdlib>     /* free */
 #if __has_include(<windef.h>)
 #include <windef.h>
 #endif
 #if __has_include(<winbase.h>)
-#include <stdarg.h>
+#include <cstdarg>
 #include <winbase.h>
 #endif
-#include <ctype.h>	/* isspace */
+#include <cctype>	/* isspace */
 #if __has_include(<winioctl.h>)
 #include <winioctl.h>
 #endif
@@ -55,9 +55,9 @@ void file_win32_disk_get_model(HANDLE handle, disk_t &dev, const int verbose)
 	sizeof (query),
 	&buffer,
 	sizeof (buffer)-1,
-	&cbBytesReturned, NULL) )
+	&cbBytesReturned, nullptr) )
   {
-    const STORAGE_DEVICE_DESCRIPTOR * descrip = (const STORAGE_DEVICE_DESCRIPTOR *) & buffer;
+    const auto * descrip = (const STORAGE_DEVICE_DESCRIPTOR *) & buffer;
     const unsigned int offsetVendor=descrip->VendorIdOffset;
     const unsigned int offsetProduct=descrip->ProductIdOffset;
     unsigned int lenVendor=0;
@@ -97,7 +97,7 @@ void file_win32_disk_get_model(HANDLE handle, disk_t &dev, const int verbose)
 	for(i=dev.model.length()-1; i>=0 && dev.model[i]==' '; i--);
 	dev.model[++i]='\0';
       }
-      if(dev.model.length()>0)
+      if(!dev.model.empty())
 	return ;
       dev.model.clear();
     }

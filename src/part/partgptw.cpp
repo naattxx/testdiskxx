@@ -58,7 +58,7 @@ static void efi_generate_uuid(efi_guid_t *ent_uuid)
   uuid_generate(reinterpret_cast<unsigned char *>(ent_uuid));
 #elifdef HAVE_UUIDGEN
   uuidgen((struct uuid *)ent_uuid, 1);
-#elif defined HAVE_UUID_CREATE
+#elifdef HAVE_UUID_CREATE
   uuid_t *uuid;
   char *data_ptr  = (char *)&ent_uuid;
   size_t data_len = sizeof(ent_uuid);
