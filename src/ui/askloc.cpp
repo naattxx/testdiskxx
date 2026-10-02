@@ -94,7 +94,7 @@ auto get_dir_list(std::filesystem::path dst_directory) -> dir_list_t
 #endif
   if (!is_directory(dst_directory))
   {
-    log_info("{} is not a directory", dst_directory.native());
+    log_info("{} is not a directory", dst_directory.string());
     dst_directory = dst_directory.parent_path();
   }
   if (!is_directory(dst_directory))
@@ -222,7 +222,7 @@ void ask_location(std::filesystem::path &dst_directory, std::string_view msg,
                                    text(" when the destination is correct")}),
                             hflow({bold(text("Q")), text(" to quit")}),
                         })}),
-                  text(std::format("Directory {}", dst_directory.native())),
+                  text(std::format("Directory {}", dst_directory.string())),
                   dir_menu->Render() | yframe,
               })
             : hflow({
@@ -253,7 +253,7 @@ static auto get_file_info(const std::filesystem::path &path) -> file_info_t
 #ifdef HAVE_LSTAT
   if (lstat(path.c_str(), &file_stat) == 0)
 #else
-  if (stat(path.c_str(), &file_stat) == 0)
+  if (stat(path.string().c_str(), &file_stat) == 0)
 #endif
   {
     file_info.st_ino   = file_stat.st_ino;

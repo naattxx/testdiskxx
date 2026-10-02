@@ -627,7 +627,7 @@ static auto fat_copy(disk_t &disk_car, const partition_t &partition,
   uint64_t start_fat1, start_data, part_size;
   unsigned long int no_of_cluster, fat_length;
   std::ofstream f_out =
-      fopen_local(&new_file, dir_data.local_dir.c_str(), dir_data.current_directory);
+      fopen_local(&new_file, dir_data.local_dir.string().c_str(), dir_data.current_directory);
   if (!f_out.is_open())
   {
 #ifndef DISABLED_FOR_FRAMAC

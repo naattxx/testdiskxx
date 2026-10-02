@@ -117,7 +117,7 @@ auto disk_image(disk_t &disk, const partition_t &partition,
 #endif
   assert(disk.sector_size > 0);
   assert(disk.sector_size <= READ_SIZE);
-  if ((disk_dst = open(image_dd.c_str(),
+  if ((disk_dst = open(image_dd.string().c_str(),
                        O_CREAT | O_LARGEFILE | O_RDWR | O_BINARY, 0644)) < 0)
   {
     log_error("Can't create file {}.", image_dd.string());
