@@ -93,7 +93,7 @@ static struct struct_io_manager my_struct_manager = {
     .flush       = &my_flush,
     .write_byte  = nullptr,
 #ifdef HAVE_STRUCT_STRUCT_IO_MANAGER_SET_OPTION
-    .set_option = NULL,
+    .set_option = nullptr,
 #endif
 #ifdef HAVE_STRUCT_STRUCT_IO_MANAGER_READ_BLK64
     .read_blk64 = &my_read_blk64,
@@ -144,7 +144,7 @@ static auto alloc_io_channel(const disk_t &disk_car, my_data_t *my_data)
   return ioch;
 }
 
-static auto my_open(const char *dev, int flags, io_channel *channel)
+static auto my_open([[maybe_unused]] const char *dev, [[maybe_unused]] int flags, io_channel *channel)
     -> errcode_t
 {
   *channel = shared_ioch;
@@ -233,7 +233,7 @@ static auto my_write_blk(io_channel channel, unsigned long block, int count,
   return my_write_blk64(channel, block, count, buf);
 }
 
-static auto my_flush(io_channel channel) -> errcode_t
+static auto my_flush([[maybe_unused]] io_channel channel) -> errcode_t
 {
   return 0;
 }
@@ -290,7 +290,7 @@ static auto list_dir_proc2(ext2_ino_t dir, int entry,
   return 0;
 }
 
-static auto ext2_dir(disk_t &disk_car, const partition_t &partition,
+static auto ext2_dir([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
                      dir_data_t &dir_data, const unsigned long int cluster,
                      dir_list_t &dir_list) -> int
 {
@@ -314,7 +314,7 @@ static void dir_partition_ext2_close(dir_data_t &dir_data)
   delete ls;
 }
 
-static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
+static auto ext2_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
                       dir_data_t &dir_data, const file_info_t &file)
     -> copy_file_t
 {
@@ -326,7 +326,7 @@ static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
       fopen_local(&new_file, dir_data.local_dir.c_str(), dir_data.current_directory);
   if (!f_out.is_open())
   {
-    log_critical("Can't create file %s: %s\n", new_file, strerror(errno));
+    log_critical("Can't create file {}: {}", new_file, strerror(errno));
     delete new_file;
     return CP_CREATE_FAILED;
   }

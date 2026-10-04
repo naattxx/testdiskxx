@@ -109,7 +109,7 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
                 interface_check_disk_access(root, disk) == 0 &&
                 (hpa_dco == 0 ||
                  interface_check_hidden(root, disk, hpa_dco) == 0) &&
-                change_arch_type(root, disk, verbose) == 0)
+                change_arch_type(root, disk) == 0)
             {
               menu_disk(disk, verbose, dump, save_header);
             }

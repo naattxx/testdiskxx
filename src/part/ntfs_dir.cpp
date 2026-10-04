@@ -309,7 +309,7 @@ freefn:
   return result;
 }
 
-static auto ntfs_dir(disk_t &disk_car, const partition_t &partition,
+static auto ntfs_dir([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
                      dir_data_t &dir_data, const unsigned long int cluster,
                      dir_list_t &dir_list) -> int
 {
@@ -347,9 +347,9 @@ static auto ntfs_dir(disk_t &disk_car, const partition_t &partition,
   return 0;
 }
 
-constexpr uint8_t bufsize = 4096;
+constexpr uint16_t bufsize = 4096;
 
-static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
+static auto ntfs_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
                       dir_data_t &dir_data, const file_info_t &file)
     -> copy_file_t
 {

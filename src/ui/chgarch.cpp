@@ -21,7 +21,7 @@ extern const arch_fnct_t arch_mac;
 extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
 
-auto change_arch_type(const Component &root, disk_t &disk, const int verbose)
+auto change_arch_type(const Component &root, disk_t &disk)
     -> int
 {
   // arch_list must match the order from entries
@@ -97,7 +97,7 @@ auto change_arch_type(const Component &root, disk_t &disk, const int verbose)
   }
   disk.arch = arch_list[selected];
   disk.autoset_unit();
-  disk.update_geometry(verbose);
+  disk.update_geometry();
   log_info(disk.description_short(disk));
   log_info("Partition table type: {}", disk.arch->part_name);
   return 0;

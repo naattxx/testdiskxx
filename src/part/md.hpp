@@ -254,7 +254,7 @@ struct mdp_superblock_1
    * have a meaningful role.
    */
 #ifndef __FRAMAC__
-  uint16_t dev_roles[0]; /* role in array, or 0xffff for a spare, or 0xfffe for
+  uint16_t dev_roles[]; /* role in array, or 0xffff for a spare, or 0xfffe for
                             faulty */
 #endif
 };

@@ -64,7 +64,7 @@ static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, co
     for (disk_t &disk : list_disk)
         disk = new_diskcache(disk, testdisk_mode);
     if (safe == 0)
-        hd_update_all_geometry(list_disk, verbose);
+        hd_update_all_geometry(list_disk);
     for (disk_t &disk : list_disk)
     {
         const int hpa_dco = disk.is_hpa_or_dco();
@@ -279,7 +279,7 @@ auto main(int argc, char **argv) -> int
         disk = new_diskcache(disk, testdisk_mode);
 
     if(safe==0)
-        hd_update_all_geometry(list_disk, verbose);
+        hd_update_all_geometry(list_disk);
     log_disk_list(list_disk);
 
     testdisk_disk_selection(app, verbose, dump, list_disk,save_header);

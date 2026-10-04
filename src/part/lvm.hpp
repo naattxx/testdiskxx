@@ -136,7 +136,7 @@ struct [[gnu::packed]] lvm2_pv_header
                            /* NULL-terminated list of data areas followed by */
                            /* NULL-terminated list of metadata area headers */
 #ifndef __FRAMAC__
-  struct lvm2_disk_locn disk_areas_xl[0]; /* Two lists */
+  struct lvm2_disk_locn disk_areas_xl[]; /* Two lists */
 #endif
 };
 

@@ -28,7 +28,6 @@
 /*@
   @ requires valid_disk(disk_car);
   @*/
-auto change_arch_type(const ftxui::Component &root, disk_t &disk,
-                      const int verbose) -> int;
+auto change_arch_type(const ftxui::Component &root, disk_t &disk) -> int;
 
 #endif

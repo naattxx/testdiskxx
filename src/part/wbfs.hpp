@@ -35,7 +35,7 @@ struct [[gnu::gcc_struct, gnu::packed]] wbfs_head
   uint8_t wbfs_sec_sz_s; // size of a wbfs sec
   uint8_t padding3[2];
 #ifndef __FRAMAC__
-  uint8_t disc_table[0]; // size depends on hd sector size
+  uint8_t disc_table[]; // size depends on hd sector size
 #endif
 };
 

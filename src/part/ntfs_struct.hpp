@@ -136,7 +136,7 @@ struct [[gnu::gcc_struct, gnu::packed]] TD_INDEX_HEADER
                                    /*
                                       For the index root attribute, the above two numbers are always
                                       equal, as the attribute is resident and it is resized as needed.
-                                 
+
                                       For the index allocation attribute, the attribute is not resident
                                       and the allocated_size is equal to the index_block_size specified
                                       by the corresponding INDEX_ROOT attribute minus the INDEX_BLOCK
@@ -185,13 +185,9 @@ struct [[gnu::gcc_struct, gnu::packed]] TD_FILE_NAME_ATTR
                             attribute. */
   /* 38*/ uint32_t file_attributes;      /* Flags describing the file. */
   /* 3c*/ union [[gnu::gcc_struct, gnu::packed]] {
-    /* 3c*/ struct [[gnu::gcc_struct, gnu::packed]]
-    {
-      /* 3c*/ uint16_t packed_ea_size; /* Size of the buffer needed to
-                      pack the extended attributes
-                      (EAs), if such are present.*/
-      /* 3e*/ uint16_t reserved;       /* Reserved for alignment. */
-    };
+    /* 3c*/ alignas(uint32_t) uint16_t packed_ea_size; /* Size of the buffer needed to
+                    pack the extended attributes
+                    (EAs), if such are present.*/
     /* 3c*/ uint32_t reparse_point_tag; /* Type of reparse point,
                        present only in reparse
                        points and only if there are
@@ -201,7 +197,7 @@ struct [[gnu::gcc_struct, gnu::packed]] TD_FILE_NAME_ATTR
                    (Unicode) characters. */
   /* 41*/ uint8_t file_name_type;   /* Namespace of the file name.*/
 #ifndef __FRAMAC__
-  /* 42*/ char *file_name[0]; /* File name in Unicode. */
+  /* 42*/ char *file_name[]; /* File name in Unicode. */
 #endif
 };
 

@@ -6,7 +6,7 @@
 /*@
   @ requires valid_list_disk(list_disk);
   @*/
-void hd_update_all_geometry(list_disk_t &list_disk, const int verbose);
+void hd_update_all_geometry(list_disk_t &list_disk);
 
 /*@
   @ requires valid_list_disk(list_disk);

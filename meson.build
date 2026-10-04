@@ -32,6 +32,14 @@ conf_data.set(
   compiler.has_function('pwrite', prefix: '#include <unistd.h>'),
 )
 conf_data.set(
+  'HAVE_PREAD',
+  compiler.has_function('pread', prefix: '#include <unistd.h>'),
+)
+conf_data.set(
+  'HAVE_FSYNC',
+  compiler.has_function('fsync', prefix: '#include <unistd.h>'),
+)
+conf_data.set(
   'HAVE_MKDIR',
   compiler.has_function(
     'mkdir',
@@ -58,6 +66,54 @@ conf_data.set('HAVE_LIBNTFS3G', libntfs3g.found())
 conf_data.set('HAVE_LIBEXT2FS', libext2fs.found())
 conf_data.set('HAVE_LIBREISERFS', reiserfs.found())
 conf_data.set('HAVE_ICONV', iconv.found())
+
+if libext2fs.found()
+  conf_data.set(
+    'HAVE_STRUCT_STRUCT_IO_MANAGER_SET_OPTION',
+    compiler.has_member(
+      'struct_io_manager',
+      'set_option',
+      prefix: '''
+  #if __has_include(<ext2fs/ext2_fs.h>)
+  #include <ext2fs/ext2_fs.h>
+  #endif
+  #if __has_include(<ext2fs/ext2fs.h>)
+  #include <ext2fs/ext2fs.h>
+  #endif
+  ''',
+    ),
+  )
+  conf_data.set(
+    'HAVE_STRUCT_STRUCT_IO_MANAGER_READ_BLK64',
+    compiler.has_member(
+      'struct_io_manager',
+      'read_blk64',
+      prefix: '''
+  #if __has_include(<ext2fs/ext2_fs.h>)
+  #include <ext2fs/ext2_fs.h>
+  #endif
+  #if __has_include(<ext2fs/ext2fs.h>)
+  #include <ext2fs/ext2fs.h>
+  #endif
+  ''',
+    ),
+  )
+  conf_data.set(
+    'HAVE_STRUCT_STRUCT_IO_MANAGER_WRITE_BLK64',
+    compiler.has_member(
+      'struct_io_manager',
+      'write_blk64',
+      prefix: '''
+  #if __has_include(<ext2fs/ext2_fs.h>)
+  #include <ext2fs/ext2_fs.h>
+  #endif
+  #if __has_include(<ext2fs/ext2fs.h>)
+  #include <ext2fs/ext2fs.h>
+  #endif
+  ''',
+    ),
+  )
+endif
 
 libuuid = dependency('uuid', fallback: ['libuuid'], required: false)
 

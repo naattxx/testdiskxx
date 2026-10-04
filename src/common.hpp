@@ -534,7 +534,7 @@ struct disk_t
     std::string serial_no;
     std::string fw_rev;
     void update_fields() noexcept;
-    void update_geometry(const int verbose);
+    void update_geometry();
     void autoset_geometry(const unsigned char *buffer, const int verbose) noexcept;
     void set_cylinders_from_size_up() noexcept;
     auto set_sector_size(const unsigned int sector_size) noexcept -> int;

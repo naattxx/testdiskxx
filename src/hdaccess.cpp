@@ -193,7 +193,7 @@ struct [[gnu::packed]] dosemu_image_header
 
 static auto file_pread(disk_t &disk_car, void *buf, const unsigned int count, const uint64_t offset) -> int;
 static auto file_pwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int;
-static auto file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int;
+static auto file_nopwrite(disk_t &disk_car, [[maybe_unused]] const void *buf, const unsigned int count, const uint64_t offset) -> int;
 static auto file_sync(disk_t &disk_car) -> int;
 #ifndef DJGPP
 static auto compute_device_size(const int hd_h, const char *device, const int verbose,
@@ -567,7 +567,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
   @ requires valid_read_string(device);
   @ ensures \result > 0;
   @*/
-static auto disk_get_sector_size(const int hd_h, const char *device, const int verbose) -> unsigned int
+static auto disk_get_sector_size(const int hd_h, const char *device, [[maybe_unused]] const int verbose) -> unsigned int
 {
 #ifdef BLKSSZGET
     {
@@ -1111,7 +1111,7 @@ static auto scsi_query_product_info(const int sg_fd, char **vendor, char **produ
   @ requires valid_disk(dev);
   @ ensures  valid_disk(dev);
   @*/
-static void disk_get_model(const int hd_h, disk_t &dev, const unsigned int verbose)
+static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const unsigned int verbose)
 {
 #if defined(__linux__) && __has_include(<sys/sysmacros.h>)
     struct stat stat_rec;
@@ -1286,11 +1286,11 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
   }
   if (pread(hd_h, buffer, sector_size, min_offset) == sector_size)
     min_offset += sector_size;
-  delete (buffer);
+  delete[] buffer;
   if (verbose > 1)
   {
-    log_verbose("file_test_availability compute_device_size {} size {}\n",
-                device, (long long unsigned)min_offset);
+    // log_verbose("file_test_availability compute_device_size {} size {}\n",
+    //             device, (long long unsigned)min_offset);
   }
   return min_offset;
 #else
@@ -1571,7 +1571,7 @@ static auto file_pwrite(disk_t &disk_car, const void *buf, const unsigned int co
   @ requires offset < 0x2000000000000;
   @ requires \valid_read((char *)buf + (0 .. count-1));
   @*/
-static auto file_nopwrite(disk_t &disk_car, const void *buf, const unsigned int count, const uint64_t offset) -> int
+static auto file_nopwrite(disk_t &disk_car, [[maybe_unused]] const void *buf, const unsigned int count, const uint64_t offset) -> int
 {
     auto *data = static_cast<struct info_file_struct *>(disk_car.data);
     log_warning("file_nopwrite({},{},buffer,{}({}/{}/{})) write refused", data->handle,
@@ -1969,7 +1969,7 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
     return std::nullopt;
 }
 
-void disk_t::update_geometry(const int verbose)
+void disk_t::update_geometry()
 {
     if (autodetect != 0)
     {
@@ -1990,7 +1990,7 @@ void disk_t::update_geometry(const int verbose)
 #endif
 }
 
-void hd_update_all_geometry(list_disk_t &list_disk, const int verbose)
+void hd_update_all_geometry(list_disk_t &list_disk)
 {
     log_trace("hd_update_all_geometry");
     /*@
@@ -2000,7 +2000,7 @@ void hd_update_all_geometry(list_disk_t &list_disk, const int verbose)
     {
         /*@ assert \valid(disk); */
         /*@ assert valid_disk(disk); */
-        disk.update_geometry(verbose);
+        disk.update_geometry();
         /*@ assert \valid(disk); */
     }
 }
