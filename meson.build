@@ -33,7 +33,17 @@ conf_data.set(
 )
 conf_data.set(
   'HAVE_MKDIR',
-  compiler.has_function('mkdir', prefix: '#include <io.h>'),
+  compiler.has_function(
+    'mkdir',
+    prefix: '''
+  #if __has_include(<io.h>)
+  #include <io.h>
+  #endif
+  #if __has_include(<sys/stat.h>)
+  #include <sys/stat.h>
+  #endif
+  ''',
+  ),
 )
 
 libewf = compiler.find_library('libewf', required: false)
