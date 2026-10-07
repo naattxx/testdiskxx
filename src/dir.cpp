@@ -19,10 +19,13 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <chrono>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <ios>
 #include <optional>
+#include <string>
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_CHMOD
 #endif
@@ -153,30 +156,18 @@ void mode_string(const unsigned int mode, char *str)
 #endif
 }
 
-auto set_datestr(char *datestr, size_t n, const time_t timev) -> int
+auto set_datestr(std::string &datestr, const time_t timev) -> int
 {
-    const struct tm *tm_p;
-#ifndef __MINGW32__
-    struct tm tmp;
-#endif
     if (timev == 0)
     {
-        strncpy(datestr, "                 ", n);
+        datestr = "                 ";
         return 0;
     }
-#if defined(__MINGW32__) || defined(DISABLED_FOR_FRAMAC)
-    tm_p = localtime(&timev);
-#else
-    tm_p = localtime_r(&timev, &tmp);
-#endif
-    if (tm_p == nullptr)
-    {
-        strncpy(datestr, "                 ", n);
-        return 0;
-    }
-    snprintf(datestr, n, "%2d-%s-%4d %02d:%02d", tm_p->tm_mday, monstr[tm_p->tm_mon], 1900 + tm_p->tm_year,
-             tm_p->tm_hour, tm_p->tm_min);
-    if (1900 + tm_p->tm_year >= 2000)
+    const auto tm_p = std::chrono::system_clock::from_time_t(timev);
+    datestr = std::format("{0:%F} {0:%R}", tm_p);
+
+    using namespace std::chrono_literals;
+    if (tm_p >= std::chrono::sys_days{2000y / std::chrono::January / 1d})
         return 1;
     return 0;
 }
@@ -191,9 +182,9 @@ auto dir_aff_log(const std::optional<dir_data_t&> dir_data, const dir_list_t &di
 #ifndef DISABLED_FOR_FRAMAC
     for (const file_info_t &current_file : dir_list)
         {
-        char datestr[80];
+        std::string datestr;
         char str[11];
-        test_date = set_datestr(reinterpret_cast<char *>(&datestr), sizeof(datestr), current_file.td_mtime);
+        test_date = set_datestr(datestr, current_file.td_mtime);
         mode_string(current_file.st_mode, str);
         if ((current_file.status & FILE_STATUS_DELETED) != 0)
             log_info("X");
@@ -223,13 +214,13 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
     log_info("Directory {}", dir_data.current_directory);
     for (const file_info_t &current_file : list)
     {
-        char datestr[80];
+        std::string datestr;
         char str[11];
         if ((current_file.status & FILE_STATUS_DELETED) != 0)
             log_info("X");
         else
             log_info(" ");
-        set_datestr(reinterpret_cast<char *>(&datestr), sizeof(datestr), current_file.td_mtime);
+        set_datestr(datestr, current_file.td_mtime);
         mode_string(current_file.st_mode, str);
         log_info("{:7} ", (unsigned long int)current_file.st_ino);
         log_info("{} {:5} {:5} ", str, (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid);

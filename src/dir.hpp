@@ -22,13 +22,13 @@
 #ifndef _DIR_H
 #define _DIR_H
 #include "dir_common.hpp"
-#include <cstdio>
 #include <fstream>
+#include <string>
 
 /*@
   @ requires \valid(datestr + (0 .. 17));
   @*/
-auto set_datestr(char *datestr, size_t n, const time_t timev) -> int;
+auto set_datestr(std::string &datestr, const time_t timev) -> int;
 
 /*@
   @ requires dir_data==\null || \valid_read(dir_data);

@@ -238,8 +238,8 @@ void ask_location(std::filesystem::path &dst_directory, std::string_view msg,
 static auto dir_aff_entry(const file_info_t &file_info) -> std::string
 {
   char str[11];
-  char datestr[80];
-  set_datestr((char *)&datestr, sizeof(datestr), file_info.td_mtime);
+  std::string datestr;
+  set_datestr(datestr, file_info.td_mtime);
   mode_string(file_info.st_mode, str);
   return std::format("{} {:5} {:5} {:9} {} {}", str, file_info.st_uid,
                      file_info.st_gid, file_info.st_size, datestr,
