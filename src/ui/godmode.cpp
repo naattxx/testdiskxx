@@ -52,6 +52,7 @@
 #include "src/part/tntfs.hpp"
 #include "tpartwr.hpp"
 #include <cassert>
+#include <string>
 
 #define RO 1
 #define RW 0
@@ -207,12 +208,10 @@ static int interface_part_bad_ncurses(disk_t *disk_car, list_part_t &list_part)
   wprintw(stdscr, "%s", disk_car.description(disk_car));
   wmove(stdscr, 6, 0);
   {
-    char buffer_disk_size[100];
-    char buffer_disk_size_found[100];
-    size_to_unit(disk_car.disk_size, buffer_disk_size);
-    size_to_unit(disk_size, buffer_disk_size_found);
+    const std::string disk_size_str = size_to_unit(disk_car.disk_size);
+    const std::string disk_size_found_str = size_to_unit(disk_size);
     wprintw(stdscr, "The hard disk (%s) seems too small! (< %s)",
-            buffer_disk_size, buffer_disk_size_found);
+            disk_size_str.c_str(), disk_size_found_str.c_str());
   }
   wmove(stdscr, 7, 0);
   wprintw(stdscr,
@@ -257,7 +256,6 @@ static int interface_part_bad_ncurses(disk_t *disk_car, list_part_t &list_part)
       wclrtoeol(stdscr); /* before addstr for BSD compatibility */
       if (parts == pos)
       {
-        char buffer_part_size[100];
         wattrset(stdscr, A_REVERSE);
         waddstr(stdscr, ">");
         aff_part(stdscr, AFF_PART_BASE, disk_car, parts->part);
@@ -268,8 +266,8 @@ static int interface_part_bad_ncurses(disk_t *disk_car, list_part_t &list_part)
         {
           wprintw(stdscr, "%s, ", parts->part->info);
         }
-        size_to_unit(parts->part->part_size, buffer_part_size);
-        wprintw(stdscr, "%s", buffer_part_size);
+        const std::string part_size_str = size_to_unit(parts->part->part_size);
+        wprintw(stdscr, "%s", part_size_str.c_str());
       }
       else
       {
@@ -357,12 +355,10 @@ static auto interface_part_bad_log(disk_t &disk_car, list_part_t &list_part)
   }
 #endif
   {
-    char buffer_disk_size[100];
-    char buffer_disk_size_found[100];
-    size_to_unit(disk_car.disk_size, buffer_disk_size);
-    size_to_unit(disk_size, buffer_disk_size_found);
+    const std::string disk_size_str = size_to_unit(disk_car.disk_size);
+    const std::string disk_size_found_str = size_to_unit(disk_size);
     log_warning("The hard disk ({}) seems too small! (< {})\n",
-                buffer_disk_size, buffer_disk_size_found);
+                disk_size_str, disk_size_found_str);
   }
   if (list_part.size() == 1)
   {

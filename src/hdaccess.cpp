@@ -1309,18 +1309,17 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
 static auto file_description(disk_t &disk) -> std::string_view
 {
     const auto *data = static_cast<const struct info_file_struct *>(disk.data);
-    char buffer_disk_size[100] {};
-    size_to_unit(disk.disk_size, buffer_disk_size);
+    const std::string disk_size_str = size_to_unit(disk.disk_size);
     if (disk.geom.heads_per_cylinder == 1 && disk.geom.sectors_per_head == 1)
       disk.description_txt = std::format(
-          "Disk {} - {} - {} sectors{}", disk.device, buffer_disk_size,
+          "Disk {} - {} - {} sectors{}", disk.device, disk_size_str,
           static_cast<long long unsigned>(disk.disk_size / disk.sector_size),
           ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)")
       );
     else
       disk.description_txt =
           std::format("Disk {} - {} - CHS {} {} {}", disk.device,
-                      buffer_disk_size, disk.geom.cylinders,
+                      disk_size_str, disk.geom.cylinders,
                       disk.geom.heads_per_cylinder, disk.geom.sectors_per_head,
                       ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     /*@ assert valid_read_string((char *)&disk.description_txt); */
@@ -1338,15 +1337,14 @@ static auto file_description(disk_t &disk) -> std::string_view
 static auto file_description_short(disk_t &disk_car) -> std::string_view
 {
     const auto *data = static_cast<const struct info_file_struct *>(disk_car.data);
-    char buffer_disk_size[100] {};
-    size_to_unit(disk_car.disk_size, buffer_disk_size);
+    const std::string disk_size_str = size_to_unit(disk_car.disk_size);
     if (disk_car.model.empty())
       disk_car.description_short_txt =
-          std::format("Disk {} - {}{}", disk_car.device, buffer_disk_size,
+          std::format("Disk {} - {}{}", disk_car.device, disk_size_str,
                       ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"));
     else
       disk_car.description_short_txt =
-          std::format("Disk {} - {}{} - {}", disk_car.device, buffer_disk_size,
+          std::format("Disk {} - {}{} - {}", disk_car.device, disk_size_str,
                       ((data->mode & O_RDWR) == O_RDWR ? "" : " (RO)"),
                       disk_car.model);
     /*@ assert valid_read_string((char *)&disk_car.description_short_txt); */

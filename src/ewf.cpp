@@ -20,6 +20,7 @@
 
  */
 #include <config.h>
+#include <string>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBEWF
@@ -438,10 +439,9 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
 static auto fewf_description(disk_t &disk) -> std::string_view
 {
   const auto *data=static_cast<const struct info_fewf_struct *>(disk.data);
-  char buffer_disk_size[100];
-  size_to_unit(disk.disk_size, buffer_disk_size);
+  const std::string disk_size_str = size_to_unit(disk.disk_size);
   disk.description_txt = std::format("Image {} - {} - CHS {} {} {}{}",
-      data->file_name, buffer_disk_size,
+      data->file_name, disk_size_str,
       disk.geom.cylinders, disk.geom.heads_per_cylinder, disk.geom.sectors_per_head,
       ((data->mode&O_RDWR)==O_RDWR?"":" (RO)"));
   return disk.description_txt;
@@ -450,10 +450,9 @@ static auto fewf_description(disk_t &disk) -> std::string_view
 static auto fewf_description_short(disk_t &disk) -> std::string_view
 {
   const auto *data=static_cast<const struct info_fewf_struct *>(disk.data);
-  char buffer_disk_size[100];
-  size_to_unit(disk.disk_size, buffer_disk_size);
+  const std::string disk_size_str = size_to_unit(disk.disk_size);
   disk.description_short_txt = std::format("Image {} - {}{}",
-      data->file_name, buffer_disk_size,
+      data->file_name, disk_size_str,
       ((data->mode&O_RDWR)==O_RDWR?"":" (RO)"));
   return disk.description_short_txt;
 }

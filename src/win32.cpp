@@ -312,16 +312,15 @@ auto file_test_availability_win32(const char *device, const int verbose, int tes
 static auto file_win32_description(disk_t &disk_car) -> std::string_view
 {
     auto *data = (struct info_file_win32_struct *)disk_car.data;
-    char buffer_disk_size[100];
-    size_to_unit(disk_car.disk_size, buffer_disk_size);
+    const std::string disk_size_str = size_to_unit(disk_car.disk_size);
     if (disk_car.device[0] == '\\' && disk_car.device[1] == '\\' && disk_car.device[2] == '.' &&
         disk_car.device[3] == '\\' && disk_car.device[5] == ':')
         disk_car.description_txt = std::format("Drive {}: - {} - CHS {} {} {}",
-                 disk_car.device[4], buffer_disk_size, disk_car.geom.cylinders, disk_car.geom.heads_per_cylinder,
+                 disk_car.device[4], disk_size_str, disk_car.geom.cylinders, disk_car.geom.heads_per_cylinder,
                  disk_car.geom.sectors_per_head, ((data->mode & FILE_WRITE_DATA) == FILE_WRITE_DATA ? "" : " (RO)"));
     else
         disk_car.description_txt = std::format("Disk {} - {} - CHS {} {} {}{}",
-                 disk_car.device, buffer_disk_size, disk_car.geom.cylinders, disk_car.geom.heads_per_cylinder,
+                 disk_car.device, disk_size_str, disk_car.geom.cylinders, disk_car.geom.heads_per_cylinder,
                  disk_car.geom.sectors_per_head, ((data->mode & FILE_WRITE_DATA) == FILE_WRITE_DATA ? "" : " (RO)"));
     return disk_car.description_txt;
 }
@@ -329,29 +328,28 @@ static auto file_win32_description(disk_t &disk_car) -> std::string_view
 static auto file_win32_description_short(disk_t &disk_car) -> std::string_view
 {
     auto *data = (struct info_file_win32_struct *)disk_car.data;
-    char buffer_disk_size[100];
-    size_to_unit(disk_car.disk_size, buffer_disk_size);
+    const std::string disk_size_str = size_to_unit(disk_car.disk_size);
     if (disk_car.device[0] == '\\' && disk_car.device[1] == '\\' && disk_car.device[2] == '.' &&
         disk_car.device[3] == '\\' && disk_car.device[5] == ':')
     {
         if (disk_car.model.empty())
             disk_car.description_short_txt = std::format("Drive {}: - {}{}",
-                     disk_car.device[4], buffer_disk_size,
+                     disk_car.device[4], disk_size_str,
                      ((data->mode & FILE_WRITE_DATA) == FILE_WRITE_DATA ? "" : " (RO)"));
         else
             disk_car.description_short_txt = std::format("Drive {}: - {}{} - {}",
-                     disk_car.device[4], buffer_disk_size,
+                     disk_car.device[4], disk_size_str,
                      ((data->mode & FILE_WRITE_DATA) == FILE_WRITE_DATA ? "" : " (RO)"), disk_car.model);
     }
     else
     {
         if (disk_car.model.empty())
             disk_car.description_short_txt = std::format("Disk {} - {}{}",
-                     disk_car.device, buffer_disk_size,
+                     disk_car.device, disk_size_str,
                      ((data->mode & FILE_WRITE_DATA) == FILE_WRITE_DATA ? "" : " (RO)"));
         else
             disk_car.description_short_txt = std::format("Disk {} - {}{} - {}",
-                     disk_car.device, buffer_disk_size,
+                     disk_car.device, disk_size_str,
                      ((data->mode & FILE_WRITE_DATA) == FILE_WRITE_DATA ? "" : " (RO)"), disk_car.model);
     }
     return disk_car.description_short_txt;

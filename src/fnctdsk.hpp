@@ -23,6 +23,7 @@
 #define _FNCTDSK_H
 #include "src/common.hpp"
 #include <cstdint>
+#include <string>
 
     /*@
       @ requires \valid_read(disk_car);
@@ -159,12 +160,8 @@
       @*/
     auto delete_list_disk(list_disk_t &list_disk) -> int;
 
-    /*@
-      @ requires \valid(buffer + (0..99));
-      @ ensures valid_string(buffer);
-      @ assigns buffer[0 .. 99];
-      @*/
-    void size_to_unit(const uint64_t disk_size, char *buffer);
+    [[nodiscard]]
+    auto size_to_unit(const uint64_t disk_size) -> std::string;
 
     /*@
       @ requires \valid_read(list_part);

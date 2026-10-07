@@ -149,7 +149,6 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
                 wbkgdset(stdscr, ' ' | COLOR_PAIR(0));
             if (parts == pos)
             {
-                char buffer_part_size[100];
                 wattroff(stdscr, A_REVERSE);
                 wmove(stdscr, LINES - 1, 0);
                 wclrtoeol(stdscr); /* before addstr for BSD compatibility */
@@ -157,8 +156,8 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
                 {
                     wprintw(stdscr, "%s, ", parts->part->info);
                 }
-                size_to_unit(parts->part->part_size, buffer_part_size);
-                wprintw(stdscr, "%s", buffer_part_size);
+                const std::string part_size_str = size_to_unit(parts->part->part_size);
+                wprintw(stdscr, "%s", part_size_str.c_str());
             }
         }
         if (structure_status == 0)

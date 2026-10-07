@@ -21,11 +21,12 @@
  */
 
 #include <config.h>
+#include <format>
 #include <iostream>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <optional>
+#include <string>
 #include "common.hpp"
 #include "fnctdsk.hpp"
 #include "log.hpp"
@@ -411,24 +412,18 @@ auto get_geometry_from_list_part(const disk_t &disk_car, const list_part_t &list
     return heads_per_cylinder;
 }
 
-void size_to_unit(const uint64_t disk_size, char *buffer)
+[[nodiscard]]
+auto size_to_unit(const uint64_t disk_size) -> std::string
 {
-#ifdef DISABLED_FOR_FRAMAC
-    buffer[0] = '\0';
-#else
-    if (disk_size < static_cast<uint64_t>(10) * 1024)
-        sprintf(buffer, "%u B", static_cast<unsigned>(disk_size));
-    else if (disk_size < static_cast<uint64_t>(10) * 1024 * 1024)
-        sprintf(buffer, "%u KB / %u KiB", static_cast<unsigned>(disk_size / 1000), static_cast<unsigned>(disk_size / 1024));
-    else if (disk_size < static_cast<uint64_t>(10) * 1024 * 1024 * 1024)
-        sprintf(buffer, "%u MB / %u MiB", static_cast<unsigned>(disk_size / 1000 / 1000), static_cast<unsigned>(disk_size / 1024 / 1024));
-    else if (disk_size < static_cast<uint64_t>(10) * 1024 * 1024 * 1024 * 1024)
-        sprintf(buffer, "%u GB / %u GiB", static_cast<unsigned>(disk_size / 1000 / 1000 / 1000),
-                static_cast<unsigned>(disk_size / 1024 / 1024 / 1024));
-    else
-        sprintf(buffer, "%u TB / %u TiB", static_cast<unsigned>(disk_size / 1000 / 1000 / 1000 / 1000),
-                static_cast<unsigned>(disk_size / 1024 / 1024 / 1024 / 1024));
-#endif
+    if (disk_size < 10ul * 1024)
+        return std::format("{} B", disk_size);
+    if (disk_size < 10ul * 1024 * 1024)
+        return std::format("{} KB / {} KiB", disk_size / 1000, disk_size / 1024);
+    if (disk_size < 10ul * 1024 * 1024 * 1024)
+        return std::format("{} MB / {} MiB", disk_size / 1000 / 1000, disk_size / 1024 / 1024);
+    if (disk_size < 10ul * 1024 * 1024 * 1024 * 1024)
+        return std::format("{} GB / {} GiB", disk_size / 1000 / 1000 / 1000, disk_size / 1024 / 1024 / 1024);
+    return std::format("{} TB / {} TiB", disk_size / 1000 / 1000 / 1000 / 1000, disk_size / 1024 / 1024 / 1024 / 1024);
 }
 
 void log_disk_list(list_disk_t &list_disk)
