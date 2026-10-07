@@ -1755,8 +1755,6 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
   window           = newwin(LINES, COLS, 0, 0); /* full screen */
   dir_data.display = window;
   aff_copy(window);
-#else
-  dir_data.display = nullptr;
 #endif
   log_info("\n");
   switch (res)

@@ -100,8 +100,6 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
     window = newwin(LINES, COLS, 0, 0); /* full screen */
     dir_data.display = window;
     aff_copy(window);
-#else
-    dir_data.display = nullptr;
 #endif
     log_info("\n");
     switch (res)

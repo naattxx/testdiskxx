@@ -75,7 +75,6 @@ using dir_list_t = std::list<file_info_t>;
 
 struct dir_data_t
 {
-    void *display;
     char current_directory[DIR_NAME_LEN];
     unsigned long int current_inode;
     int verbose;
