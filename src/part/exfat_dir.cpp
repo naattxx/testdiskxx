@@ -268,8 +268,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
       new_file.td_atime = date_dos2unix(to_little_endian(entry->atime), to_little_endian(entry->adate));
       new_file.td_ctime = date_dos2unix(to_little_endian(entry->ctime), to_little_endian(entry->cdate));
       new_file.td_mtime = date_dos2unix(to_little_endian(entry->mtime), to_little_endian(entry->mdate));
-      new_file.status =
-          ((entry->type & 0x80) == 0x80 ? 0 : FILE_STATUS_DELETED);
+      new_file.status = file_status{.deleted = (entry->type & 0x80) == 0x80};
       current_file = new_file;
       dir_list.push_front(new_file);
     }

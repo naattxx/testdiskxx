@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include "src/dir_common.hpp"
 #include <chrono>
 #include <filesystem>
 #include <format>
@@ -186,7 +187,7 @@ auto dir_aff_log(const std::optional<dir_data_t&> dir_data, const dir_list_t &di
         char str[11];
         test_date = set_datestr(datestr, current_file.td_mtime);
         mode_string(current_file.st_mode, str);
-        if ((current_file.status & FILE_STATUS_DELETED) != 0)
+        if (current_file.status.deleted != 0)
             log_info("X");
         else
             log_info(" ");
@@ -216,7 +217,7 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
     {
         std::string datestr;
         char str[11];
-        if ((current_file.status & FILE_STATUS_DELETED) != 0)
+        if (current_file.status.deleted != 0)
             log_info("X");
         else
             log_info(" ");

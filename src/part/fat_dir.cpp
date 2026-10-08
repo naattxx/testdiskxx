@@ -112,14 +112,13 @@ auto dir_fat_aux(const unsigned char *buffer, const unsigned int size,
   const auto *de = reinterpret_cast<const struct msdos_dir_entry *>(buffer);
   wchar_t unicode[1000];
   unsigned char long_slots;
-  unsigned int status;
   unsigned int inode;
   int utf8 = 1;
   if (std::wctomb(nullptr, 0) < 0)
     utf8 = 0;
 #ifndef DISABLED_FOR_FRAMAC
 GetNew:
-  status     = 0;
+  file_status status{};
   long_slots = 0;
   unicode[0] = 0;
   if (de->attr == ATTR_EXT && de->name[0] == DELETED_FLAG &&
@@ -183,7 +182,7 @@ GetNew:
     if (sum != alias_checksum)
       long_slots = 0;
     else
-      status = FILE_STATUS_DELETED;
+      status = file_status{.deleted=true};
   }
   else if (de->attr == ATTR_EXT)
   {
@@ -280,7 +279,7 @@ RecEnd:
         de->name[4] != '\0' && de->name[5] != '\0' && de->name[6] != '\0' &&
         de->name[7] != '\0')
     {
-      status = FILE_STATUS_DELETED;
+      status = file_status{.deleted=true};
       if ((de->attr & ATTR_DIR) == ATTR_DIR &&
           ((dir_list.empty() && unicode[1] == '\0') ||
            (dir_list.size() == 1 && unicode[1] == '.' && unicode[2] == '\0')))

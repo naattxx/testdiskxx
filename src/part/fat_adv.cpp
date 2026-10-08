@@ -983,7 +983,7 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
   for (const file_info_t &current_file : dir_list)
   {
     if (LINUX_S_ISDIR(current_file.st_mode) &&
-        (current_file.status & FILE_STATUS_DELETED) == 0)
+        current_file.status.deleted == 0)
     {
       const unsigned long int new_inode = current_file.st_ino;
       unsigned int dir_entries;

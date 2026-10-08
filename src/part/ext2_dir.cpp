@@ -269,9 +269,9 @@ static auto list_dir_proc2(ext2_ino_t dir, int entry,
     memcpy(new_file.name.data(), dirent->name, thislen);
   }
   if (entry == DIRENT_DELETED_FILE)
-    new_file.status = FILE_STATUS_DELETED;
+    new_file.status = file_status{.deleted=true};
   else
-    new_file.status = 0;
+    new_file.status = file_status{};
   new_file.st_ino  = ino;
   new_file.st_mode = inode.i_mode;
   //  new_file->st_nlink=inode.i_links_count;

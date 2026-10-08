@@ -58,6 +58,12 @@ enum dir_partition_t : int8_t
     DIR_PART_OK = 0
 };
 
+struct file_status {
+  bool deleted : 1;
+  bool marked : 1;
+  bool ads : 1;
+};
+
 struct file_info_t
 {
     std::string name;
@@ -69,7 +75,7 @@ struct file_info_t
     time_t td_atime; /* time of last access */
     time_t td_mtime; /* time of last modification */
     time_t td_ctime; /* time of last status change */
-    unsigned int status;
+    file_status status;
 };
 using dir_list_t = std::list<file_info_t>;
 
@@ -88,10 +94,6 @@ struct dir_data_t
     std::filesystem::path local_dir;
     void *private_dir_data;
 };
-
-#define FILE_STATUS_DELETED 1
-#define FILE_STATUS_MARKED 2
-#define FILE_STATUS_ADS 4
 
 #define LINUX_S_IFMT 00170000
 #define LINUX_S_IFSOCK 0140000

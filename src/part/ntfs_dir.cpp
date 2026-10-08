@@ -23,6 +23,7 @@
  * distribution in the file COPYING); if not, write to the Free Software
  * Foundation,Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+#include "src/dir_common.hpp"
 #include <config.h>
 #include <cstdint>
 #include <format>
@@ -226,7 +227,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
   ni = ntfs_inode_open(ls->vol, mref);
   if (!ni)
     goto freefn;
-  new_file.status = 0;
+  new_file.status = file_status{};
   new_file.st_ino = MREF(mref);
   new_file.st_uid = 0;
   new_file.st_gid = 0;
@@ -275,7 +276,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
       if (rec->name_length)
       {
         char *stream_name = nullptr;
-        new_file.status   = FILE_STATUS_ADS;
+        new_file.status   = file_status{.ads=true};
         new_file.name     = new char[MAX_PATH];
         if (ntfs_ucstombs(
                 reinterpret_cast<ntfschar *>(reinterpret_cast<char *>(rec) +

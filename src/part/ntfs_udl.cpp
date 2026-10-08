@@ -1186,7 +1186,7 @@ static auto ufile_to_file_data(const struct ufile *file, const struct data *d)
 
   new_file.st_size  = std::max(d->size_init, d->size_data);
   new_file.td_atime = new_file.td_ctime = new_file.td_mtime = file->date;
-  new_file.status                                           = 0;
+  new_file.status                                           = file_status{};
   return new_file;
 }
 
