@@ -36,6 +36,7 @@
 #undef HAVE_LIBNTFS3G
 #endif
 
+#include <cassert>
 #include <cstdio>
 // #include <features.h>
 #include <cerrno>
@@ -1794,6 +1795,7 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
     }
     break;
   default: {
+    assert(dir_data != nullptr);
     dir_list_t dir_list;
     scan_disk(dir_data->vol, dir_list);
     ntfs_undelete_menu(disk_car, partition, *dir_data, dir_list, current_cmd);

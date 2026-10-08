@@ -1585,7 +1585,7 @@ static auto file_nopwrite(disk_t &disk_car, [[maybe_unused]] const void *buf, co
 static auto file_sync(disk_t &disk_car) -> int
 {
 #ifdef HAVE_FSYNC
-  struct info_file_struct *data = (struct info_file_struct *)disk_car.data;
+  auto *data = (struct info_file_struct *)disk_car.data;
   return fsync(data->handle);
 #else
     errno = EINVAL;

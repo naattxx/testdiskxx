@@ -248,7 +248,12 @@ auto main(int argc, char **argv) -> int
                 log_opened = log_open(filename, create_log);
         }
     }
+    try {
     log_info(std::format("{}", std::chrono::system_clock::now()));
+    }
+    catch(...) {
+      log_warning("Can't format time");
+    }
     {
         std::string cmd("Command line:");
         for (int i{0}; i < argc; i++)

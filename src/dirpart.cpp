@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -157,6 +158,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
         }
         break;
     case DIR_PART_OK: {
+        assert(dir_data != nullptr);
         int recursive = 0;
         int copy_files = 0;
         if (current_cmd != nullptr && *current_cmd != nullptr)
