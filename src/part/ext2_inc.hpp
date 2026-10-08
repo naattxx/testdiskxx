@@ -29,14 +29,20 @@
 #endif
 
 #ifdef HAVE_LIBEXT2FS
+#include "src/common.hpp"
 #include "src/dir_common.hpp"
 #include <ext2fs/ext2fs.h>
-struct ext2_dir_struct
+struct ext2_dir_struct : dir_data_t
 {
   dir_list_t dir_list;
   ext2_filsys current_fs;
   int flags;
   dir_data_t *dir_data;
+  auto get_dir(disk_t &disk_car, const partition_t &partition,
+                const unsigned long int first_inode, dir_list_t &list) -> int final;
+  auto copy_file(disk_t &disk_car, const partition_t &partition,
+                          const file_info_t &file) -> copy_file_t final;
+  void close() final;
 };
 #endif
 

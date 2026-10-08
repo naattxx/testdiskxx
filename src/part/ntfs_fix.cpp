@@ -17,7 +17,6 @@
     with this program; if not, write the Free Software Foundation, Inc., 51
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#include "src/dir_common.hpp"
 #include <config.h>
 
 #include <cstdio>
@@ -35,6 +34,7 @@
 #include "ntfs_dir.hpp"
 #include "ntfs_fix.hpp"
 #include "src/common.hpp"
+#include "src/dir_common.hpp"
 #include "src/dir.hpp"
 #include "src/intrf.hpp"
 #include "src/io_redir.hpp"
@@ -183,7 +183,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
   */
   {
     int res1, res2;
-    dir_data_t dir_data;
+    dir_data_t *dir_data{};
     /* Use MFT */
     io_redir_add_redir(disk_car, mftmirr_pos, mftmirr_size_bytes, 0,
                        buffer_mft);
@@ -202,16 +202,17 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     if (res1 == DIR_PART_OK)
     {
       dir_list_t dir_list;
-      dir_data.get_dir(disk_car, partition, dir_data, dir_data.current_inode,
+      dir_data->get_dir(disk_car, partition, dir_data->current_inode,
                        dir_list);
       if (!dir_list.empty())
       {
         log_info("NTFS listing using MFT:\n");
-        dir_aff_log(dir_data, dir_list);
+        dir_aff_log(*dir_data, dir_list);
         if (dir_list.size() > 2)
           res1++;
       }
-      dir_data.close(dir_data);
+      dir_data->close();
+      delete dir_data;
     }
     io_redir_del_redir(disk_car, mftmirr_pos);
     /* Use MFT mirror */
@@ -221,16 +222,17 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     if (res2 == DIR_PART_OK)
     {
       dir_list_t dir_list;
-      dir_data.get_dir(disk_car, partition, dir_data, dir_data.current_inode,
+      dir_data->get_dir(disk_car, partition, dir_data->current_inode,
                        dir_list);
       if (!dir_list.empty())
       {
         log_info("NTFS listing using MFT mirror:\n");
-        dir_aff_log(dir_data, dir_list);
+        dir_aff_log(*dir_data, dir_list);
         if (dir_list.size() > 2)
           res2++;
       }
-      dir_data.close(dir_data);
+      dir_data->close();
+      delete dir_data;
     }
     io_redir_del_redir(disk_car, mft_pos);
     /* */

@@ -54,17 +54,18 @@
 #endif
 #include "reiserfs/reiserfs.h"
 
-struct rfs_dir_struct
+struct rfs_dir_struct : dir_data_t
 {
   file_info_t *dir_list;
   reiserfs_fs_t *current_fs;
   dal_t *dal;
   int flags;
+  auto get_dir(disk_t &disk_car, const partition_t &partition,
+                const unsigned long int first_inode, dir_list_t &list) -> int final;
+  auto copy_file(disk_t &disk_car, const partition_t &partition,
+                          const file_info_t &file) -> copy_file_t final;
+  void close() final;
 };
-static int reiser_dir(disk_t &disk_car, const partition_t &partition,
-                      dir_data_t &dir_data, const unsigned long int cluster,
-                      file_info_t *dir_list);
-static void dir_partition_reiser_close(dir_data_t &dir_data);
 
 #ifdef HAVE_STRUCT_DAL_OPS_DEV
 dev_t dal_dev(dal_t *dal)
@@ -458,16 +459,14 @@ blk_t dal_len(dal_t *dal)
   return 0;
 }
 
-static int reiser_dir(disk_t &disk_car, const partition_t &partition,
-                      dir_data_t &dir_data, const unsigned long int cluster,
-                      file_info_t *dir_list)
+int rfs_dir_struct::get_dir(disk_t &disk_car, const partition_t &partition,
+                            const unsigned long int cluster,
+                            file_info_t *dir_list)
 {
-  struct rfs_dir_struct *ls =
-      (struct rfs_dir_struct *)dir_data->private_dir_data;
   reiserfs_dir_t *dir;
   reiserfs_dir_entry_t entry;
-  ls->dir_list = dir_list;
-  if (!(dir = reiserfs_dir_open(ls->current_fs, dir_data->current_directory)))
+  this->dir_list = dir_list;
+  if (!(dir = reiserfs_dir_open(current_fs, dir_data->current_directory)))
   {
     screen_buffer_add("Couldn't open dir\n");
     log_error("Couldn't open dir\n");
@@ -477,10 +476,10 @@ static int reiser_dir(disk_t &disk_car, const partition_t &partition,
   {
     char name[MAX_NAME_LEN(DEFAULT_BLOCK_SIZE)];
     reiserfs_object_t *entity;
-    strncpy(name, dir_data->current_directory, sizeof(name));
+    strncpy(name, current_directory, sizeof(name));
     strcat(name, "/");
     strcat(name, entry.de_name);
-    if ((entity = reiserfs_object_create(ls->current_fs, name, 1)))
+    if ((entity = reiserfs_object_create(current_fs, name, 1)))
     {
       unsigned int thislen;
       file_info_t *new_file =
@@ -510,43 +509,39 @@ static int reiser_dir(disk_t &disk_car, const partition_t &partition,
   return 0;
 }
 
-static void dir_partition_reiser_close(dir_data_t &dir_data)
+void rfs_dir_struct::close()
 {
-  struct rfs_dir_struct *ls =
-      (struct rfs_dir_struct *)dir_data->private_dir_data;
-  reiserfs_fs_close(ls->current_fs);
-  file_close(ls->dal);
-  delete (ls);
+  reiserfs_fs_close(current_fs);
+  file_close(dal);
 }
 
-static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t &dir_data, const file_info_t *file)
+copy_file_t rfs_dir_struct::copy_file(disk_t &disk_car,
+                                      const partition_t &partition,
+                                      const file_info_t *file)
 {
   reiserfs_file_t *in;
   char *new_file;
-  struct rfs_dir_struct *ls =
-      (struct rfs_dir_struct *)dir_data->private_dir_data;
   copy_file_t error = CP_OK;
   uint64_t file_size;
   std::ofstream f_out =
-      fopen_local(&new_file, dir_data->local_dir, dir_data->current_directory);
+      fopen_local(&new_file, local_dir, current_directory);
   if (!f_out.is_open())
   {
     log_critical("Can't create file {}: {}", new_file, strerror(errno));
     delete (new_file);
     return CP_CREATE_FAILED;
   }
-  log_info("Try to open rfs file {}", dir_data->current_directory);
+  log_info("Try to open rfs file {}", current_directory);
   log_flush();
   in =
-      reiserfs_file_open(ls->current_fs, dir_data->current_directory, O_RDONLY);
+      reiserfs_file_open(current_fs, current_directory, O_RDONLY);
   if (in == NULL)
   {
-    log_error("Error while opening rfs file {}", dir_data->current_directory);
+    log_error("Error while opening rfs file {}", current_directory);
     delete (new_file);
     return CP_OPEN_FAILED;
   }
-  log_info("open rfs file {} done", dir_data->current_directory);
+  log_info("open rfs file {} done", current_directory);
   log_flush();
   file_size = reiserfs_file_size(in);
 #if 0
@@ -600,7 +595,7 @@ static copy_file_t reiser_copy(disk_t &disk_car, const partition_t &partition,
 #endif
 
 auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t &dir_data, const int verbose)
+                               dir_data_t *dir_data, const int verbose)
     -> dir_partition_t
 {
 #ifdef HAVE_LIBREISERFS
@@ -637,23 +632,18 @@ auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
   }
   /* log_debug("reiserfs_fs_open_fast ok\n"); */
   {
-    struct rfs_dir_struct *ls =
-        (struct rfs_dir_struct *)new unsigned char[sizeof(*ls)];
-    ls->dir_list   = NULL;
-    ls->current_fs = fs;
-    ls->dal        = dal;
-    ls->flags      = 0; /*DIRENT_FLAG_INCLUDE_EMPTY; */
+    dir_data = new rfs_dir_struct;
     strncpy(dir_data->current_directory, "/",
             sizeof(dir_data->current_directory));
     dir_data->current_inode    = 2;
     dir_data->param            = 0;
     dir_data->verbose          = verbose;
     dir_data->capabilities     = 0;
-    dir_data->get_dir          = reiser_dir;
-    dir_data->copy_file        = reiser_copy;
-    dir_data->close            = &dir_partition_reiser_close;
     dir_data->local_dir.clear();
-    dir_data->private_dir_data = ls;
+    static_cast<rfs_dir_struct*>(dir_data)->dir_list   = NULL;
+    static_cast<rfs_dir_struct*>(dir_data)->current_fs = fs;
+    static_cast<rfs_dir_struct*>(dir_data)->dal        = dal;
+    static_cast<rfs_dir_struct*>(dir_data)->flags      = 0; /*DIRENT_FLAG_INCLUDE_EMPTY; */
   }
   return DIR_PART_OK;
 #else

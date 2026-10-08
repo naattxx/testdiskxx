@@ -118,13 +118,6 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
                                const int name_len, const int name_type,
                                const s64 pos, const MFT_REF mref,
                                const unsigned dt_type) -> int;
-static auto ntfs_dir(disk_t &disk_car, const partition_t &partition,
-                     dir_data_t &dir_data, const unsigned long int cluster,
-                     dir_list_t &dir_list) -> int;
-static auto ntfs_copy(disk_t &disk_car, const partition_t &partition,
-                      dir_data_t &dir_data, const file_info_t &file)
-    -> copy_file_t;
-static void dir_partition_ntfs_close(dir_data_t &dir_data);
 
 /**
  * index_get_size - Find the INDX block size from the index root
@@ -310,16 +303,16 @@ freefn:
   return result;
 }
 
-static auto ntfs_dir([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
-                     dir_data_t &dir_data, const unsigned long int cluster,
-                     dir_list_t &dir_list) -> int
+auto ntfs_dir_struct::get_dir([[maybe_unused]] disk_t &disk_car,
+                              [[maybe_unused]] const partition_t &partition,
+                              const unsigned long int cluster,
+                              dir_list_t &dir_list) -> int
 {
   ntfs_inode *inode;
   s64 pos;
-  auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
-  ls->dir_list = dir_list;
+  this->dir_list = dir_list;
 
-  inode = ntfs_inode_open(ls->vol, cluster);
+  inode = ntfs_inode_open(vol, cluster);
   if (!inode)
   {
     log_error("ntfs_dir: ntfs_inode_open failed\n");
@@ -333,7 +326,7 @@ static auto ntfs_dir([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const p
   pos = 0;
   if (inode->mrec->flags & MFT_RECORD_IS_DIRECTORY)
   {
-    if (ntfs_readdir(inode, &pos, ls,
+    if (ntfs_readdir(inode, &pos, this,
                      reinterpret_cast<ntfs_filldir_t>(ntfs_td_list_entry)) < 0)
     {
       log_error("ntfs_readdir failed for cluster {}: %s\n", cluster,
@@ -350,19 +343,18 @@ static auto ntfs_dir([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const p
 
 constexpr uint16_t bufsize = 4096;
 
-static auto ntfs_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
-                      dir_data_t &dir_data, const file_info_t &file)
-    -> copy_file_t
+auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
+                                [[maybe_unused]] const partition_t &partition,
+                                const file_info_t &file) -> copy_file_t
 {
   const unsigned long int first_inode = file.st_ino;
   ntfs_inode *inode;
-  auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
   copy_file_t res = CP_OK;
-  inode           = ntfs_inode_open(ls->vol, first_inode);
+  inode           = ntfs_inode_open(vol, first_inode);
   if (!inode)
   {
     log_error("ntfs_copy: ntfs_inode_open failed for %s\n",
-              dir_data.current_directory);
+              current_directory);
     return CP_STAT_FAILED;
   }
   {
@@ -379,7 +371,7 @@ static auto ntfs_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const 
       ntfs_inode_close(inode);
       return CP_NOMEM;
     }
-    stream_name = strrchr(dir_data.current_directory, ':');
+    stream_name = strrchr(current_directory, ':');
     if (stream_name)
       stream_name++;
     if (stream_name != nullptr)
@@ -405,7 +397,7 @@ static auto ntfs_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const 
       return CP_STAT_FAILED;
     }
     if ((inode->mft_no < 2) && (attr->type == AT_DATA))
-      block_size = ls->vol->mft_record_size;
+      block_size = vol->mft_record_size;
     else if (attr->type == AT_INDEX_ALLOCATION)
       block_size = index_get_size(inode);
     else
@@ -417,15 +409,15 @@ static auto ntfs_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const 
        * char replace ':' by '_' instead */
       stream_name--;
       *stream_name = '_';
-      f_out        = fopen_local(&new_file, dir_data->local_dir.c_str(),
-                                 dir_data->current_directory);
+      f_out        = fopen_local(&new_file, local_dir.c_str(),
+                                 current_directory);
     }
     else
-      f_out = fopen_local(&new_file, dir_data->local_dir.c_str(),
-                          dir_data->current_directory);
+      f_out = fopen_local(&new_file, local_dir.c_str(),
+                          current_directory);
 #else
-    f_out = fopen_local(&new_file, dir_data.local_dir.c_str(),
-                        dir_data.current_directory);
+    f_out = fopen_local(&new_file, local_dir.c_str(),
+                        current_directory);
 #endif
     if (!f_out.is_open())
     {
@@ -480,24 +472,22 @@ static auto ntfs_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const 
   return res;
 }
 
-static void dir_partition_ntfs_close(dir_data_t &dir_data)
+void ntfs_dir_struct::close()
 {
-  auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
   /* ntfs_umount() will invoke ntfs_device_free() for us. */
-  ntfs_umount(ls->vol, FALSE);
-  delete (ls->my_data);
+  ntfs_umount(vol, FALSE);
+  delete (my_data);
 #ifdef HAVE_ICONV
-  if (reinterpret_cast<intptr_t>(ls->cd) != -1)
-    iconv_close(ls->cd);
+  if (reinterpret_cast<intptr_t>(cd) != -1)
+    iconv_close(cd);
 #endif
-  delete ls;
 }
 #endif
 
 extern "C"
 {
   auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t &dir_data, const int verbose,
+                               dir_data_t *dir_data, const int verbose,
                                const int expert) -> dir_partition_t
   {
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
@@ -546,29 +536,28 @@ extern "C"
       log_warning("NTFS Volume is dirty.\n");
     }
     {
-      auto *ls     = new struct ntfs_dir_struct;
-      ls->vol      = vol;
-      ls->my_data  = my_data;
-      ls->dir_data = &dir_data;
+      dir_data = new ntfs_dir_struct;
+      strncpy(dir_data->current_directory, "/",
+              sizeof(dir_data->current_directory));
+      dir_data->current_inode = FILE_root;
+      dir_data->param         = FLAG_LIST_ADS;
+      if (expert != 0)
+        dir_data->param |= FLAG_LIST_SYSTEM;
+      dir_data->verbose          = verbose;
+      dir_data->capabilities     = CAPA_LIST_ADS;
+      dir_data->local_dir.clear();
+      static_cast<ntfs_dir_struct*>(dir_data)->vol      = vol;
+      static_cast<ntfs_dir_struct*>(dir_data)->my_data  = my_data;
+      static_cast<ntfs_dir_struct*>(dir_data)->dir_data = dir_data;
 #ifdef HAVE_ICONV
-      if (reinterpret_cast<intptr_t>(ls->cd = iconv_open("UTF-8", "UTF-16LE")) == -1)
+      if (reinterpret_cast<intptr_t>(
+              static_cast<ntfs_dir_struct *>(dir_data)->cd =
+                  iconv_open("UTF-8", "UTF-16LE")
+          ) == -1)
       {
         log_error("ntfs_ucstoutf8: iconv_open failed\n");
       }
 #endif
-      strncpy(dir_data.current_directory, "/",
-              sizeof(dir_data.current_directory));
-      dir_data.current_inode = FILE_root;
-      dir_data.param         = FLAG_LIST_ADS;
-      if (expert != 0)
-        dir_data.param |= FLAG_LIST_SYSTEM;
-      dir_data.verbose          = verbose;
-      dir_data.capabilities     = CAPA_LIST_ADS;
-      dir_data.get_dir          = &ntfs_dir;
-      dir_data.copy_file        = &ntfs_copy;
-      dir_data.close            = &dir_partition_ntfs_close;
-      dir_data.local_dir.clear();
-      dir_data.private_dir_data = ls;
     }
     return DIR_PART_OK;
 #else

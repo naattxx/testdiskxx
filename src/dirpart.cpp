@@ -25,6 +25,7 @@
 #include "common.hpp"
 #include "intrf.hpp"
 #include "part/fat.hpp"
+#include "src/dir_common.hpp"
 #ifdef HAVE_NCURSES
 #include "intrfn.h"
 #endif
@@ -42,7 +43,7 @@
 #include "part/rfs_dir.hpp"
 
 static auto dir_partition_init(disk_t &disk, const partition_t &partition, const int verbose,
-                                          const int expert, dir_data_t &dir_data) -> dir_partition_t
+                                          const int expert, dir_data_t *dir_data) -> dir_partition_t
 {
     if (is_part_fat(partition))
     {
@@ -89,7 +90,7 @@ static auto dir_partition_init(disk_t &disk, const partition_t &partition, const
 auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose, const int expert,
                               char **current_cmd) -> dir_partition_t
 {
-    dir_data_t dir_data;
+    dir_data_t *dir_data{};
 #ifdef HAVE_NCURSES
     WINDOW *window;
 #endif
@@ -172,7 +173,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
                 }
                 else if (check_command(current_cmd, "fullpathname", 12) == 0)
                 {
-                    dir_data.param |= FLAG_LIST_PATHNAME;
+                    dir_data->param |= FLAG_LIST_PATHNAME;
                     do_continue = 1;
                 }
                 else if (check_command(current_cmd, "filecopy", 8) == 0)
@@ -183,27 +184,28 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
             } while (do_continue == 1);
         }
         if (recursive > 0)
-            dir_whole_partition_log(disk, partition, dir_data, dir_data.current_inode);
+            dir_whole_partition_log(disk, partition, *dir_data, dir_data->current_inode);
         else
         {
 #ifdef HAVE_NCURSES
             dir_partition_aff(disk, partition, &dir_data, dir_data.current_inode, current_cmd);
 #else
-            if (dir_data.verbose > 0)
+            if (dir_data->verbose > 0)
             {
-                log_info("\ndir_partition inode={}\n", dir_data.current_inode);
+                log_info("\ndir_partition inode={}\n", dir_data->current_inode);
                 log_partition(disk, partition);
             }
             {
                 dir_list_t dir_list;
-                dir_data.get_dir(disk, partition, dir_data, dir_data.current_inode, dir_list);
-                dir_aff_log(dir_data, dir_list);
+                dir_data->get_dir(disk, partition, dir_data->current_inode, dir_list);
+                dir_aff_log(*dir_data, dir_list);
             }
 #endif
         }
         if (copy_files > 0)
-            dir_whole_partition_copy(disk, partition, dir_data, dir_data.current_inode);
-        dir_data.close(dir_data);
+            dir_whole_partition_copy(disk, partition, *dir_data, dir_data->current_inode);
+        dir_data->close();
+        delete dir_data;
     }
     break;
     }

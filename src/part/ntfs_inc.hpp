@@ -25,9 +25,20 @@
 #include <config.h>
 
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
+#include "src/common.hpp"
 #include "src/dir_common.hpp"
+#if __has_include(<ntfs/volume.h>)
+#include <ntfs/volume.h>
+#elif __has_include(<ntfs-3g/volume.h>)
+#include <ntfs-3g/volume.h>
+#endif
+#undef min
+#undef max
+#ifdef HAVE_ICONV
+#include <iconv.h>
+#endif
 
-struct ntfs_dir_struct
+struct ntfs_dir_struct : dir_data_t
 {
   dir_list_t dir_list;
   ntfs_volume *vol;
@@ -37,6 +48,11 @@ struct ntfs_dir_struct
 #ifdef HAVE_ICONV
   iconv_t cd;
 #endif
+  auto get_dir(disk_t &disk_car, const partition_t &partition,
+                const unsigned long int first_inode, dir_list_t &list) -> int final;
+  auto copy_file(disk_t &disk_car, const partition_t &partition,
+                          const file_info_t &file) -> copy_file_t final;
+  void close() final;
 };
 #endif
 

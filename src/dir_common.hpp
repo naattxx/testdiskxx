@@ -86,13 +86,14 @@ struct dir_data_t
     int verbose;
     unsigned int param;
     unsigned int capabilities;
-    int (*get_dir)(disk_t &disk_car, const partition_t &partition, dir_data_t &dir_data,
-                   const unsigned long int first_inode, dir_list_t &list);
-    copy_file_t (*copy_file)(disk_t &disk_car, const partition_t &partition, dir_data_t &dir_data,
-                             const file_info_t &file);
-    void (*close)(dir_data_t &dir_data);
+    virtual auto get_dir(disk_t &disk_car, const partition_t &partition,
+                         const unsigned long int first_inode, dir_list_t &list)
+        -> int                                                     = 0;
+    virtual auto copy_file(disk_t &disk_car, const partition_t &partition,
+                           const file_info_t &file) -> copy_file_t = 0;
+    virtual void close()                                           = 0;
+    virtual ~dir_data_t()                                          = default;
     std::filesystem::path local_dir;
-    void *private_dir_data;
 };
 
 #define LINUX_S_IFMT 00170000

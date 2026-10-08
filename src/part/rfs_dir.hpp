@@ -24,7 +24,7 @@
 #include "src/dir_common.hpp"
 
 auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t &dir_data, const int verbose)
+                               dir_data_t *dir_data, const int verbose)
     -> dir_partition_t;
 auto td_reiserfs_version() -> const char *;
 

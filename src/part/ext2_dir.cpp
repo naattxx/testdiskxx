@@ -77,11 +77,6 @@ static auto my_read_blk64(io_channel channel, unsigned long long block,
 static auto my_write_blk64(io_channel channel, unsigned long long block,
                            int count, const void *buf) -> errcode_t;
 
-static void dir_partition_ext2_close(dir_data_t &dir_data);
-static auto ext2_copy(disk_t &disk_car, const partition_t &partition,
-                      dir_data_t &dir_data, const file_info_t *file)
-    -> copy_file_t;
-
 static struct struct_io_manager my_struct_manager = {
     .magic       = EXT2_ET_MAGIC_IO_MANAGER,
     .name        = "TestDisk I/O Manager",
@@ -290,15 +285,15 @@ static auto list_dir_proc2(ext2_ino_t dir, int entry,
   return 0;
 }
 
-static auto ext2_dir([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
-                     dir_data_t &dir_data, const unsigned long int cluster,
-                     dir_list_t &dir_list) -> int
+auto ext2_dir_struct::get_dir([[maybe_unused]] disk_t &disk_car,
+                              [[maybe_unused]] const partition_t &partition,
+                              const unsigned long int cluster,
+                              dir_list_t &dir_list) -> int
 {
   errcode_t retval;
-  auto *ls = static_cast<struct ext2_dir_struct *>(dir_data.private_dir_data);
-  ls->dir_list = dir_list;
-  if ((retval = ext2fs_dir_iterate2(ls->current_fs, cluster, ls->flags, nullptr,
-                                    list_dir_proc2, ls)) != 0)
+  this->dir_list = dir_list;
+  if ((retval = ext2fs_dir_iterate2(current_fs, cluster, flags, nullptr,
+                                    list_dir_proc2, this)) != 0)
   {
     log_error("ext2fs_dir_iterate failed with error {}.", (long)retval);
     return -1;
@@ -306,24 +301,20 @@ static auto ext2_dir([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const p
   return 0;
 }
 
-static void dir_partition_ext2_close(dir_data_t &dir_data)
+void ext2_dir_struct::close()
 {
-  auto *ls = static_cast<struct ext2_dir_struct *>(dir_data.private_dir_data);
-  ext2fs_close(ls->current_fs);
+  ext2fs_close(current_fs);
   /* ext2fs_close call the close function that freed my_data */
-  delete ls;
 }
 
-static auto ext2_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const partition_t &partition,
-                      dir_data_t &dir_data, const file_info_t &file)
-    -> copy_file_t
+auto ext2_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
+                                [[maybe_unused]] const partition_t &partition,
+                                const file_info_t &file) -> copy_file_t
 {
   copy_file_t error = CP_OK;
-  const auto *ls =
-      static_cast<const struct ext2_dir_struct *>(dir_data.private_dir_data);
   char *new_file;
   std::ofstream f_out =
-      fopen_local(&new_file, dir_data.local_dir.c_str(), dir_data.current_directory);
+      fopen_local(&new_file, local_dir.c_str(), current_directory);
   if (!f_out.is_open())
   {
     log_critical("Can't create file {}: {}", new_file, strerror(errno));
@@ -336,17 +327,17 @@ static auto ext2_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const 
     char buffer[8192];
     ext2_file_t e2_file;
 
-    if (ext2fs_read_inode(ls->current_fs, file.st_ino, &inode) != 0)
+    if (ext2fs_read_inode(current_fs, file.st_ino, &inode) != 0)
     {
       delete new_file;
       return CP_STAT_FAILED;
     }
 
-    retval = ext2fs_file_open(ls->current_fs, file.st_ino, 0, &e2_file);
+    retval = ext2fs_file_open(current_fs, file.st_ino, 0, &e2_file);
     if (retval)
     {
       log_error("Error while opening ext2 file %s\n",
-                dir_data.current_directory);
+                current_directory);
       delete new_file;
       return CP_OPEN_FAILED;
     }
@@ -357,7 +348,7 @@ static auto ext2_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const 
       if (retval)
       {
         log_error("Error while reading ext2 file %s\n",
-                  dir_data.current_directory);
+                  current_directory);
         error = CP_READ_FAILED;
       }
       if (got == 0)
@@ -385,41 +376,37 @@ static auto ext2_copy([[maybe_unused]] disk_t &disk_car, [[maybe_unused]] const 
 #endif
 
 auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
-                             dir_data_t &dir_data, const int verbose)
+                             dir_data_t *dir_data, const int verbose)
     -> dir_partition_t
 {
 #ifdef HAVE_LIBEXT2FS
-  auto *ls = new struct ext2_dir_struct;
   io_channel ioch;
   my_data_t *my_data;
-  /*  ls->flags = DIRENT_FLAG_INCLUDE_EMPTY; */
-  ls->flags    = DIRENT_FLAG_INCLUDE_REMOVED;
-  ls->dir_data = &dir_data;
   my_data = reinterpret_cast<my_data_t *>(new unsigned char[sizeof(*my_data)]);
   my_data->partition = partition;
   my_data->disk_car  = disk_car;
   ioch               = alloc_io_channel(disk_car, my_data);
   shared_ioch        = ioch;
+  ext2_filsys fs;
   /* An alternate superblock may be used if the calling function has set an IO
    * redirection */
   if (ext2fs_open("/dev/testdisk", 0, 0, 0, &my_struct_manager,
-                  &ls->current_fs) != 0)
+                  &fs) != 0)
   {
     //    delete (my_data);
-    delete ls;
     return DIR_PART_EIO;
   }
-  strncpy(dir_data.current_directory, "/",
-          sizeof(dir_data.current_directory));
-  dir_data.current_inode    = EXT2_ROOT_INO;
-  dir_data.param            = FLAG_LIST_DELETED;
-  dir_data.verbose          = verbose;
-  dir_data.capabilities     = CAPA_LIST_DELETED;
-  dir_data.get_dir          = &ext2_dir;
-  dir_data.copy_file        = &ext2_copy;
-  dir_data.close            = &dir_partition_ext2_close;
-  dir_data.local_dir.clear();
-  dir_data.private_dir_data = ls;
+  dir_data = new ext2_dir_struct;
+  strncpy(dir_data->current_directory, "/",
+          sizeof(dir_data->current_directory));
+  dir_data->current_inode    = EXT2_ROOT_INO;
+  dir_data->param            = FLAG_LIST_DELETED;
+  dir_data->verbose          = verbose;
+  dir_data->capabilities     = CAPA_LIST_DELETED;
+  dir_data->local_dir.clear();
+  /* static_cast<ext2_dir_struct*>(dir_data)->flags = DIRENT_FLAG_INCLUDE_EMPTY; */
+  static_cast<ext2_dir_struct*>(dir_data)->flags    = DIRENT_FLAG_INCLUDE_REMOVED;
+  static_cast<ext2_dir_struct*>(dir_data)->dir_data = dir_data;
   return DIR_PART_OK;
 #else
   return DIR_PART_ENOSYS;

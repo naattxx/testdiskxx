@@ -1702,17 +1702,15 @@ static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
 }
 #endif
 
-static void ntfs_undelete_cli(dir_data_t &dir_data, const dir_list_t &dir_list)
+static void ntfs_undelete_cli(ntfs_dir_struct &dir_data, const dir_list_t &dir_list)
 {
   unsigned int file_ok  = 0;
   unsigned int file_bad = 0;
-  const auto *ls =
-      static_cast<const struct ntfs_dir_struct *>(dir_data.private_dir_data);
 
   dir_data.local_dir = opts.dest = std::filesystem::current_path();
   for (const file_info_t &file_info : dir_list)
   {
-    if (undelete_file(ls->vol, file_info.st_ino) < 0)
+    if (undelete_file(dir_data.vol, file_info.st_ino) < 0)
       file_bad++;
     else
       file_ok++;
@@ -1724,7 +1722,7 @@ static void ntfs_undelete_cli(dir_data_t &dir_data, const dir_list_t &dir_list)
 
 static void ntfs_undelete_menu(const disk_t &disk_car,
                                const partition_t &partition,
-                               dir_data_t &dir_data, dir_list_t &dir_list,
+                               ntfs_dir_struct &dir_data, dir_list_t &dir_list,
                                char **current_cmd)
 {
   log_list_file(disk_car, partition, dir_data, dir_list);
@@ -1745,7 +1743,7 @@ static void ntfs_undelete_menu(const disk_t &disk_car,
 auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
                         const int verbose, char **current_cmd) -> int
 {
-  dir_data_t dir_data;
+  ntfs_dir_struct *dir_data{};
 #ifdef HAVE_NCURSES
   WINDOW *window;
 #endif
@@ -1796,11 +1794,11 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
     }
     break;
   default: {
-    auto *ls = static_cast<struct ntfs_dir_struct *>(dir_data.private_dir_data);
     dir_list_t dir_list;
-    scan_disk(ls->vol, dir_list);
-    ntfs_undelete_menu(disk_car, partition, dir_data, dir_list, current_cmd);
-    dir_data.close(dir_data);
+    scan_disk(dir_data->vol, dir_list);
+    ntfs_undelete_menu(disk_car, partition, *dir_data, dir_list, current_cmd);
+    dir_data->close();
+    delete dir_data;
   }
   break;
   }

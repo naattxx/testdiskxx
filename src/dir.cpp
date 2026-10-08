@@ -275,7 +275,7 @@ static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partiti
         return 1; /* subdirectories depth is too high => Back */
     if (dir_data.verbose > 0)
         log_info("\ndir_partition inode={}\n", inode);
-    dir_data.get_dir(disk, partition, dir_data, inode, dir_list);
+    dir_data.get_dir(disk, partition, inode, dir_list);
     dir_aff_log(dir_data, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
@@ -324,7 +324,7 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
     dir_list_t dir_list;
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
-    dir_data.get_dir(disk, partition, dir_data, inode, dir_list);
+    dir_data.get_dir(disk, partition, inode, dir_list);
     /* Not perfect for FAT32 root cluster */
     inode_known[dir_nbr++] = inode;
     for (file_info_t &current_file : dir_list)
@@ -344,7 +344,7 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
             }
             else if (LINUX_S_ISREG(current_file.st_mode) != 0)
             {
-                if (dir_data.copy_file(disk, partition, dir_data, current_file) == 0)
+                if (dir_data.copy_file(disk, partition, current_file) == 0)
                     (*copy_ok)++;
                 else
                     (*copy_bad)++;

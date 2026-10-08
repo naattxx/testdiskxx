@@ -53,22 +53,18 @@
 #define EXFAT_MKMODE(a, m)                                                   \
   (((m) & (((a) & ATTR_RO) ? LINUX_S_IRUGO | LINUX_S_IXUGO : LINUX_S_IRWXUGO)) | \
    (((a) & ATTR_DIR) ? LINUX_S_IFDIR : LINUX_S_IFREG))
-struct exfat_dir_struct
+struct exfat_dir_struct : dir_data_t
 {
   struct exfat_super_block *boot_sector;
 #ifdef HAVE_ICONV
   iconv_t cd;
 #endif
+  auto get_dir(disk_t &disk_car, const partition_t &partition,
+                const unsigned long int first_inode, dir_list_t &list) -> int final;
+  auto copy_file(disk_t &disk_car, const partition_t &partition,
+                          const file_info_t &file) -> copy_file_t final;
+  void close() final;
 };
-
-static auto exfat_dir(disk_t &disk, const partition_t &partition,
-                      dir_data_t &dir_data,
-                      const unsigned long int first_cluster,
-                      dir_list_t &dir_list) -> int;
-static auto exfat_copy(disk_t &disk, const partition_t &partition,
-                       dir_data_t &dir_data, const file_info_t &file)
-    -> copy_file_t;
-static void dir_partition_exfat_close(dir_data_t &dir_data);
 
 #if 0
 static inline void exfat16_towchar(wchar_t *dst, const uint8_t *src, size_t len)
@@ -223,13 +219,9 @@ static auto exfat_get_next_cluster(disk_t &disk_car,
 }
 
 static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
-                          const dir_data_t &dir_data, dir_list_t &dir_list)
+                          const exfat_dir_struct &dir_data, dir_list_t &dir_list)
     -> int
 {
-#ifdef HAVE_ICONV
-  const auto *ls =
-      static_cast<const struct exfat_dir_struct *>(dir_data.private_dir_data);
-#endif
   /*
    * 0x83 Volume label
    * 0x81 Allocation bitmap
@@ -302,7 +294,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
         i -= 2;
         outs = &current_file->name[j];
 #ifdef HAVE_ICONV
-        if (exfat_ucstoutf8(ls->cd, &buffer[offset + 2], i, &outs, 512 - j) < 0)
+        if (exfat_ucstoutf8(dir_data.cd, &buffer[offset + 2], i, &outs, 512 - j) < 0)
         {
           for (i = 2; i < 32; i += 2)
             current_file->name[j++] = buffer[offset + i];
@@ -331,14 +323,11 @@ static auto is_EOC(const unsigned int cluster) -> int
 }
 
 #define NBR_CLUSTER_MAX 30
-static auto exfat_dir(disk_t &disk, const partition_t &partition,
-                      dir_data_t &dir_data,
+auto exfat_dir_struct::get_dir(disk_t &disk, const partition_t &partition,
                       const unsigned long int first_cluster,
                       dir_list_t &dir_list) -> int
 {
-  const auto *ls =
-      static_cast<const struct exfat_dir_struct *>(dir_data.private_dir_data);
-  const struct exfat_super_block *exfat_header = ls->boot_sector;
+  const struct exfat_super_block *exfat_header = boot_sector;
   const unsigned int cluster_shift =
       exfat_header->block_per_clus_bits + exfat_header->blocksize_bits;
   unsigned int cluster;
@@ -404,16 +393,15 @@ static auto exfat_dir(disk_t &disk, const partition_t &partition,
     }
   }
   if (nbr_cluster > 0)
-    dir_exfat_aux(buffer_dir, nbr_cluster << cluster_shift, dir_data, dir_list);
+    dir_exfat_aux(buffer_dir, nbr_cluster << cluster_shift, *this, dir_list);
   delete[] buffer_dir;
   return 0;
 }
 
 auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
-                              dir_data_t &dir_data, const int verbose)
+                              dir_data_t *dir_data, const int verbose)
     -> dir_partition_t
 {
-  static struct exfat_dir_struct *ls;
   struct exfat_super_block *exfat_header;
   set_secwest();
   /* Load boot sector */
@@ -432,14 +420,6 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
     delete exfat_header;
     return DIR_PART_EIO;
   }
-  ls              = new struct exfat_dir_struct;
-  ls->boot_sector = exfat_header;
-#ifdef HAVE_ICONV
-  if (reinterpret_cast<intptr_t>(ls->cd = iconv_open("UTF-8", "UTF-16LE")) == -1)
-  {
-    log_error("dir_partition_exfat_init: iconv_open failed\n");
-  }
-#endif
 #ifdef DEBUG_EXFAT
   log_info("start_sector={}\n",
            (long long unsigned)to_little_endian(exfat_header->start_sector));
@@ -458,39 +438,38 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   log_info("drive_select=0x{:x}", exfat_header->drive_select);
   log_info("allocated_percent={}", exfat_header->allocated_percent);
 #endif
-  strncpy(dir_data.current_directory, "/",
-          sizeof(dir_data.current_directory));
-  dir_data.current_inode    = 0;
-  dir_data.param            = FLAG_LIST_DELETED;
-  dir_data.verbose          = verbose;
-  dir_data.capabilities     = CAPA_LIST_DELETED;
-  dir_data.copy_file        = &exfat_copy;
-  dir_data.close            = &dir_partition_exfat_close;
-  dir_data.local_dir.clear();
-  dir_data.private_dir_data = ls;
-  dir_data.get_dir          = &exfat_dir;
+  dir_data = new exfat_dir_struct;
+  strncpy(dir_data->current_directory, "/",
+          sizeof(dir_data->current_directory));
+  dir_data->current_inode    = 0;
+  dir_data->param            = FLAG_LIST_DELETED;
+  dir_data->verbose          = verbose;
+  dir_data->capabilities     = CAPA_LIST_DELETED;
+  dir_data->local_dir.clear();
+  static_cast<exfat_dir_struct*>(dir_data)->boot_sector = exfat_header;
+#ifdef HAVE_ICONV
+  if (reinterpret_cast<intptr_t>(static_cast<exfat_dir_struct*>(dir_data)->cd = iconv_open("UTF-8", "UTF-16LE")) == -1)
+  {
+    log_error("dir_partition_exfat_init: iconv_open failed\n");
+  }
+#endif
   return DIR_PART_OK;
 }
 
-static void dir_partition_exfat_close(dir_data_t &dir_data)
+void exfat_dir_struct::close()
 {
-  auto *ls = static_cast<struct exfat_dir_struct *>(dir_data.private_dir_data);
-  delete (ls->boot_sector);
+  delete boot_sector;
 #ifdef HAVE_ICONV
-  if (reinterpret_cast<intptr_t>(ls->cd) != -1)
-    iconv_close(ls->cd);
+  if (reinterpret_cast<intptr_t>(cd) != -1)
+    iconv_close(cd);
 #endif
-  delete ls;
 }
 
-static auto exfat_copy(disk_t &disk, const partition_t &partition,
-                       dir_data_t &dir_data, const file_info_t &file)
-    -> copy_file_t
+auto exfat_dir_struct::copy_file(disk_t &disk, const partition_t &partition,
+                                 const file_info_t &file) -> copy_file_t
 {
   char *new_file;
-  const auto *ls =
-      static_cast<const struct exfat_dir_struct *>(dir_data.private_dir_data);
-  const struct exfat_super_block *exfat_header = ls->boot_sector;
+  const struct exfat_super_block *exfat_header = boot_sector;
   const unsigned int cluster_shift =
       exfat_header->block_per_clus_bits + exfat_header->blocksize_bits;
   auto *buffer_file = new char[1 << cluster_shift];
@@ -501,7 +480,7 @@ static auto exfat_copy(disk_t &disk, const partition_t &partition,
   unsigned long int clus_blocknr;
   unsigned long int total_clusters;
   std::ofstream f_out =
-      fopen_local(&new_file, dir_data.local_dir.string().c_str(), dir_data.current_directory);
+      fopen_local(&new_file, local_dir.string().c_str(), current_directory);
   if (!f_out.is_open())
   {
     log_critical("Can't create file: {}", new_file);
