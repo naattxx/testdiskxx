@@ -27,11 +27,11 @@
 #define _HFSP_STRUCT_H
 #include <cstdint>
 
-#define HFSP_BOOT_SECTOR_SIZE 512
-#define HFSP_BLOCKSZ 512        /* A sector for Apple is always 512 bytes */
-#define HFSP_BLOCKSZ_BITS 9     /* 1<<9 == 512  */
-#define HFSP_VOLHEAD_SIG 0x482B /* 'H+'	*/
-#define HFSX_VOLHEAD_SIG 0x4858 /* 'HX' */
+constexpr uint16_t HFSP_BOOT_SECTOR_SIZE = 512;
+constexpr uint16_t HFSP_BLOCKSZ = 512; // A sector for Apple is always 512 bytes
+constexpr uint16_t HFSP_BLOCKSZ_BITS = 9;      // 1<<9 == 512
+constexpr uint16_t HFSP_VOLHEAD_SIG  = 0x482B; // 'H+'
+constexpr uint16_t HFSX_VOLHEAD_SIG  = 0x4858; // 'HX'
 
 #define HFSP_VERSION 4
 #define HFSX_VERSION 5

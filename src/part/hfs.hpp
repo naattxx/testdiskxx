@@ -23,9 +23,9 @@
 #include "src/common.hpp"
 #include <cstdint>
 
-/* HFS superblock size is 162 */
-#define HFS_SUPERBLOCK_SIZE 512
-#define HFS_SUPER_MAGIC 0x4244 /* "BD": HFS MDB (super block) */
+// HFS superblock size is 162
+constexpr uint16_t HFS_SUPERBLOCK_SIZE = 512;
+constexpr uint16_t HFS_SUPER_MAGIC     = 0x4244; // "BD": HFS MDB (super block)
 
 struct [[gnu::gcc_struct, gnu::packed]] hfs_extent
 {
