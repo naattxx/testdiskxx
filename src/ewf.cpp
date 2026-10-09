@@ -136,11 +136,9 @@ auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
     return std::nullopt;
   }
 
-  if((mode&TESTDISK_O_RDWR)==TESTDISK_O_RDWR)
+  if((mode&TESTDISK_O::RDWR)==TESTDISK_O::RDWR)
   {
-    if( libewf_handle_initialize(
-	  &( data->handle ),
-	  &ewf_error) != 1 )
+    if (libewf_handle_initialize(&data->handle, &ewf_error) != 1)
     {
       char buffer[4096];
       log_error("libewf_handle_initialize failed");
@@ -172,18 +170,14 @@ auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
       log_error("{}", buffer);
       libewf_error_free(&ewf_error);
       ewf_error=nullptr;
-      libewf_handle_free(
-	  &( data->handle ),
-	  nullptr );
+      libewf_handle_free(&data->handle, nullptr);
       data->handle=nullptr;
     }
   }
   if(data->handle==nullptr)
   {
-    data->mode&=~TESTDISK_O_RDWR;
-    if( libewf_handle_initialize(
-	  &( data->handle ),
-	  &ewf_error) != 1 )
+    data->mode&=~TESTDISK_O::RDWR;
+    if (libewf_handle_initialize(&data->handle, &ewf_error) != 1)
     {
       char buffer[4096];
       log_error("libewf_handle_initialize failed");
@@ -209,9 +203,7 @@ auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
       libewf_error_sprint(ewf_error, buffer, sizeof(buffer));
       log_error("{}", buffer);
 
-      libewf_handle_free(
-	  &( data->handle ),
-	  nullptr );
+      libewf_handle_free(&data->handle, nullptr);
 
       libewf_glob_free(
 	  filenames,
@@ -245,9 +237,9 @@ auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
   disk.description=&fewf_description;
   disk.description_short=&fewf_description_short;
   disk.pread=&fewf_pread;
-  disk.pwrite=((data->mode&TESTDISK_O_RDWR)?&fewf_pwrite:&fewf_nopwrite);
+  disk.pwrite=((data->mode&TESTDISK_O::RDWR)?&fewf_pwrite:&fewf_nopwrite);
   disk.sync=&fewf_sync;
-  disk.access_mode=(data->mode&TESTDISK_O_RDWR);
+  disk.access_mode=(data->mode&TESTDISK_O::RDWR);
   disk.clean=&fewf_clean;
   {
     uint32_t bytes_per_sector = 0;
@@ -466,9 +458,7 @@ static void fewf_clean(disk_t &disk)
     libewf_handle_close(
      data->handle,
      nullptr);
-    libewf_handle_free(
-     &( data->handle ),
-     nullptr );
+    libewf_handle_free(&data->handle, nullptr);
 #else
     libewf_close(data->handle);
 #endif

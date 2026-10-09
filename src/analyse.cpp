@@ -160,8 +160,9 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
   const auto *refs_header =
       reinterpret_cast<const struct ReFS_boot_sector *>(buffer);
   const auto *apfs = reinterpret_cast<const nx_superblock_t *>(buffer);
-  static const uint8_t LUKS_MAGIC[LUKS_MAGIC_L] = {'L', 'U',  'K',
-                                                   'S', 0xba, 0xbe};
+  static const uint8_t LUKS_MAGIC[LUKS_MAGIC_L] = {
+      'L', 'U', 'K', 'S', 0xba, 0xbe,
+  };
   //  assert(sizeof(union swap_header)<=8*DEFAULT_SECTOR_SIZE);
   //  assert(sizeof(pv_disk_t)<=8*DEFAULT_SECTOR_SIZE);
   //  assert(sizeof(struct fat_boot_sector)<=8*DEFAULT_SECTOR_SIZE);

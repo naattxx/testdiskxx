@@ -134,21 +134,21 @@ static void align_structure_i386(list_part_t &list_part, const disk_t &disk,
         (part->part_offset + part->part_size - 1 + location_boundary - 1) /
             location_boundary * location_boundary -
         1;
-    if (align != 0 && std::next(part) != list_part.end())
+    if ((align != 0 && std::next(part) != list_part.end()) &&
+        (std::next(part)->part_offset >
+             part->part_offset + part->part_size - 1 &&
+         std::next(part)->part_offset <= partition_end))
+
     {
-      if (std::next(part)->part_offset >
-              part->part_offset + part->part_size - 1 &&
-          std::next(part)->part_offset <= partition_end)
-      {
-        /* Do not align the partition if it overlaps the next one because of
-         * that */
-        location_boundary = disk.sector_size;
-        partition_end =
-            (part->part_offset + part->part_size - 1 + location_boundary - 1) /
-                location_boundary * location_boundary -
-            1;
-      }
+      /* Do not align the partition if it overlaps the next one because of
+       * that */
+      location_boundary = disk.sector_size;
+      partition_end =
+          (part->part_offset + part->part_size - 1 + location_boundary - 1) /
+              location_boundary * location_boundary -
+          1;
     }
+
     part->part_size = partition_end - part->part_offset + 1;
   }
 }
@@ -602,7 +602,7 @@ enum indstop_t : uint8_t
   INDSTOP_STOP     = 1,
   INDSTOP_SKIP     = 2,
   INDSTOP_QUIT     = 3,
-  INDSTOP_PLUS     = 4
+  INDSTOP_PLUS     = 4,
 };
 
 static auto search_part(disk_t &disk_car, const list_part_t &list_part_org,
@@ -874,23 +874,22 @@ static auto search_part(disk_t &disk_car, const list_part_t &list_part_org,
               CHS_t start_ext2;
               offset2CHS_inline(disk_car, search_location - hd_offset,
                                 &start_ext2);
-              if ((disk_car.arch == &arch_i386 && start_ext2.sector == 1 &&
-                   (start_ext2.head <= 2 || fast_mode > 1)) ||
-                  (disk_car.arch == &arch_i386 &&
-                   (search_location - hd_offset) % (2048 * 512) == 0) ||
-                  (disk_car.arch != &arch_i386 &&
-                   (search_location - hd_offset) % location_boundary == 0))
+              if (((disk_car.arch == &arch_i386 && start_ext2.sector == 1 &&
+                    (start_ext2.head <= 2 || fast_mode > 1)) ||
+                   (disk_car.arch == &arch_i386 &&
+                    (search_location - hd_offset) % (2048 * 512) == 0) ||
+                   (disk_car.arch != &arch_i386 &&
+                    (search_location - hd_offset) % location_boundary == 0)) &&
+                  (disk_car.pread(disk_car, buffer_disk, 1024,
+                                  search_location) == 1024))
+
               {
-                if (disk_car.pread(disk_car, buffer_disk, 1024,
-                                   search_location) == 1024)
-                {
-                  const auto *sb = (const struct ext2_super_block *)buffer_disk;
-                  if (to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC &&
-                      to_little_endian(sb->s_block_group_nr) > 0 &&
-                      recover_EXT2(disk_car, sb, partition, verbose,
-                                   dump_ind) == 0)
-                    res = 1;
-                }
+                const auto *sb = (const struct ext2_super_block *)buffer_disk;
+                if (to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC &&
+                    to_little_endian(sb->s_block_group_nr) > 0 &&
+                    recover_EXT2(disk_car, sb, partition, verbose, dump_ind) ==
+                        0)
+                  res = 1;
               }
             }
           }
@@ -1546,12 +1545,11 @@ static auto ask_write_partition_table(const list_part_t &list_part_org,
     {
       list_part = add_ext_part_i386(disk_car, list_part, max_ext, verbose);
       for (auto &part : list_part)
-        if (part.status == STATUS_EXT)
-        {
-          if (partext_offset != part.part_offset ||
-              partext_size != part.part_size)
-            can_ask_minmax_ext = 1;
-        }
+        if ((part.status == STATUS_EXT) &&
+            (partext_offset != part.part_offset ||
+             partext_size != part.part_size))
+
+          can_ask_minmax_ext = 1;
     }
   }
   disk_car.arch->init_part_order(disk_car, list_part);

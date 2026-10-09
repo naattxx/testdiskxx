@@ -24,7 +24,7 @@ auto getPartitionsTable(const disk_t &disk, const list_part_t &partitions)
     -> Element
 {
   std::vector<std::vector<std::string>> data{
-      {"", "", "Partition", "Start", "End", "Size in sectors", "", ""}
+      {"", "", "Partition", "Start", "End", "Size in sectors", "", ""},
   };
 
   for (const auto &partition : partitions)
@@ -104,8 +104,12 @@ auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
     }
 
     return vbox({
-        hflow({text("TestDisk++ "), bold(text(VERSION)),
-               text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
+        hflow({
+            text("TestDisk++ "),
+            bold(text(VERSION)),
+            text(", Data Recovery Utility, "),
+            text(TESTDISKDATE),
+        }),
         text("naattxx"),
         text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),

@@ -42,65 +42,63 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
 
   auto headsInput =
       Input(&heads, std::to_string(disk.geom.heads_per_cylinder),
-            {.multiline = false,
-             .on_change = [&] -> void {
-               if (heads.empty())
-                 return;
+            {
+                .multiline = false,
+                .on_change = [&] -> void {
+                  if (heads.empty())
+                    return;
 
-               int num = std::stoi(heads);
-               if (num > MAX_HEADS)
-                 heads = std::to_string(MAX_HEADS);
-               else if (num < 1)
-                 heads = '1';
-               else
-                 heads = std::to_string(std::stoi(heads));
-             }}) |
+                  int num = std::stoi(heads);
+                  if (num > MAX_HEADS)
+                    heads = std::to_string(MAX_HEADS);
+                  else if (num < 1)
+                    heads = '1';
+                  else
+                    heads = std::to_string(std::stoi(heads));
+                },
+            }) |
       CatchEvent([&](const Event &event) -> bool {
         return event.is_character() && !std::isdigit(event.character()[0]);
       });
 
   auto sectorsInput =
       Input(&sectors, std::to_string(disk.geom.sectors_per_head),
-            {.multiline = false,
-             .on_change = [&] -> void {
-               if (sectors.empty())
-                 return;
+            {
+                .multiline = false,
+                .on_change = [&] -> void {
+                  if (sectors.empty())
+                    return;
 
-               int num = std::stoi(sectors);
-               if (num > 63)
-                 sectors = "63";
-               else if (num < 1)
-                 sectors = '1';
-               else
-                 sectors = std::to_string(std::stoi(sectors));
-             }}) |
+                  int num = std::stoi(sectors);
+                  if (num > 63)
+                    sectors = "63";
+                  else if (num < 1)
+                    sectors = '1';
+                  else
+                    sectors = std::to_string(std::stoi(sectors));
+                },
+            }) |
       CatchEvent([&](const Event &event) -> bool {
         return event.is_character() && !std::isdigit(event.character()[0]);
       });
 
-  auto sectorSizeToggle =
-      Toggle(std::vector<std::string>{"1", "256", "512", "1024", "(3*512)",
-                                      "2048", "4096", "8192"},
-             &selectedSectorSize);
+  auto sectorSizeToggle = Toggle(
+      std::vector<std::string>{
+          "1",
+          "256",
+          "512",
+          "1024",
+          "(3*512)",
+          "2048",
+          "4096",
+          "8192",
+      },
+      &selectedSectorSize
+  );
 
   auto okButton = Button("Ok ", screen.ExitLoopClosure(),
-                         {.transform = [](const EntryState &s) -> Element {
-                           if (s.focused)
-                           {
-                             return text(">" + s.label) |
-                                    bgcolor(Color::White) |
-                                    color(Color::Black) | bold;
-                           }
-
-                           return text(" " + s.label);
-                         }});
-  bool cancel{false};
-  auto cancelButton = Button("Cancel ",
-                             [&] -> void {
-                               cancel = true;
-                               screen.Exit();
-                             },
-                             {.transform = [](const EntryState &s) -> Element {
+                         {
+                             .transform = [](const EntryState &s) -> Element {
                                if (s.focused)
                                {
                                  return text(">" + s.label) |
@@ -109,7 +107,26 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
                                }
 
                                return text(" " + s.label);
-                             }});
+                             },
+                         });
+  bool cancel{false};
+  auto cancelButton =
+      Button("Cancel ",
+             [&] -> void {
+               cancel = true;
+               screen.Exit();
+             },
+             {
+                 .transform = [](const EntryState &s) -> Element {
+                   if (s.focused)
+                   {
+                     return text(">" + s.label) | bgcolor(Color::White) |
+                            color(Color::Black) | bold;
+                   }
+
+                   return text(" " + s.label);
+                 },
+             });
 
   auto container = Container::Vertical({
       cylindrInput,
@@ -139,15 +156,24 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
                    "head values are: 255, 240 and sometimes 16."
                ),
                separatorEmpty(),
-               hflow({text(" Cylinders                              : "),
-                      cylindrInput->Render()}),
-               hflow({text(" Heads                                  : "),
-                      headsInput->Render()}),
-               hflow({text(" Sectors                                : "),
-                      sectorsInput->Render()}),
-               hflow({text(" Sector Size "),
-                      text("(WARNING: VERY DANGEROUS!)") | color(Color::Yellow),
-                      text(" : "), sectorSizeToggle->Render()}),
+               hflow({
+                   text(" Cylinders                              : "),
+                   cylindrInput->Render(),
+               }),
+               hflow({
+                   text(" Heads                                  : "),
+                   headsInput->Render(),
+               }),
+               hflow({
+                   text(" Sectors                                : "),
+                   sectorsInput->Render(),
+               }),
+               hflow({
+                   text(" Sector Size "),
+                   text("(WARNING: VERY DANGEROUS!)") | color(Color::Yellow),
+                   text(" : "),
+                   sectorSizeToggle->Render(),
+               }),
                separator(),
                hflow({okButton->Render(), cancelButton->Render()}) | hcenter,
            }) |

@@ -58,7 +58,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     log_info("\nAnalyse {}\n", disk.description(disk));
     std::cout << disk.description(disk) << '\n';
     std::vector<std::vector<std::string>> data{
-        {"", "", "Partition", "Start", "End", "Size in sectors", "", ""}
+        {"", "", "Partition", "Start", "End", "Size in sectors", "", ""},
     };
     list_part = disk.arch->read_part(disk, verbose, saveheader);
     /*@ assert valid_list_part(list_part); */

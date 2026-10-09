@@ -14,7 +14,7 @@ enum class TD_LOG : uint8_t
     NONE,
     CREATE,
     APPEND,
-    DONE
+    DONE,
 };
 
 #define log_info(...) (file_logger ? file_logger->info(__VA_ARGS__) : (void)0)

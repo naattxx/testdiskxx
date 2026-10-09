@@ -130,76 +130,96 @@ static auto get_partition_typename_gpt(const partition_t &partition) -> std::str
   @*/
 static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view;
 
-extern constexpr auto gpt_sys_types {std::to_array<const struct systypes_gtp>({
-    {.part_type = GPT_ENT_TYPE_EFI,                 .name = "EFI System"          },
-    {.part_type = GPT_ENT_TYPE_EBP,                 .name = "Extended Boot"       },
-    {.part_type = GPT_ENT_TYPE_MBR,                 .name = "MBR"                 },
-    {.part_type = GPT_ENT_TYPE_FREEBSD,             .name = "FreeBSD"             },
-    {.part_type = GPT_ENT_TYPE_FREEBSD_SWAP,        .name = "FreeBSD Swap"        },
-    {.part_type = GPT_ENT_TYPE_FREEBSD_UFS,         .name = "FreeBSD UFS"         },
-    {.part_type = GPT_ENT_TYPE_FREEBSD_VINUM,       .name = "FreeBSD Vinum"       },
-    //  { GPT_ENT_TYPE_FREEBSD_UFS2,		"FreeBSD UFS2"		},
-    {.part_type = GPT_ENT_TYPE_FREEBSD_ZFS,         .name = "FreeBSD ZFS"         },
-    {.part_type = GPT_ENT_TYPE_MS_RESERVED,         .name = "MS Reserved"         },
-    {.part_type = GPT_ENT_TYPE_MS_BASIC_DATA,       .name = "MS Data"             },
-    {.part_type = GPT_ENT_TYPE_MS_LDM_METADATA,     .name = "MS LDM MetaData"     },
-    {.part_type = GPT_ENT_TYPE_MS_LDM_DATA,         .name = "MS LDM Data"         },
-    {.part_type = GPT_ENT_TYPE_MS_RECOVERY,         .name = "Windows Recovery Env"},
-    {.part_type = GPT_ENT_TYPE_MS_SPACES,           .name = "MS Storage Spaces"   },
-    //  { GPT_ENT_TYPE_LINUX_DATA
-    {.part_type = GPT_ENT_TYPE_LINUX_RAID,          .name = "Linux Raid"          },
-    {.part_type = GPT_ENT_TYPE_LINUX_SWAP,          .name = "Linux Swap"          },
-    {.part_type = GPT_ENT_TYPE_LINUX_LVM,           .name = "Linux LVM"           },
-    {.part_type = GPT_ENT_TYPE_LINUX_RESERVED,      .name = "Linux Reserved"      },
-    {.part_type = GPT_ENT_TYPE_LINUX_HOME,          .name = "Linux /home"         },
-    {.part_type = GPT_ENT_TYPE_LINUX_SRV,           .name = "Linux /src"          },
-    {.part_type = GPT_ENT_TYPE_LINUX_DATA,          .name = "Linux filesys. data" },
-    {.part_type = GPT_ENT_TYPE_HPUX_DATA,           .name = "HPUX Data"           },
-    {.part_type = GPT_ENT_TYPE_HPUX_SERVICE,        .name = "HPUX Service"        },
-    {.part_type = GPT_ENT_TYPE_MAC_APFS,            .name = "Apple APFS"          },
-    {.part_type = GPT_ENT_TYPE_MAC_HFS,             .name = "Mac HFS"             },
-    {.part_type = GPT_ENT_TYPE_MAC_UFS,             .name = "Mac UFS"             },
-    {.part_type = GPT_ENT_TYPE_MAC_RAID,            .name = "Mac Raid"            },
-    {.part_type = GPT_ENT_TYPE_MAC_RAID_OFFLINE,    .name = "Mac Raid (Offline)"  },
-    {.part_type = GPT_ENT_TYPE_MAC_BOOT,            .name = "Mac Boot"            },
-    {.part_type = GPT_ENT_TYPE_MAC_LABEL,           .name = "Mac Label"           },
-    {.part_type = GPT_ENT_TYPE_MAC_TV_RECOVERY,     .name = "Mac TV Recovery"     },
-    {.part_type = GPT_ENT_TYPE_APPLE_CORE_STORAGE,
-     .name      = "Apple Core Storage"                                            },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_BOOT,        .name = "Solaris /boot"       },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_ROOT,        .name = "Solaris /"           },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_SWAP,        .name = "Solaris Swap"        },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_BACKUP,      .name = "Solaris Backup"      },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_USR,         .name = "Solaris /usr"        },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_VAR,         .name = "Solaris /var"        },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_HOME,        .name = "Solaris /home"       },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_EFI_ALTSCTR, .name = "Solaris EFI Alt."    },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED1,   .name = "Solaris Reserved1"   },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED2,   .name = "Solaris Reserved2"   },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED3,   .name = "Solaris Reserved3"   },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED4,   .name = "Solaris Reserved4"   },
-    {.part_type = GPT_ENT_TYPE_SOLARIS_RESERVED5,   .name = "Solaris Reserved5"   },
-    {.part_type = GPT_ENT_TYPE_BEOS_BFS,            .name = "BeFS"                },
-})};
+extern constexpr auto gpt_sys_types{
+    std::to_array<const struct systypes_gtp>({
+                                              {.part_type = GPT_ENT_TYPE_EFI, .name = "EFI System"},
+                                              {.part_type = GPT_ENT_TYPE_EBP, .name = "Extended Boot"},
+                                              {.part_type = GPT_ENT_TYPE_MBR, .name = "MBR"},
+                                              {.part_type = GPT_ENT_TYPE_FREEBSD, .name = "FreeBSD"},
+                                              {.part_type = GPT_ENT_TYPE_FREEBSD_SWAP, .name = "FreeBSD Swap"},
+                                              {.part_type = GPT_ENT_TYPE_FREEBSD_UFS, .name = "FreeBSD UFS"},
+                                              {.part_type = GPT_ENT_TYPE_FREEBSD_VINUM, .name = "FreeBSD Vinum"},
+                                              //  { GPT_ENT_TYPE_FREEBSD_UFS2,		"FreeBSD UFS2"		},
+        {.part_type = GPT_ENT_TYPE_FREEBSD_ZFS, .name = "FreeBSD ZFS"},
+                                              {.part_type = GPT_ENT_TYPE_MS_RESERVED, .name = "MS Reserved"},
+                                              {.part_type = GPT_ENT_TYPE_MS_BASIC_DATA, .name = "MS Data"},
+                                              {.part_type = GPT_ENT_TYPE_MS_LDM_METADATA, .name = "MS LDM MetaData"},
+                                              {.part_type = GPT_ENT_TYPE_MS_LDM_DATA, .name = "MS LDM Data"},
+                                              {.part_type = GPT_ENT_TYPE_MS_RECOVERY, .name = "Windows Recovery Env"},
+                                              {.part_type = GPT_ENT_TYPE_MS_SPACES, .name = "MS Storage Spaces"},
+                                              //  { GPT_ENT_TYPE_LINUX_DATA
+        {.part_type = GPT_ENT_TYPE_LINUX_RAID, .name = "Linux Raid"},
+                                              {.part_type = GPT_ENT_TYPE_LINUX_SWAP, .name = "Linux Swap"},
+                                              {.part_type = GPT_ENT_TYPE_LINUX_LVM, .name = "Linux LVM"},
+                                              {.part_type = GPT_ENT_TYPE_LINUX_RESERVED, .name = "Linux Reserved"},
+                                              {.part_type = GPT_ENT_TYPE_LINUX_HOME, .name = "Linux /home"},
+                                              {.part_type = GPT_ENT_TYPE_LINUX_SRV, .name = "Linux /src"},
+                                              {.part_type = GPT_ENT_TYPE_LINUX_DATA, .name = "Linux filesys. data"},
+                                              {.part_type = GPT_ENT_TYPE_HPUX_DATA, .name = "HPUX Data"},
+                                              {.part_type = GPT_ENT_TYPE_HPUX_SERVICE, .name = "HPUX Service"},
+                                              {.part_type = GPT_ENT_TYPE_MAC_APFS, .name = "Apple APFS"},
+                                              {.part_type = GPT_ENT_TYPE_MAC_HFS, .name = "Mac HFS"},
+                                              {.part_type = GPT_ENT_TYPE_MAC_UFS, .name = "Mac UFS"},
+                                              {.part_type = GPT_ENT_TYPE_MAC_RAID, .name = "Mac Raid"},
+                                              {
+            .part_type = GPT_ENT_TYPE_MAC_RAID_OFFLINE,
+            .name      = "Mac Raid (Offline)",
+        }, {.part_type = GPT_ENT_TYPE_MAC_BOOT, .name = "Mac Boot"},
+                                              {.part_type = GPT_ENT_TYPE_MAC_LABEL, .name = "Mac Label"},
+                                              {.part_type = GPT_ENT_TYPE_MAC_TV_RECOVERY, .name = "Mac TV Recovery"},
+                                              {
+            .part_type = GPT_ENT_TYPE_APPLE_CORE_STORAGE,
+            .name      = "Apple Core Storage",
+        }, {.part_type = GPT_ENT_TYPE_SOLARIS_BOOT, .name = "Solaris /boot"},
+                                              {.part_type = GPT_ENT_TYPE_SOLARIS_ROOT, .name = "Solaris /"},
+                                              {.part_type = GPT_ENT_TYPE_SOLARIS_SWAP, .name = "Solaris Swap"},
+                                              {.part_type = GPT_ENT_TYPE_SOLARIS_BACKUP, .name = "Solaris Backup"},
+                                              {.part_type = GPT_ENT_TYPE_SOLARIS_USR, .name = "Solaris /usr"},
+                                              {.part_type = GPT_ENT_TYPE_SOLARIS_VAR, .name = "Solaris /var"},
+                                              {.part_type = GPT_ENT_TYPE_SOLARIS_HOME, .name = "Solaris /home"},
+                                              {
+            .part_type = GPT_ENT_TYPE_SOLARIS_EFI_ALTSCTR,
+            .name      = "Solaris EFI Alt.",
+        }, {
+            .part_type = GPT_ENT_TYPE_SOLARIS_RESERVED1,
+            .name      = "Solaris Reserved1",
+        }, {
+            .part_type = GPT_ENT_TYPE_SOLARIS_RESERVED2,
+            .name      = "Solaris Reserved2",
+        }, {
+            .part_type = GPT_ENT_TYPE_SOLARIS_RESERVED3,
+            .name      = "Solaris Reserved3",
+        }, {
+            .part_type = GPT_ENT_TYPE_SOLARIS_RESERVED4,
+            .name      = "Solaris Reserved4",
+        }, {
+            .part_type = GPT_ENT_TYPE_SOLARIS_RESERVED5,
+            .name      = "Solaris Reserved5",
+        }, {.part_type = GPT_ENT_TYPE_BEOS_BFS, .name = "BeFS"},
+                                              }
+      ),
+};
 
-arch_fnct_t arch_gpt = {.part_name        = "EFI GPT",
-                        .part_name_option = "partition_gpt",
-                        .msg_part_type = "                P=Primary  D=Deleted",
-                        .read_part     = &read_part_gpt,
-                        .write_part    = &write_part_gpt,
-                        .init_part_order        = &init_part_order_gpt,
-                        .get_geometry_from_mbr  = nullptr,
-                        .check_part             = &check_part_gpt,
-                        .write_MBR_code         = nullptr,
-                        .set_prev_status        = &set_next_status_gpt,
-                        .set_next_status        = &set_next_status_gpt,
-                        .test_structure         = &test_structure_gpt,
-                        .get_part_type          = nullptr,
-                        .set_part_type          = nullptr,
-                        .init_structure         = &init_structure_gpt,
-                        .erase_list_part        = nullptr,
-                        .get_partition_typename = &get_partition_typename_gpt,
-                        .is_part_known          = &is_part_known_gpt};
+arch_fnct_t arch_gpt = {
+    .part_name              = "EFI GPT",
+    .part_name_option       = "partition_gpt",
+    .msg_part_type          = "                P=Primary  D=Deleted",
+    .read_part              = &read_part_gpt,
+    .write_part             = &write_part_gpt,
+    .init_part_order        = &init_part_order_gpt,
+    .get_geometry_from_mbr  = nullptr,
+    .check_part             = &check_part_gpt,
+    .write_MBR_code         = nullptr,
+    .set_prev_status        = &set_next_status_gpt,
+    .set_next_status        = &set_next_status_gpt,
+    .test_structure         = &test_structure_gpt,
+    .get_part_type          = nullptr,
+    .set_part_type          = nullptr,
+    .init_structure         = &init_structure_gpt,
+    .erase_list_part        = nullptr,
+    .get_partition_typename = &get_partition_typename_gpt,
+    .is_part_known          = &is_part_known_gpt,
+};
 
 /*@
   @ requires \valid(disk_car);
@@ -319,20 +339,21 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
     return new_list_part;
   }
   gpt_entries_offset = to_little_endian(gpt->hdr_lba_table) * disk_car.sector_size;
-  if (hdr_lba == 1)
+  if ((hdr_lba == 1) &&
+      (to_little_endian(gpt->hdr_lba_self) + to_little_endian(gpt->hdr_size) -
+               1 >=
+           gpt_entries_offset ||
+       gpt_entries_offset >=
+           to_little_endian(gpt->hdr_lba_start) * disk_car.sector_size))
+
   {
-    if (to_little_endian(gpt->hdr_lba_self) + to_little_endian(gpt->hdr_size) - 1 >=
-            gpt_entries_offset ||
-        gpt_entries_offset >= to_little_endian(gpt->hdr_lba_start) * disk_car.sector_size)
-    {
-      screen_buffer_add(
-          "GPT: The primary GUID Partition Entry array must be located after "
-          "the primary GUID "
-          "Partition Table Header and end before the FirstUsableLBA.\n"
-      );
-      delete[] gpt;
-      return new_list_part;
-    }
+    screen_buffer_add(
+        "GPT: The primary GUID Partition Entry array must be located after "
+        "the primary GUID "
+        "Partition Table Header and end before the FirstUsableLBA.\n"
+    );
+    delete[] gpt;
+    return new_list_part;
   }
 
   gpt_entries = new struct gpt_ent[to_little_endian(gpt->hdr_entries)];

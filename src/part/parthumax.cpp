@@ -141,7 +141,8 @@ arch_fnct_t arch_humax = {
     .init_structure         = &init_structure_humax,
     .erase_list_part        = nullptr,
     .get_partition_typename = &get_partition_typename_humax,
-    .is_part_known          = &is_part_known_humax};
+    .is_part_known          = &is_part_known_humax,
+};
 
 static auto is_part_known_humax(const partition_t &partition) -> int
 {

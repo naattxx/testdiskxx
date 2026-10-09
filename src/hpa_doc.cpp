@@ -73,17 +73,17 @@
 
 enum : uint8_t
 {
-    SG_CDB2_TLEN_NODATA = 0 << 0,
-    SG_CDB2_TLEN_FEAT = 1 << 0,
-    SG_CDB2_TLEN_NSECT = 2 << 0,
+    SG_CDB2_TLEN_NODATA = 0u << 0u,
+    SG_CDB2_TLEN_FEAT = 1u << 0u,
+    SG_CDB2_TLEN_NSECT = 2u << 0u,
 
-    SG_CDB2_TLEN_BYTES = 0 << 2,
-    SG_CDB2_TLEN_SECTORS = 1 << 2,
+    SG_CDB2_TLEN_BYTES = 0u << 2u,
+    SG_CDB2_TLEN_SECTORS = 1u << 2u,
 
-    SG_CDB2_TDIR_TO_DEV = 0 << 3,
-    SG_CDB2_TDIR_FROM_DEV = 1 << 3,
+    SG_CDB2_TDIR_TO_DEV = 0u << 3u,
+    SG_CDB2_TDIR_FROM_DEV = 1u << 3u,
 
-    SG_CDB2_CHECK_COND = 1 << 5
+    SG_CDB2_CHECK_COND = 1u << 5u,
 };
 
 #ifndef WIN_READ_NATIVE_MAX

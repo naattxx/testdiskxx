@@ -46,9 +46,12 @@ auto ask_testdisk_log_creation(App &app) -> TD_LOG
   auto dialog = Renderer(menu, [&] -> Element {
     return window(text("Log creation"),
                   vbox({
-                      hflow({text("TestDisk++ "), bold(text(VERSION)),
-                             text(", Data Recovery Utility, "),
-                             text(TESTDISKDATE)}),
+                      hflow({
+                          text("TestDisk++ "),
+                          bold(text(VERSION)),
+                          text(", Data Recovery Utility, "),
+                          text(TESTDISKDATE),
+                      }),
                       text("naattxx"),
                       text("https://github.com/naattxx/testdiskxx"),
                       separator(),

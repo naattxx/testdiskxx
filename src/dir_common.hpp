@@ -28,13 +28,15 @@
 #include <sys/stat.h>
 #endif
 #include "common.hpp"
-#define DIR_NAME_LEN 1024
-#define FLAG_LIST_DELETED 1
-#define FLAG_LIST_MASK12 2
-#define FLAG_LIST_MASK16 4
-#define FLAG_LIST_PATHNAME 8
-#define FLAG_LIST_ADS 16
-#define FLAG_LIST_SYSTEM 32
+#define DIR_NAME_LEN 1024u
+enum FLAG_LIST : uint8_t {
+  DELETED = 1,
+  MASK12 = 2,
+  MASK16 = 4,
+  PATHNAME = 8,
+  ADS = 16,
+  SYSTEM = 32,
+};
 /* capabilities */
 #define CAPA_LIST_DELETED 1
 #define CAPA_LIST_ADS 2
@@ -48,14 +50,14 @@ enum copy_file_t : int8_t
     CP_CREATE_FAILED = -4,
     CP_NOSPACE = -5,
     CP_CLOSE_FAILED = -6,
-    CP_NOMEM = -7
+    CP_NOMEM         = -7,
 };
 enum dir_partition_t : int8_t
 {
     DIR_PART_ENOIMP = -3,
     DIR_PART_ENOSYS = -2,
     DIR_PART_EIO = -1,
-    DIR_PART_OK = 0
+    DIR_PART_OK     = 0,
 };
 
 struct file_status {
@@ -96,38 +98,38 @@ struct dir_data_t
     std::filesystem::path local_dir;
 };
 
-#define LINUX_S_IFMT 00170000
-#define LINUX_S_IFSOCK 0140000
-#define LINUX_S_IFLNK 0120000
-#define LINUX_S_IFREG 0100000
-#define LINUX_S_IFBLK 0060000
-#define LINUX_S_IFDIR 0040000
-#define LINUX_S_IFCHR 0020000
-#define LINUX_S_IFIFO 0010000
-#define LINUX_S_ISUID 0004000
-#define LINUX_S_ISGID 0002000
-#define LINUX_S_ISVTX 0001000
+constexpr unsigned LINUX_S_IFMT   = 00170000;
+constexpr unsigned LINUX_S_IFSOCK = 0140000;
+constexpr unsigned LINUX_S_IFLNK  = 0120000;
+constexpr unsigned LINUX_S_IFREG  = 0100000;
+constexpr unsigned LINUX_S_IFBLK  = 0060000;
+constexpr unsigned LINUX_S_IFDIR  = 0040000;
+constexpr unsigned LINUX_S_IFCHR  = 0020000;
+constexpr unsigned LINUX_S_IFIFO  = 0010000;
+constexpr unsigned LINUX_S_ISUID  = 0004000;
+constexpr unsigned LINUX_S_ISGID  = 0002000;
+constexpr unsigned LINUX_S_ISVTX  = 0001000;
 
-#define LINUX_S_IRWXU 00700
-#define LINUX_S_IRUSR 00400
-#define LINUX_S_IWUSR 00200
-#define LINUX_S_IXUSR 00100
+constexpr unsigned LINUX_S_IRWXU = 00700;
+constexpr unsigned LINUX_S_IRUSR = 00400;
+constexpr unsigned LINUX_S_IWUSR = 00200;
+constexpr unsigned LINUX_S_IXUSR = 00100;
 
-#define LINUX_S_IRWXG 00070
-#define LINUX_S_IRGRP 00040
-#define LINUX_S_IWGRP 00020
-#define LINUX_S_IXGRP 00010
+constexpr unsigned LINUX_S_IRWXG = 00070;
+constexpr unsigned LINUX_S_IRGRP = 00040;
+constexpr unsigned LINUX_S_IWGRP = 00020;
+constexpr unsigned LINUX_S_IXGRP = 00010;
 
-#define LINUX_S_IRWXO 00007
-#define LINUX_S_IROTH 00004
-#define LINUX_S_IWOTH 00002
-#define LINUX_S_IXOTH 00001
+constexpr unsigned LINUX_S_IRWXO = 00007;
+constexpr unsigned LINUX_S_IROTH = 00004;
+constexpr unsigned LINUX_S_IWOTH = 00002;
+constexpr unsigned LINUX_S_IXOTH = 00001;
 
-#define LINUX_S_IRWXUGO (LINUX_S_IRWXU | LINUX_S_IRWXG | LINUX_S_IRWXO)
-#define LINUX_S_IALLUGO (LINUX_S_ISUID | LINUX_S_ISGID | LINUX_S_ISVTX | LINUX_S_IRWXUGO)
-#define LINUX_S_IRUGO (LINUX_S_IRUSR | LINUX_S_IRGRP | LINUX_S_IROTH)
-#define LINUX_S_IWUGO (LINUX_S_IWUSR | LINUX_S_IWGRP | LINUX_S_IWOTH)
-#define LINUX_S_IXUGO (LINUX_S_IXUSR | LINUX_S_IXGRP | LINUX_S_IXOTH)
+constexpr unsigned LINUX_S_IRWXUGO {LINUX_S_IRWXU | LINUX_S_IRWXG | LINUX_S_IRWXO};
+constexpr unsigned LINUX_S_IALLUGO {LINUX_S_ISUID | LINUX_S_ISGID | LINUX_S_ISVTX | LINUX_S_IRWXUGO};
+constexpr unsigned LINUX_S_IRUGO {LINUX_S_IRUSR | LINUX_S_IRGRP | LINUX_S_IROTH};
+constexpr unsigned LINUX_S_IWUGO {LINUX_S_IWUSR | LINUX_S_IWGRP | LINUX_S_IWOTH};
+constexpr unsigned LINUX_S_IXUGO {LINUX_S_IXUSR | LINUX_S_IXGRP | LINUX_S_IXOTH};
 
 #define LINUX_S_ISLNK(m) (((m) & LINUX_S_IFMT) == LINUX_S_IFLNK)
 #define LINUX_S_ISREG(m) (((m) & LINUX_S_IFMT) == LINUX_S_IFREG)

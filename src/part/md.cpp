@@ -108,7 +108,7 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
                         to_little_endian(sb->disks[i].major), to_little_endian(sb->disks[i].minor));
         if (to_little_endian(sb->disks[i].major) == to_little_endian(sb->this_disk.major) &&
             to_little_endian(sb->disks[i].minor) == to_little_endian(sb->this_disk.minor))
-          partition.info += "*";
+          partition.info += '*';
       }
     }
   }
@@ -139,7 +139,7 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
         else
           partition.info += std::to_string(role);
       }
-      partition.info += ")";
+      partition.info += ')';
     }
   }
   if (verbose > 0)
@@ -167,7 +167,7 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
                         to_big_endian(sb->disks[i].major), to_big_endian(sb->disks[i].minor));
         if (to_big_endian(sb->disks[i].major) == to_big_endian(sb->this_disk.major) &&
             to_big_endian(sb->disks[i].minor) == to_big_endian(sb->this_disk.minor))
-          partition.info += "*";
+          partition.info += '*';
       }
     }
   }
@@ -198,7 +198,7 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
         else
           partition.info += std::to_string(role);
       }
-      partition.info += ")";
+      partition.info += ')';
     }
   }
   if (verbose > 0)

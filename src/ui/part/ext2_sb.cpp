@@ -44,7 +44,7 @@ auto interface_superblock(const Component &root, disk_t &disk,
       Button("Quit", screen.ExitLoopClosure(), ButtonOption::Ascii());
 
   std::vector<std::vector<std::string>> rows{
-      {"Partition", "Start", "End", "Size in sectors"}
+      {"Partition", "Start", "End", "Size in sectors"},
   };
 
   for (const partition_t *old_part = nullptr;

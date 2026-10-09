@@ -97,11 +97,11 @@ static auto ntfs_boot_sector_command(char **current_cmd, const char *options)
     if (strchr(options, 'B') != nullptr)
       return 'B';
   }
-  else if (check_command(current_cmd, "repairmft", 9) == 0)
-  {
-    if (strchr(options, 'M') != nullptr)
-      return 'M';
-  }
+  else if ((check_command(current_cmd, "repairmft", 9) == 0) &&
+           (strchr(options, 'M') != nullptr))
+
+    return 'M';
+
   return 0;
 }
 

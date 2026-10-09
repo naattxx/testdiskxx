@@ -188,7 +188,8 @@ static void adv_menu_image_selected(disk_t &disk, const partition_t &partition)
   const std::string msg{
       std::format("Please select where to store the file image.dd ({} MB), "
                   "an image of the partition",
-                  partition.part_size / 1000 / 1000)};
+                  partition.part_size / 1000 / 1000),
+  };
 
   std::filesystem::path dst_path;
   ask_location(dst_path, msg, "");
@@ -243,7 +244,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
 
   unsigned int selected_part{0};
   std::vector<std::vector<std::string>> rows{
-      {"", "", "Partition", "Start", "End", "Size in sectors", "", ""}
+      {"", "", "Partition", "Start", "End", "Size in sectors", "", ""},
   };
 
   bool hasBoot, hasSuperblock, hasList, hasUndelete;
@@ -356,8 +357,12 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
     table.SelectRow(selected_part + 1).Decorate(inverted);
 
     return vbox({
-        hflow({text("TestDisk++ "), bold(text(VERSION)),
-               text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
+        hflow({
+            text("TestDisk++ "),
+            bold(text(VERSION)),
+            text(", Data Recovery Utility, "),
+            text(TESTDISKDATE),
+        }),
         text("naattxx"),
         text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),

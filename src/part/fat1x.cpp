@@ -159,11 +159,10 @@ auto fat1x_boot_sector(disk_t &disk_car, partition_t &partition,
         if (strchr(options, 'C') != nullptr)
           command = 'C';
       }
-      else if (check_command(current_cmd, "initroot", 8) == 0)
-      {
-        if (strchr(options, 'I') != nullptr)
-          command = 'I';
-      }
+      else if ((check_command(current_cmd, "initroot", 8) == 0) &&
+               (strchr(options, 'I') != nullptr))
+
+        command = 'I';
     }
     else
     {

@@ -66,37 +66,39 @@ static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
     log_error("Bad CRC! CRC must be xor'd by {:04X}", crc);
   for (i = 0; i < to_little_endian(bsd_header->d_npartitions); i++)
   {
-    if (bsd_header->d_partitions[i].p_fstype > 0)
+    if ((bsd_header->d_partitions[i].p_fstype > 0) && (verbose > 0))
+
     {
-      if (verbose > 0)
+      /* UFS UFS2 SWAP */
+      log_info("BSD {}: ", 'a' + i);
+      switch (bsd_header->d_partitions[i].p_fstype)
       {
-        /* UFS UFS2 SWAP */
-        log_info("BSD {}: ", 'a' + i);
-        switch (bsd_header->d_partitions[i].p_fstype)
-        {
-        case TST_FS_SWAP:
-          log_info("swap");
-          break;
-        case TST_FS_BSDFFS:
-          log_info("4.2BSD fast filesystem");
-          break;
-        case TST_FS_BSDLFS:
-          log_info("4.4BSD log-structured filesystem");
-          break;
-        default:
-          log_info("type {:02X}", bsd_header->d_partitions[i].p_fstype);
-          break;
-        }
-        log_info(", offset {:9}, size {:9} ",
-                 (unsigned int)to_little_endian(bsd_header->d_partitions[i].p_offset),
-                 (unsigned int)to_little_endian(bsd_header->d_partitions[i].p_size));
-        log_CHS_from_LBA(disk_car, to_little_endian(bsd_header->d_partitions[i].p_offset));
-        log_info(" -> ");
-        log_CHS_from_LBA(disk_car,
-                         to_little_endian(bsd_header->d_partitions[i].p_offset) +
-                             to_little_endian(bsd_header->d_partitions[i].p_size) - 1);
-        log_info("\n");
+      case TST_FS_SWAP:
+        log_info("swap");
+        break;
+      case TST_FS_BSDFFS:
+        log_info("4.2BSD fast filesystem");
+        break;
+      case TST_FS_BSDLFS:
+        log_info("4.4BSD log-structured filesystem");
+        break;
+      default:
+        log_info("type {:02X}", bsd_header->d_partitions[i].p_fstype);
+        break;
       }
+      log_info(
+          ", offset {:9}, size {:9} ",
+          (unsigned int)to_little_endian(bsd_header->d_partitions[i].p_offset),
+          (unsigned int)to_little_endian(bsd_header->d_partitions[i].p_size)
+      );
+      log_CHS_from_LBA(disk_car,
+                       to_little_endian(bsd_header->d_partitions[i].p_offset));
+      log_info(" -> ");
+      log_CHS_from_LBA(
+          disk_car, to_little_endian(bsd_header->d_partitions[i].p_offset) +
+                        to_little_endian(bsd_header->d_partitions[i].p_size) - 1
+      );
+      log_info("\n");
     }
   }
   if (crc)
@@ -144,13 +146,14 @@ auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
     partition.upart_type = UP_FREEBSD;
     for (i = 0; i < BSD_MAXPARTITIONS; i++)
     {
-      if (bsd_header->d_partitions[i].p_fstype > 0)
-      {
-        if (i_max_p_offset == -1 ||
-            to_little_endian(bsd_header->d_partitions[i].p_offset) >
-                to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_offset))
-          i_max_p_offset = i;
-      }
+      if ((bsd_header->d_partitions[i].p_fstype > 0) &&
+          (i_max_p_offset == -1 ||
+           to_little_endian(bsd_header->d_partitions[i].p_offset) >
+               to_little_endian(
+                   bsd_header->d_partitions[i_max_p_offset].p_offset
+               )))
+
+        i_max_p_offset = i;
     }
     if (i_max_p_offset >= 0)
       partition.part_size =
@@ -172,13 +175,14 @@ auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
     partition.upart_type = UP_OPENBSD;
     for (i = 0; i < OPENBSD_MAXPARTITIONS; i++)
     {
-      if (bsd_header->d_partitions[i].p_fstype > 0)
-      {
-        if (i_max_p_offset == -1 ||
-            to_little_endian(bsd_header->d_partitions[i].p_offset) >
-                to_little_endian(bsd_header->d_partitions[i_max_p_offset].p_offset))
-          i_max_p_offset = i;
-      }
+      if ((bsd_header->d_partitions[i].p_fstype > 0) &&
+          (i_max_p_offset == -1 ||
+           to_little_endian(bsd_header->d_partitions[i].p_offset) >
+               to_little_endian(
+                   bsd_header->d_partitions[i_max_p_offset].p_offset
+               )))
+
+        i_max_p_offset = i;
     }
     if (i_max_p_offset >= 0)
       partition.part_size =

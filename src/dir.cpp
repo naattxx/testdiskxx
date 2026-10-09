@@ -194,7 +194,7 @@ auto dir_aff_log(const std::optional<dir_data_t&> dir_data, const dir_list_t &di
         log_info("{:7} {} {:5}  {:5} {:9} {} ", (unsigned long int)current_file.st_ino, str,
                  (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid,
                  (long long unsigned int)current_file.st_size, datestr);
-        if (dir_data && (dir_data->param & FLAG_LIST_PATHNAME) != 0)
+        if (dir_data && (dir_data->param & FLAG_LIST::PATHNAME) != 0)
         {
             if (dir_data->current_directory[1] != '\0')
                 log_info("{}/", dir_data->current_directory);
@@ -397,33 +397,34 @@ static struct
     mode_t mask;
 } mode_table[] = {
 #ifdef S_IRUSR
-    {.lmask=LINUX_S_IRUSR, .mask=S_IRUSR},
+    {.lmask = LINUX_S_IRUSR, .mask = S_IRUSR},
 #endif
 #ifdef S_IWUSR
-    {.lmask=LINUX_S_IWUSR, .mask=S_IWUSR},
+    {.lmask = LINUX_S_IWUSR, .mask = S_IWUSR},
 #endif
 #ifdef S_IXUSR
-    {.lmask=LINUX_S_IXUSR, .mask=S_IXUSR},
+    {.lmask = LINUX_S_IXUSR, .mask = S_IXUSR},
 #endif
 #ifdef S_IRGRP
-    {.lmask=LINUX_S_IRGRP, .mask=S_IRGRP},
+    {.lmask = LINUX_S_IRGRP, .mask = S_IRGRP},
 #endif
 #ifdef S_IWGRP
-    {.lmask=LINUX_S_IWGRP, .mask=S_IWGRP},
+    {.lmask = LINUX_S_IWGRP, .mask = S_IWGRP},
 #endif
 #ifdef S_IXGRP
-    {.lmask=LINUX_S_IXGRP, .mask=S_IXGRP},
+    {.lmask = LINUX_S_IXGRP, .mask = S_IXGRP},
 #endif
 #ifdef S_IROTH
-    {.lmask=LINUX_S_IROTH, .mask=S_IROTH},
+    {.lmask = LINUX_S_IROTH, .mask = S_IROTH},
 #endif
 #ifdef S_IWOTH
-    {.lmask=LINUX_S_IWOTH, .mask=S_IWOTH},
+    {.lmask = LINUX_S_IWOTH, .mask = S_IWOTH},
 #endif
 #ifdef S_IXOTH
-    {.lmask=LINUX_S_IXOTH, .mask=S_IXOTH},
+    {.lmask = LINUX_S_IXOTH, .mask = S_IXOTH},
 #endif
-    {.lmask=0, .mask=0}};
+    {.lmask = 0,             .mask = 0      },
+};
 
 /*@
   @ assigns \nothing;

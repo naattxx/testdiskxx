@@ -37,8 +37,12 @@ void disk_image_interface(disk_t &disk, const partition_t &partition,
       screen.Exit();
     screen.RequestAnimationFrame();
     return vbox({
-        hflow({text("TestDisk++ "), bold(text(VERSION)),
-               text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
+        hflow({
+            text("TestDisk++ "),
+            bold(text(VERSION)),
+            text(", Data Recovery Utility, "),
+            text(TESTDISKDATE),
+        }),
         text("naattxx"),
         text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),
@@ -46,8 +50,10 @@ void disk_image_interface(disk_t &disk, const partition_t &partition,
         text(std::format("{:n:>4}",
                          aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk,
                                       partition))),
-        hbox({text(std::format("{:.2f} % ", progress * 100)) | vcenter,
-              gauge(progress) | border | flex}),
+        hbox({
+            text(std::format("{:.2f} % ", progress * 100)) | vcenter,
+            gauge(progress) | border | flex,
+        }),
         separatorEmpty(),
         paragraph(
             "Disk images are mainly used\n"
@@ -59,9 +65,9 @@ void disk_image_interface(disk_t &disk, const partition_t &partition,
             "   testdisk_win.exe image.dd\n"
             "or photorec_win.exe image.dd"
 #else
-          "start a Terminal and run\n"
-          "   testdisk image.dd\n"
-          "or photorec image.dd"
+            "start a Terminal and run\n"
+            "   testdisk image.dd\n"
+            "or photorec image.dd"
 #endif
         ),
         filler(),

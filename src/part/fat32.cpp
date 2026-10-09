@@ -187,8 +187,8 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
       }
       screen_buffer_add("\n");
       if ((memcmp(buffer_bs, buffer_backup_bs, 0x3E8) == 0) &&
-          (memcmp(buffer_bs + 0x3F0, buffer_backup_bs + 0x3F0,
-                  0x600 - 0x3F0)) == 0)
+          memcmp(buffer_bs + 0x3F0, buffer_backup_bs + 0x3F0, 0x600 - 0x3F0) ==
+              0)
       {
         screen_buffer_add("Sectors are identical.\n");
         opt_over = 0;
@@ -272,11 +272,10 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
         if (strchr(options, 'O') != nullptr)
           command = 'O';
       }
-      else if (check_command(current_cmd, "backupfat", 9) == 0)
-      {
-        if (strchr(options, 'B') != nullptr)
-          command = 'B';
-      }
+      else if ((check_command(current_cmd, "backupfat", 9) == 0) &&
+               (strchr(options, 'B') != nullptr))
+
+        command = 'B';
     }
     else
     {

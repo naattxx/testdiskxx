@@ -132,42 +132,47 @@ static auto get_partition_typename_sun_aux(const unsigned int part_type_sun)
   @*/
 static auto get_part_type_sun(const partition_t &partition) -> unsigned int;
 
-static constexpr auto sun_sys_types {std::to_array<const systypes>({
-    {.part_type = 0x00,            .name = "Empty"                },
-    {.part_type = PSUN_BOOT,       .name = "Boot"                 },
-    {.part_type = PSUN_ROOT,       .name = "SunOS root"           },
-    {.part_type = PSUN_SWAP,       .name = "SunOS swap"           },
-    {.part_type = PSUN_USR,        .name = "SunOS usr"            },
-    {.part_type = PSUN_WHOLE_DISK, .name = "Whole disk"           },
-    {.part_type = PSUN_STAND,      .name = "SunOS stand"          },
-    {.part_type = PSUN_VAR,        .name = "SunOS var"            },
-    {.part_type = PSUN_HOME,       .name = "SunOS home"           },
-    {.part_type = PSUN_ALT,        .name = "SunOS alt."           },
-    {.part_type = PSUN_CACHEFS,    .name = "SunOS cachefs"        },
-    {.part_type = PSUN_LINSWAP,    .name = "Linux swap"           },
-    {.part_type = PSUN_LINUX,      .name = "Linux native"         },
-    {.part_type = PSUN_LVM,        .name = "Linux LVM"            },
-    {.part_type = PSUN_RAID,       .name = "Linux raid autodetect"},
-})};
+static constexpr auto sun_sys_types{
+    std::to_array<const systypes>({
+                                   {.part_type = 0x00, .name = "Empty"},
+                                   {.part_type = PSUN_BOOT, .name = "Boot"},
+                                   {.part_type = PSUN_ROOT, .name = "SunOS root"},
+                                   {.part_type = PSUN_SWAP, .name = "SunOS swap"},
+                                   {.part_type = PSUN_USR, .name = "SunOS usr"},
+                                   {.part_type = PSUN_WHOLE_DISK, .name = "Whole disk"},
+                                   {.part_type = PSUN_STAND, .name = "SunOS stand"},
+                                   {.part_type = PSUN_VAR, .name = "SunOS var"},
+                                   {.part_type = PSUN_HOME, .name = "SunOS home"},
+                                   {.part_type = PSUN_ALT, .name = "SunOS alt."},
+                                   {.part_type = PSUN_CACHEFS, .name = "SunOS cachefs"},
+                                   {.part_type = PSUN_LINSWAP, .name = "Linux swap"},
+                                   {.part_type = PSUN_LINUX, .name = "Linux native"},
+                                   {.part_type = PSUN_LVM, .name = "Linux LVM"},
+                                   {.part_type = PSUN_RAID, .name = "Linux raid autodetect"},
+                                   }
+     ),
+};
 
-arch_fnct_t arch_sun = {.part_name        = "Sun",
-                        .part_name_option = "partition_sun",
-                        .msg_part_type = "                P=Primary  D=Deleted",
-                        .read_part     = &read_part_sun,
-                        .write_part    = &write_part_sun,
-                        .init_part_order        = &init_part_order_sun,
-                        .get_geometry_from_mbr  = &get_geometry_from_sunmbr,
-                        .check_part             = &check_part_sun,
-                        .write_MBR_code         = nullptr,
-                        .set_prev_status        = &set_next_status_sun,
-                        .set_next_status        = &set_next_status_sun,
-                        .test_structure         = &test_structure_sun,
-                        .get_part_type          = &get_part_type_sun,
-                        .set_part_type          = &set_part_type_sun,
-                        .init_structure         = &init_structure_sun,
-                        .erase_list_part        = nullptr,
-                        .get_partition_typename = &get_partition_typename_sun,
-                        .is_part_known          = &is_part_known_sun};
+arch_fnct_t arch_sun = {
+    .part_name              = "Sun",
+    .part_name_option       = "partition_sun",
+    .msg_part_type          = "                P=Primary  D=Deleted",
+    .read_part              = &read_part_sun,
+    .write_part             = &write_part_sun,
+    .init_part_order        = &init_part_order_sun,
+    .get_geometry_from_mbr  = &get_geometry_from_sunmbr,
+    .check_part             = &check_part_sun,
+    .write_MBR_code         = nullptr,
+    .set_prev_status        = &set_next_status_sun,
+    .set_next_status        = &set_next_status_sun,
+    .test_structure         = &test_structure_sun,
+    .get_part_type          = &get_part_type_sun,
+    .set_part_type          = &set_part_type_sun,
+    .init_structure         = &init_structure_sun,
+    .erase_list_part        = nullptr,
+    .get_partition_typename = &get_partition_typename_sun,
+    .is_part_known          = &is_part_known_sun,
+};
 
 static auto get_part_type_sun(const partition_t &partition) -> unsigned int
 {

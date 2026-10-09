@@ -182,10 +182,10 @@ auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
   }
 
   /* Does lcn lie in the section of $Bitmap we already have cached? */
-  if ((bmplcn < 0) || (std::cmp_less(lcn, bmplcn)) ||
-      (std::cmp_greater_equal(lcn,
-                              (static_cast<unsigned>(bmplcn) +
-                               (static_cast<unsigned>(sizeof(buffer)) << 3)))))
+  if ((bmplcn < 0) || std::cmp_less(lcn, bmplcn) ||
+      std::cmp_greater_equal(lcn,
+                             (static_cast<unsigned>(bmplcn) +
+                              (static_cast<unsigned>(sizeof(buffer)) << 3))))
   {
     ntfs_attr *attr;
 #ifdef DEBUG_NTFS

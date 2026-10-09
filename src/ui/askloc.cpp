@@ -164,17 +164,20 @@ void ask_location(std::filesystem::path &dst_directory, std::string_view msg,
   std::vector<std::string> menuEntries;
 
   auto dir_menu =
-      Menu(&menuEntries, &currentFile, {.on_enter = [&] -> void {
-        constexpr size_t posOfFileName = 51;
-        auto newPath =
-            dst_directory / menuEntries[currentFile].substr(posOfFileName);
-        if (std::filesystem::is_directory(newPath))
-        {
-          dst_directory = newPath.lexically_normal();
-          dir_list      = std::async(get_dir_list, dst_directory);
-          reload        = true;
-        }
-      }}) |
+      Menu(&menuEntries, &currentFile,
+           {
+               .on_enter = [&] -> void {
+                 constexpr size_t posOfFileName = 51;
+                 auto newPath = dst_directory /
+                                menuEntries[currentFile].substr(posOfFileName);
+                 if (std::filesystem::is_directory(newPath))
+                 {
+                   dst_directory = newPath.lexically_normal();
+                   dir_list      = std::async(get_dir_list, dst_directory);
+                   reload        = true;
+                 }
+               },
+           }) |
       CatchEvent([&](const Event &event) -> bool {
         if (event == Event::q)
         {
@@ -208,27 +211,36 @@ void ask_location(std::filesystem::path &dst_directory, std::string_view msg,
       reload      = false;
     }
     return vbox({
-        hflow({text("TestDisk++ "), bold(text(VERSION)),
-               text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
+        hflow({
+            text("TestDisk++ "),
+            bold(text(VERSION)),
+            text(", Data Recovery Utility, "),
+            text(TESTDISKDATE),
+        }),
         separatorEmpty(),
         paragraph(msg),
-        loaded
-            ? vbox({
-                  hbox({text("Keys: "),
-                        vbox({
-                            hflow({bold(text("Arrow")),
-                                   text(" keys to select another directory")}),
-                            hflow({bold(text("C")),
-                                   text(" when the destination is correct")}),
-                            hflow({bold(text("Q")), text(" to quit")}),
-                        })}),
-                  text(std::format("Directory {}", dst_directory.string())),
-                  dir_menu->Render() | yframe,
-              })
-            : hflow({
-                  bold(text("Directory listing in progress ")),
-                  spinner(15, frame),
-              }),
+        loaded ? vbox({
+                     hbox({
+                         text("Keys: "),
+                         vbox({
+                             hflow({
+                                 bold(text("Arrow")),
+                                 text(" keys to select another directory"),
+                             }),
+                             hflow({
+                                 bold(text("C")),
+                                 text(" when the destination is correct"),
+                             }),
+                             hflow({bold(text("Q")), text(" to quit")}),
+                         }),
+                     }),
+                     text(std::format("Directory {}", dst_directory.string())),
+                     dir_menu->Render() | yframe,
+                 })
+               : hflow({
+                     bold(text("Directory listing in progress ")),
+                     spinner(15, frame),
+                 }),
     });
   });
 

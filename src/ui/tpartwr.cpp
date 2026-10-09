@@ -111,11 +111,11 @@ auto interface_write(disk_t &disk_car, list_part_t &list_part,
 	  command=0;	/* do nothing */
 	  (*no_confirm)=1;
 	}
-	else if(check_command(current_cmd,"write",5)==0)
-	{
-	  if(disk_car.arch->write_part!=nullptr)
-	    command='W';
-	}
+    else if ((check_command(current_cmd, "write", 5) == 0) &&
+             (disk_car.arch->write_part != nullptr))
+
+      command = 'W';
+
       } while(command==0);
       screen_buffer_to_log();
     }

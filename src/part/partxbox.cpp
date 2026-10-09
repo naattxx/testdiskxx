@@ -123,30 +123,34 @@ static auto get_partition_typename_xbox_aux(const unsigned int part_type_xbox)
   @*/
 static auto get_part_type_xbox(const partition_t &partition) -> unsigned int;
 
-static constexpr auto xbox_sys_types {std::to_array<const systypes>({
-    {.part_type = PXBOX_UNK,  .name = "Unknown"},
-    {.part_type = PXBOX_FATX, .name = "FATX"   },
-})};
+static constexpr auto xbox_sys_types{
+    std::to_array<const systypes>({
+                                   {.part_type = PXBOX_UNK, .name = "Unknown"},
+                                   {.part_type = PXBOX_FATX, .name = "FATX"},
+                                   }
+     ),
+};
 
-arch_fnct_t arch_xbox = {.part_name        = "XBox",
-                         .part_name_option = "partition_xbox",
-                         .msg_part_type =
-                             "                P=Primary  D=Deleted",
-                         .read_part              = &read_part_xbox,
-                         .write_part             = &write_part_xbox,
-                         .init_part_order        = &init_part_order_xbox,
-                         .get_geometry_from_mbr  = nullptr,
-                         .check_part             = &check_part_xbox,
-                         .write_MBR_code         = nullptr,
-                         .set_prev_status        = &set_next_status_xbox,
-                         .set_next_status        = &set_next_status_xbox,
-                         .test_structure         = &test_structure_xbox,
-                         .get_part_type          = &get_part_type_xbox,
-                         .set_part_type          = &set_part_type_xbox,
-                         .init_structure         = &init_structure_xbox,
-                         .erase_list_part        = nullptr,
-                         .get_partition_typename = &get_partition_typename_xbox,
-                         .is_part_known          = &is_part_known_xbox};
+arch_fnct_t arch_xbox = {
+    .part_name              = "XBox",
+    .part_name_option       = "partition_xbox",
+    .msg_part_type          = "                P=Primary  D=Deleted",
+    .read_part              = &read_part_xbox,
+    .write_part             = &write_part_xbox,
+    .init_part_order        = &init_part_order_xbox,
+    .get_geometry_from_mbr  = nullptr,
+    .check_part             = &check_part_xbox,
+    .write_MBR_code         = nullptr,
+    .set_prev_status        = &set_next_status_xbox,
+    .set_next_status        = &set_next_status_xbox,
+    .test_structure         = &test_structure_xbox,
+    .get_part_type          = &get_part_type_xbox,
+    .set_part_type          = &set_part_type_xbox,
+    .init_structure         = &init_structure_xbox,
+    .erase_list_part        = nullptr,
+    .get_partition_typename = &get_partition_typename_xbox,
+    .is_part_known          = &is_part_known_xbox,
+};
 
 static auto get_part_type_xbox(const partition_t &partition) -> unsigned int
 {
@@ -163,8 +167,9 @@ static auto read_part_xbox(disk_t &disk_car, const int verbose,
   if (disk_car.pread(disk_car, &buffer, sizeof(buffer), 0) != sizeof(buffer))
     return new_list_part;
   {
-    uint64_t offsets[] = {0x00080000, 0x2ee80000, 0x5dc80000, 0x8ca80000,
-                          0xabe80000};
+    uint64_t offsets[] = {
+        0x00080000, 0x2ee80000, 0x5dc80000, 0x8ca80000, 0xabe80000,
+    };
     unsigned int i;
     auto *xboxlabel = reinterpret_cast<struct xbox_partition *>(&buffer);
     if (memcmp(xboxlabel->magic, "BRFR", 4) != 0)

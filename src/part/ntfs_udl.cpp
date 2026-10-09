@@ -182,19 +182,19 @@ static void free_file(struct ufile *file)
 
   for (filename *f : file->name)
   { /* List of filenames */
-    delete (f->name);
-    delete (f->parent_name);
+    delete f->name;
+    delete f->parent_name;
     delete f;
   }
 
   for (data *d : file->data)
   { /* List of data streams */
-    delete (d->name);
-    delete (d->runlist);
+    delete d->name;
+    delete d->runlist;
     delete d;
   }
 
-  delete (file->mft);
+  delete file->mft;
   free (file);
 }
 
@@ -346,7 +346,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
                   new char[strlen(parent_name) + strlen(name->parent_name) + 2];
               sprintf(npn, "%s/%s", parent_name, name->parent_name);
             }
-            delete[] (name->parent_name);
+            delete[] name->parent_name;
             name->parent_name = npn;
             delete parent_name;
           }
@@ -784,7 +784,7 @@ static auto write_data(int fd, const char *buffer, unsigned int bufsize)
   }
 
   result1 = write(fd, buffer, bufsize);
-  if ((std::cmp_equal(result1, bufsize)) || (result1 < 0))
+  if (std::cmp_equal(result1, bufsize) || (result1 < 0))
     return result1;
 
   /* Try again with the rest of the buffer */

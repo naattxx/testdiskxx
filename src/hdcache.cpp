@@ -128,8 +128,8 @@ static auto cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int c
         cache = &data->cache[data->cache_buffer_nbr];
         if (cache->buffer_size < count_new)
         { /* Buffer is too small, drop it */
-            delete (cache->buffer);
-            cache->buffer = nullptr;
+          delete cache->buffer;
+          cache->buffer = nullptr;
         }
         if (cache->buffer == nullptr)
         { /* Allocate buffer */
@@ -237,7 +237,7 @@ static void cache_clean(disk_t &disk_car)
         for (i = 0; i < CACHE_BUFFER_NBR; i++)
         {
             struct cache_buffer_struct *cache = &data->cache[i];
-            delete (cache->buffer);
+            delete cache->buffer;
         }
         delete static_cast<struct cache_struct *>(disk_car.data);
         disk_car.data = nullptr;
@@ -318,9 +318,9 @@ auto new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode) -> disk_t
 #endif
     data->cache_buffer_nbr = 0;
     data->last_io_error_nbr = 0;
-    if (testdisk_mode & TESTDISK_O_READAHEAD_8K)
+    if (testdisk_mode & TESTDISK_O::READAHEAD_8K)
         data->cache_size_min = 16 * 512;
-    else if (testdisk_mode & TESTDISK_O_READAHEAD_32K)
+    else if (testdisk_mode & TESTDISK_O::READAHEAD_32K)
         data->cache_size_min = 64 * 512;
     else
         data->cache_size_min = 0;

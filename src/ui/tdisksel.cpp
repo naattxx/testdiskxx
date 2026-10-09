@@ -27,8 +27,12 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
   auto SerialN  = emptyElement();
   auto root     = Renderer(diskList, [&] -> Element {
     return vbox({
-        hflow({text("TestDisk++ "), bold(text(VERSION)),
-               text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
+        hflow({
+            text("TestDisk++ "),
+            bold(text(VERSION)),
+            text(", Data Recovery Utility, "),
+            text(TESTDISKDATE),
+        }),
         text("naattxx"),
         text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),
@@ -42,9 +46,11 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
 #if __has_include("unistd.h") && !defined(__CYGWIN__) &&   \
                   !defined(__MINGW32__) && !defined(DJGPP)
         (geteuid() != 0)
-            ? hflow({text("Note: "),
-                     text("Some disks won't appear unless you are root user.") |
-                         bold | color(Color::Yellow)})
+            ? hflow({
+                  text("Note: "),
+                  text("Some disks won't appear unless you are root user.") |
+                      bold | color(Color::Yellow),
+              })
             : emptyElement(),
 #endif
         paragraph(

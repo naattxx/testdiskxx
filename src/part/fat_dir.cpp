@@ -109,7 +109,7 @@ GetNew:
   long_slots = 0;
   unicode[0] = 0;
   if (de->attr == ATTR_EXT && de->name[0] == DELETED_FLAG &&
-      (param & FLAG_LIST_DELETED) == FLAG_LIST_DELETED)
+      (param & FLAG_LIST::DELETED) == FLAG_LIST::DELETED)
   {
     unsigned int i;
     const struct msdos_dir_slot *ds;
@@ -241,9 +241,9 @@ GetNew:
   }
 RecEnd:
   inode = (to_little_endian(de->starthi) << 16) | to_little_endian(de->start);
-  if ((param & FLAG_LIST_MASK12) != 0)
+  if ((param & FLAG_LIST::MASK12) != 0)
     inode &= 0xfff;
-  else if ((param & FLAG_LIST_MASK16) != 0)
+  else if ((param & FLAG_LIST::MASK16) != 0)
     inode &= 0xffff;
   else
     inode &= 0xfffffff;
@@ -261,7 +261,7 @@ RecEnd:
     }
     unicode[j] = 0;
     if ((unicode[0] == DELETED_FLAG) &&
-        ((param & FLAG_LIST_DELETED) == FLAG_LIST_DELETED) && inode != 0 &&
+        ((param & FLAG_LIST::DELETED) == FLAG_LIST::DELETED) && inode != 0 &&
         de->name[1] != '\0' && de->name[2] != '\0' && de->name[3] != '\0' &&
         de->name[4] != '\0' && de->name[5] != '\0' && de->name[6] != '\0' &&
         de->name[7] != '\0')
@@ -331,7 +331,7 @@ enum fat_method_t : uint8_t
 {
   FAT_FOLLOW_CLUSTER,
   FAT_NEXT_FREE_CLUSTER,
-  FAT_NEXT_CLUSTER
+  FAT_NEXT_CLUSTER,
 };
 
 /*@
@@ -468,7 +468,7 @@ auto fat_dir_struct::get_dir(disk_t &disk_car, const partition_t &partition,
           {
 #if 0
 	    /* FIXME: experimental */
-	    if(cluster==first_cluster && (dir_data->param & FLAG_LIST_DELETED)==FLAG_LIST_DELETED)
+	    if(cluster==first_cluster && (dir_data->param & FLAG_LIST::DELETED)==FLAG_LIST::DELETED)
 	      fat_meth=FAT_NEXT_FREE_CLUSTER;	/* Recovery of a deleted directory */
 	    else
 	      cluster=0;			/* Stop directory listing */
@@ -559,11 +559,11 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
   strncpy(dir_data->current_directory, "/",
           sizeof(dir_data->current_directory));
   dir_data->current_inode = 0;
-  dir_data->param         = FLAG_LIST_DELETED;
+  dir_data->param         = FLAG_LIST::DELETED;
   if (partition.upart_type == UP_FAT12)
-    dir_data->param |= FLAG_LIST_MASK12;
+    dir_data->param |= FLAG_LIST::MASK12;
   else if (partition.upart_type == UP_FAT16)
-    dir_data->param |= FLAG_LIST_MASK16;
+    dir_data->param |= FLAG_LIST::MASK16;
   dir_data->verbose          = verbose;
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->local_dir.clear();
@@ -573,7 +573,7 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
 
 void fat_dir_struct::close()
 {
-  delete (boot_sector);
+  delete boot_sector;
 }
 
 /*@

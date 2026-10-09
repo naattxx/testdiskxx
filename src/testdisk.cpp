@@ -116,7 +116,7 @@ auto main(int argc, char **argv) -> int
     bool log_opened = false;
     int verbose = 0;
     list_disk_t list_disk;
-    int testdisk_mode = TESTDISK_O_RDWR | TESTDISK_O_READAHEAD_8K;
+    int testdisk_mode = TESTDISK_O::RDWR | TESTDISK_O::READAHEAD_8K;
     UNIT unit = UNIT::DEFAULT;
 
     args::ArgumentParser parser("TestDisk " VERSION ", Data Recovery Utility, " TESTDISKDATE
@@ -206,9 +206,9 @@ auto main(int argc, char **argv) -> int
             log_opened = log_open(args::get(log_name), create_log);
     }
     if (all)
-        testdisk_mode |= TESTDISK_O_ALL;
+        testdisk_mode |= TESTDISK_O::ALL;
     if (direct)
-        testdisk_mode |= TESTDISK_O_DIRECT;
+        testdisk_mode |= TESTDISK_O::DIRECT;
     if (list || list_unit)
     {
         if (list_unit)

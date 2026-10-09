@@ -120,44 +120,49 @@ static auto get_partition_typename_mac_aux(const unsigned int part_type_mac)
   @*/
 static auto get_part_type_mac(const partition_t &partition) -> unsigned int;
 
-static constexpr auto mac_sys_types {std::to_array<const systypes>({
-    {.part_type = PMAC_DRIVER43,  .name = "Driver43"     },
-    {.part_type = PMAC_DRIVERATA, .name = "Driver_ATA"   },
-    {.part_type = PMAC_DRIVERIO,  .name = "Driver_IOKit" },
-    {.part_type = PMAC_FREE,      .name = "Free"         },
-    {.part_type = PMAC_FWDRIVER,  .name = "FWDriver"     },
-    {.part_type = PMAC_SWAP,      .name = "Swap"         },
-    {.part_type = PMAC_LINUX,     .name = "Linux"        },
-    {.part_type = PMAC_BEOS,      .name = "BeFS"         },
-    {.part_type = PMAC_HFS,       .name = "HFS"          },
-    {.part_type = PMAC_MAP,       .name = "partition_map"},
-    {.part_type = PMAC_PATCHES,   .name = "Patches"      },
-    {.part_type = PMAC_UNK,       .name = "Unknown"      },
-    {.part_type = PMAC_NewWorld,  .name = "NewWorld"     },
-    {.part_type = PMAC_DRIVER,    .name = "Driver"       },
-    {.part_type = PMAC_MFS,       .name = "MFS"          },
-    {.part_type = PMAC_PRODOS,    .name = "ProDOS"       },
-    {.part_type = PMAC_FAT32,     .name = "DOS_FAT_32"   },
-})};
+static constexpr auto mac_sys_types{
+    std::to_array<const systypes>({
+                                   {.part_type = PMAC_DRIVER43, .name = "Driver43"},
+                                   {.part_type = PMAC_DRIVERATA, .name = "Driver_ATA"},
+                                   {.part_type = PMAC_DRIVERIO, .name = "Driver_IOKit"},
+                                   {.part_type = PMAC_FREE, .name = "Free"},
+                                   {.part_type = PMAC_FWDRIVER, .name = "FWDriver"},
+                                   {.part_type = PMAC_SWAP, .name = "Swap"},
+                                   {.part_type = PMAC_LINUX, .name = "Linux"},
+                                   {.part_type = PMAC_BEOS, .name = "BeFS"},
+                                   {.part_type = PMAC_HFS, .name = "HFS"},
+                                   {.part_type = PMAC_MAP, .name = "partition_map"},
+                                   {.part_type = PMAC_PATCHES, .name = "Patches"},
+                                   {.part_type = PMAC_UNK, .name = "Unknown"},
+                                   {.part_type = PMAC_NewWorld, .name = "NewWorld"},
+                                   {.part_type = PMAC_DRIVER, .name = "Driver"},
+                                   {.part_type = PMAC_MFS, .name = "MFS"},
+                                   {.part_type = PMAC_PRODOS, .name = "ProDOS"},
+                                   {.part_type = PMAC_FAT32, .name = "DOS_FAT_32"},
+                                   }
+     ),
+};
 
-arch_fnct_t arch_mac = {.part_name        = "Mac",
-                        .part_name_option = "partition_mac",
-                        .msg_part_type = "                P=Primary  D=Deleted",
-                        .read_part     = &read_part_mac,
-                        .write_part    = &write_part_mac,
-                        .init_part_order        = &init_part_order_mac,
-                        .get_geometry_from_mbr  = nullptr,
-                        .check_part             = &check_part_mac,
-                        .write_MBR_code         = nullptr,
-                        .set_prev_status        = &set_next_status_mac,
-                        .set_next_status        = &set_next_status_mac,
-                        .test_structure         = &test_structure_mac,
-                        .get_part_type          = &get_part_type_mac,
-                        .set_part_type          = &set_part_type_mac,
-                        .init_structure         = &init_structure_mac,
-                        .erase_list_part        = nullptr,
-                        .get_partition_typename = &get_partition_typename_mac,
-                        .is_part_known          = &is_part_known_mac};
+arch_fnct_t arch_mac = {
+    .part_name              = "Mac",
+    .part_name_option       = "partition_mac",
+    .msg_part_type          = "                P=Primary  D=Deleted",
+    .read_part              = &read_part_mac,
+    .write_part             = &write_part_mac,
+    .init_part_order        = &init_part_order_mac,
+    .get_geometry_from_mbr  = nullptr,
+    .check_part             = &check_part_mac,
+    .write_MBR_code         = nullptr,
+    .set_prev_status        = &set_next_status_mac,
+    .set_next_status        = &set_next_status_mac,
+    .test_structure         = &test_structure_mac,
+    .get_part_type          = &get_part_type_mac,
+    .set_part_type          = &set_part_type_mac,
+    .init_structure         = &init_structure_mac,
+    .erase_list_part        = nullptr,
+    .get_partition_typename = &get_partition_typename_mac,
+    .is_part_known          = &is_part_known_mac,
+};
 
 static auto get_part_type_mac(const partition_t &partition) -> unsigned int
 {

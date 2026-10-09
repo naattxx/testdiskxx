@@ -240,7 +240,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
   for (offset = 0; offset < size; offset += 0x20)
   {
     if ((buffer[offset] & 0x80) == 0 &&
-        (dir_data.param & FLAG_LIST_DELETED) != FLAG_LIST_DELETED)
+        (dir_data.param & FLAG_LIST::DELETED) != FLAG_LIST::DELETED)
       continue;
     if ((buffer[offset] & 0x7f) == 0x05)
     { /* File directory entry */
@@ -314,7 +314,7 @@ enum exfat_method_t : uint8_t
 {
   exFAT_FOLLOW_CLUSTER,
   exFAT_NEXT_FREE_CLUSTER,
-  exFAT_NEXT_CLUSTER
+  exFAT_NEXT_CLUSTER,
 };
 
 static auto is_EOC(const unsigned int cluster) -> int
@@ -368,7 +368,7 @@ auto exfat_dir_struct::get_dir(disk_t &disk, const partition_t &partition,
         {
 #if 0
 	  /* FIXME: experimental */
-	  if(cluster==first_cluster && (dir_data->param & FLAG_LIST_DELETED)==FLAG_LIST_DELETED)
+	  if(cluster==first_cluster && (dir_data->param & FLAG_LIST::DELETED)==FLAG_LIST::DELETED)
 	    exfat_meth=exFAT_NEXT_FREE_CLUSTER;	/* Recovery of a deleted directory */
 	  else
 	    cluster=0;			/* Stop directory listing */
@@ -442,7 +442,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   strncpy(dir_data->current_directory, "/",
           sizeof(dir_data->current_directory));
   dir_data->current_inode    = 0;
-  dir_data->param            = FLAG_LIST_DELETED;
+  dir_data->param            = FLAG_LIST::DELETED;
   dir_data->verbose          = verbose;
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->local_dir.clear();

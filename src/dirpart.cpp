@@ -175,7 +175,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
                 }
                 else if (check_command(current_cmd, "fullpathname", 12) == 0)
                 {
-                    dir_data->param |= FLAG_LIST_PATHNAME;
+                    dir_data->param |= FLAG_LIST::PATHNAME;
                     do_continue = 1;
                 }
                 else if (check_command(current_cmd, "filecopy", 8) == 0)

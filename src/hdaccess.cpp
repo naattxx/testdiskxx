@@ -1221,15 +1221,14 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
         /* Use modern /sys interface for SCSI device */
         char vendor[256] {};
         char product[256] {};
-        if (read_device_sysfs_file(&vendor[0], dev, "vendor") == 0)
+        if ((read_device_sysfs_file(&vendor[0], dev, "vendor") == 0) &&
+            (read_device_sysfs_file(&product[0], dev, "model") == 0))
+
+        /*@ assert valid_string(&vendor[0]); */
         {
-            /*@ assert valid_string(&vendor[0]); */
-            if (read_device_sysfs_file(&product[0], dev, "model") == 0)
-            {
-                /*@ assert valid_string(&product[0]); */
-                dev.model.reserve(8 + 16 + 2);
-                sprintf(dev.model.data(), "%.8s %.16s", vendor, product);
-            }
+          /*@ assert valid_string(&product[0]); */
+          dev.model.reserve(8 + 16 + 2);
+          sprintf(dev.model.data(), "%.8s %.16s", vendor, product);
         }
     }
 #endif
@@ -1612,7 +1611,7 @@ static auto file_sync(disk_t &disk_car) -> int
 void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose) noexcept
 {
     /*@ assert 0 < disk->sector_size; */
-    if ((arch)->get_geometry_from_mbr != nullptr)
+    if (arch->get_geometry_from_mbr != nullptr)
     {
         /*@ assert \valid_function(arch->get_geometry_from_mbr); */
         CHSgeometry_t geometry;
@@ -1684,10 +1683,10 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
     mode_basic |= O_LARGEFILE;
 #endif
 #ifdef O_DIRECT
-    if ((testdisk_mode & TESTDISK_O_DIRECT) == TESTDISK_O_DIRECT)
+    if ((testdisk_mode & TESTDISK_O::DIRECT) == TESTDISK_O::DIRECT)
         mode_basic |= O_DIRECT;
 #endif
-    if ((testdisk_mode & TESTDISK_O_RDWR) == TESTDISK_O_RDWR)
+    if ((testdisk_mode & TESTDISK_O::RDWR) == TESTDISK_O::RDWR)
     {
         mode = O_RDWR | O_EXCL | mode_basic;
         hd_h = open(device, mode);
@@ -1740,7 +1739,7 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
     }
     if (hd_h < 0 && try_readonly > 0)
     {
-        testdisk_mode &= ~TESTDISK_O_RDWR;
+        testdisk_mode &= ~TESTDISK_O::RDWR;
         mode = O_RDONLY | O_EXCL | mode_basic;
         hd_h = open(device, mode);
         if (hd_h < 0 && (errno == EBUSY || errno == EINVAL))
@@ -1818,10 +1817,10 @@ auto file_test_availability(const char *device, const int verbose, int testdisk_
     disk_car.pread = &file_pread;
     disk_car.pwrite = ((mode & O_RDWR) == O_RDWR ? &file_pwrite : &file_nopwrite);
     disk_car.sync = &file_sync;
-    disk_car.access_mode = ((mode & O_RDWR) == O_RDWR ? TESTDISK_O_RDWR : TESTDISK_O_RDONLY);
+    disk_car.access_mode = ((mode & O_RDWR) == O_RDWR ? TESTDISK_O::RDWR : TESTDISK_O::RDONLY);
 #ifdef O_DIRECT
     if ((mode & O_DIRECT) == O_DIRECT)
-        disk_car.access_mode |= TESTDISK_O_DIRECT;
+        disk_car.access_mode |= TESTDISK_O::DIRECT;
 #endif
     disk_car.clean = &file_clean;
 #ifndef DISABLED_FOR_FRAMAC

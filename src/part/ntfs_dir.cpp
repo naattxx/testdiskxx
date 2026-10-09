@@ -212,7 +212,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
 #endif
 
   result = 0; /* These are successful */
-  if ((ls->dir_data->param & FLAG_LIST_SYSTEM) != FLAG_LIST_SYSTEM &&
+  if ((ls->dir_data->param & FLAG_LIST::SYSTEM) != FLAG_LIST::SYSTEM &&
       MREF(mref) < FILE_first_user && filename[0] == '$') /* Hide system file */
     goto freefn;
   result = -1; /* Everything else is bad */
@@ -262,7 +262,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
     {
       const s64 filesize = ntfs_get_attribute_value_length(ctx->attr);
       if (rec->name_length &&
-          (ls->dir_data->param & FLAG_LIST_ADS) != FLAG_LIST_ADS)
+          (ls->dir_data->param & FLAG_LIST::ADS) != FLAG_LIST::ADS)
         continue;
       new_file.st_mode = LINUX_S_IFREG | LINUX_S_IRUGO;
       new_file.st_size = filesize;
@@ -476,7 +476,7 @@ void ntfs_dir_struct::close()
 {
   /* ntfs_umount() will invoke ntfs_device_free() for us. */
   ntfs_umount(vol, FALSE);
-  delete (my_data);
+  delete my_data;
 #ifdef HAVE_ICONV
   if (reinterpret_cast<intptr_t>(cd) != -1)
     iconv_close(cd);
@@ -540,9 +540,9 @@ extern "C"
       strncpy(dir_data->current_directory, "/",
               sizeof(dir_data->current_directory));
       dir_data->current_inode = FILE_root;
-      dir_data->param         = FLAG_LIST_ADS;
+      dir_data->param         = FLAG_LIST::ADS;
       if (expert != 0)
-        dir_data->param |= FLAG_LIST_SYSTEM;
+        dir_data->param |= FLAG_LIST::SYSTEM;
       dir_data->verbose          = verbose;
       dir_data->capabilities     = CAPA_LIST_ADS;
       dir_data->local_dir.clear();

@@ -47,24 +47,24 @@ static auto test_HPFS(const disk_t &disk_car,
                       const int dump_ind) -> int
 {
   const char *buffer = reinterpret_cast<const char *>(hpfs_header);
-  if (to_little_endian(hpfs_header->marker) == 0xAA55)
-  {
-    if (memcmp(buffer + 3, "IBM", 3) == 0)
-    { /* D'apres une analyse de OS2 sur systeme FAT...
-         FAT_NAME1=FAT
-       */
-      if (verbose || dump_ind)
-      {
-        log_info("\nHPFS maybe at {}/{}/{}\n",
-                 offset2cylinder(disk_car, partition.part_offset),
-                 offset2head(disk_car, partition.part_offset),
-                 offset2sector(disk_car, partition.part_offset));
-      }
-      if (dump_ind != 0)
-        ; // dump_log(buffer, DEFAULT_SECTOR_SIZE);
-      return 0;
+  if ((to_little_endian(hpfs_header->marker) == 0xAA55) &&
+      (memcmp(buffer + 3, "IBM", 3) == 0))
+
+  { /* D'apres une analyse de OS2 sur systeme FAT...
+       FAT_NAME1=FAT
+     */
+    if (verbose || dump_ind)
+    {
+      log_info("\nHPFS maybe at {}/{}/{}\n",
+               offset2cylinder(disk_car, partition.part_offset),
+               offset2head(disk_car, partition.part_offset),
+               offset2sector(disk_car, partition.part_offset));
     }
-  } /* fin marqueur de fin :)) */
+    if (dump_ind != 0)
+      ; // dump_log(buffer, DEFAULT_SECTOR_SIZE);
+    return 0;
+  }
+  /* fin marqueur de fin :)) */
   return 1;
 }
 

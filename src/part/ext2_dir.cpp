@@ -152,7 +152,7 @@ static auto my_open([[maybe_unused]] const char *dev, [[maybe_unused]] int flags
 static auto my_close(io_channel channel) -> errcode_t
 {
   delete static_cast<my_data_t *>(channel->private_data);
-  delete (channel->name);
+  delete channel->name;
   delete channel;
 #ifdef DEBUG_EXT2
   log_info("my_close done\n");
@@ -243,7 +243,7 @@ static auto list_dir_proc2(ext2_ino_t dir, int entry,
   file_info_t new_file;
   errcode_t retval;
   if (entry == DIRENT_DELETED_FILE &&
-      (ls->dir_data->param & FLAG_LIST_DELETED) == 0)
+      (ls->dir_data->param & FLAG_LIST::DELETED) == 0)
     return 0;
   ino = dirent->inode;
   if (ino == 0)
@@ -400,7 +400,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
   strncpy(dir_data->current_directory, "/",
           sizeof(dir_data->current_directory));
   dir_data->current_inode    = EXT2_ROOT_INO;
-  dir_data->param            = FLAG_LIST_DELETED;
+  dir_data->param            = FLAG_LIST::DELETED;
   dir_data->verbose          = verbose;
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->local_dir.clear();

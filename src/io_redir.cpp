@@ -146,7 +146,7 @@ auto io_redir_del_redir(disk_t &disk_car, uint64_t org_offset) -> int
                 log_trace("io_redir_del_redir: uninstall functions\n");
 #endif
                 disk_car = *data->disk_car;
-                delete (data->disk_car);
+                delete data->disk_car;
                 delete data;
             }
             return 0;
@@ -233,7 +233,7 @@ static void io_redir_clean(disk_t &disk_car)
     {
         auto *data = static_cast<struct info_io_redir *>(disk_car.data);
         data->disk_car->clean(*data->disk_car);
-        delete (data->disk_car);
+        delete data->disk_car;
         delete static_cast<struct info_io_redir *>(disk_car.data);
         disk_car.data = nullptr;
     }

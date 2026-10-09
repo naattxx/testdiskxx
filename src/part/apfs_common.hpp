@@ -17,7 +17,7 @@ using nx_counter_id_t = enum : uint8_t
 {
   NX_CNTR_OBJ_CKSUM_SET  = 0,
   NX_CNTR_OBJ_CKSUM_FAIL = 1,
-  NX_NUM_COUNTERS        = 32
+  NX_NUM_COUNTERS        = 32,
 };
 
 using oid_t = uint64_t;

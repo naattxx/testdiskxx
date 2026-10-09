@@ -85,11 +85,11 @@ static auto HFS_HFSP_boot_sector_command(char **current_cmd,
     if (strchr(options, 'O') != nullptr)
       return 'O';
   }
-  else if (check_command(current_cmd, "backuphfsp", 9) == 0)
-  {
-    if (strchr(options, 'B') != nullptr)
-      return 'B';
-  }
+  else if ((check_command(current_cmd, "backuphfsp", 9) == 0) &&
+           (strchr(options, 'B') != nullptr))
+
+    return 'B';
+
   return 0;
 }
 

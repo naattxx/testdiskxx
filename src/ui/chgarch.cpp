@@ -25,15 +25,17 @@ auto change_arch_type(const Component &root, disk_t &disk)
     -> int
 {
   // arch_list must match the order from entries
-  constexpr auto arch_list{std::to_array<const arch_fnct_t *>({
-      &arch_i386,
-      &arch_gpt,
-      &arch_humax,
-      &arch_mac,
-      &arch_none,
-      &arch_sun,
-      &arch_xbox,
-  })};
+  constexpr auto arch_list{
+      std::to_array<const arch_fnct_t *>({
+          &arch_i386,
+          &arch_gpt,
+          &arch_humax,
+          &arch_mac,
+          &arch_none,
+          &arch_sun,
+          &arch_xbox,
+      }),
+  };
 
   int selected;
   for (selected = 0; static_cast<unsigned>(selected) < arch_list.size() &&
@@ -73,11 +75,13 @@ auto change_arch_type(const Component &root, disk_t &disk)
                       "when done."),
                  menu->Render(),
                  separatorEmpty(),
-                 (disk.arch_autodetected)
-                     ? hflow({text("Hint: "),
-                              text(disk.arch_autodetected->part_name) |
-                                  color(Color::Green),
-                              text(" partition table type has been detected.")})
+                 disk.arch_autodetected
+                     ? hflow({
+                           text("Hint: "),
+                           text(disk.arch_autodetected->part_name) |
+                               color(Color::Green),
+                           text(" partition table type has been detected."),
+                       })
                      : emptyElement(),
                  (disk.arch_autodetected != &arch_none)
                      ? paragraph("Note: Do NOT select 'None' for media with "

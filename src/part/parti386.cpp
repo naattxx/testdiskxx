@@ -288,103 +288,113 @@ static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C,
                          const unsigned int H, const unsigned int S)
     -> uint64_t;
 
-static constexpr auto i386_sys_types {std::to_array<const systypes>({
-    {.part_type = P_NO_OS,        .name = "No partition"          },
-    {.part_type = P_12FAT,        .name = "FAT12"                 },
-    {.part_type = 0x02,           .name = "XENIX root"            },
-    {.part_type = 0x03,           .name = "XENIX /usr"            },
-    {.part_type = P_16FAT,        .name = "FAT16 <32M"            },
-    {.part_type = P_EXTENDED,     .name = "extended"              },
-    {.part_type = P_16FATBD,      .name = "FAT16 >32M"            },
-    {.part_type = P_NTFS,         .name = "HPFS - NTFS"           },
-    {.part_type = 0x09,           .name = "AIX data"              },
-    {.part_type = P_OS2MB,        .name = "OS/2 Boot Manager"     },
-    {.part_type = P_32FAT,        .name = "FAT32"                 },
-    {.part_type = P_32FAT_LBA,    .name = "FAT32 LBA"             },
-    {.part_type = P_16FATBD_LBA,  .name = "FAT16 LBA"             },
-    {.part_type = P_EXTENDX,      .name = "extended LBA"          },
-    {.part_type = 0x10,           .name = "OPUS"                  },
-    {.part_type = P_12FATH,       .name = "hid. FAT12"            },
-    {.part_type = 0x12,           .name = "Compaq Diagnostics"    },
-    {.part_type = P_16FATH,       .name = "hid. FAT16 <32M"       },
-    {.part_type = P_16FATBDH,     .name = "hid. FAT16 >32M"       },
-    {.part_type = P_NTFSH,        .name = "hid. HPFS/NTFS"        },
-    {.part_type = 0x18,           .name = "AST swap"              },
-    {.part_type = 0x19,           .name = "Willowtech Photon"     },
-    {.part_type = P_32FATH,       .name = "hid. FAT32"            },
-    {.part_type = P_32FAT_LBAH,   .name = "hid. FAT32 LBA"        },
-    {.part_type = P_16FATBD_LBAH, .name = "hid. FAT16 LBA"        },
-    {.part_type = 0x20,           .name = "Willowsoft OFS1"       },
-    {.part_type = 0x24,           .name = "NEC MS-DOS 3.x"        },
-    {.part_type = 0x27,           .name = "Windows RE(store)"     },
-    {.part_type = 0x38,           .name = "Theos"                 },
-    {.part_type = 0x3c,           .name = "PMagic recovery"       },
-    {.part_type = 0x40,           .name = "VENIX 80286"           },
-    {.part_type = 0x41,           .name = "PPC PReP Boot"         },
-    {.part_type = 0x42,           .name = "W2K Dynamic/SFS"       },
-    {.part_type = 0x50,           .name = "OnTrack DM RO"         },
-    {.part_type = 0x51,           .name = "OnTrack DM RW-NOVEL"   },
-    {.part_type = 0x52,           .name = "CP/M-Microport V/386"  },
-    {.part_type = 0x53,           .name = "OnTrack DM WO ???"     },
-    {.part_type = 0x54,           .name = "OnTrack DM DDO"        },
-    {.part_type = 0x55,           .name = "EZ-Drive"              },
-    {.part_type = 0x56,           .name = "GoldenBow VFeature"    },
-    {.part_type = 0x61,           .name = "SpeedStor"             },
-    {.part_type = P_SYSV,         .name = "Unixware, HURD, SCO"   },
-    {.part_type = 0x64,           .name = "NetWare 286"           },
-    {.part_type = P_NETWARE,      .name = "NetWare 3.11+"         },
-    {.part_type = 0x67,           .name = "Novell"                },
-    {.part_type = 0x68,           .name = "Novell"                },
-    {.part_type = 0x69,           .name = "Novell"                },
-    {.part_type = 0x70,           .name = "DiskSecure MB"         },
-    {.part_type = 0x75,           .name = "PC/IX"                 },
-    {.part_type = 0x80,           .name = "Minix v1.1-1.4a"       },
-    {.part_type = P_OLDLINUX,     .name = "Minix / old Linux"     },
-    {.part_type = P_LINSWAP,      .name = "Linux Swap"            },
-    {.part_type = P_LINUX,        .name = "Linux"                 },
-    {.part_type = P_LINUXEXTENDX, .name = "Linux extended"        },
-    {.part_type = 0x86,           .name = "NT FAT16 V/S set"      },
-    {.part_type = 0x87,           .name = "HPFS FT mirror-V/S set"},
-    {.part_type = P_LVM,          .name = "Linux LVM"             },
-    {.part_type = 0x93,           .name = "Amoeba"                },
-    {.part_type = 0x94,           .name = "Amoeba bad block"      },
-    {.part_type = 0xa0,           .name = "NoteBIOS save2disk"    },
-    {.part_type = P_FREEBSD,      .name = "FreeBSD"               },
-    {.part_type = P_OPENBSD,      .name = "OpenBSD"               },
-    {.part_type = 0xa8,           .name = "Darwin UFS"            },
-    {.part_type = P_NETBSD,       .name = "NetBSD"                },
-    {.part_type = 0xab,           .name = "Darwin boot"           },
-    {.part_type = P_HFS,          .name = "HFS"                   },
-    {.part_type = 0xb7,           .name = "BSDI"                  },
-    {.part_type = 0xb8,           .name = "BSDI swap"             },
-    {.part_type = 0xbc,           .name = "Acronis"               },
-    {.part_type = 0xbe,           .name = "Solaris boot"          },
-    {.part_type = P_SUN,          .name = "Solaris"               },
-    {.part_type = 0xc1,           .name = "secured FAT12"         },
-    {.part_type = 0xc4,           .name = "secured FAT16"         },
-    {.part_type = 0xc6,           .name = "sec. Huge-bad FAT16"   },
-    {.part_type = 0xc7,           .name = "Syrinx Boot-bad NTFS"  },
-    {.part_type = 0xd8,           .name = "CP/M-86"               },
-    {.part_type = 0xdb,           .name = "CP/M"                  },
-    {.part_type = 0xde,           .name = "Dell Utility"          },
-    {.part_type = 0xe1,           .name = "SpeedStor FAT12 ext"   },
-    {.part_type = 0xe3,           .name = "DOS RO"                },
-    {.part_type = 0xe4,           .name = "SpeedStor FAT16 ext"   },
-    {.part_type = 0xea,           .name = "Boot (BLS)"            },
-    {.part_type = P_BEOS,         .name = "BeFS"                  },
-    {.part_type = 0xee,           .name = "EFI GPT"               }, /* Intel EFI GUID Partition Table */
-    {.part_type = 0xef,
-     .name      = "EFI (FAT-12/16/32)"                            }, /* Intel EFI System Partition */
-    {.part_type = 0xf0,
-     .name      = "Linux/PA-RISC boot"                            }, /* Linux/PA-RISC boot loader */
-    {.part_type = 0xf1,           .name = "Storage Dimensions"    },
-    {.part_type = 0xf2,           .name = "DOS secondary"         },
-    {.part_type = 0xf4,           .name = "SpeedStor"             },
-    {.part_type = P_VMFS,         .name = "VMFS"                  },
-    {.part_type = P_RAID,         .name = "Linux RAID"            },
-    {.part_type = 0xfe,           .name = "LANstep"               },
-    {.part_type = 0xff,           .name = "Xenix bad block"       },
-})};
+static constexpr auto i386_sys_types{
+    std::to_array<const systypes>({
+                                   {.part_type = P_NO_OS, .name = "No partition"},
+                                   {.part_type = P_12FAT, .name = "FAT12"},
+                                   {.part_type = 0x02, .name = "XENIX root"},
+                                   {.part_type = 0x03, .name = "XENIX /usr"},
+                                   {.part_type = P_16FAT, .name = "FAT16 <32M"},
+                                   {.part_type = P_EXTENDED, .name = "extended"},
+                                   {.part_type = P_16FATBD, .name = "FAT16 >32M"},
+                                   {.part_type = P_NTFS, .name = "HPFS - NTFS"},
+                                   {.part_type = 0x09, .name = "AIX data"},
+                                   {.part_type = P_OS2MB, .name = "OS/2 Boot Manager"},
+                                   {.part_type = P_32FAT, .name = "FAT32"},
+                                   {.part_type = P_32FAT_LBA, .name = "FAT32 LBA"},
+                                   {.part_type = P_16FATBD_LBA, .name = "FAT16 LBA"},
+                                   {.part_type = P_EXTENDX, .name = "extended LBA"},
+                                   {.part_type = 0x10, .name = "OPUS"},
+                                   {.part_type = P_12FATH, .name = "hid. FAT12"},
+                                   {.part_type = 0x12, .name = "Compaq Diagnostics"},
+                                   {.part_type = P_16FATH, .name = "hid. FAT16 <32M"},
+                                   {.part_type = P_16FATBDH, .name = "hid. FAT16 >32M"},
+                                   {.part_type = P_NTFSH, .name = "hid. HPFS/NTFS"},
+                                   {.part_type = 0x18, .name = "AST swap"},
+                                   {.part_type = 0x19, .name = "Willowtech Photon"},
+                                   {.part_type = P_32FATH, .name = "hid. FAT32"},
+                                   {.part_type = P_32FAT_LBAH, .name = "hid. FAT32 LBA"},
+                                   {.part_type = P_16FATBD_LBAH, .name = "hid. FAT16 LBA"},
+                                   {.part_type = 0x20, .name = "Willowsoft OFS1"},
+                                   {.part_type = 0x24, .name = "NEC MS-DOS 3.x"},
+                                   {.part_type = 0x27, .name = "Windows RE(store)"},
+                                   {.part_type = 0x38, .name = "Theos"},
+                                   {.part_type = 0x3c, .name = "PMagic recovery"},
+                                   {.part_type = 0x40, .name = "VENIX 80286"},
+                                   {.part_type = 0x41, .name = "PPC PReP Boot"},
+                                   {.part_type = 0x42, .name = "W2K Dynamic/SFS"},
+                                   {.part_type = 0x50, .name = "OnTrack DM RO"},
+                                   {.part_type = 0x51, .name = "OnTrack DM RW-NOVEL"},
+                                   {.part_type = 0x52, .name = "CP/M-Microport V/386"},
+                                   {.part_type = 0x53, .name = "OnTrack DM WO ???"},
+                                   {.part_type = 0x54, .name = "OnTrack DM DDO"},
+                                   {.part_type = 0x55, .name = "EZ-Drive"},
+                                   {.part_type = 0x56, .name = "GoldenBow VFeature"},
+                                   {.part_type = 0x61, .name = "SpeedStor"},
+                                   {.part_type = P_SYSV, .name = "Unixware, HURD, SCO"},
+                                   {.part_type = 0x64, .name = "NetWare 286"},
+                                   {.part_type = P_NETWARE, .name = "NetWare 3.11+"},
+                                   {.part_type = 0x67, .name = "Novell"},
+                                   {.part_type = 0x68, .name = "Novell"},
+                                   {.part_type = 0x69, .name = "Novell"},
+                                   {.part_type = 0x70, .name = "DiskSecure MB"},
+                                   {.part_type = 0x75, .name = "PC/IX"},
+                                   {.part_type = 0x80, .name = "Minix v1.1-1.4a"},
+                                   {.part_type = P_OLDLINUX, .name = "Minix / old Linux"},
+                                   {.part_type = P_LINSWAP, .name = "Linux Swap"},
+                                   {.part_type = P_LINUX, .name = "Linux"},
+                                   {.part_type = P_LINUXEXTENDX, .name = "Linux extended"},
+                                   {.part_type = 0x86, .name = "NT FAT16 V/S set"},
+                                   {.part_type = 0x87, .name = "HPFS FT mirror-V/S set"},
+                                   {.part_type = P_LVM, .name = "Linux LVM"},
+                                   {.part_type = 0x93, .name = "Amoeba"},
+                                   {.part_type = 0x94, .name = "Amoeba bad block"},
+                                   {.part_type = 0xa0, .name = "NoteBIOS save2disk"},
+                                   {.part_type = P_FREEBSD, .name = "FreeBSD"},
+                                   {.part_type = P_OPENBSD, .name = "OpenBSD"},
+                                   {.part_type = 0xa8, .name = "Darwin UFS"},
+                                   {.part_type = P_NETBSD, .name = "NetBSD"},
+                                   {.part_type = 0xab, .name = "Darwin boot"},
+                                   {.part_type = P_HFS, .name = "HFS"},
+                                   {.part_type = 0xb7, .name = "BSDI"},
+                                   {.part_type = 0xb8, .name = "BSDI swap"},
+                                   {.part_type = 0xbc, .name = "Acronis"},
+                                   {.part_type = 0xbe, .name = "Solaris boot"},
+                                   {.part_type = P_SUN, .name = "Solaris"},
+                                   {.part_type = 0xc1, .name = "secured FAT12"},
+                                   {.part_type = 0xc4, .name = "secured FAT16"},
+                                   {.part_type = 0xc6, .name = "sec. Huge-bad FAT16"},
+                                   {.part_type = 0xc7, .name = "Syrinx Boot-bad NTFS"},
+                                   {.part_type = 0xd8, .name = "CP/M-86"},
+                                   {.part_type = 0xdb, .name = "CP/M"},
+                                   {.part_type = 0xde, .name = "Dell Utility"},
+                                   {.part_type = 0xe1, .name = "SpeedStor FAT12 ext"},
+                                   {.part_type = 0xe3, .name = "DOS RO"},
+                                   {.part_type = 0xe4, .name = "SpeedStor FAT16 ext"},
+                                   {.part_type = 0xea, .name = "Boot (BLS)"},
+                                   {.part_type = P_BEOS, .name = "BeFS"},
+                                   {
+            .part_type = 0xee,
+            .name      = "EFI GPT",
+        }, /* Intel EFI GUID Partition Table */
+        {
+            .part_type = 0xef,
+            .name      = "EFI (FAT-12/16/32)",
+        }, /* Intel EFI System Partition */
+        {
+            .part_type = 0xf0,
+            .name      = "Linux/PA-RISC boot",
+        }, /* Linux/PA-RISC boot loader */
+        {.part_type = 0xf1, .name = "Storage Dimensions"},
+                                   {.part_type = 0xf2, .name = "DOS secondary"},
+                                   {.part_type = 0xf4, .name = "SpeedStor"},
+                                   {.part_type = P_VMFS, .name = "VMFS"},
+                                   {.part_type = P_RAID, .name = "Linux RAID"},
+                                   {.part_type = 0xfe, .name = "LANstep"},
+                                   {.part_type = 0xff, .name = "Xenix bad block"},
+                                   }
+     ),
+};
 
 arch_fnct_t arch_i386 = {
     .part_name        = "Intel",
@@ -405,7 +415,8 @@ arch_fnct_t arch_i386 = {
     .init_structure         = &init_structure_i386,
     .erase_list_part        = &erase_list_part_i386,
     .get_partition_typename = &get_partition_typename_i386,
-    .is_part_known          = &is_part_known_i386};
+    .is_part_known          = &is_part_known_i386,
+};
 
 static auto C_H_S2offset(const disk_t &disk_car, const unsigned int C,
                          const unsigned int H, const unsigned int S) -> uint64_t
@@ -812,26 +823,25 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
             {
               for (partition_t &partition : list_part)
               {
-                if (partition.status == STATUS_EXT_IN_EXT)
-                {
-                  if (((partition.part_offset >= new_partition.part_offset) &&
-                       (partition.part_offset <= new_partition.part_offset +
-                                                     new_partition.part_size -
-                                                     1)) ||
-                      ((partition.part_offset + partition.part_size - 1 >=
-                        new_partition.part_offset) &&
-                       (partition.part_offset + partition.part_size - 1 <=
-                        new_partition.part_offset + partition.part_size - 1)))
-                  { /* New Partition start or end mustn't been in partition */
-                    screen_buffer_add(
-                        "Logical partition must be in its own extended "
-                        "partition\n"
-                    );
-                    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
-                                    partition);
-                    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
-                                    new_partition);
-                  }
+                if ((partition.status == STATUS_EXT_IN_EXT) &&
+                    (((partition.part_offset >= new_partition.part_offset) &&
+                      (partition.part_offset <= new_partition.part_offset +
+                                                    new_partition.part_size -
+                                                    1)) ||
+                     ((partition.part_offset + partition.part_size - 1 >=
+                       new_partition.part_offset) &&
+                      (partition.part_offset + partition.part_size - 1 <=
+                       new_partition.part_offset + partition.part_size - 1))))
+
+                { /* New Partition start or end mustn't been in partition */
+                  screen_buffer_add(
+                      "Logical partition must be in its own extended "
+                      "partition\n"
+                  );
+                  aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                                  partition);
+                  aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                                  new_partition);
                 }
               }
             }
@@ -1300,7 +1310,8 @@ static auto write_MBR_code_i386_aux(unsigned char *buffer) -> int
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xaa};
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xaa,
+  };
   /* don't overwrite the disk signature at 0x1b8 */
   memcpy(buffer, &mbr_code_testdisk, 0x1b8);
   buffer[0x1FE] = static_cast<unsigned char>(0x55);
@@ -1402,36 +1413,36 @@ static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
     break;
   }
   /* Check CHS */
-  if (start.sector == 0 || start.sector > disk_car.geom.sectors_per_head)
-  {
-    if (partition.errcode == BAD_NOERR)
-      partition.errcode = BAD_SS;
-  }
-  if (end.sector == 0 || end.sector > disk_car.geom.sectors_per_head)
-  {
-    if (partition.errcode == BAD_NOERR)
-      partition.errcode = BAD_ES;
-  }
-  if (start.head >= disk_car.geom.heads_per_cylinder)
-  {
-    if (partition.errcode == BAD_NOERR)
-      partition.errcode = BAD_SH;
-  }
-  if (start.cylinder >= disk_car.geom.cylinders)
-  {
-    if (partition.errcode == BAD_NOERR)
-      partition.errcode = BAD_SC;
-  }
-  if (end.head >= disk_car.geom.heads_per_cylinder)
-  {
-    if (partition.errcode == BAD_NOERR)
-      partition.errcode = BAD_EH;
-  }
-  if (end.cylinder >= disk_car.geom.cylinders)
-  {
-    if (partition.errcode == BAD_NOERR)
-      partition.errcode = BAD_EC;
-  }
+  if ((start.sector == 0 || start.sector > disk_car.geom.sectors_per_head) &&
+      (partition.errcode == BAD_NOERR))
+
+    partition.errcode = BAD_SS;
+
+  if ((end.sector == 0 || end.sector > disk_car.geom.sectors_per_head) &&
+      (partition.errcode == BAD_NOERR))
+
+    partition.errcode = BAD_ES;
+
+  if ((start.head >= disk_car.geom.heads_per_cylinder) &&
+      (partition.errcode == BAD_NOERR))
+
+    partition.errcode = BAD_SH;
+
+  if ((start.cylinder >= disk_car.geom.cylinders) &&
+      (partition.errcode == BAD_NOERR))
+
+    partition.errcode = BAD_SC;
+
+  if ((end.head >= disk_car.geom.heads_per_cylinder) &&
+      (partition.errcode == BAD_NOERR))
+
+    partition.errcode = BAD_EH;
+
+  if ((end.cylinder >= disk_car.geom.cylinders) &&
+      (partition.errcode == BAD_NOERR))
+
+    partition.errcode = BAD_EC;
+
   if (((start_calculated.cylinder <= 1023) &&
        (C_H_S2offset(disk_car, start.cylinder, start.head, start.sector) !=
         partition.part_offset)) ||
@@ -1444,15 +1455,15 @@ static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
     if (partition.errcode == BAD_NOERR)
       partition.errcode = BAD_RS;
   }
-  if (((end_calculated.cylinder <= 1023) &&
-       (C_H_S2offset(disk_car, end.cylinder, end.head, end.sector) !=
-        partition.part_offset + partition.part_size - disk_car.sector_size)) ||
-      ((end_calculated.cylinder > 1023) && (end.cylinder != 1023) &&
-       (end.cylinder != (end_calculated.cylinder & 1023))))
-  {
-    if (partition.errcode == BAD_NOERR)
-      partition.errcode = BAD_SCOUNT;
-  }
+  if ((((end_calculated.cylinder <= 1023) &&
+        (C_H_S2offset(disk_car, end.cylinder, end.head, end.sector) !=
+         partition.part_offset + partition.part_size - disk_car.sector_size)) ||
+       ((end_calculated.cylinder > 1023) && (end.cylinder != 1023) &&
+        (end.cylinder != (end_calculated.cylinder & 1023)))) &&
+      (partition.errcode == BAD_NOERR))
+
+    partition.errcode = BAD_SCOUNT;
+
   /* Check partition and load partition name */
   check_part_i386(disk_car, verbose, partition, saveheader);
   return 0;
@@ -1906,14 +1917,15 @@ static auto erase_list_part_i386(disk_t &disk) -> int
     /* Erase XBOX signature if present */
     auto *xboxlabel =
         reinterpret_cast<struct xbox_partition *>(new unsigned char[0x800]);
-    if (static_cast<unsigned>(disk.pread(disk, xboxlabel, 0x800, 0)) == 0x800)
+    if ((static_cast<unsigned>(disk.pread(disk, xboxlabel, 0x800, 0)) ==
+         0x800) &&
+        (memcmp(xboxlabel->magic, "BRFR", 4) == 0))
+
     {
-      if (memcmp(xboxlabel->magic, "BRFR", 4) == 0)
-      {
-        memset(xboxlabel->magic, 0, 4);
-        disk.pwrite(disk, xboxlabel, 0x800, 0);
-      }
+      memset(xboxlabel->magic, 0, 4);
+      disk.pwrite(disk, xboxlabel, 0x800, 0);
     }
+
     delete[] xboxlabel;
   }
   {
@@ -1922,14 +1934,14 @@ static auto erase_list_part_i386(disk_t &disk) -> int
         reinterpret_cast<struct gpt_hdr *>(new unsigned char[disk.sector_size]);
     if (std::cmp_equal(disk.pread(disk, gpt, disk.sector_size,
                                   disk.sector_size),
-                       disk.sector_size))
+                       disk.sector_size) &&
+        (memcmp(gpt->hdr_sig, GPT_HDR_SIG, 8) == 0))
+
     {
-      if (memcmp(gpt->hdr_sig, GPT_HDR_SIG, 8) == 0)
-      {
-        memset(gpt->hdr_sig, 0, 8);
-        disk.pwrite(disk, gpt, disk.sector_size, disk.sector_size);
-      }
+      memset(gpt->hdr_sig, 0, 8);
+      disk.pwrite(disk, gpt, disk.sector_size, disk.sector_size);
     }
+
     delete[] gpt;
   }
   disk.sync(disk);

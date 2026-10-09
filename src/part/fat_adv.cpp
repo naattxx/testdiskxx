@@ -973,8 +973,8 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
     return 0;
   }
   dir_fat_aux(buffer_dir, root_dir_size,
-              (partition.upart_type == UP_FAT12 ? FLAG_LIST_MASK12
-                                                : FLAG_LIST_MASK16),
+              (partition.upart_type == UP_FAT12 ? FLAG_LIST::MASK12
+                                                : FLAG_LIST::MASK16),
               dir_list);
   if (verbose > 1)
   {
@@ -1017,30 +1017,29 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
                                         sectors_per_cluster) *
                                        disk_car.sector_size),
                 disk_car.sector_size
-            ))
+            ) &&
+            (buffer_dir[0] == '.' && is_fat_directory(buffer_dir)))
+
         {
-          if (buffer_dir[0] == '.' && is_fat_directory(buffer_dir))
+          const unsigned long int cluster = fat_get_cluster_from_entry(
+              reinterpret_cast<const struct msdos_dir_entry *>(&buffer_dir[0])
+          );
+          const unsigned long int cluster_prev = fat_get_cluster_from_entry(
+              reinterpret_cast<const struct msdos_dir_entry *>(
+                  &buffer_dir[0x20]
+              )
+          );
+          if (verbose > 1)
           {
-            const unsigned long int cluster = fat_get_cluster_from_entry(
-                reinterpret_cast<const struct msdos_dir_entry *>(&buffer_dir[0])
-            );
-            const unsigned long int cluster_prev = fat_get_cluster_from_entry(
-                reinterpret_cast<const struct msdos_dir_entry *>(
-                    &buffer_dir[0x20]
-                )
-            );
-            if (verbose > 1)
-            {
-              ; // log_verbose("Cluster {}, directory .. found link to {}\n",
-                // cluster, cluster_prev);
-            }
-            if (cluster_prev == 0 && cluster == new_inode)
-            {
-              delete[] buffer_dir;
-              return ((dir_entries + (disk_car.sector_size / 32) - 1) /
-                      (disk_car.sector_size / 32)) *
-                     (disk_car.sector_size / 32);
-            }
+            ; // log_verbose("Cluster {}, directory .. found link to {}\n",
+              // cluster, cluster_prev);
+          }
+          if (cluster_prev == 0 && cluster == new_inode)
+          {
+            delete[] buffer_dir;
+            return ((dir_entries + (disk_car.sector_size / 32) - 1) /
+                    (disk_car.sector_size / 32)) *
+                   (disk_car.sector_size / 32);
           }
         }
       }
@@ -2020,11 +2019,10 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
     for (i = 0; i < nbr_offset; i++)
     {
       /* select the good type in the 3 first possibilities */
-      if (i < 3 || info_offset[i].offset <= 33)
-      {
-        if (info_offset[i].nbr > info_offset[offset_for_max_nbr].nbr)
-          offset_for_max_nbr = i;
-      }
+      if ((i < 3 || info_offset[i].offset <= 33) &&
+          (info_offset[i].nbr > info_offset[offset_for_max_nbr].nbr))
+
+        offset_for_max_nbr = i;
     }
     switch (info_offset[offset_for_max_nbr].fat_type)
     {
@@ -2061,13 +2059,13 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
     {
       for (i = first_fat + 1; i < nbr_offset; i++)
       {
-        if (info_offset[i].fat_type == info_offset[offset_for_max_nbr].fat_type)
+        if ((info_offset[i].fat_type ==
+             info_offset[offset_for_max_nbr].fat_type) &&
+            (fat_found == 1))
+
         {
-          if (fat_found == 1)
-          {
-            second_fat = i;
-            fat_found++;
-          }
+          second_fat = i;
+          fat_found++;
         }
       }
     }
@@ -2472,19 +2470,18 @@ auto rebuild_FAT_BS(disk_t &disk_car, partition_t &partition, const int verbose,
           analyse_dir_entries2(disk_car, partition, reserved, fat_length,
                                verbose, dir_entries, upart_type, fats);
       log_info("dir_entries {}\n", dir_entries);
-      if (dir_entries == 0)
-      {
-        if (old_dir_entries > 0)
-          fat_length = 0;
-        /*
-           else
-           {
-           dir_entries=512;
-           log_debug("analyse_dir_entries: use default dir_entries
-           {}\n",dir_entries);
-           }
-         */
-      }
+      if ((dir_entries == 0) && (old_dir_entries > 0))
+
+        fat_length = 0;
+      /*
+         else
+         {
+         dir_entries=512;
+         log_debug("analyse_dir_entries: use default dir_entries
+         {}\n",dir_entries);
+         }
+       */
+
       start_data += (dir_entries + (disk_car.sector_size / 32) - 1) /
                     (disk_car.sector_size / 32);
     }
@@ -2691,13 +2688,13 @@ using fat_status_t = enum : uint8_t
 {
   FAT_UNREADABLE = 0,
   FAT_CORRUPTED  = 1,
-  FAT_OK         = 2
+  FAT_OK         = 2,
 };
 using fat_repair_t = enum : uint8_t
 {
   FAT_REPAIR_ASK = 0,
   FAT_REPAIR_YES = 1,
-  FAT_REPAIR_NO  = 2
+  FAT_REPAIR_NO  = 2,
 };
 
 auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
@@ -2852,33 +2849,32 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
                 break;
               }
             }
-            if (fat_mismatch != 0)
+            if ((fat_mismatch != 0) && (nbr_fat_ok > 1))
+
             {
-              if (nbr_fat_ok > 1)
+              good_fat_nbr = 0;
+              for (fat_nbr = 1; fat_nbr < fats; fat_nbr++)
               {
-                good_fat_nbr = 0;
-                for (fat_nbr = 1; fat_nbr < fats; fat_nbr++)
+                if (fat_history[fat_nbr][FAT_OK] >
+                    fat_history[good_fat_nbr][FAT_OK])
                 {
-                  if (fat_history[fat_nbr][FAT_OK] >
-                      fat_history[good_fat_nbr][FAT_OK])
-                  {
+                  good_fat_nbr = fat_nbr;
+                }
+                else if (fat_history[fat_nbr][FAT_OK] ==
+                         fat_history[good_fat_nbr][FAT_OK])
+                {
+                  unsigned long int fat_offset = 0;
+                  if (fat_find_fat_start(buffer_fat[fat_nbr],
+                                         (partition.upart_type == UP_FAT12),
+                                         (partition.upart_type == UP_FAT16),
+                                         (partition.upart_type == UP_FAT32),
+                                         &fat_offset,
+                                         disk_car.sector_size) != 0)
                     good_fat_nbr = fat_nbr;
-                  }
-                  else if (fat_history[fat_nbr][FAT_OK] ==
-                           fat_history[good_fat_nbr][FAT_OK])
-                  {
-                    unsigned long int fat_offset = 0;
-                    if (fat_find_fat_start(buffer_fat[fat_nbr],
-                                           (partition.upart_type == UP_FAT12),
-                                           (partition.upart_type == UP_FAT16),
-                                           (partition.upart_type == UP_FAT32),
-                                           &fat_offset,
-                                           disk_car.sector_size) != 0)
-                      good_fat_nbr = fat_nbr;
-                  }
                 }
               }
             }
+
             if (verbose > 1 || nbr_fat_ok != fats || fat_mismatch > 0)
             {
               // log_verbose("nbr_fat_unreadable {}, nbr_fat_corrupted {},
@@ -3038,22 +3034,21 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
                       );
                     }
                   }
-                  if (allow_write[fat_nbr] == FAT_REPAIR_YES)
+                  if ((allow_write[fat_nbr] == FAT_REPAIR_YES) &&
+                      std::cmp_not_equal(
+                          disk_car.pwrite(
+                              disk_car, buffer_fat[fat_nbr], rw_size,
+                              partition.part_offset +
+                                  static_cast<uint64_t>(start_fat1 +
+                                                        fat_length * fat_nbr +
+                                                        old_offset_s) *
+                                      disk_car.sector_size
+                          ),
+                          rw_size
+                      ))
+
                   {
-                    if (std::cmp_not_equal(
-                            disk_car.pwrite(
-                                disk_car, buffer_fat[fat_nbr], rw_size,
-                                partition.part_offset +
-                                    static_cast<uint64_t>(start_fat1 +
-                                                          fat_length * fat_nbr +
-                                                          old_offset_s) *
-                                        disk_car.sector_size
-                            ),
-                            rw_size
-                        ))
-                    {
-                      ; // display_message("repair_FAT_table: write failed.\n");
-                    }
+                    ; // display_message("repair_FAT_table: write failed.\n");
                   }
                 }
               }
@@ -3188,35 +3183,33 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
             break;
           }
         }
-        if (fat_mismatch != 0)
+        if ((fat_mismatch != 0) && (nbr_fat_ok > 1))
+
         {
-          if (nbr_fat_ok > 1)
+          for (fat_nbr = 0; fat_nbr < fats; fat_nbr++)
           {
-            for (fat_nbr = 0; fat_nbr < fats; fat_nbr++)
+            if (fat_nbr != good_fat_nbr)
             {
-              if (fat_nbr != good_fat_nbr)
+              if (fat_history[fat_nbr][FAT_OK] >
+                  fat_history[good_fat_nbr][FAT_OK])
               {
-                if (fat_history[fat_nbr][FAT_OK] >
-                    fat_history[good_fat_nbr][FAT_OK])
-                {
+                good_fat_nbr = fat_nbr;
+              }
+              else if (fat_history[fat_nbr][FAT_OK] ==
+                       fat_history[good_fat_nbr][FAT_OK])
+              {
+                unsigned long int fat_offset = 0;
+                if (fat_find_fat_start(buffer_fat[fat_nbr],
+                                       (partition.upart_type == UP_FAT12),
+                                       (partition.upart_type == UP_FAT16),
+                                       (partition.upart_type == UP_FAT32),
+                                       &fat_offset, disk_car.sector_size) != 0)
                   good_fat_nbr = fat_nbr;
-                }
-                else if (fat_history[fat_nbr][FAT_OK] ==
-                         fat_history[good_fat_nbr][FAT_OK])
-                {
-                  unsigned long int fat_offset = 0;
-                  if (fat_find_fat_start(buffer_fat[fat_nbr],
-                                         (partition.upart_type == UP_FAT12),
-                                         (partition.upart_type == UP_FAT16),
-                                         (partition.upart_type == UP_FAT32),
-                                         &fat_offset,
-                                         disk_car.sector_size) != 0)
-                    good_fat_nbr = fat_nbr;
-                }
               }
             }
           }
         }
+
         if (verbose > 1 || nbr_fat_ok != fats || fat_mismatch > 0)
         {
           log_info(
@@ -3272,22 +3265,21 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
                     );
                   }
                 }
-                if (allow_write[fat_nbr] == FAT_REPAIR_YES)
+                if ((allow_write[fat_nbr] == FAT_REPAIR_YES) &&
+                    std::cmp_not_equal(
+                        disk_car.pwrite(
+                            disk_car, buffer_fat[good_fat_nbr], rw_size,
+                            partition.part_offset +
+                                static_cast<uint64_t>(start_fat1 +
+                                                      fat_length * fat_nbr +
+                                                      old_offset_s) *
+                                    disk_car.sector_size
+                        ),
+                        rw_size
+                    ))
+
                 {
-                  if (std::cmp_not_equal(
-                          disk_car.pwrite(
-                              disk_car, buffer_fat[good_fat_nbr], rw_size,
-                              partition.part_offset +
-                                  static_cast<uint64_t>(start_fat1 +
-                                                        fat_length * fat_nbr +
-                                                        old_offset_s) *
-                                      disk_car.sector_size
-                          ),
-                          rw_size
-                      ))
-                  {
-                    ; // display_message("repair_FAT_table: write failed.\n");
-                  }
+                  ; // display_message("repair_FAT_table: write failed.\n");
                 }
               }
             }
@@ -3319,21 +3311,20 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
                   );
                 }
               }
-              if (allow_write[fat_nbr] == FAT_REPAIR_YES)
+              if ((allow_write[fat_nbr] == FAT_REPAIR_YES) &&
+                  std::cmp_not_equal(
+                      disk_car.pwrite(disk_car, buffer_fat[fat_nbr], rw_size,
+                                      partition.part_offset +
+                                          static_cast<uint64_t>(
+                                              start_fat1 +
+                                              fat_length * fat_nbr +
+                                              old_offset_s
+                                          ) * disk_car.sector_size),
+                      rw_size
+                  ))
+
               {
-                if (std::cmp_not_equal(
-                        disk_car.pwrite(disk_car, buffer_fat[fat_nbr], rw_size,
-                                        partition.part_offset +
-                                            static_cast<uint64_t>(
-                                                start_fat1 +
-                                                fat_length * fat_nbr +
-                                                old_offset_s
-                                            ) * disk_car.sector_size),
-                        rw_size
-                    ))
-                {
-                  ; // display_message("repair_FAT_table: write failed.\n");
-                }
+                ; // display_message("repair_FAT_table: write failed.\n");
               }
             }
           }
@@ -3373,28 +3364,27 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
                   );
                 }
               }
-              if (allow_write[fat_nbr] == FAT_REPAIR_YES)
+              if ((allow_write[fat_nbr] == FAT_REPAIR_YES) &&
+                  std::cmp_not_equal(
+                      disk_car.pwrite(disk_car, buffer_fat[fat_nbr], rw_size,
+                                      partition.part_offset +
+                                          static_cast<uint64_t>(
+                                              start_fat1 +
+                                              fat_length * fat_nbr +
+                                              old_offset_s
+                                          ) * disk_car.sector_size),
+                      rw_size
+                  ))
+
               {
-                if (std::cmp_not_equal(
-                        disk_car.pwrite(disk_car, buffer_fat[fat_nbr], rw_size,
-                                        partition.part_offset +
-                                            static_cast<uint64_t>(
-                                                start_fat1 +
-                                                fat_length * fat_nbr +
-                                                old_offset_s
-                                            ) * disk_car.sector_size),
-                        rw_size
-                    ))
-                {
-                  ; // display_message("repair_FAT_table: write failed.\n");
-                }
+                ; // display_message("repair_FAT_table: write failed.\n");
               }
             }
           }
         }
       }
       for (fat_nbr = 0; fat_nbr < fats; fat_nbr++)
-        delete[] (buffer_fat[fat_nbr]);
+        delete[] buffer_fat[fat_nbr];
     }
     if (fat_damaged == 0)
     {
@@ -3463,7 +3453,8 @@ static auto write_FAT_boot_code_aux(unsigned char *buffer) -> int
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xaa};
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xaa,
+  };
   memcpy(buffer, &boot_code, DEFAULT_SECTOR_SIZE);
   return 0;
 }

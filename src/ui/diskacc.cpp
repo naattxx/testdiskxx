@@ -14,7 +14,7 @@ using namespace ftxui;
 
 auto interface_check_disk_access(const Component &root, disk_t &disk_car) -> int
 {
-  if ((disk_car.access_mode & TESTDISK_O_RDWR) == TESTDISK_O_RDWR)
+  if ((disk_car.access_mode & TESTDISK_O::RDWR) == TESTDISK_O::RDWR)
     return 0;
   log_warning("Media is opened in read-only.\n");
 

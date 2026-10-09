@@ -27,9 +27,11 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
   buttonOptions.transform    = [](const EntryState &s) -> Element {
     if (s.focused)
     {
-      return hflow({text("> " + s.label.substr(0, s.label.find(']') + 1)) |
-                        bgcolor(Color::White) | color(Color::Black) | bold,
-                    text(s.label.substr(s.label.find(']') + 1))});
+      return hflow({
+          text("> " + s.label.substr(0, s.label.find(']') + 1)) |
+              bgcolor(Color::White) | color(Color::Black) | bold,
+          text(s.label.substr(s.label.find(']') + 1)),
+      });
     }
 
     return text("  " + s.label);
@@ -62,20 +64,26 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
   });
   root         = Renderer(options, [&] -> Element {
     return vbox({
-        hflow({text("TestDisk++ "), bold(text(VERSION)),
-               text(", Data Recovery Utility, "), text(TESTDISKDATE)}),
+        hflow({
+            text("TestDisk++ "),
+            bold(text(VERSION)),
+            text(", Data Recovery Utility, "),
+            text(TESTDISKDATE),
+        }),
         text("naattxx"),
         text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),
         text(disk.description_short(disk)),
-        hflow({(disk.geom.heads_per_cylinder == 1 &&
-                disk.geom.sectors_per_head == 1)
-                   ? text(std::format("     {} sectors",
-                                      disk.disk_size / disk.sector_size))
-                   : text(std::format("     CHS {} {} {}", disk.geom.cylinders,
-                                      disk.geom.heads_per_cylinder,
-                                      disk.geom.sectors_per_head)),
-               text(std::format(" - sector size={}", disk.sector_size))}),
+        hflow({
+            (disk.geom.heads_per_cylinder == 1 &&
+             disk.geom.sectors_per_head == 1)
+                ? text(std::format("     {} sectors",
+                                   disk.disk_size / disk.sector_size))
+                : text(std::format("     CHS {} {} {}", disk.geom.cylinders,
+                                   disk.geom.heads_per_cylinder,
+                                   disk.geom.sectors_per_head)),
+            text(std::format(" - sector size={}", disk.sector_size)),
+        }),
         separatorEmpty(),
         options->Render(),
         filler(),

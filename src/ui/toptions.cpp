@@ -15,25 +15,27 @@ void interface_options(const ftxui::Component &root, bool &dump, bool &align,
   buttonOptions.transform    = [](const EntryState &s) -> Element {
     if (s.focused)
     {
-      return hflow({text("  "),
-                    text("> " + s.label.substr(0, s.label.find(']') + 1)) |
-                        bgcolor(Color::White) | color(Color::Black) | bold,
-                    text(s.label.substr(s.label.find(']') + 1))});
+      return hflow({
+          text("  "),
+          text("> " + s.label.substr(0, s.label.find(']') + 1)) |
+              bgcolor(Color::White) | color(Color::Black) | bold,
+          text(s.label.substr(s.label.find(']') + 1)),
+      });
     }
 
     return text("    " + s.label);
   };
   bool show_modal = true;
   auto screen     = App::Fullscreen();
-  auto options    = Container::Vertical(
-      {Checkbox("Expert mode - Expert mode adds some functionalities", &expert),
-       Checkbox(
-           "Align partition - Align partitions to cylinder or 1MiB boundaries",
-           &align
-       ),
-       Checkbox("Dump - Dump essential sectors", &dump),
-       Button("[ Ok ]", screen.ExitLoopClosure(), buttonOptions)}
-  );
+  auto options    = Container::Vertical({
+      Checkbox("Expert mode - Expert mode adds some functionalities", &expert),
+      Checkbox(
+          "Align partition - Align partitions to cylinder or 1MiB boundaries",
+          &align
+      ),
+      Checkbox("Dump - Dump essential sectors", &dump),
+      Button("[ Ok ]", screen.ExitLoopClosure(), buttonOptions),
+  });
   auto dialog =
       Renderer(options,
                [&] -> Element { return vbox({options->Render()}); }) |

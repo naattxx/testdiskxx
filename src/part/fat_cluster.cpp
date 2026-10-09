@@ -85,23 +85,22 @@ auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
 #endif
     if (std::cmp_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
                                       partition.part_offset + offset),
-                       disk_car.sector_size))
+                       disk_car.sector_size) &&
+        (buffer[0] == '.' && is_fat_directory(buffer)))
+
     {
-      if (buffer[0] == '.' && is_fat_directory(buffer))
-      {
-        const unsigned long int cluster = fat_get_cluster_from_entry(
-            reinterpret_cast<const struct msdos_dir_entry *>(buffer)
-        );
-        log_info("sector {}, cluster {}\n",
-                 (unsigned long)(offset / disk_car.sector_size), cluster);
-        sector_cluster[nbr_subdir].cluster = cluster;
-        sector_cluster[nbr_subdir].sector  = offset / disk_car.sector_size;
-        nbr_subdir++;
+      const unsigned long int cluster = fat_get_cluster_from_entry(
+          reinterpret_cast<const struct msdos_dir_entry *>(buffer)
+      );
+      log_info("sector {}, cluster {}\n",
+               (unsigned long)(offset / disk_car.sector_size), cluster);
+      sector_cluster[nbr_subdir].cluster = cluster;
+      sector_cluster[nbr_subdir].sector  = offset / disk_car.sector_size;
+      nbr_subdir++;
 #ifdef HAVE_NCURSES
         if (dump_ind > 0)
           dump_ncurses(buffer, disk_car.sector_size);
 #endif
-      }
     }
   }
   delete[] buffer;
