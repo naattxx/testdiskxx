@@ -63,10 +63,10 @@ auto interface_write(disk_t &disk_car, list_part_t &list_part,
 #endif
   for(auto& part:list_part)
     if(part.status!=STATUS_LOG)
-      aff_part_buffer(AFF_PART_ORDER|AFF_PART_STATUS,disk_car,part);
+      aff_part_buffer(AFF_PART::ORDER|AFF_PART::STATUS,disk_car,part);
   for(auto& part:list_part)
     if(part.status==STATUS_LOG)
-      aff_part_buffer(AFF_PART_ORDER|AFF_PART_STATUS,disk_car,part);
+      aff_part_buffer(AFF_PART::ORDER|AFF_PART::STATUS,disk_car,part);
   command='Q';
   if(list_part.empty())
   {

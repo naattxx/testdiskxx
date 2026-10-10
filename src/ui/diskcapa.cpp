@@ -16,7 +16,7 @@ auto interface_check_disk_capacity(const Component &root, disk_t &disk_car)
   /* Test for LBA28 limitation */
   if (disk_car.geom.sectors_per_head > 0 &&
       disk_car.geom.cylinders ==
-          (((1 << 28) - 1) / disk_car.geom.heads_per_cylinder /
+          (((1u << 28u) - 1) / disk_car.geom.heads_per_cylinder /
            disk_car.geom.sectors_per_head))
   {
     log_warning("LBA28 limitation\n");

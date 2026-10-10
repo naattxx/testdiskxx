@@ -36,7 +36,7 @@ auto UCSle2str(std::string &to, std::span<const uint16_t> from) noexcept -> unsi
       @*/
     for (i = 0; i < from.size() && to_little_endian(from[i]) != 0; i++)
     {
-        if (to_little_endian(from[i]) & 0xff00)
+        if (to_little_endian(from[i]) & 0xff00u)
             to[i] = '?';
         else
             to[i] = static_cast<char>(to_little_endian(from[i]));

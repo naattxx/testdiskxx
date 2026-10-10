@@ -91,12 +91,23 @@ struct partition_dos
   unsigned char size4[4];   /* nr of sectors in partition */
 };
 
-#define s_cyl(p)                                                         \
-  (((p)->cyl & 0xffu) | (((p)->sector << 2) & 0x300u))
-#define s_sect(p) ((p)->sector & 0x3fu)
-#define e_cyl(p) \
-  (((p)->end_cyl & 0xffu) | (((p)->end_sector << 2) & 0x300u))
-#define e_sect(p) ((p)->end_sector & 0x3fu)
+constexpr auto s_cyl(const struct partition_dos *p) noexcept -> unsigned int
+{
+  return (p->cyl & 0xffu) | (static_cast<unsigned>(p->sector << 2u) & 0x300u);
+}
+constexpr auto s_sect(const struct partition_dos *p) noexcept -> unsigned int
+{
+  return p->sector & 0x3fu;
+}
+constexpr auto e_cyl(const struct partition_dos *p) noexcept -> unsigned int
+{
+  return (p->end_cyl & 0xffu) |
+         (static_cast<unsigned>(p->end_sector << 2u) & 0x300u);
+}
+constexpr auto e_sect(const struct partition_dos *p) noexcept -> unsigned int
+{
+  return p->end_sector & 0x3fu;
+}
 static void log_dos_entry(const struct partition_dos *);
 
 /*@
@@ -520,8 +531,7 @@ static auto get_geometry_from_i386mbr(const unsigned char *buffer,
       geometry->heads_per_cylinder =
           std::max(geometry->heads_per_cylinder,
                    static_cast<unsigned int>(p->end_head) + 1);
-      if (geometry->sectors_per_head < e_sect(p))
-        geometry->sectors_per_head = e_sect(p);
+      geometry->sectors_per_head = std::max(geometry->sectors_per_head, e_sect(p));
     }
   }
   if (geometry->sectors_per_head == 32 ||
@@ -629,7 +639,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
                            status, i + 1, verbose, saveheader);
       if (verbose > 1)
         log_dos_entry(p);
-      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+      aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       new_partition);
       if (new_partition.errcode != BAD_NOERR)
       {
@@ -650,7 +660,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
 
 static void test_MBR_data(const list_part_t &list_part)
 {
-  unsigned int nb_dos = 0, nb_hidden = 0, nb_mb = 0, nb_ext = 0, nb_boot = 0;
+  unsigned int nb_dos = 0, /* nb_hidden = 0, nb_mb = 0, */ nb_ext = 0, nb_boot = 0;
   for (const partition_t &partition : list_part)
   {
     switch (partition.status)
@@ -666,14 +676,14 @@ static void test_MBR_data(const list_part_t &list_part)
       case P_16FATBD:
         nb_dos++;
         break;
-      case P_16FATBDH:
-      case P_16FATH:
-      case P_NTFSH:
-        nb_hidden++;
-        break;
-      case P_OS2MB:
-        nb_mb++;
-        break;
+      // case P_16FATBDH:
+      // case P_16FATH:
+      // case P_NTFSH:
+      //   nb_hidden++;
+      //   break;
+      // case P_OS2MB:
+      //   nb_mb++;
+      //   break;
       }
       break;
     case STATUS_EXT:
@@ -798,7 +808,7 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
           i386_entry2partition(disk_car, partition_main_ext->part_offset,
                                new_partition, p, STATUS_EXT_IN_EXT, order,
                                verbose, saveheader);
-          aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+          aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                           new_partition);
           if (new_partition.errcode != BAD_NOERR)
           {
@@ -814,9 +824,9 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
                      partition_main_ext->part_size - 1))
             { /* Must be IN partition_main_ext */
               screen_buffer_add("Must be in extended partition\n");
-              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+              aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                               *partition_main_ext);
-              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+              aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                               new_partition);
             }
             else
@@ -838,9 +848,9 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
                       "Logical partition must be in its own extended "
                       "partition\n"
                   );
-                  aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                  aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                                   partition);
-                  aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+                  aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                                   new_partition);
                 }
               }
@@ -855,7 +865,7 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
           order++;
           if (verbose > 1)
             log_dos_entry(p);
-          aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+          aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                           new_partition);
           if (new_partition.errcode != BAD_NOERR)
           {
@@ -871,9 +881,9 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
                      partition_main_ext->part_size - 1))
             { /* Must be IN partition_main_ext */
               screen_buffer_add(msg_SAME_SPACE);
-              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+              aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                               *partition_main_ext);
-              aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+              aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                               new_partition);
             }
           }
@@ -932,8 +942,8 @@ static auto test_MBR_over(const disk_t &disk_car, const list_part_t &list_part)
     {
       res = 1;
       screen_buffer_add(msg_SAME_SPACE);
-      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, *element);
-      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+      aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, *element);
+      aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       *std::next(element));
     }
   return res;
@@ -2050,7 +2060,7 @@ static auto check_part_i386(disk_t &disk_car, const int verbose,
   {
     log_error("check_part_i386 failed for partition type %02X\n",
               partition.part_type_i386);
-    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     if (saveheader > 0)
     {
       save_header(disk_car, partition, verbose);

@@ -252,7 +252,7 @@ static auto read_part_mac(disk_t &disk_car, const int verbose,
         static_cast<uint64_t>(to_big_endian(dpme->dpme_pblocks)) * PBLOCK_SIZE;
     new_partition.status = STATUS_PRIM;
     check_part_mac(disk_car, verbose, new_partition, saveheader);
-    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, new_partition);
+    aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, new_partition);
     insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
     if (i == 1)
     {
@@ -456,7 +456,7 @@ static auto check_part_mac(disk_t &disk_car, const int verbose,
   {
     log_error("check_part_mac failed for partition type %02X\n",
               partition.part_type_mac);
-    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     if (saveheader > 0)
     {
       save_header(disk_car, partition, verbose);

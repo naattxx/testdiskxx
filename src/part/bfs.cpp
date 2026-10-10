@@ -34,7 +34,7 @@ static void set_BeFS_info(const struct disk_super_block *beos_block,
                           partition_t &partition)
 {
   partition.upart_type = UP_BEOS;
-  partition.blocksize  = 1 << to_little_endian(beos_block->block_shift);
+  partition.blocksize  = 1u << to_little_endian(beos_block->block_shift);
   partition.info       = std::format("BeFS blocksize={}", partition.blocksize);
   partition.set_name(std::string_view(beos_block->name, B_OS_NAME_LENGTH));
 }

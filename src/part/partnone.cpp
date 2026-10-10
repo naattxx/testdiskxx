@@ -349,8 +349,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
 
   if (res <= 0)
   {
-    int s_log_block_size;
-    for (s_log_block_size = 0; s_log_block_size <= 2 && res <= 0;
+    for (unsigned int s_log_block_size = 0; s_log_block_size <= 2 && res <= 0;
          s_log_block_size++)
     {
       /* sparse superblock feature: The groups chosen are 0, 1 and powers of 3,
@@ -385,7 +384,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
   screen_buffer_reset();
   check_part_none(disk, verbose, partition, saveheader);
 #ifndef DISABLED_FOR_FRAMAC
-  aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+  aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
 #endif
   insert_new_partition(list_part, partition, 0, &_insert_error);
   /*@ assert valid_list_part(list_part); */

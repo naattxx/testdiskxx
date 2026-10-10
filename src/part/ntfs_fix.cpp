@@ -292,7 +292,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
         wprintw(stdscr, "%s", disk_car.description(disk_car));
         mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
         wmove(stdscr, 6, 0);
-        aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+        aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
         wmove(stdscr, 8, 0);
         if (res1 > 0 && res2 > 0)
           wprintw(stdscr, "Both MFT seem ok but they don't match.\n");

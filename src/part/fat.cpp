@@ -402,10 +402,10 @@ static auto get_next_cluster_fat12(disk_t &disk, const partition_t &partition,
     delete[] buffer;
     return 0;
   }
-  if ((cluster & 1) != 0)
-    next_cluster = to_little_endian((*((uint16_t *)&buffer[offset_o]))) >> 4;
+  if ((cluster & 1u) != 0)
+    next_cluster = to_little_endian((*((uint16_t *)&buffer[offset_o]))) >> 4u;
   else
-    next_cluster = to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0x0FFF;
+    next_cluster = to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0x0FFFu;
   delete[] buffer;
   return next_cluster;
 }
@@ -484,7 +484,7 @@ static auto get_next_cluster_fat32(disk_t &disk, const partition_t &partition,
    * 0x0FFFFFF7: bad cluster
    * 0x0FFFFFF8+: EOC End of cluster
    * */
-  next_cluster = to_little_endian(p32[offset_o]) & 0xFFFFFFF;
+  next_cluster = to_little_endian(p32[offset_o]) & 0xFFFFFFFu;
   delete[] buffer;
   return next_cluster;
 }
@@ -561,14 +561,14 @@ auto set_next_cluster(disk_t &disk_car, const partition_t &partition,
   switch (upart_type)
   {
   case UP_FAT12:
-    if ((cluster & 1) != 0)
+    if ((cluster & 1u) != 0)
       (*(reinterpret_cast<uint16_t *>(&buffer[offset_o]))) =
-          to_little_endian((next_cluster << 4) |
-               (to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0xF));
+          to_little_endian((next_cluster << 4u) |
+               (to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0xFu));
     else
       (*(reinterpret_cast<uint16_t *>(&buffer[offset_o]))) =
           to_little_endian(next_cluster |
-               (to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0xF000));
+               (to_little_endian(*((uint16_t *)&buffer[offset_o])) & 0xF000u));
     break;
   case UP_FAT16: {
     auto *p16     = reinterpret_cast<uint16_t *>(buffer);
@@ -633,7 +633,7 @@ auto fat32_get_prev_cluster(disk_t &disk_car, const partition_t &partition,
       }
       hd_offset += disk_car.sector_size;
     }
-    if ((to_little_endian(p32[offset_o]) & 0xFFFFFFF) == cluster)
+    if ((to_little_endian(p32[offset_o]) & 0xFFFFFFFu) == cluster)
     {
       delete[] buffer;
       return prev_cluster;
@@ -1469,7 +1469,7 @@ auto fat32_free_info(disk_t &disk_car, const partition_t &partition,
       }
       hd_offset += disk_car.sector_size;
     }
-    cluster = to_little_endian(p32[offset_o]) & 0xFFFFFFF;
+    cluster = to_little_endian(p32[offset_o]) & 0xFFFFFFFu;
     if (cluster == 0)
     {
       (*free_count)++;

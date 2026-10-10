@@ -206,8 +206,7 @@ void search_location_init(const disk_t &disk_car,
     update_location();
     /* test_nbr==5*/
     {
-      int s_log_block_size;
-      for (s_log_block_size = 0; s_log_block_size <= 2; s_log_block_size++)
+      for (unsigned int s_log_block_size = 0; s_log_block_size <= 2; s_log_block_size++)
       {
         const uint64_t hd_offset =
             3 * (EXT2_MIN_BLOCK_SIZE << s_log_block_size) * 8 *

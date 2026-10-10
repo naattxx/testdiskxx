@@ -26,8 +26,8 @@
 
 // Structure from gfs2_ondisk.h
 #define GFS2_MAGIC 0x01161970u
-#define GFS2_BASIC_BLOCK 512
-#define GFS2_BASIC_BLOCK_SHIFT 9
+#define GFS2_BASIC_BLOCK 512u
+#define GFS2_BASIC_BLOCK_SHIFT 9u
 #define GFS2_FORMAT_SB 100u
 
 /*
@@ -53,8 +53,8 @@ struct gfs2_meta_header
   };
 };
 /* Address of superblock in GFS2 basic blocks */
-#define GFS2_SB_ADDR 128
-#define GFS2_LOCKNAME_LEN 64
+#define GFS2_SB_ADDR 128u
+#define GFS2_LOCKNAME_LEN 64u
 
 struct gfs2_sb
 {

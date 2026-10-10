@@ -35,7 +35,7 @@ static void set_f2fs_info(partition_t &partition,
                           const struct f2fs_super_block *hdr)
 {
   partition.upart_type = UP_F2FS;
-  partition.blocksize  = 1 << to_little_endian(hdr->log_blocksize);
+  partition.blocksize  = 1u << to_little_endian(hdr->log_blocksize);
   partition.fsname[0]  = '\0';
   if (partition.sb_offset == 0)
     partition.info = std::format("F2FS, blocksize={}", partition.blocksize);

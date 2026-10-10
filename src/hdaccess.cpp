@@ -230,7 +230,7 @@ static void insert_new_disk_nodup(list_disk_t &list_disk, disk_t &disk_car, cons
   @ ensures \valid(list_disk);
   @*/
 void hd_glob_parse(const char *device_pattern, list_disk_t &list_disk, const int verbose,
-                                  const int testdisk_mode)
+                                  const unsigned int testdisk_mode)
 {
     glob_t globbuf;
     globbuf.gl_offs = 0;
@@ -250,7 +250,7 @@ void hd_glob_parse(const char *device_pattern, list_disk_t &list_disk, const int
 }
 #endif
 
-void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode)
+void hd_parse(list_disk_t &list_disk, const int verbose, const unsigned int testdisk_mode)
 {
     unsigned int i;
 #ifdef DJGPP
@@ -1665,7 +1665,7 @@ static auto is_dosemu_image(const struct dosemu_image_header *hdr) -> int
     return 0;
 }
 
-auto file_test_availability(const char *device, const int verbose, int testdisk_mode) -> std::optional<disk_t>
+auto file_test_availability(const char *device, const int verbose, unsigned int testdisk_mode) -> std::optional<disk_t>
 {
     /*@ assert valid_read_string(device); */
     disk_t disk_car;

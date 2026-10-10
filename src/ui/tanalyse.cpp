@@ -29,7 +29,7 @@ auto getPartitionsTable(const disk_t &disk, const list_part_t &partitions)
 
   for (const auto &partition : partitions)
   {
-    data.push_back(aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition));
+    data.push_back(aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition));
   }
   Table table(data);
   table.SelectColumns(3, 6).Decorate(align_right);

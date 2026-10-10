@@ -27,7 +27,7 @@
 /* ZFS boot block */
 #define VDEV_BOOT_MAGIC 0x2f5b007b10cULL
 #define VDEV_BOOT_VERSION 1 /* version number       */
-#define VDEV_BOOT_HEADER_SIZE (8 << 10)
+#define VDEV_BOOT_HEADER_SIZE (8u << 10u)
 
 struct vdev_boot_header
 {

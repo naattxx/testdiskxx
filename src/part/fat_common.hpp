@@ -30,12 +30,12 @@
 
 #define DELETED_FLAG 0xe5 /* marks file as deleted when in name[0] */
 #define IS_FREE(n) (!*(n) || *(const unsigned char *)(n) == DELETED_FLAG)
-#define ATTR_RO 1     /* read-only */
-#define ATTR_HIDDEN 2 /* hidden */
-#define ATTR_SYS 4    /* system */
-#define ATTR_VOLUME 8 /* volume label */
-#define ATTR_DIR 16   /* directory */
-#define ATTR_ARCH 32  /* archived */
+#define ATTR_RO 1u     /* read-only */
+#define ATTR_HIDDEN 2u /* hidden */
+#define ATTR_SYS 4u    /* system */
+#define ATTR_VOLUME 8u /* volume label */
+#define ATTR_DIR 16u   /* directory */
+#define ATTR_ARCH 32u  /* archived */
 
 #define ATTR_NONE 0 /* no attribute bits */
 #define ATTR_UNUSED (ATTR_VOLUME | ATTR_ARCH | ATTR_SYS | ATTR_HIDDEN)

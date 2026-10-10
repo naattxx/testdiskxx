@@ -23,28 +23,28 @@
 #include "common.hpp"
 #include "log.hpp"
 
-auto disk_t::is_hpa_or_dco() const noexcept -> int
+auto disk_t::is_hpa_or_dco() const noexcept -> unsigned int
 {
-    int res = 0;
+    unsigned int res = 0;
     if (native_max > 0 && user_max < native_max + 1)
     {
         res = 1;
         if (native_max < dco)
-            res |= 2;
+            res |= 2u;
     }
     else if (dco > 0 && user_max < dco + 1)
     {
 #ifndef DISABLED_FOR_FRAMAC
         log_info("user_max={} dco={}\n", user_max, dco);
 #endif
-        res |= 2;
+        res |= 2u;
     }
 #ifndef DISABLED_FOR_FRAMAC
     if (res > 0)
     {
-        if (res & 1)
+        if (res & 1u)
             log_warning("{}: Host Protected Area (HPA) present.\n", device);
-        if (res & 2)
+        if (res & 2u)
             log_warning("{}: Device Configuration Overlay (DCO) present.\n", device);
         // log_flush();
     }

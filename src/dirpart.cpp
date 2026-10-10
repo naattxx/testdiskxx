@@ -111,7 +111,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
 #ifdef HAVE_NCURSES
         aff_copy(window);
         wmove(window, 4, 0);
-        aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+        aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
 #endif
         log_partition(disk, partition);
         screen_buffer_add("Support for this filesystem hasn't been implemented.\n");
@@ -128,7 +128,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
 #ifdef HAVE_NCURSES
         aff_copy(window);
         wmove(window, 4, 0);
-        aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+        aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
 #endif
         log_partition(disk, partition);
         screen_buffer_add("Support for this filesystem wasn't enabled during compilation.\n");
@@ -145,7 +145,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose
 #ifdef HAVE_NCURSES
         aff_copy(window);
         wmove(window, 4, 0);
-        aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+        aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
 #endif
         log_partition(disk, partition);
         screen_buffer_add("Can't open filesystem. Filesystem seems damaged.\n");

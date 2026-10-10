@@ -30,7 +30,7 @@
 #endif
 #include <optional>
 #include "src/common.hpp"
-auto file_test_availability_win32(const char *device, const int verbose, const int testdisk_mode) -> std::optional<disk_t>;
+auto file_test_availability_win32(const char *device, const int verbose, const unsigned int testdisk_mode) -> std::optional<disk_t>;
 auto disk_get_sector_size_win32(HANDLE handle, const char *device, const int verbose) -> unsigned int;
 auto disk_get_size_win32(HANDLE handle, const char *device, const int verbose) -> uint64_t;
 void disk_get_geometry_win32(CHSgeometry_t *geom, HANDLE handle, const char *device, const int verbose);

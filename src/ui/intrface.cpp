@@ -64,7 +64,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     /*@ assert valid_list_part(list_part); */
     for (const partition_t &partition : list_part)
     {
-        data.push_back(aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition));
+        data.push_back(aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition));
         if (partition.info[0] != '\0')
             data.push_back({"", "", partition.info});
     }
@@ -144,7 +144,7 @@ static list_part_t *ask_structure_ncurses(disk_t *disk_car, list_part_t *list_pa
                 waddstr(stdscr, ">");
             else
                 waddstr(stdscr, " ");
-            aff_part(stdscr, AFF_PART_STATUS, disk_car, parts->part);
+            aff_part(stdscr, AFF_PART::STATUS, disk_car, parts->part);
             if (structure_status == 0 && parts->part->status != STATUS_DELETED && has_colors())
                 wbkgdset(stdscr, ' ' | COLOR_PAIR(0));
             if (parts == pos)

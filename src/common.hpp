@@ -30,10 +30,10 @@ struct [[gnu::packed]] efi_guid_t
                       std::to_integer<uint32_t>(data[3]) << 24u,
           .time_mid =
               static_cast<uint16_t>(std::to_integer<uint16_t>(data[4]) |
-                                    std::to_integer<uint16_t>(data[5]) << 8u),
+                                    std::to_integer<unsigned>(data[5]) << 8u),
           .time_hi_and_version =
               static_cast<uint16_t>(std::to_integer<uint16_t>(data[6]) |
-                                    std::to_integer<uint16_t>(data[7]) << 8u),
+                                    std::to_integer<unsigned>(data[7]) << 8u),
           .clock_seq_hi_and_reserved = std::to_integer<uint8_t>(data[8]),
           .clock_seq_low             = std::to_integer<uint8_t>(data[9]),
           .node =
@@ -638,9 +638,11 @@ enum errcode_type_t : uint8_t
     BAD_SCOUNT,
 };
 
-#define AFF_PART_BASE 0
-#define AFF_PART_ORDER 1
-#define AFF_PART_STATUS 2
+enum AFF_PART : uint8_t {
+  BASE = 0,
+  ORDER = 1,
+  STATUS = 2,
+};
 
 enum class UNIT : uint8_t
 {
@@ -750,7 +752,7 @@ struct disk_t
     void autodetect_arch(const arch_fnct_t *arch) noexcept;
     void autoset_unit() noexcept;
     [[nodiscard]]
-    auto is_hpa_or_dco() const noexcept -> int;
+    auto is_hpa_or_dco() const noexcept -> unsigned int;
     std::string_view(*description)(disk_t &disk);
     std::string_view(*description_short)(disk_t &disk);
     int (*pread)(disk_t &disk, void *buf, const unsigned int count, const uint64_t offset);

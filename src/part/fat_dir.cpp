@@ -88,7 +88,7 @@ static inline void fat16_towchar(wchar_t *dst, const uint8_t *src, size_t len)
     @*/
   while (len--)
   {
-    *dst++ = src[0] | (src[1] << 8);
+    *dst++ = src[0] | (static_cast<unsigned>(src[1]) << 8u);
     src += 2;
   }
 }
@@ -162,9 +162,9 @@ GetNew:
        use the uppercase version of the first char from the unicode filename
      */
     for (sum = toupper(unicode[0]), i = 1; i < 8; i++)
-      sum = (((sum & 1) << 7) | ((sum & 0xfe) >> 1)) + de->name[i];
+      sum = (((sum & 1u) << 7u) | ((sum & 0xfeu) >> 1u)) + de->name[i];
     for (i = 0; i < 3; i++)
-      sum = (((sum & 1) << 7) | ((sum & 0xfe) >> 1)) + de->ext[i];
+      sum = (((sum & 1u) << 7u) | ((sum & 0xfeu) >> 1u)) + de->ext[i];
     /* If checksum don't match, use the short filename */
     if (sum != alias_checksum)
       long_slots = 0;
@@ -181,12 +181,12 @@ GetNew:
   ParseLong:
     ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
     id = ds->id;
-    if ((id & 0x40) == 0)
+    if ((id & 0x40u) == 0)
       goto RecEnd;
     {
       unsigned char slots;
       unsigned char slot;
-      slots = id & ~0x40;
+      slots = id & ~0x40u;
       if (slots > 20 || slots == 0) /* ceil(256 * 2 / 26) */
         goto RecEnd;
       long_slots     = slots;
@@ -203,7 +203,7 @@ GetNew:
         fat16_towchar(unicode + offset + 5, ds->name5_10, 6);
         fat16_towchar(unicode + offset + 11, ds->name11_12, 2);
 
-        if ((ds->id & 0x40) != 0)
+        if ((ds->id & 0x40u) != 0)
         {
           unicode[offset + 13] = 0;
         }
@@ -219,7 +219,7 @@ GetNew:
           long_slots = 0;
           goto RecEnd; /* XXX */
         }
-        if ((ds->id & ~0x40) != slot)
+        if ((ds->id & ~0x40u) != slot)
           goto ParseLong;
         if (ds->alias_checksum != alias_checksum)
           goto ParseLong;
@@ -233,20 +233,20 @@ GetNew:
       goto RecEnd;
     }
     for (sum = 0, i = 0; i < 8; i++)
-      sum = (((sum & 1) << 7) | ((sum & 0xfe) >> 1)) + de->name[i];
+      sum = (((sum & 1u) << 7u) | ((sum & 0xfeu) >> 1u)) + de->name[i];
     for (i = 0; i < 3; i++)
-      sum = (((sum & 1) << 7) | ((sum & 0xfe) >> 1)) + de->ext[i];
+      sum = (((sum & 1u) << 7u) | ((sum & 0xfeu) >> 1u)) + de->ext[i];
     if (sum != alias_checksum)
       long_slots = 0;
   }
 RecEnd:
-  inode = (to_little_endian(de->starthi) << 16) | to_little_endian(de->start);
+  inode = (static_cast<unsigned>(to_little_endian(de->starthi)) << 16u) | to_little_endian(de->start);
   if ((param & FLAG_LIST::MASK12) != 0)
-    inode &= 0xfff;
+    inode &= 0xfffu;
   else if ((param & FLAG_LIST::MASK16) != 0)
-    inode &= 0xffff;
+    inode &= 0xffffu;
   else
-    inode &= 0xfffffff;
+    inode &= 0xfffffffu;
   if (long_slots == 0 && de->attr != ATTR_EXT)
   { /* short name 8.3 */
     int i;
@@ -342,10 +342,10 @@ static auto is_EOC(const unsigned int cluster, const upart_type_t upart_type)
     -> int
 {
   if (upart_type == UP_FAT12)
-    return ((cluster & 0x0ff8) == static_cast<unsigned>(FAT12_EOC));
+    return ((cluster & 0x0ff8u) == static_cast<unsigned>(FAT12_EOC));
   if (upart_type == UP_FAT16)
-    return ((cluster & 0x0fff8) == static_cast<unsigned>(FAT16_EOC));
-  return ((cluster & 0xffffff8) == static_cast<unsigned>(FAT32_EOC));
+    return ((cluster & 0x0fff8u) == static_cast<unsigned>(FAT16_EOC));
+  return ((cluster & 0xffffff8u) == static_cast<unsigned>(FAT32_EOC));
 }
 
 #define NBR_ENTRIES_MAX 65536

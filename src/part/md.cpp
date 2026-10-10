@@ -42,7 +42,7 @@ static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
            offset2head(disk_car, partition.part_offset),
            offset2sector(disk_car, partition.part_offset));
   log_info("Raid apparent size: {} sectors\n",
-           (long long unsigned)(sb->size << 1));
+           (long long unsigned)(sb->size << 1u));
   if (to_little_endian(sb->major_version) == 0)
   {
     /* chunk_size may be 0 */
@@ -70,7 +70,7 @@ static auto test_MD_be(const disk_t &disk_car,
            offset2head(disk_car, partition.part_offset),
            offset2sector(disk_car, partition.part_offset));
   log_info("Raid apparent size: {} sectors\n",
-           (long long unsigned)(sb->size << 1));
+           (long long unsigned)(sb->size << 1u));
   if (to_big_endian(sb->major_version) == 0)
   {
     /* chunk_size may be 0 */

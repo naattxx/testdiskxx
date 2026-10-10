@@ -243,7 +243,7 @@ static int ask_root_directory(const disk_t &disk_car,
   window = newwin(LINES, COLS, 0, 0); /* full screen */
   aff_copy(window);
   wmove(window, 4, 0);
-  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   wmove(window, 6, 0);
   wprintw(window,
           "Answer Y(es), N(o), Q(uit) or A(bort interactive mode). N or A if "
@@ -1062,7 +1062,7 @@ static void fat32_dump_ncurses(disk_t &disk_car, const partition_t &partition,
   wmove(window, 4, 0);
   wprintw(window, "%s", disk_car->description(disk_car));
   wmove(window, 5, 0);
-  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   mvwaddstr(window, 6, 0, "     Rebuild Boot sector           Boot sector");
   dump2(window, newboot, orgboot,
         (unsigned int)(upart_type == UP_FAT32 ? 3 * disk_car->sector_size
@@ -1123,7 +1123,7 @@ static void menu_write_fat_boot_sector(disk_t &disk_car, partition_t &partition,
     wprintw(stdscr, "%s", disk_car->description(disk_car));
     mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
     wmove(stdscr, 6, 0);
-    aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     wmove(stdscr, 8, 0);
 #endif
     if (memcmp(newboot, orgboot,
@@ -2320,7 +2320,7 @@ auto rebuild_FAT_BS(disk_t &disk_car, partition_t &partition, const int verbose,
   wprintw(stdscr, "%s", disk_car->description(disk_car));
   mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
   wmove(stdscr, 6, 0);
-  aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   wrefresh(stdscr);
 #endif
   upart_type = fat_find_info(disk_car, &reserved, &fat_length, partition,
@@ -2332,7 +2332,7 @@ auto rebuild_FAT_BS(disk_t &disk_car, partition_t &partition, const int verbose,
   wprintw(stdscr, "%s", disk_car->description(disk_car));
   mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
   wmove(stdscr, 6, 0);
-  aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   wmove(stdscr, 8, 0);
   wclrtoeol(stdscr);
   switch (upart_type)

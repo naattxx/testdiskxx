@@ -45,7 +45,7 @@ static void exFAT_dump_ncurses(disk_t &disk, const partition_t &partition,
   wmove(window, 4, 0);
   wprintw(window, "%s", disk.description(disk));
   wmove(window, 5, 0);
-  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
   mvwaddstr(window, 6, 0,
             "Boot sector                       Backup boot record");
   dump2(window, buffer_bs, buffer_backup_bs, 12 * disk.sector_size);
@@ -107,7 +107,7 @@ static auto exFAT_boot_sector_rescan(disk_t &disk, const partition_t &partition,
   wprintw(stdscr, "%s", disk.description(disk));
   mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
   wmove(stdscr, 6, 0);
-  aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+  aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
 #endif
   log_info("\nexFAT_boot_sector\n");
   log_partition(disk, partition);

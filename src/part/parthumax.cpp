@@ -203,7 +203,7 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
           disk_car.sector_size;
       new_partition.status = STATUS_PRIM;
       //       disk_car.arch->check_part(disk_car,verbose,new_partition,saveheader);
-      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+      aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       new_partition);
       insert_new_partition(new_list_part, new_partition, 0, &insert_error);
     }

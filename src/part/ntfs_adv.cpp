@@ -50,7 +50,7 @@ struct info_mft_t
   uint64_t mftmirr_lcn;
 };
 
-static auto testdisk_ffs(int x) -> int;
+static constexpr auto testdisk_ffs(unsigned int x) -> int;
 
 #ifdef HAVE_NCURSES
 #define INTER_NTFS_X 0
@@ -106,7 +106,7 @@ static void ntfs_dump_ncurses(disk_t &disk_car, const partition_t &partition,
   wmove(window, 4, 0);
   wprintw(window, "%s", disk_car->description(disk_car));
   wmove(window, 5, 0);
-  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   mvwaddstr(window, 6, 0, "     Rebuild Boot sector           Boot sector");
   dump2(window, newboot, orgboot, NTFS_SECTOR_SIZE);
   delwin(window);
@@ -242,7 +242,7 @@ static void menu_write_ntfs_boot_sector_ncurses(disk_t &disk_car,
     wprintw(stdscr, "%s", disk_car->description(disk_car));
     mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
     wmove(stdscr, 6, 0);
-    aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     wmove(stdscr, 8, 0);
     if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE))
     {
@@ -547,7 +547,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
   wprintw(stdscr, "%s", disk_car->description(disk_car));
   mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
   wmove(stdscr, 6, 0);
-  aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   wmove(stdscr, 22, 0);
   wattrset(stdscr, A_REVERSE);
   waddstr(stdscr, "  Stop  ");
@@ -826,33 +826,33 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
   return 0;
 }
 
-static auto testdisk_ffs(int x) -> int
+static constexpr auto testdisk_ffs(unsigned int x) -> int
 {
   int r = 1;
 
   if (!x)
     return 0;
-  if (!(x & 0xffff))
+  if (!(x & 0xffffu))
   {
-    x >>= 16;
+    x >>= 16u;
     r += 16;
   }
-  if (!(x & 0xff))
+  if (!(x & 0xffu))
   {
-    x >>= 8;
+    x >>= 8u;
     r += 8;
   }
-  if (!(x & 0xf))
+  if (!(x & 0xfu))
   {
-    x >>= 4;
+    x >>= 4u;
     r += 4;
   }
-  if (!(x & 3))
+  if (!(x & 3u))
   {
-    x >>= 2;
+    x >>= 2u;
     r += 2;
   }
-  if (!(x & 1))
+  if (!(x & 1u))
   {
     //  x >>= 1;
     r += 1;

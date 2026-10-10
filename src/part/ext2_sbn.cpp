@@ -96,7 +96,7 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
   wprintw(stdscr, "%s", disk_car->description(disk_car));
   mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
   wmove(stdscr, 6, 0);
-  aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   wmove(stdscr, 22, 0);
   wattrset(stdscr, A_REVERSE);
   waddstr(stdscr, "  Stop  ");

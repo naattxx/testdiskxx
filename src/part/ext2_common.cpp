@@ -35,7 +35,7 @@ auto td_ext2fs_blocks_count(const struct ext2_super_block *super) -> uint64_t
   /*@ assert hi < 1 << 32; */
   /*@ assert hi << 32 < (1 << 64); */
   return lo | (EXT2_HAS_INCOMPAT_FEATURE(super, EXT4_FEATURE_INCOMPAT_64BIT)
-                   ? hi << 32
+                   ? hi << 32u
                    : 0);
 }
 

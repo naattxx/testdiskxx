@@ -45,7 +45,7 @@ auto exfat_read_cluster(disk_t &disk, const partition_t &partition,
 {
   return disk.pread(
       disk, buffer,
-      1 << (exfat_header->block_per_clus_bits + exfat_header->blocksize_bits),
+      1u << static_cast<unsigned>(exfat_header->block_per_clus_bits + exfat_header->blocksize_bits),
       partition.part_offset + exfat_cluster_to_offset(exfat_header, cluster)
   );
 }
@@ -60,7 +60,7 @@ static void set_exFAT_info(partition_t &partition,
 {
   partition.upart_type = UP_EXFAT;
   partition.blocksize =
-      1 << (exfat_header->block_per_clus_bits + exfat_header->blocksize_bits);
+      1u << static_cast<unsigned>(exfat_header->block_per_clus_bits + exfat_header->blocksize_bits);
   partition.fsname[0] = '\0';
   if (partition.sb_offset == 0)
     partition.info = std::format("exFAT, blocksize={}", partition.blocksize);
@@ -107,7 +107,7 @@ auto recover_exFAT(const disk_t &disk,
   if (test_exFAT(exfat_header) != 0)
     return 1;
   partition.sborg_offset   = 0;
-  partition.sb_size        = 12 << exfat_header->blocksize_bits;
+  partition.sb_size        = 12u << exfat_header->blocksize_bits;
   partition.part_type_i386 = P_EXFAT;
   partition.part_type_gpt  = GPT_ENT_TYPE_MS_BASIC_DATA;
   partition.part_size      = to_little_endian(exfat_header->nr_sectors) * disk.sector_size;
@@ -119,13 +119,13 @@ auto recover_exFAT(const disk_t &disk,
   log_info("part_offset={}\n", partition.part_offset);
 #endif
   if ((to_little_endian(exfat_header->start_sector) * disk.sector_size +
-           (12 << exfat_header->blocksize_bits) ==
+           (12u << exfat_header->blocksize_bits) ==
        partition.part_offset) ||
       (disk.arch == &arch_none &&
        (static_cast<uint64_t>(12) << exfat_header->blocksize_bits) ==
            partition.part_offset))
   {
-    partition.sb_offset = 12 << exfat_header->blocksize_bits;
+    partition.sb_offset = 12u << exfat_header->blocksize_bits;
     partition.part_offset -= partition.sb_offset;
   }
   set_exFAT_info(partition, exfat_header);

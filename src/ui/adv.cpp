@@ -257,7 +257,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
 
             // refresh row
             rows[selected_part + 1] =
-                aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk,
+                aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
                              list_part[selected_part]);
             adv_get_options_for_partition(list_part[selected_part], hasBoot,
                                           hasSuperblock, hasList, hasUndelete);
@@ -344,7 +344,7 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
 
   for (const auto &partition : list_part)
   {
-    rows.push_back(aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk,
+    rows.push_back(aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
                                 partition));
   }
 

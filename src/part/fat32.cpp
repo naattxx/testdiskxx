@@ -48,7 +48,7 @@ static void dump_fat32_ncurses(disk_t &disk_car, const partition_t &partition,
   wmove(window, 4, 0);
   wprintw(window, "%s", disk_car->description(disk_car));
   wmove(window, 5, 0);
-  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   mvwaddstr(window, 6, 0,
             "Boot sector                        Backup boot sector");
   dump2(window, buffer_bs, buffer_backup_bs, 3 * disk_car->sector_size);
@@ -119,7 +119,7 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
       wprintw(stdscr, "%s", disk_car->description(disk_car));
       mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
       wmove(stdscr, 6, 0);
-      aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+      aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
 #endif
       log_info("\nfat32_boot_sector\n");
       log_partition(disk_car, partition);

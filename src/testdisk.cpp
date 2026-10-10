@@ -39,7 +39,7 @@ static void display_version() noexcept
         ; // << "OS: " << get_os() << '\n';
 }
 
-static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, const int create_backup, const int safe,
+static auto display_disk_list(list_disk_t list_disk, const unsigned int testdisk_mode, const int create_backup, const int safe,
                              const int saveheader, const UNIT unit, const int verbose) noexcept -> int
 {
     std::cout << "Please wait...\n";
@@ -67,7 +67,7 @@ static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, co
         hd_update_all_geometry(list_disk);
     for (disk_t &disk : list_disk)
     {
-        const int hpa_dco = disk.is_hpa_or_dco();
+        const unsigned int hpa_dco = disk.is_hpa_or_dco();
         std::cout << disk.description(disk) << '\n';
         std::cout << "Sector size: " << disk.sector_size << '\n';
         if (!disk.model.empty())
@@ -88,9 +88,9 @@ static auto display_disk_list(list_disk_t list_disk, const int testdisk_mode, co
                 std::cout << "native_max " << disk.native_max + 1 << " sectors\n";
             if (disk.dco != 0)
                 std::cout << "dco        " << disk.dco + 1 << " sectors\n";
-            if (hpa_dco & 1)
+            if (hpa_dco & 1u)
                 std::cout << "Host Protected Area (HPA) present.\n";
-            if (hpa_dco & 2)
+            if (hpa_dco & 2u)
                 std::cout << "Device Configuration Overlay (DCO) present.\n";
         }
         std::cout << '\n';
@@ -116,7 +116,7 @@ auto main(int argc, char **argv) -> int
     bool log_opened = false;
     int verbose = 0;
     list_disk_t list_disk;
-    int testdisk_mode = TESTDISK_O::RDWR | TESTDISK_O::READAHEAD_8K;
+    unsigned int testdisk_mode = TESTDISK_O::RDWR | TESTDISK_O::READAHEAD_8K;
     UNIT unit = UNIT::DEFAULT;
 
     args::ArgumentParser parser("TestDisk " VERSION ", Data Recovery Utility, " TESTDISKDATE

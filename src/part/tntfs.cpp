@@ -48,7 +48,7 @@ static void dump_NTFS_ncurses(disk_t &disk_car, const partition_t &partition,
   wmove(window, 4, 0);
   wprintw(window, "%s", disk_car->description(disk_car));
   wmove(window, 5, 0);
-  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   mvwaddstr(window, 6, 0,
             "Boot sector                        Backup boot sector");
   dump2(window, buffer_bs, buffer_backup_bs, NTFS_BOOT_SECTOR_SIZE);
@@ -130,7 +130,7 @@ static auto ntfs_boot_sector_scan(disk_t &disk, const partition_t &partition,
   wprintw(stdscr, "%s", disk.description(disk));
   mvwaddstr(stdscr, 5, 0, msg_PART_HEADER_LONG);
   wmove(stdscr, 6, 0);
-  aff_part(stdscr, AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+  aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
 #endif
   log_info("\nntfs_boot_sector\n");
   log_partition(disk, partition);

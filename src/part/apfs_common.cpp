@@ -37,7 +37,7 @@ static auto fletcher64(const uint32_t *data, const size_t cnt,
 {
   size_t k;
   uint64_t sum1 = init & 0xFFFFFFFFU;
-  uint64_t sum2 = (init >> 32);
+  uint64_t sum2 = (init >> 32u);
   /*@
     @ loop invariant 0 <= k <= cnt;
     @ loop assigns k, sum1, sum2;
@@ -50,7 +50,7 @@ static auto fletcher64(const uint32_t *data, const size_t cnt,
   }
   sum1 = sum1 % 0xFFFFFFFF;
   sum2 = sum2 % 0xFFFFFFFF;
-  return (sum2 << 32) | sum1;
+  return (sum2 << 32u) | sum1;
 }
 
 /*@

@@ -1330,7 +1330,7 @@ static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
     int old_LINES                     = LINES;
     aff_copy(window);
     wmove(window, 3, 0);
-    aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     wmove(window, 4, 0);
     wprintw(window, "Deleted files\n");
     do
@@ -1763,7 +1763,7 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
 #ifdef HAVE_NCURSES
     aff_copy(window);
     wmove(window, 4, 0);
-    aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
 #endif
     log_partition(disk_car, partition);
     screen_buffer_add(
@@ -1782,7 +1782,7 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
 #ifdef HAVE_NCURSES
     aff_copy(window);
     wmove(window, 4, 0);
-    aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
 #endif
     log_partition(disk_car, partition);
     screen_buffer_add("Can't open filesystem. Filesystem seems damaged.\n");
@@ -1827,7 +1827,7 @@ auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
 #ifdef HAVE_NCURSES
   aff_copy(window);
   wmove(window, 4, 0);
-  aff_part(window, AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
 #endif
   log_partition(disk_car, partition);
   screen_buffer_add(

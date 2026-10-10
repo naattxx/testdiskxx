@@ -128,18 +128,18 @@ auto aff_part_aux(const unsigned int newline, const disk_t &disk, const partitio
   std::vector<std::string> result;
   char status;
 
-    if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER)
+    if ((newline & AFF_PART::ORDER) == AFF_PART::ORDER)
     {
         if (partition.status != STATUS_EXT_IN_EXT && partition.order != NO_ORDER)
             result.push_back(to_string(partition.order));
         else
             result.emplace_back("");
     }
-    if ((newline & AFF_PART_STATUS) == AFF_PART_STATUS)
+    if ((newline & AFF_PART::STATUS) == AFF_PART::STATUS)
     {
         status = partition.status;
         /* Don't marked as D(eleted) an entry that is not a partition */
-        if ((newline & AFF_PART_ORDER) == AFF_PART_ORDER && partition.order == NO_ORDER &&
+        if ((newline & AFF_PART::ORDER) == AFF_PART::ORDER && partition.order == NO_ORDER &&
             partition.status == STATUS_DELETED)
             status = ' ';
         result.emplace_back(1, status);

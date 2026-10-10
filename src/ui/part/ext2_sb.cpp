@@ -58,7 +58,7 @@ auto interface_superblock(const Component &root, disk_t &disk,
         old_part->part_type_mac != partition.part_type_mac ||
         old_part->upart_type != partition.upart_type)
     {
-      rows.push_back(aff_part_aux(AFF_PART_BASE, disk, partition));
+      rows.push_back(aff_part_aux(AFF_PART::BASE, disk, partition));
       old_part = &partition;
     }
     if (partition.blocksize != 0)

@@ -402,7 +402,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
       /* log_debug("{} ent_attr %08llx\n", new_partition.order, (long long
        * unsigned)to_little_endian(gpt_entry->ent_attr));
        */
-      aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car,
+      aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       new_partition);
       insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
     }
@@ -619,7 +619,7 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
   {
     log_error("check_part_gpt failed for partition\n");
     log_partition(disk, partition);
-    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+    aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
     if (saveheader > 0)
     {
       save_header(disk, partition, verbose);

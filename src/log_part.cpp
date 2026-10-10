@@ -10,7 +10,7 @@
 
 void log_partition(const disk_t &disk, const partition_t &partition)
 {
-    const auto msg = aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk, partition);
+    const auto msg = aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
     log_info(std::format("{}", msg));
     const std::string part_size_str = size_to_unit(partition.part_size);
     if (partition.info[0] != '\0')

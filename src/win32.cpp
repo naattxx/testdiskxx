@@ -230,7 +230,7 @@ static auto filewin32_setfilepointer(HANDLE handle, const char *device) -> uint6
     return disk_size;
 }
 
-auto file_test_availability_win32(const char *device, const int verbose, int testdisk_mode) -> std::optional<disk_t>
+auto file_test_availability_win32(const char *device, const int verbose, unsigned int testdisk_mode) -> std::optional<disk_t>
 {
     disk_t disk_car;
     HANDLE handle = INVALID_HANDLE_VALUE;

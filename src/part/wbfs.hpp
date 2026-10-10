@@ -24,7 +24,7 @@
 #define _WBFS_H
 #include "src/common.hpp"
 #include <cstdint>
-#define WBFS_MAGIC (('W' << 24) | ('B' << 16) | ('F' << 8) | ('S'))
+#define WBFS_MAGIC (('W' << 24u) | ('B' << 16u) | ('F' << 8u) | ('S'))
 
 struct [[gnu::gcc_struct, gnu::packed]] wbfs_head
 {

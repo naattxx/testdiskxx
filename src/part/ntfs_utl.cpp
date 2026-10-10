@@ -185,7 +185,7 @@ auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
   if ((bmplcn < 0) || std::cmp_less(lcn, bmplcn) ||
       std::cmp_greater_equal(lcn,
                              (static_cast<unsigned>(bmplcn) +
-                              (static_cast<unsigned>(sizeof(buffer)) << 3))))
+                              (static_cast<unsigned>(sizeof(buffer)) << 3u))))
   {
     ntfs_attr *attr;
 #ifdef DEBUG_NTFS
@@ -200,9 +200,9 @@ auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
 
     /* Mark the buffer as in use, in case the read is shorter. */
     memset(buffer, 0xFF, sizeof(buffer));
-    bmplcn = lcn & (~((sizeof(buffer) << 3) - 1));
+    bmplcn = lcn & (~((sizeof(buffer) << 3u) - 1));
 
-    if (ntfs_attr_pread(attr, (bmplcn >> 3), sizeof(buffer), buffer) < 0)
+    if (ntfs_attr_pread(attr, (bmplcn >> 3u), sizeof(buffer), buffer) < 0)
     {
       log_error("Couldn't read $Bitmap\n");
       ntfs_attr_close(attr);
@@ -214,8 +214,8 @@ auto utils_cluster_in_use(ntfs_volume *vol, long long lcn) -> int
     ntfs_attr_close(attr);
   }
 
-  bit  = 1 << (lcn & 7);
-  byte = (lcn >> 3) & (sizeof(buffer) - 1);
+  bit  = 1u << (lcn & 7u);
+  byte = (lcn >> 3u) & (sizeof(buffer) - 1);
 #ifdef DEBUG_NTFS
   log_debug("cluster = %lld, bmplcn = %lld, byte = %d, bit = %d, in use %d\n",
             lcn, bmplcn, byte, bit, buffer[byte] & bit);

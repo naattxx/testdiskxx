@@ -12,7 +12,7 @@ void hd_update_all_geometry(list_disk_t &list_disk);
   @ requires valid_list_disk(list_disk);
   @ ensures  valid_list_disk(\result);
   @*/
-void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode);
+void hd_parse(list_disk_t &list_disk, const int verbose, const unsigned int testdisk_mode);
 
 /*@
   @ requires valid_read_string(device);
@@ -21,4 +21,4 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
   @ ensures  \result!=\null ==> (0 < \result->geom.sectors_per_head <= 63);
   @ ensures  \result==\null || valid_disk(\result);
   @*/
-auto file_test_availability(const char *device, const int verbose, const int testdisk_mode) -> std::optional<disk_t>;
+auto file_test_availability(const char *device, const int verbose, const unsigned int testdisk_mode) -> std::optional<disk_t>;

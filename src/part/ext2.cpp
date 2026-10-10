@@ -41,7 +41,7 @@ auto check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose)
 {
   auto *buffer = new unsigned char[EXT2_SUPERBLOCK_SIZE];
   if (disk_car.pread(disk_car, buffer, EXT2_SUPERBLOCK_SIZE,
-                     partition.part_offset + 0x400) != EXT2_SUPERBLOCK_SIZE)
+                     partition.part_offset + 0x400) != int(EXT2_SUPERBLOCK_SIZE))
   {
     delete[] buffer;
     return 1;

@@ -48,7 +48,7 @@ void disk_image_interface(disk_t &disk, const partition_t &partition,
         separatorEmpty(),
         text(disk.description_short(disk)),
         text(std::format("{:n:>4}",
-                         aff_part_aux(AFF_PART_ORDER | AFF_PART_STATUS, disk,
+                         aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
                                       partition))),
         hbox({
             text(std::format("{:.2f} % ", progress * 100)) | vcenter,

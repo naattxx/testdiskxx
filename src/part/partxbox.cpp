@@ -196,7 +196,7 @@ static auto read_part_xbox(disk_t &disk_car, const int verbose,
           partition.part_size = offsets[i + 1] - offsets[i];
         partition.status = STATUS_PRIM;
         check_part_xbox(disk_car, verbose, partition, saveheader);
-        aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+        aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
         insert_new_partition(new_list_part, partition, 0, &_insert_error);
       }
     }
@@ -355,28 +355,24 @@ static auto check_part_xbox(disk_t &disk_car, const int verbose,
                             partition_t &partition, const int saveheader) -> int
 {
   int ret = 0;
-  switch (partition.part_type_xbox)
+  if (partition.part_type_xbox == PXBOX_FATX)
   {
-  case PXBOX_FATX:
     ret = check_FATX(disk_car, partition);
     if (ret != 0)
     {
       screen_buffer_add("Invalid FATX signature\n");
     }
-    break;
-  default:
-    if (verbose > 0)
-    {
-      log_info("check_part_xbox {} type %02X: no test\n", partition.order,
-               partition.part_type_xbox);
-    }
-    break;
+  }
+  else if (verbose > 0)
+  {
+    log_info("check_part_xbox {} type {:02X}: no test\n", partition.order,
+             partition.part_type_xbox);
   }
   if (ret != 0)
   {
-    log_error("check_part_xbox failed for partition type %02X\n",
+    log_error("check_part_xbox failed for partition type {:02X}\n",
               partition.part_type_xbox);
-    aff_part_buffer(AFF_PART_ORDER | AFF_PART_STATUS, disk_car, partition);
+    aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     if (saveheader > 0)
     {
       save_header(disk_car, partition, verbose);
