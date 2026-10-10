@@ -227,15 +227,10 @@ static void init_part_order_humax(const disk_t &disk_car,
   int nbr_prim = 0;
   for (partition_t &element : list_part)
   {
-    switch (element.status)
-    {
-    case STATUS_PRIM:
+    if (element.status == STATUS_PRIM)
       element.order = nbr_prim++;
-      break;
-    default:
+    else
       log_critical("init_part_order_humax: severe error\n");
-      break;
-    }
   }
 }
 

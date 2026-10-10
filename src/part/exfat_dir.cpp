@@ -239,10 +239,10 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
   unsigned int sec_count = 0;
   for (offset = 0; offset < size; offset += 0x20)
   {
-    if ((buffer[offset] & 0x80) == 0 &&
+    if ((buffer[offset] & 0x80u) == 0 &&
         (dir_data.param & FLAG_LIST::DELETED) != FLAG_LIST::DELETED)
       continue;
-    if ((buffer[offset] & 0x7f) == 0x05)
+    if ((buffer[offset] & 0x7fu) == 0x05)
     { /* File directory entry */
       const auto *entry =
           reinterpret_cast<const struct exfat_file_entry *>(&buffer[offset]);
@@ -260,13 +260,13 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
       new_file.td_atime = date_dos2unix(to_little_endian(entry->atime), to_little_endian(entry->adate));
       new_file.td_ctime = date_dos2unix(to_little_endian(entry->ctime), to_little_endian(entry->cdate));
       new_file.td_mtime = date_dos2unix(to_little_endian(entry->mtime), to_little_endian(entry->mdate));
-      new_file.status = file_status{.deleted = (entry->type & 0x80) == 0x80};
+      new_file.status = file_status{.deleted = (entry->type & 0x80u) == 0x80};
       current_file = new_file;
       dir_list.push_front(new_file);
     }
     else if (sec_count > 0 && current_file)
     {
-      if ((buffer[offset] & 0x7f) == 0x40)
+      if ((buffer[offset] & 0x7fu) == 0x40)
       {
         /* Stream extension */
         const auto *entry =
@@ -280,7 +280,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
 	  current_file->st_size=0;
 #endif
       }
-      else if ((buffer[offset] & 0x7f) == 0x41)
+      else if ((buffer[offset] & 0x7fu) == 0x41)
       {
         char *outs;
         unsigned int i;
@@ -322,7 +322,7 @@ static auto is_EOC(const unsigned int cluster) -> int
   return (cluster == 0xFFFFFFFF);
 }
 
-#define NBR_CLUSTER_MAX 30
+constexpr unsigned NBR_CLUSTER_MAX = 30;
 auto exfat_dir_struct::get_dir(disk_t &disk, const partition_t &partition,
                       const unsigned long int first_cluster,
                       dir_list_t &dir_list) -> int
@@ -350,7 +350,7 @@ auto exfat_dir_struct::get_dir(disk_t &disk, const partition_t &partition,
     if (exfat_read_cluster(disk, partition, exfat_header,
                            buffer_dir + (static_cast<uint64_t>(nbr_cluster)
                                          << cluster_shift),
-                           cluster) != (1 << cluster_shift))
+                           cluster) != (1u << cluster_shift))
     {
       log_error("exFAT: Can't read directory cluster.\n");
       stop = 1;
@@ -472,7 +472,7 @@ auto exfat_dir_struct::copy_file(disk_t &disk, const partition_t &partition,
   const struct exfat_super_block *exfat_header = boot_sector;
   const unsigned int cluster_shift =
       exfat_header->block_per_clus_bits + exfat_header->blocksize_bits;
-  auto *buffer_file = new char[1 << cluster_shift];
+  auto *buffer_file = new char[1u << cluster_shift];
   unsigned int cluster;
   uint64_t file_size        = file.st_size;
   exfat_method_t exfat_meth = exFAT_FOLLOW_CLUSTER;
@@ -501,7 +501,7 @@ auto exfat_dir_struct::copy_file(disk_t &disk, const partition_t &partition,
   f_out.exceptions(std::ios::badbit);
   while (cluster >= 2 && cluster <= total_clusters && file_size > 0)
   {
-    unsigned int toread = 1 << cluster_shift;
+    unsigned int toread = 1u << cluster_shift;
     toread              = std::min<uint64_t>(toread, file_size);
     if (std::cmp_less(exfat_read_cluster(disk, partition, exfat_header,
                                          buffer_file, cluster),

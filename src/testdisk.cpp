@@ -176,7 +176,7 @@ auto main(int argc, char **argv) -> int
         std::cout << parser;
         return 0;
     }
-    catch (const args::ParseError &e)
+    catch (const args::Error &e)
     {
         std::cerr << e.what() << '\n';
         std::cerr << parser;

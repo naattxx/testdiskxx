@@ -113,23 +113,20 @@ auto strip_dup(char *str) -> char *
   @*/
 auto date_dos2unix(const uint16_t f_time, const uint16_t f_date) -> time_t
 {
-  short year  = (f_date >> 9) + 1980;
-  short month = std::max(1, (f_date >> 5) & 0xf);
-  short day   = std::max(1, f_date & 0x1f);
+  std::chrono::year year((f_date >> 9u) + 1980);
+  std::chrono::month month(std::max(1u, static_cast<unsigned>(f_date) >> 5u & 0xfu));
+  std::chrono::day day(std::max(1u, f_date & 0x1fu));
   std::chrono::year_month_day ymd{
-      std::chrono::year{year},
-      std::chrono::month{static_cast<unsigned>(month)},
-      std::chrono::day{
-                        static_cast<unsigned>(day),
-                        }
+      year,
+      month,
+      day,
   };
 
-  short hour   = (f_time >> 11) & 0x1F;
-  short minute = (f_time >> 5) & 0x3F;
-  short second = (f_time & 0x1F) * 2;
+  std::chrono::hours hour((static_cast<unsigned>(f_time) >> 11u) & 0x1Fu);
+  std::chrono::minutes minute((static_cast<unsigned>(f_time) >> 5u) & 0x3Fu);
+  std::chrono::seconds second((f_time & 0x1Fu) * 2);
 
-  auto tp = std::chrono::sys_days{ymd} + std::chrono::hours{hour} +
-            std::chrono::minutes{minute} + std::chrono::seconds{second};
+  auto tp = std::chrono::sys_days{ymd} + hour + minute + second;
 
 #ifdef __FRAMAC__
   return std::chrono::system_clock::to_time_t(tp);

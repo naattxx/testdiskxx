@@ -92,11 +92,11 @@ struct partition_dos
 };
 
 #define s_cyl(p)                                                         \
-  (((p)->cyl & (unsigned)0xff) | (((p)->sector << 2) & (unsigned)0x300))
-#define s_sect(p) ((p)->sector & (unsigned)0x3f)
+  (((p)->cyl & 0xffu) | (((p)->sector << 2) & 0x300u))
+#define s_sect(p) ((p)->sector & 0x3fu)
 #define e_cyl(p) \
-  (((p)->end_cyl & (unsigned)0xff) | (((p)->end_sector << 2) & (unsigned)0x300))
-#define e_sect(p) ((p)->end_sector & (unsigned)0x3f)
+  (((p)->end_cyl & 0xffu) | (((p)->end_sector << 2) & 0x300u))
+#define e_sect(p) ((p)->end_sector & 0x3fu)
 static void log_dos_entry(const struct partition_dos *);
 
 /*@
@@ -438,10 +438,10 @@ static auto get_part_type_i386(const partition_t &partition) -> unsigned int
   @*/
 static void store4_little_endian(unsigned char *cp, unsigned int val)
 {
-  cp[0] = (val & 0xff);
-  cp[1] = ((val >> 8) & 0xff);
-  cp[2] = ((val >> 16) & 0xff);
-  cp[3] = ((val >> 24) & 0xff);
+  cp[0] = (val & 0xffu);
+  cp[1] = ((val >> 8u) & 0xffu);
+  cp[2] = ((val >> 16u) & 0xffu);
+  cp[3] = ((val >> 24u) & 0xffu);
 }
 
 /*@
@@ -451,9 +451,9 @@ static void store4_little_endian(unsigned char *cp, unsigned int val)
 static auto read4_little_endian(const unsigned char *cp) -> unsigned int
 {
   return static_cast<unsigned int>(cp[0]) +
-         (static_cast<unsigned int>(cp[1]) << 8) +
-         (static_cast<unsigned int>(cp[2]) << 16) +
-         (static_cast<unsigned int>(cp[3]) << 24);
+         (static_cast<unsigned int>(cp[1]) << 8u) +
+         (static_cast<unsigned int>(cp[2]) << 16u) +
+         (static_cast<unsigned int>(cp[3]) << 24u);
 }
 
 /*@
@@ -625,7 +625,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
     {
       int insert_error = 0;
       partition_t new_partition(&arch_i386);
-      i386_entry2partition(disk_car, static_cast<uint64_t>(0), new_partition, p,
+      i386_entry2partition(disk_car, 0, new_partition, p,
                            status, i + 1, verbose, saveheader);
       if (verbose > 1)
         log_dos_entry(p);
@@ -1340,28 +1340,28 @@ static void partition2_i386_entry(const disk_t &disk_car, const uint64_t pos,
   if (start.cylinder > 1023)
   { /* Partition Magic 5 uses CHS=(1023,0,1) if extended or last logical *
      * Linux fdisk and TestDisk use CHS=(1023,lastH,lastS)               */
-    p->head   = (disk_car.geom.heads_per_cylinder - 1) & 0xff;
-    p->sector = (disk_car.geom.sectors_per_head | ((1023 >> 8) << 6)) & 0xff;
-    p->cyl    = 1023 & 0xff;
+    p->head   = (disk_car.geom.heads_per_cylinder - 1) & 0xffu;
+    p->sector = (disk_car.geom.sectors_per_head | ((1023u >> 8u) << 6u)) & 0xffu;
+    p->cyl    = 1023u & 0xffu;
   }
   else
   {
-    p->head   = start.head & 0xff;
-    p->sector = (start.sector | ((start.cylinder >> 8) << 6)) & 0xff;
-    p->cyl    = start.cylinder & 0xff;
+    p->head   = start.head & 0xffu;
+    p->sector = (start.sector | ((start.cylinder >> 8u) << 6u)) & 0xffu;
+    p->cyl    = start.cylinder & 0xffu;
   }
   if (end.cylinder > 1023)
   {
-    p->end_head = (disk_car.geom.heads_per_cylinder - 1) & 0xff;
+    p->end_head = (disk_car.geom.heads_per_cylinder - 1) & 0xffu;
     p->end_sector =
-        (disk_car.geom.sectors_per_head | ((1023 >> 8) << 6)) & 0xff;
-    p->end_cyl = 1023 & 0xff;
+        (disk_car.geom.sectors_per_head | ((1023u >> 8u) << 6u)) & 0xffu;
+    p->end_cyl = 1023u & 0xffu;
   }
   else
   {
-    p->end_head   = end.head & 0xff;
-    p->end_sector = (end.sector | ((end.cylinder >> 8) << 6)) & 0xff;
-    p->end_cyl    = end.cylinder & 0xff;
+    p->end_head   = end.head & 0xffu;
+    p->end_sector = (end.sector | ((end.cylinder >> 8u) << 6u)) & 0xffu;
+    p->end_cyl    = end.cylinder & 0xffu;
   }
   if ((partition.part_size / disk_car.sector_size) <= 0xFFFFFFFF)
     set_nr_sects(p, partition.part_size / disk_car.sector_size);
@@ -1395,9 +1395,8 @@ static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
   end.cylinder   = e_cyl(p);
   end.head       = p->end_head;
   end.sector     = e_sect(p);
-  switch (status)
+  if (status == STATUS_PRIM)
   {
-  case STATUS_PRIM:
     if (is_extended(partition.part_type_i386))
     {
       partition.status     = STATUS_EXT;
@@ -1407,11 +1406,9 @@ static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
       partition.status = STATUS_PRIM_BOOT;
     else
       partition.status = status;
-    break;
-  default:
-    partition.status = status;
-    break;
   }
+  else
+    partition.status = status;
   /* Check CHS */
   if ((start.sector == 0 || start.sector > disk_car.geom.sectors_per_head) &&
       (partition.errcode == BAD_NOERR))
@@ -1447,7 +1444,7 @@ static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
        (C_H_S2offset(disk_car, start.cylinder, start.head, start.sector) !=
         partition.part_offset)) ||
       ((start_calculated.cylinder > 1023) && (start.cylinder != 1023) &&
-       (start.cylinder != (start_calculated.cylinder & 1023))))
+       (start.cylinder != (start_calculated.cylinder & 1023u))))
   {
     log_error("BAD_RS LBA={} {}\n",
               (long unsigned)(partition.part_offset / disk_car.sector_size),
@@ -1459,7 +1456,7 @@ static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
         (C_H_S2offset(disk_car, end.cylinder, end.head, end.sector) !=
          partition.part_offset + partition.part_size - disk_car.sector_size)) ||
        ((end_calculated.cylinder > 1023) && (end.cylinder != 1023) &&
-        (end.cylinder != (end_calculated.cylinder & 1023)))) &&
+        (end.cylinder != (end_calculated.cylinder & 1023u)))) &&
       (partition.errcode == BAD_NOERR))
 
     partition.errcode = BAD_SCOUNT;
