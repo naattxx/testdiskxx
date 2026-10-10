@@ -236,7 +236,7 @@ auto file_test_availability_win32(const char *device, const int verbose, int tes
     HANDLE handle = INVALID_HANDLE_VALUE;
     int mode = 0;
     int try_readonly = 1;
-    if ((testdisk_mode & TESTDISK_O_RDWR) == TESTDISK_O_RDWR)
+    if ((testdisk_mode & TESTDISK_O::RDWR) == TESTDISK_O::RDWR)
     {
         mode = FILE_READ_DATA | FILE_WRITE_DATA;
         handle = CreateFile(device, mode, (FILE_SHARE_WRITE | FILE_SHARE_READ), nullptr, OPEN_EXISTING, 0, nullptr);
@@ -259,7 +259,7 @@ auto file_test_availability_win32(const char *device, const int verbose, int tes
     }
     if (handle == INVALID_HANDLE_VALUE && try_readonly > 0)
     {
-        testdisk_mode &= ~TESTDISK_O_RDWR;
+        testdisk_mode &= ~TESTDISK_O::RDWR;
         mode = FILE_READ_DATA;
         handle = CreateFile(device, mode, (FILE_SHARE_WRITE | FILE_SHARE_READ), nullptr, OPEN_EXISTING, 0, nullptr);
         if (handle == INVALID_HANDLE_VALUE)

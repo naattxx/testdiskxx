@@ -332,7 +332,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
   }
 #endif
 
-  if((mode&TESTDISK_O_RDWR)==TESTDISK_O_RDWR)
+  if((mode&TESTDISK_O::RDWR)==TESTDISK_O::RDWR)
   {
     data->handle=libewf_open(filenames, num_files, LIBEWF_OPEN_READ_WRITE);
     if(data->handle==NULL)
@@ -342,7 +342,7 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
   }
   if(data->handle==NULL)
   {
-    data->mode&=~TESTDISK_O_RDWR;
+    data->mode&=~TESTDISK_O::RDWR;
     data->handle=libewf_open(filenames, num_files, LIBEWF_OPEN_READ);
     if(data->handle==NULL)
     {
@@ -377,9 +377,9 @@ std::optional<disk_t> fewf_init(const char *device, const int mode)
   disk.description=&fewf_description;
   disk.description_short=&fewf_description_short;
   disk.pread=&fewf_pread;
-  disk.pwrite=((data->mode&TESTDISK_O_RDWR)?&fewf_pwrite:&fewf_nopwrite);
+  disk.pwrite=((data->mode&TESTDISK_O::RDWR)?&fewf_pwrite:&fewf_nopwrite);
   disk.sync=&fewf_sync;
-  disk.access_mode=(data->mode&TESTDISK_O_RDWR);
+  disk.access_mode=(data->mode&TESTDISK_O::RDWR);
   disk.clean=&fewf_clean;
 #if defined( LIBEWF_GET_BYTES_PER_SECTOR_HAVE_TWO_ARGUMENTS )
   {

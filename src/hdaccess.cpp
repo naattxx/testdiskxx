@@ -283,7 +283,7 @@ void hd_parse(list_disk_t &list_disk, const int verbose, const int testdisk_mode
             device_cdrom[strlen(device_cdrom) - 2] = i;
             disk_car = file_test_availability_win32(device_cdrom, verbose, testdisk_mode);
             if (disk_car) {
-                if ((testdisk_mode & TESTDISK_O_ALL) == TESTDISK_O_ALL)
+                if ((testdisk_mode & TESTDISK_O::ALL) == TESTDISK_O::ALL)
                     insert_new_disk(list_disk, disk_car.value());
                 else
                     insert_new_disk_nodup(list_disk, disk_car.value(), device_cdrom, verbose);
