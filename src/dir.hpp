@@ -70,11 +70,7 @@ auto dir_whole_partition_log(disk_t &disk_car, const partition_t &partition, dir
 void dir_whole_partition_copy(disk_t &disk_car, const partition_t &partition, dir_data_t &dir_data,
                               const unsigned long int inode);
 
-/*@
-  @ requires \valid(str + (0 .. 9));
-  @ assigns str[0 .. 9];
-  @*/
-void mode_string(const unsigned int mode, char *str);
+auto mode_string(const unsigned int mode) -> std::string;
 
 /*@
   @ requires valid_read_string(pathname);

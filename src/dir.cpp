@@ -110,8 +110,9 @@ static auto ftypelet(unsigned int bits) -> char
     return '?';
 }
 
-void mode_string(const unsigned int mode, char *str)
+auto mode_string(const unsigned int mode) -> std::string
 {
+  std::string str(11,'\0');
 #ifndef DISABLED_FOR_FRAMAC
     str[0] = ftypelet(mode);
     str[1] = (mode & LINUX_S_IRUSR) ? 'r' : '-';
@@ -123,7 +124,6 @@ void mode_string(const unsigned int mode, char *str)
     str[7] = (mode & LINUX_S_IROTH) ? 'r' : '-';
     str[8] = (mode & LINUX_S_IWOTH) ? 'w' : '-';
     str[9] = (mode & LINUX_S_IXOTH) ? 'x' : '-';
-    str[10] = '\0';
 #ifdef LINUX_S_ISUID
     if (mode & LINUX_S_ISUID)
     {
@@ -155,6 +155,7 @@ void mode_string(const unsigned int mode, char *str)
     }
 #endif
 #endif
+  return str;
 }
 
 auto set_datestr(std::string &datestr, const time_t timev) -> int
@@ -184,9 +185,8 @@ auto dir_aff_log(const std::optional<dir_data_t&> dir_data, const dir_list_t &di
     for (const file_info_t &current_file : dir_list)
         {
         std::string datestr;
-        char str[11];
         test_date = set_datestr(datestr, current_file.td_mtime);
-        mode_string(current_file.st_mode, str);
+        const std::string str = mode_string(current_file.st_mode);
         if (current_file.status.deleted != 0)
             log_info("X");
         else
@@ -216,13 +216,12 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
     for (const file_info_t &current_file : list)
     {
         std::string datestr;
-        char str[11];
         if (current_file.status.deleted != 0)
             log_info("X");
         else
             log_info(" ");
         set_datestr(datestr, current_file.td_mtime);
-        mode_string(current_file.st_mode, str);
+        const std::string str = mode_string(current_file.st_mode);
         log_info("{:7} ", (unsigned long int)current_file.st_ino);
         log_info("{} {:5} {:5} ", str, (unsigned int)current_file.st_uid, (unsigned int)current_file.st_gid);
         log_info("{:9}", (long long unsigned int)current_file.st_size);
