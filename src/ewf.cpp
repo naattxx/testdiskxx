@@ -97,7 +97,7 @@ struct info_fewf_struct
 };
 
 #ifdef HAVE_LIBEWF_V2_API
-auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
+auto fewf_init(const char *device, const unsigned int mode) -> std::optional<disk_t>
 {
   int num_files=0;
   char **filenames= nullptr;
@@ -282,7 +282,7 @@ auto fewf_init(const char *device, const int mode) -> std::optional<disk_t>
   return disk;
 }
 #else
-std::optional<disk_t> fewf_init(const char *device, const int mode)
+std::optional<disk_t> fewf_init(const char *device, const unsigned int mode)
 {
   unsigned int num_files=0;
   char **filenames = nullptr;
