@@ -27,15 +27,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <span>
-#if __has_include(<uuid.h>)
 #include <uuid.h>
-
 #include <utility>
-#elif __has_include(<uuid/uuid.h>)
-#include <uuid/uuid.h>
-#elif __has_include(<sys/uuid.h>)
-#include <sys/uuid.h>
-#endif
 #include "partgpt.hpp"
 #include "src/common.hpp"
 #include "src/crc.hpp"
@@ -55,21 +48,10 @@ static void swap_uuid_and_efi_guid(efi_guid_t *guid)
 
 static void efi_generate_uuid(efi_guid_t *ent_uuid)
 {
-#ifdef HAVE_UUID_GENERATE
-  uuid_generate(reinterpret_cast<unsigned char *>(ent_uuid));
-#elifdef HAVE_UUIDGEN
-  uuidgen((struct uuid *)ent_uuid, 1);
-#elifdef HAVE_UUID_CREATE
-  uuid_t *uuid;
-  char *data_ptr  = (char *)&ent_uuid;
-  size_t data_len = sizeof(ent_uuid);
-  ;
-  uuid_create(&uuid);
-  uuid_make(uuid, UUID_MAKE_V1);
-  uuid_export(uuid, UUID_FMT_BIN, (void **)&data_ptr, &data_len);
-  uuid_destroy(uuid);
+#ifdef UUID_SYSTEM_GENERATOR
+  *ent_uuid = efi_guid_t::from(uuids::uuid_system_generator{}().as_bytes().data());
 #else
-#warning "You need a uuid_generate, uuidgen or uuid_create function"
+  *ent_uuid = efi_guid_t::from(uuids::uuid_random_generator{}().as_bytes().data());
 #endif
   swap_uuid_and_efi_guid(ent_uuid);
 }

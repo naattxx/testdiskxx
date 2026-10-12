@@ -115,44 +115,7 @@ if libext2fs.found()
   )
 endif
 
-libuuid = dependency('uuid', fallback: ['libuuid'], required: false)
-
-if libuuid.found()
-  prefix = '''#if __has_include(<uuid.h>)
-  #include <uuid.h>
-  #elif __has_include(<uuid/uuid.h>)
-  #include <uuid/uuid.h>
-  #elif __has_include(<sys/uuid.h>)
-  #include <sys/uuid.h>
-  #endif'''
-  conf_data.set(
-    'HAVE_UUID_GENERATE',
-    compiler.has_function(
-      'uuid_generate',
-      prefix: prefix,
-      dependencies: [libuuid],
-      required: false,
-    ),
-  )
-  conf_data.set(
-    'HAVE_UUIDGEN',
-    compiler.has_function(
-      'uuidgen',
-      prefix: prefix,
-      dependencies: [libuuid],
-      required: false,
-    ),
-  )
-  conf_data.set(
-    'HAVE_UUID_CREATE',
-    compiler.has_function(
-      'uuid_create',
-      prefix: prefix,
-      dependencies: [libuuid],
-      required: false,
-    ),
-  )
-endif
+stduuid = dependency('stduuid')
 
 prefix = '''
 #define HAVE_SYS_TYPES_H
@@ -392,7 +355,7 @@ deps = [
   libewf,
   reiserfs,
   iconv,
-  libuuid,
+  stduuid,
 ]
 
 if compiler.get_define('__MINGW32__') != ''

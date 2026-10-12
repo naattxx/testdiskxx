@@ -26,23 +26,10 @@
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
 #include <config.h>
 
-#ifdef DISABLED_FOR_FRAMAC
-#undef HAVE_SYS_UUID_H
-#undef HAVE_UUID_H
-#undef HAVE_UUID_UUID_H
-#endif
-
 #include <cctype> /* tolower */
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#if __has_include(<uuid.h>)
-#include <uuid.h>
-#elif __has_include(<uuid/uuid.h>)
-#include <uuid/uuid.h>
-#elif __has_include(<sys/uuid.h>)
-#include <sys/uuid.h>
-#endif
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/intrf.hpp"
