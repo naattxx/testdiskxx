@@ -283,7 +283,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
     uint32_t origcrc;
     origcrc           = to_little_endian(gpt->hdr_crc_self);
     gpt->hdr_crc_self = to_little_endian(0);
-    crc = get_crc32(gpt, to_little_endian(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF;
+    crc = get_crc32(std::span(reinterpret_cast<const unsigned char*>(gpt), to_little_endian(gpt->hdr_size)), 0xFFFFFFFF) ^ 0xFFFFFFFF;
     if (crc != origcrc)
     {
       screen_buffer_add("Bad GPT partition, invalid header checksum.\n");
@@ -367,7 +367,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   }
   { /* CRC check */
     uint32_t crc;
-    crc = get_crc32(gpt_entries, gpt_entries_size, 0xFFFFFFFF) ^ 0xFFFFFFFF;
+    crc = get_crc32(std::span(reinterpret_cast<const unsigned char*>(gpt_entries), gpt_entries_size), 0xFFFFFFFF) ^ 0xFFFFFFFF;
     if (crc != to_little_endian(gpt->hdr_crc_table))
     {
       screen_buffer_add("Bad GPT partition entries, invalid checksum.\n");

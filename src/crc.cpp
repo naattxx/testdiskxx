@@ -21,12 +21,15 @@
 
  */
 
+#include <algorithm>
+#include <array>
 #include <config.h>
-#include "common.hpp"
+#include <cstdint>
+#include <span>
 #include "crc.hpp"
 
 /* crc32_tab=make_crc32_table(0xEDB88320); */
-static const uint32_t crc32_tab[] = {
+static constexpr auto crc32_tab = std::to_array<uint32_t>({
     0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
     0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
     0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L,
@@ -79,26 +82,16 @@ static const uint32_t crc32_tab[] = {
     0xcdd70693L, 0x54de5729L, 0x23d967bfL, 0xb3667a2eL, 0xc4614ab8L,
     0x5d681b02L, 0x2a6f2b94L, 0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL,
     0x2d02ef8dL,
-};
+});
 
-auto get_crc32(const void *buf, const unsigned int len, const uint32_t seed) -> unsigned int
+auto get_crc32(const std::span<const unsigned char> buf,
+               const uint32_t seed) noexcept -> uint32_t
 {
-    unsigned int i;
-    uint32_t crc32val;
-    const auto *s = static_cast<const unsigned char *>(buf);
-    /*@ assert \valid_read(s + (0 .. len-1)); */
-    crc32val = seed;
-    /*@
-      @ loop invariant 0 <= i <= len;
-      @ loop assigns i, crc32val;
-      @ loop variant len - i;
-      @*/
-    for (i = 0; i < len; i++)
-    {
-        /*@ assert i < len; */
-        crc32val = crc32_tab[(crc32val ^ s[i]) & 0xffu] ^ (crc32val >> 8u);
-    }
-    return static_cast<unsigned int>(crc32val);
+  return std::ranges::fold_left(
+      buf, seed, [](uint32_t crc32val, const unsigned char s) -> uint32_t {
+        return crc32_tab[(crc32val ^ s) & 0xffu] ^ (crc32val >> 8u);
+      }
+  );
 }
 
 #if 0

@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <span>
 #if __has_include(<uuid.h>)
 #include <uuid.h>
 
@@ -251,13 +252,13 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
       to_little_endian((disk_car.disk_size - 1 - gpt_entries_size) / disk_car.sector_size -
            1);
   gpt->hdr_crc_table =
-      to_little_endian(get_crc32(gpt_entries, gpt_entries_size, 0xFFFFFFFF) ^ 0xFFFFFFFF);
+      to_little_endian(get_crc32(std::span(reinterpret_cast<const unsigned char*>(gpt_entries), gpt_entries_size), 0xFFFFFFFF) ^ 0xFFFFFFFF);
   gpt->hdr_lba_self  = to_little_endian(1);
   gpt->hdr_lba_alt   = to_little_endian((disk_car.disk_size - 1) / disk_car.sector_size);
   gpt->hdr_lba_table = to_little_endian(1 + 1);
   gpt->hdr_crc_self  = to_little_endian(0);
   gpt->hdr_crc_self =
-      to_little_endian(get_crc32(gpt, to_little_endian(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF);
+      to_little_endian(get_crc32(std::span(reinterpret_cast<const unsigned char*>(gpt), to_little_endian(gpt->hdr_size)), 0xFFFFFFFF) ^ 0xFFFFFFFF);
 
 #ifdef DEBUG_GPT
   dump2_log(gpt_entries, gpt_entries_org, gpt_entries_size);
@@ -293,7 +294,7 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
       to_little_endian((disk_car.disk_size - 1 - gpt_entries_size) / disk_car.sector_size);
   gpt->hdr_crc_self = to_little_endian(0);
   gpt->hdr_crc_self =
-      to_little_endian(get_crc32(gpt, to_little_endian(gpt->hdr_size), 0xFFFFFFFF) ^ 0xFFFFFFFF);
+      to_little_endian(get_crc32(std::span(reinterpret_cast<const unsigned char*>(gpt), to_little_endian(gpt->hdr_size)), 0xFFFFFFFF) ^ 0xFFFFFFFF);
   if (std::cmp_not_equal(
           disk_car.pwrite(disk_car, gpt_entries, gpt_entries_size,
                           to_little_endian(gpt->hdr_lba_table) * disk_car.sector_size),
