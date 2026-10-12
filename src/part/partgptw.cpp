@@ -23,6 +23,12 @@
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
 #include <config.h>
 
+#ifndef UUID_SYSTEM_GENERATOR
+#include <algorithm>
+#include <array>
+#include <functional>
+#include <random>
+#endif
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -51,7 +57,12 @@ static void efi_generate_uuid(efi_guid_t *ent_uuid)
 #ifdef UUID_SYSTEM_GENERATOR
   *ent_uuid = efi_guid_t::from(uuids::uuid_system_generator{}().as_bytes().data());
 #else
-  *ent_uuid = efi_guid_t::from(uuids::uuid_random_generator{}().as_bytes().data());
+  std::random_device rd;
+  auto seed_data = std::array<int, std::mt19937::state_size> {};
+  std::ranges::generate(seed_data, std::ref(rd));
+  std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
+  std::mt19937 generator(seq);
+  *ent_uuid = efi_guid_t::from(uuids::uuid_random_generator{generator}().as_bytes().data());
 #endif
   swap_uuid_and_efi_guid(ent_uuid);
 }
