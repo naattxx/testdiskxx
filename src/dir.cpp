@@ -124,7 +124,6 @@ auto mode_string(const unsigned int mode) -> std::string
     str[7] = (mode & LINUX_S_IROTH) ? 'r' : '-';
     str[8] = (mode & LINUX_S_IWOTH) ? 'w' : '-';
     str[9] = (mode & LINUX_S_IXOTH) ? 'x' : '-';
-#ifdef LINUX_S_ISUID
     if (mode & LINUX_S_ISUID)
     {
         if (str[3] != 'x')
@@ -133,8 +132,6 @@ auto mode_string(const unsigned int mode) -> std::string
         else
             str[3] = 's';
     }
-#endif
-#ifdef LINUX_S_ISGID
     if (mode & LINUX_S_ISGID)
     {
         if (str[6] != 'x')
@@ -143,8 +140,6 @@ auto mode_string(const unsigned int mode) -> std::string
         else
             str[6] = 's';
     }
-#endif
-#ifdef LINUX_S_ISVTX
     if (mode & LINUX_S_ISVTX)
     {
         if (str[9] != 'x')
@@ -153,7 +148,6 @@ auto mode_string(const unsigned int mode) -> std::string
         else
             str[9] = 't';
     }
-#endif
 #endif
   return str;
 }
