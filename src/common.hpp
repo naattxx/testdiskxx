@@ -1,6 +1,7 @@
 #pragma once
 #include <bit>
 #include <concepts>
+#include <type_traits>
 #include <utility>
 #include <array>
 #include <cstddef>
@@ -638,11 +639,26 @@ enum errcode_type_t : uint8_t
     BAD_SCOUNT,
 };
 
-enum AFF_PART : uint8_t {
+enum class AFF_PART : uint8_t {
   BASE = 0,
   ORDER = 1,
   STATUS = 2,
 };
+
+[[nodiscard]]
+constexpr auto operator|(AFF_PART __x, AFF_PART __y) noexcept -> AFF_PART
+{
+  using __utype = std::underlying_type_t<AFF_PART>;
+  return static_cast<AFF_PART>(static_cast<__utype>(__x) |
+                               static_cast<__utype>(__y));
+}
+[[nodiscard]]
+constexpr auto operator&(AFF_PART __x, AFF_PART __y) noexcept -> AFF_PART
+{
+  using __utype = std::underlying_type_t<AFF_PART>;
+  return static_cast<AFF_PART>(static_cast<__utype>(__x) &
+                               static_cast<__utype>(__y));
+}
 
 enum class UNIT : uint8_t
 {

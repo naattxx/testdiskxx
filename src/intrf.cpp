@@ -120,7 +120,7 @@ void screen_buffer_to_log()
         log_info("{}", intr_buffer_screen[i]);
 }
 
-auto aff_part_aux(const unsigned int newline, const disk_t &disk, const partition_t &partition) -> std::vector<std::string>
+auto aff_part_aux(const AFF_PART newline, const disk_t &disk, const partition_t &partition) -> std::vector<std::string>
 {
   assert(partition.arch != nullptr && "BUG: No arch for a partition");
   using std::string, std::to_string;
@@ -233,7 +233,7 @@ auto ask_number_cli(char **current_cmd, const uint64_t val_cur, const uint64_t v
     return val_cur;
 }
 
-void aff_part_buffer(const unsigned int newline, const disk_t &disk_car, const partition_t &partition)
+void aff_part_buffer(const AFF_PART newline, const disk_t &disk_car, const partition_t &partition)
 {
     const auto msg = aff_part_aux(newline, disk_car, partition);
     screen_buffer_add("%s\n", std::format("{}", msg).c_str());
