@@ -60,7 +60,7 @@ auto ask_log_location(const std::string &failed_filename) -> std::string
                    : emptyElement(),
                hflow({
                    text("Please enter the full log filename or press "),
-                   text("Enter") | bold,
+                   text("Enter ") | bold,
                    text("to abort log file creation."),
                }),
                separator(),
