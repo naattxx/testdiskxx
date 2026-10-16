@@ -16,6 +16,7 @@
 #include <format>
 #include <iostream>
 #include <optional>
+#include <print>
 #include <string>
 
 using namespace ftxui;
@@ -42,19 +43,19 @@ static void display_version() noexcept
 static auto display_disk_list(list_disk_t list_disk, const unsigned int testdisk_mode, const int create_backup, const int safe,
                              const int saveheader, const UNIT unit, const int verbose) noexcept -> int
 {
-    std::cout << "Please wait...\n";
+    std::println("Please wait...");
     /* Scan for available device only if no device or image has been supplied in parameter */
     if (list_disk.empty())
         hd_parse(list_disk, verbose, testdisk_mode);
     if (list_disk.empty())
     {
-        std::cout << "No disk detected.\n";
+        std::println("No disk detected.");
         if (!isAdmin())
         {
 #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
-            std::cout << "You need to be Administrator to use TestDisk.\n";
+            std::println("You need to be Administrator to use TestDisk.");
 #elifdef __linux__
-          std::cout << "You need to be root to use TestDisk.\n";
+          std::println("You need to be root to use TestDisk.");
 #endif
         }
         return 1;
@@ -68,32 +69,31 @@ static auto display_disk_list(list_disk_t list_disk, const unsigned int testdisk
     for (disk_t &disk : list_disk)
     {
         const unsigned int hpa_dco = disk.is_hpa_or_dco();
-        std::cout << disk.description(disk) << '\n';
-        std::cout << "Sector size: " << disk.sector_size << '\n';
+        std::println("{}", disk.description(disk));
+        std::println("Sector size: {}", disk.sector_size);
         if (!disk.model.empty())
-            std::cout << "Model: " << disk.model;
+            std::print("Model: {}", disk.model);
         if (!disk.serial_no.empty())
-            std::cout << ", S/N: " << disk.serial_no;
+            std::print(", S/N: {}", disk.serial_no);
         if (!disk.fw_rev.empty())
-            std::cout << ", FW: " << disk.fw_rev;
-        std::cout << '\n';
+            std::print(", FW: {}", disk.fw_rev);
+        std::println();
         if (hpa_dco != 0)
         {
             if (disk.sector_size != 0)
-                std::cout << "size       " << disk.disk_real_size / disk.sector_size
-                          << " sectors\n";
+                std::println("size       {} sectors", disk.disk_real_size / disk.sector_size);
             if (disk.user_max != 0)
-                std::cout << "user_max   " << disk.user_max << " sectors\n";
+                std::println("user_max   {} sectors", disk.user_max);
             if (disk.native_max != 0)
-                std::cout << "native_max " << disk.native_max + 1 << " sectors\n";
+                std::println("native_max {} sectors", disk.native_max + 1);
             if (disk.dco != 0)
-                std::cout << "dco        " << disk.dco + 1 << " sectors\n";
+                std::println("dco        {} sectors", disk.dco + 1);
             if (hpa_dco & 1u)
-                std::cout << "Host Protected Area (HPA) present.\n";
+                std::println("Host Protected Area (HPA) present.");
             if (hpa_dco & 2u)
-                std::cout << "Device Configuration Overlay (DCO) present.\n";
+                std::println("Device Configuration Overlay (DCO) present.");
         }
-        std::cout << '\n';
+        std::println();
     }
 
     for (disk_t& disk : list_disk)
@@ -104,7 +104,7 @@ static auto display_disk_list(list_disk_t list_disk, const unsigned int testdisk
         else
             disk.unit = unit;
         interface_list(disk, verbose, saveheader, create_backup);
-        std::cout << '\n';
+        std::println();
     }
     delete_list_disk(list_disk);
     return 0;
@@ -258,11 +258,11 @@ auto main(int argc, char **argv) -> int
         std::string cmd("Command line:");
         for (int i{0}; i < argc; i++)
             cmd.append(" ").append(argv[i]);
-        log_info("{}", cmd.c_str());
+        log_info("{}", cmd);
     }
-    log_info("TestDisk {}, Data Recovery Utility, {}\nChristophe GRENIER "
-             "<grenier@cgsecurity.org>\nhttps://www.cgsecurity.orgs",
-             VERSION, TESTDISKDATE);
+    log_info("TestDisk " VERSION ", Data Recovery Utility, " TESTDISKDATE "\nChristophe GRENIER "
+             "<grenier@cgsecurity.org>\nhttps://www.cgsecurity.orgs"
+            );
     // log_info("OS: {}" , get_os());
     log_info("Compiler: {}", COMPILER_ID);
 

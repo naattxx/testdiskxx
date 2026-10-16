@@ -20,9 +20,9 @@
 
  */
 
-#include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <print>
 #include <string>
 #include <vector>
 #include "src/common.hpp"
@@ -56,7 +56,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
 
     list_part_t list_part;
     log_info("\nAnalyse {}\n", disk.description(disk));
-    std::cout << disk.description(disk) << '\n';
+    std::println("{}", disk.description(disk));
     std::vector<std::vector<std::string>> data{
         {"", "", "Partition", "Start", "End", "Size in sectors", "", ""},
     };
@@ -76,7 +76,7 @@ void interface_list(disk_t &disk, const int verbose, const int saveheader, const
     auto rendered = table.Render();
     auto screen = Screen::Create(Dimension::Fit(rendered));
     Render(screen, rendered);
-    std::cout << screen.ToString() << '\n';
+    std::println("{}", screen.ToString());
 
     if (backup > 0)
     {
