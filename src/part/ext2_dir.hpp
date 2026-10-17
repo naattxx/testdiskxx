@@ -21,7 +21,9 @@
  */
 #ifndef _EXT2_DIR_H
 #define _EXT2_DIR_H
+#include "src/common.hpp"
 #include "src/dir_common.hpp"
+#include <expected>
 
 /*@
   @ requires \valid(disk_car);
@@ -29,8 +31,8 @@
   @ requires \valid_read(partition);
   @*/
 auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
-                             dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t;
+                             const int verbose)
+    -> std::expected<dir_data_t*, dir_partition_t>;
 
 /*@ assigns \nothing; */
 auto td_ext2fs_version() -> const char *;

@@ -34,6 +34,7 @@
 #include "fat_dir.hpp"
 #include "src/common.hpp"
 #include "src/dir.hpp"
+#include "src/dir_common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/intrf.hpp"
 #include "src/lang.h"
@@ -1148,10 +1149,10 @@ static auto fat_has_EFI_entry(disk_t &disk, const partition_t &partition,
                               const int verbose) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
-  dir_data_t *dir_data{};
+  auto tmp = dir_partition_fat_init(disk, partition, verbose);
+  dir_data_t *dir_data = tmp.value_or(nullptr);
   dir_list_t dir_list;
-  const dir_partition_t res =
-      dir_partition_fat_init(disk, partition, dir_data, verbose);
+  const dir_partition_t res = tmp.error_or(DIR_PART_OK);
   if (res != DIR_PART_OK)
     return 0;
   dir_data->get_dir(disk, partition, 0, dir_list);

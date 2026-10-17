@@ -21,11 +21,13 @@
  */
 #ifndef _RFS_DIR_H
 #define _RFS_DIR_H
+#include "src/common.hpp"
 #include "src/dir_common.hpp"
+#include <expected>
 
 auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t;
+                               const int verbose)
+    -> std::expected<dir_data_t*, dir_partition_t>;
 auto td_reiserfs_version() -> const char *;
 
 #endif

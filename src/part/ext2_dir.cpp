@@ -21,6 +21,7 @@
  */
 #include "src/dir_common.hpp"
 #include <config.h>
+#include <expected>
 #include <fstream>
 #include <ios>
 #include <string>
@@ -376,8 +377,8 @@ auto ext2_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
 #endif
 
 auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
-                             dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t
+                             const int verbose)
+    -> std::expected<dir_data_t*, dir_partition_t>
 {
 #ifdef HAVE_LIBEXT2FS
   io_channel ioch;
@@ -394,9 +395,9 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
                   &fs) != 0)
   {
     //    delete (my_data);
-    return DIR_PART_EIO;
+    return std::unexpected(DIR_PART_EIO);
   }
-  dir_data = new ext2_dir_struct;
+  auto *dir_data = new ext2_dir_struct;
   strncpy(dir_data->current_directory, "/",
           sizeof(dir_data->current_directory));
   dir_data->current_inode    = EXT2_ROOT_INO;
@@ -405,11 +406,11 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->local_dir.clear();
   /* static_cast<ext2_dir_struct*>(dir_data)->flags = DIRENT_FLAG_INCLUDE_EMPTY; */
-  static_cast<ext2_dir_struct*>(dir_data)->flags    = DIRENT_FLAG_INCLUDE_REMOVED;
-  static_cast<ext2_dir_struct*>(dir_data)->dir_data = dir_data;
-  return DIR_PART_OK;
+  dir_data->flags    = DIRENT_FLAG_INCLUDE_REMOVED;
+  dir_data->dir_data = dir_data;
+  return {dir_data};
 #else
-  return DIR_PART_ENOSYS;
+  return std::unexpected(DIR_PART_ENOSYS);
 #endif
 }
 

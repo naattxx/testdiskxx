@@ -26,6 +26,7 @@
 #include <config.h>
 #include <cstdint>
 #include <cstdio>
+#include <expected>
 #include <fstream>
 #include <ios>
 #include <optional>
@@ -399,8 +400,8 @@ auto exfat_dir_struct::get_dir(disk_t &disk, const partition_t &partition,
 }
 
 auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
-                              dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t
+                              const int verbose)
+    -> std::expected<dir_data_t *, dir_partition_t>
 {
   struct exfat_super_block *exfat_header;
   set_secwest();
@@ -410,7 +411,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   {
     log_error("Can't read exFAT boot sector.\n");
     delete exfat_header;
-    return DIR_PART_EIO;
+    return std::unexpected(DIR_PART_EIO);
   }
   if (to_little_endian(exfat_header->signature) != 0xAA55 ||
       memcmp(exfat_header->oem_id, "EXFAT   ", sizeof(exfat_header->oem_id)) !=
@@ -418,7 +419,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   {
     log_error("Not an exFAT boot sector.\n");
     delete exfat_header;
-    return DIR_PART_EIO;
+    return std::unexpected(DIR_PART_EIO);
   }
 #ifdef DEBUG_EXFAT
   log_info("start_sector={}\n",
@@ -438,7 +439,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   log_info("drive_select=0x{:x}", exfat_header->drive_select);
   log_info("allocated_percent={}", exfat_header->allocated_percent);
 #endif
-  dir_data = new exfat_dir_struct;
+  auto *dir_data = new exfat_dir_struct;
   strncpy(dir_data->current_directory, "/",
           sizeof(dir_data->current_directory));
   dir_data->current_inode    = 0;
@@ -446,14 +447,14 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   dir_data->verbose          = verbose;
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->local_dir.clear();
-  static_cast<exfat_dir_struct*>(dir_data)->boot_sector = exfat_header;
+  dir_data->boot_sector = exfat_header;
 #ifdef HAVE_ICONV
-  if (reinterpret_cast<intptr_t>(static_cast<exfat_dir_struct*>(dir_data)->cd = iconv_open("UTF-8", "UTF-16LE")) == -1)
+  if (reinterpret_cast<intptr_t>(dir_data->cd = iconv_open("UTF-8", "UTF-16LE")) == -1)
   {
     log_error("dir_partition_exfat_init: iconv_open failed\n");
   }
 #endif
-  return DIR_PART_OK;
+  return {dir_data};
 }
 
 void exfat_dir_struct::close()

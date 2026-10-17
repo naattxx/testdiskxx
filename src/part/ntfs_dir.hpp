@@ -21,20 +21,19 @@
  */
 #ifndef _NTFS_DIR_H
 #define _NTFS_DIR_H
+#include "src/common.hpp"
 #include "src/dir_common.hpp"
+#include <expected>
 
-extern "C"
-{
-  /*@
-    @ requires \valid(disk_car);
-    @ requires valid_disk(disk_car);
-    @ requires \valid_read(partition);
-    @ requires \separated(disk_car, partition);
-    @*/
-  auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t *dir_data, const int verbose,
-                               const int expert) -> dir_partition_t;
-}
+/*@
+  @ requires \valid(disk_car);
+  @ requires valid_disk(disk_car);
+  @ requires \valid_read(partition);
+  @ requires \separated(disk_car, partition);
+  @*/
+auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
+                             const int verbose, const int expert)
+    -> std::expected<dir_data_t *, dir_partition_t>;
 
 /*@
   @ assigns \nothing;

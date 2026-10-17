@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <expected>
 #include "common.hpp"
 #include "intrf.hpp"
 #include "part/fat.hpp"
@@ -44,60 +45,62 @@
 #include "part/rfs_dir.hpp"
 
 static auto dir_partition_init(disk_t &disk, const partition_t &partition, const int verbose,
-                                          const int expert, dir_data_t *dir_data) -> dir_partition_t
+                                          const int expert) -> std::expected<dir_data_t*, dir_partition_t>
 {
+  std::expected<dir_data_t*, dir_partition_t> res;
     if (is_part_fat(partition))
     {
-        if (dir_partition_fat_init(disk, partition, dir_data, verbose) == DIR_PART_OK)
-            return DIR_PART_OK;
+        if ((res = dir_partition_fat_init(disk, partition, verbose)))
+            return res;
     }
     else if (is_part_ntfs(partition))
     {
-        if (dir_partition_ntfs_init(disk, partition, dir_data, verbose, expert) == DIR_PART_OK)
-            return DIR_PART_OK;
-        if (dir_partition_exfat_init(disk, partition, dir_data, verbose) == DIR_PART_OK)
-            return DIR_PART_OK;
+        if ((res = dir_partition_ntfs_init(disk, partition, verbose, expert)))
+            return res;
+        if ((res = dir_partition_exfat_init(disk, partition, verbose)))
+            return res;
     }
     else if (is_part_linux(partition))
     {
-        if (dir_partition_ext2_init(disk, partition, dir_data, verbose) == DIR_PART_OK)
-            return DIR_PART_OK;
-        if (dir_partition_reiser_init(disk, partition, dir_data, verbose) == DIR_PART_OK)
-            return DIR_PART_OK;
+        if ((res = dir_partition_ext2_init(disk, partition, verbose)))
+            return res;
+        if ((res = dir_partition_reiser_init(disk, partition, verbose)))
+            return res;
     }
     switch (partition.upart_type)
     {
     case UP_FAT12:
     case UP_FAT16:
     case UP_FAT32:
-        return dir_partition_fat_init(disk, partition, dir_data, verbose);
+        return dir_partition_fat_init(disk, partition, verbose);
     case UP_EXT4:
     case UP_EXT3:
     case UP_EXT2:
-        return dir_partition_ext2_init(disk, partition, dir_data, verbose);
+        return dir_partition_ext2_init(disk, partition, verbose);
     case UP_RFS:
     case UP_RFS2:
     case UP_RFS3:
-        return dir_partition_reiser_init(disk, partition, dir_data, verbose);
+        return dir_partition_reiser_init(disk, partition, verbose);
     case UP_NTFS:
-        return dir_partition_ntfs_init(disk, partition, dir_data, verbose, expert);
+        return dir_partition_ntfs_init(disk, partition, verbose, expert);
     case UP_EXFAT:
-        return dir_partition_exfat_init(disk, partition, dir_data, verbose);
+        return dir_partition_exfat_init(disk, partition, verbose);
     default:
-        return DIR_PART_ENOIMP;
+        return std::unexpected(DIR_PART_ENOIMP);
     }
 }
 
 auto dir_partition(disk_t &disk, const partition_t &partition, const int verbose, const int expert,
                               char **current_cmd) -> dir_partition_t
 {
-    dir_data_t *dir_data{};
+    auto tmp = dir_partition_init(disk, partition, verbose, expert);
+    dir_data_t *dir_data = tmp.value_or(nullptr);
 #ifdef HAVE_NCURSES
     WINDOW *window;
 #endif
     dir_partition_t res;
     fflush(stderr);
-    res = dir_partition_init(disk, partition, verbose, expert, dir_data);
+    res = tmp.error_or(dir_partition_t::DIR_PART_OK);
 #ifdef HAVE_NCURSES
     window = newwin(LINES, COLS, 0, 0); /* full screen */
     dir_data.display = window;
