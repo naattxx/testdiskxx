@@ -21,7 +21,9 @@
  */
 #ifndef _FAT_DIR_H
 #define _FAT_DIR_H
+#include "src/common.hpp"
 #include "src/dir_common.hpp"
+#include <expected>
 
 /*@
   @ requires \valid_read(buffer + (0 .. size-1));
@@ -42,7 +44,7 @@ auto dir_fat_aux(const unsigned char *buffer, const unsigned int size,
   @ decreases 0;
   @*/
 auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
-                            dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t;
+                            const int verbose)
+    -> std::expected<dir_data_t*, dir_partition_t>;
 
 #endif

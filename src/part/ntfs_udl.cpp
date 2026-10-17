@@ -1744,12 +1744,12 @@ static void ntfs_undelete_menu(const disk_t &disk_car,
 auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
                         const int verbose, char **current_cmd) -> int
 {
-  ntfs_dir_struct *dir_data{};
+  auto tmp = dir_partition_ntfs_init(disk_car, partition, verbose, 0);
+  ntfs_dir_struct *dir_data = static_cast<ntfs_dir_struct*>(tmp.value_or(nullptr));
 #ifdef HAVE_NCURSES
   WINDOW *window;
 #endif
-  dir_partition_t res =
-      dir_partition_ntfs_init(disk_car, partition, dir_data, verbose, 0);
+  dir_partition_t res = tmp.error_or(DIR_PART_OK);
 #ifdef HAVE_NCURSES
   window           = newwin(LINES, COLS, 0, 0); /* full screen */
   dir_data.display = window;

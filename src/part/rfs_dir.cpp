@@ -25,6 +25,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <expected>
 #include <print>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
@@ -595,8 +596,8 @@ copy_file_t rfs_dir_struct::copy_file(disk_t &disk_car,
 #endif
 
 auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t
+                               const int verbose)
+    -> std::expected<dir_data_t *, dir_partition_t>
 {
 #ifdef HAVE_LIBREISERFS
   dal_t *dal;
@@ -615,7 +616,7 @@ auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
   {
     log_error("Couldn't open device\n");
     delete (my_data);
-    return DIR_PART_EIO;
+    return std::unexpected(DIR_PART_EIO);
   }
   /* log_debug("file_open ok\n"); */
 
@@ -628,11 +629,11 @@ auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
     log_error("Couldn't open reiser filesystem %s\n", dal_error(dal));
     /* file_close call delete (my_data) */
     file_close(dal);
-    return DIR_PART_EIO;
+    return std::unexpected(DIR_PART_EIO);
   }
   /* log_debug("reiserfs_fs_open_fast ok\n"); */
   {
-    dir_data = new rfs_dir_struct;
+    auto *dir_data = new rfs_dir_struct;
     strncpy(dir_data->current_directory, "/",
             sizeof(dir_data->current_directory));
     dir_data->current_inode    = 2;
@@ -640,14 +641,14 @@ auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
     dir_data->verbose          = verbose;
     dir_data->capabilities     = 0;
     dir_data->local_dir.clear();
-    static_cast<rfs_dir_struct*>(dir_data)->dir_list   = NULL;
-    static_cast<rfs_dir_struct*>(dir_data)->current_fs = fs;
-    static_cast<rfs_dir_struct*>(dir_data)->dal        = dal;
-    static_cast<rfs_dir_struct*>(dir_data)->flags      = 0; /*DIRENT_FLAG_INCLUDE_EMPTY; */
+    dir_data->dir_list   = NULL;
+    dir_data->current_fs = fs;
+    dir_data->dal        = dal;
+    dir_data->flags      = 0; /*DIRENT_FLAG_INCLUDE_EMPTY; */
   }
-  return DIR_PART_OK;
+  return {dir_data};
 #else
-  return DIR_PART_ENOSYS;
+  return std::unexpected(DIR_PART_ENOSYS);
 #endif
 }
 

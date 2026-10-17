@@ -26,6 +26,7 @@
 #include "src/dir_common.hpp"
 #include <config.h>
 #include <cstdint>
+#include <expected>
 #include <format>
 #include <fstream>
 #include <ios>
@@ -484,86 +485,81 @@ void ntfs_dir_struct::close()
 }
 #endif
 
-extern "C"
+auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
+                             const int verbose, const int expert)
+    -> std::expected<dir_data_t *, dir_partition_t>
 {
-  auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
-                               dir_data_t *dir_data, const int verbose,
-                               const int expert) -> dir_partition_t
-  {
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
-    struct ntfs_device *dev;
-    my_data_t *my_data = nullptr;
-    ntfs_volume *vol   = nullptr;
+  struct ntfs_device *dev;
+  my_data_t *my_data = nullptr;
+  ntfs_volume *vol   = nullptr;
 #ifdef NTFS_LOG_LEVEL_VERBOSE
-    ntfs_log_set_levels(NTFS_LOG_LEVEL_VERBOSE);
-    ntfs_log_set_handler(ntfs_log_handler_stderr);
+  ntfs_log_set_levels(NTFS_LOG_LEVEL_VERBOSE);
+  ntfs_log_set_handler(ntfs_log_handler_stderr);
 #endif
 
-    dev = ntfs_device_alloc("/", 0, &ntfs_device_testdisk_io_ops, nullptr);
-    if (dev)
-    {
-      my_data            = new my_data_t(disk_car, partition, 0);
-      dev->d_private     = my_data;
-      /* Call ntfs_device_mount() to do the actual mount. */
+  dev = ntfs_device_alloc("/", 0, &ntfs_device_testdisk_io_ops, nullptr);
+  if (dev)
+  {
+    my_data            = new my_data_t(disk_car, partition, 0);
+    dev->d_private     = my_data;
+    /* Call ntfs_device_mount() to do the actual mount. */
 #ifdef MS_RDONLY
-      vol = ntfs_device_mount(dev, MS_RDONLY);
+    vol = ntfs_device_mount(dev, MS_RDONLY);
 #else
-      vol = ntfs_device_mount(dev, NTFS_MNT_RDONLY);
+    vol = ntfs_device_mount(dev, NTFS_MNT_RDONLY);
 #endif
 #ifdef HAVE_NTFS_VOLUME_STARTUP
-      if (!vol)
-      {
-#ifdef MS_RDONLY
-        vol = ntfs_volume_startup(dev, MS_RDONLY);
-#else
-        vol = ntfs_volume_startup(dev, NTFS_MNT_RDONLY);
-#endif
-        if (vol)
-        {
-          log_warning("NTFS filesystem needs to be repaired.\n");
-        }
-      }
-#endif
-    }
     if (!vol)
     {
-      delete my_data;
-      ntfs_device_free(dev);
-      return DIR_PART_EIO;
-    }
-    if (vol->flags & VOLUME_IS_DIRTY)
-    {
-      log_warning("NTFS Volume is dirty.\n");
-    }
-    {
-      dir_data = new ntfs_dir_struct;
-      strncpy(dir_data->current_directory, "/",
-              sizeof(dir_data->current_directory));
-      dir_data->current_inode = FILE_root;
-      dir_data->param         = FLAG_LIST::ADS;
-      if (expert != 0)
-        dir_data->param |= FLAG_LIST::SYSTEM;
-      dir_data->verbose          = verbose;
-      dir_data->capabilities     = CAPA_LIST_ADS;
-      dir_data->local_dir.clear();
-      static_cast<ntfs_dir_struct*>(dir_data)->vol      = vol;
-      static_cast<ntfs_dir_struct*>(dir_data)->my_data  = my_data;
-      static_cast<ntfs_dir_struct*>(dir_data)->dir_data = dir_data;
-#ifdef HAVE_ICONV
-      if (reinterpret_cast<intptr_t>(
-              static_cast<ntfs_dir_struct *>(dir_data)->cd =
-                  iconv_open("UTF-8", "UTF-16LE")
-          ) == -1)
-      {
-        log_error("ntfs_ucstoutf8: iconv_open failed\n");
-      }
-#endif
-    }
-    return DIR_PART_OK;
+#ifdef MS_RDONLY
+      vol = ntfs_volume_startup(dev, MS_RDONLY);
 #else
-    return DIR_PART_ENOSYS;
+      vol = ntfs_volume_startup(dev, NTFS_MNT_RDONLY);
+#endif
+      if (vol)
+      {
+        log_warning("NTFS filesystem needs to be repaired.\n");
+      }
+    }
 #endif
   }
+  if (!vol)
+  {
+    delete my_data;
+    ntfs_device_free(dev);
+    return std::unexpected(DIR_PART_EIO);
+  }
+  if (vol->flags & VOLUME_IS_DIRTY)
+  {
+    log_warning("NTFS Volume is dirty.\n");
+  }
+  auto *dir_data = new ntfs_dir_struct;
+  strncpy(dir_data->current_directory, "/",
+          sizeof(dir_data->current_directory));
+  dir_data->current_inode = FILE_root;
+  dir_data->param         = FLAG_LIST::ADS;
+  if (expert != 0)
+    dir_data->param |= FLAG_LIST::SYSTEM;
+  dir_data->verbose          = verbose;
+  dir_data->capabilities     = CAPA_LIST_ADS;
+  dir_data->local_dir.clear();
+  dir_data->vol      = vol;
+  dir_data->my_data  = my_data;
+  dir_data->dir_data = dir_data;
+#ifdef HAVE_ICONV
+  if (reinterpret_cast<intptr_t>(
+          dir_data->cd =
+              iconv_open("UTF-8", "UTF-16LE")
+      ) == -1)
+  {
+    log_error("ntfs_ucstoutf8: iconv_open failed\n");
+  }
+#endif
+  return {dir_data};
+#else
+  return std::unexpected(DIR_PART_ENOSYS);
+#endif
 }
 
 auto td_ntfs_version() -> const char *

@@ -182,12 +182,13 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
   a file listing, it also knows which MFT to use.
   */
   {
+    auto tmp = dir_partition_ntfs_init(disk_car, partition, verbose, 0);
     int res1, res2;
-    dir_data_t *dir_data{};
+    dir_data_t *dir_data = tmp.value_or(nullptr);
     /* Use MFT */
     io_redir_add_redir(disk_car, mftmirr_pos, mftmirr_size_bytes, 0,
                        buffer_mft);
-    res1 = dir_partition_ntfs_init(disk_car, partition, dir_data, verbose, 0);
+    res1 = tmp.error_or(DIR_PART_OK);
     if (res1 == DIR_PART_ENOSYS)
     {
       ; // display_message("Can't determine which MFT is correct, ntfslib is
@@ -218,7 +219,9 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
     /* Use MFT mirror */
     io_redir_add_redir(disk_car, mft_pos, mftmirr_size_bytes, 0,
                        buffer_mftmirr);
-    res2 = dir_partition_ntfs_init(disk_car, partition, dir_data, verbose, 0);
+    tmp = dir_partition_ntfs_init(disk_car, partition, verbose, 0);
+    dir_data = tmp.value_or(nullptr);
+    res2 = tmp.error_or(DIR_PART_OK);
     if (res2 == DIR_PART_OK)
     {
       dir_list_t dir_list;

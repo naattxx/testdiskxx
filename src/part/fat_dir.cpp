@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <expected>
 #include <fstream>
 #include <ios>
 #if __has_include(<sys/stat.h>)
@@ -541,8 +542,8 @@ static auto fat1x_rootdir(disk_t &disk_car, const partition_t &partition,
 }
 
 auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
-                            dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t
+                            const int verbose)
+    -> std::expected<dir_data_t*, dir_partition_t>
 {
   static unsigned char *buffer;
   buffer = new unsigned char[0x200];
@@ -552,10 +553,10 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
     log_error("Can't read FAT boot sector.\n");
 #endif
     delete[] buffer;
-    return DIR_PART_EIO;
+    return std::unexpected(DIR_PART_EIO);
   }
   set_secwest();
-  dir_data = new fat_dir_struct;
+  auto *dir_data = new fat_dir_struct;
   strncpy(dir_data->current_directory, "/",
           sizeof(dir_data->current_directory));
   dir_data->current_inode = 0;
@@ -567,8 +568,8 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
   dir_data->verbose          = verbose;
   dir_data->capabilities     = CAPA_LIST_DELETED;
   dir_data->local_dir.clear();
-  static_cast<fat_dir_struct*>(dir_data)->boot_sector = reinterpret_cast<struct fat_boot_sector *>(buffer);
-  return DIR_PART_OK;
+  dir_data->boot_sector = reinterpret_cast<struct fat_boot_sector *>(buffer);
+  return {dir_data};
 }
 
 void fat_dir_struct::close()

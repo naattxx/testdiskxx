@@ -21,7 +21,9 @@
  */
 #ifndef _EXFAT_DIR_H
 #define _EXFAT_DIR_H
+#include "src/common.hpp"
 #include "src/dir_common.hpp"
+#include <expected>
 
 /*@
   @ requires \valid(disk_car);
@@ -29,8 +31,8 @@
   @ requires \valid_read(partition);
   @ requires \separated(disk_car, partition, dir_data);
   @*/
-auto dir_partition_exfat_init(disk_t &disk_car, const partition_t &partition,
-                              dir_data_t *dir_data, const int verbose)
-    -> dir_partition_t;
+auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
+                              const int verbose)
+    -> std::expected<dir_data_t*, dir_partition_t>;
 
 #endif
