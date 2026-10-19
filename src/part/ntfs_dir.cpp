@@ -545,7 +545,7 @@ auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
   if (expert != 0)
     dir_data->param |= FLAG_LIST::SYSTEM;
   dir_data->verbose          = verbose;
-  dir_data->capabilities     = CAPA_LIST_ADS;
+  dir_data->capabilities     = CAPA_LIST::ADS;
   dir_data->local_dir.clear();
   dir_data->vol      = vol;
   dir_data->my_data  = my_data;

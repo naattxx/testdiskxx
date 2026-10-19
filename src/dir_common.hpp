@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <type_traits>
 #include <vector>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
@@ -39,8 +40,19 @@ enum FLAG_LIST : uint8_t {
   SYSTEM = 32,
 };
 /* capabilities */
-#define CAPA_LIST_DELETED 1
-#define CAPA_LIST_ADS 2
+enum class CAPA_LIST : uint8_t{
+  NONE = 0,
+  DELETED = 1,
+  ADS = 2,
+};
+
+[[nodiscard]]
+constexpr auto operator&(CAPA_LIST __x, CAPA_LIST __y) noexcept -> CAPA_LIST
+{
+  using __utype = std::underlying_type_t<CAPA_LIST>;
+  return static_cast<CAPA_LIST>(static_cast<__utype>(__x) &
+                               static_cast<__utype>(__y));
+}
 
 enum copy_file_t : int8_t
 {
@@ -88,7 +100,7 @@ struct dir_data_t
     unsigned long int current_inode;
     int verbose;
     unsigned int param;
-    unsigned int capabilities;
+    CAPA_LIST capabilities;
     virtual auto get_dir(disk_t &disk_car, const partition_t &partition,
                          const unsigned long int first_inode, dir_list_t &list)
         -> int                                                     = 0;

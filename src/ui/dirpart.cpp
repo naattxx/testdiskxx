@@ -192,9 +192,9 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
         }
         if (event == Event::h)
         {
-          if ((dir_data->capabilities & CAPA_LIST_DELETED) != 0)
+          if ((dir_data->capabilities & CAPA_LIST::DELETED) != CAPA_LIST::NONE)
             dir_data->param ^= FLAG_LIST::DELETED;
-          else if ((dir_data->capabilities & CAPA_LIST_ADS) != 0)
+          else if ((dir_data->capabilities & CAPA_LIST::ADS) != CAPA_LIST::NONE)
             dir_data->param ^= FLAG_LIST::ADS;
 
           dir_list.clear();
@@ -242,7 +242,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                           : emptyElement(),
                       hbox({bold(text("Right")),
                             text(" to change directory, ")}),
-                      (dir_data->capabilities & CAPA_LIST_DELETED) != 0
+                      (dir_data->capabilities & CAPA_LIST::DELETED) != CAPA_LIST::NONE
                           ? hbox({
                                 bold(text("'h'")),
                                 (dir_data->param & FLAG_LIST::DELETED) == 0
@@ -250,7 +250,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                                     : text(" to hide deleted files"),
                             })
                           : emptyElement(),
-                      (dir_data->capabilities & CAPA_LIST_ADS) != 0
+                      (dir_data->capabilities & CAPA_LIST::ADS) != CAPA_LIST::NONE
                           ? hbox({
                                 bold(text("'h'")),
                                 (dir_data->param & FLAG_LIST::ADS) == 0

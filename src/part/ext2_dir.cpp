@@ -403,7 +403,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
   dir_data->current_inode    = EXT2_ROOT_INO;
   dir_data->param            = FLAG_LIST::DELETED;
   dir_data->verbose          = verbose;
-  dir_data->capabilities     = CAPA_LIST_DELETED;
+  dir_data->capabilities     = CAPA_LIST::DELETED;
   dir_data->local_dir.clear();
   /* static_cast<ext2_dir_struct*>(dir_data)->flags = DIRENT_FLAG_INCLUDE_EMPTY; */
   dir_data->flags    = DIRENT_FLAG_INCLUDE_REMOVED;

@@ -445,7 +445,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   dir_data->current_inode    = 0;
   dir_data->param            = FLAG_LIST::DELETED;
   dir_data->verbose          = verbose;
-  dir_data->capabilities     = CAPA_LIST_DELETED;
+  dir_data->capabilities     = CAPA_LIST::DELETED;
   dir_data->local_dir.clear();
   dir_data->boot_sector = exfat_header;
 #ifdef HAVE_ICONV

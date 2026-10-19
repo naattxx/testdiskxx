@@ -566,7 +566,7 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
   else if (partition.upart_type == UP_FAT16)
     dir_data->param |= FLAG_LIST::MASK16;
   dir_data->verbose          = verbose;
-  dir_data->capabilities     = CAPA_LIST_DELETED;
+  dir_data->capabilities     = CAPA_LIST::DELETED;
   dir_data->local_dir.clear();
   dir_data->boot_sector = reinterpret_cast<struct fat_boot_sector *>(buffer);
   return {dir_data};
