@@ -316,7 +316,7 @@ RecEnd:
       new_file.status = status;
       /* log_debug("fat: new file %s de=%p
        * size={}\n",new_file.name,de,to_little_endian(de->size)); */
-      dir_list.push_front(new_file);
+      dir_list.push_back(new_file);
     }
   }
   de++;

@@ -448,7 +448,7 @@ static auto fat32_find_root_cluster(
             {
               file_info_t new_file = dir_list.front();
               new_file.name        = std::format("DIR{:05}", ++dir_nbr);
-              rootdir_list.push_front(new_file);
+              rootdir_list.push_back(new_file);
             }
           }
         }

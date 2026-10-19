@@ -282,7 +282,7 @@ static auto list_dir_proc2(ext2_ino_t dir, int entry,
   new_file.td_atime = inode.i_atime;
   new_file.td_mtime = inode.i_mtime;
   new_file.td_ctime = inode.i_ctime;
-  ls->dir_list.push_front(new_file);
+  ls->dir_list.push_back(new_file);
   return 0;
 }
 

@@ -143,7 +143,7 @@ auto get_dir_list(std::filesystem::path dst_directory) -> dir_list_t
       }
     }
   }
-  dir_list.sort(filesort);
+  std::ranges::sort(dir_list, filesort);
 
   return dir_list;
 };

@@ -24,6 +24,7 @@
  * Foundation,Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 #include "src/dir_common.hpp"
+#include <algorithm>
 #include <config.h>
 #include <cstdint>
 #include <expected>
@@ -255,7 +256,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
       new_file.name    = filename;
       new_file.st_mode = LINUX_S_IFDIR | LINUX_S_IRUGO | LINUX_S_IXUGO;
       new_file.st_size = 0;
-      ls->dir_list.push_front(new_file);
+      ls->dir_list.push_back(new_file);
     }
     ctx = ntfs_attr_get_search_ctx(ni, ni->mrec);
     /* A file has always an unnamed date stream and
@@ -292,7 +293,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
       {
         new_file.name = filename;
       }
-      ls->dir_list.push_front(new_file);
+      ls->dir_list.push_back(new_file);
     }
     ntfs_attr_put_search_ctx(ctx);
   }
@@ -340,7 +341,7 @@ auto ntfs_dir_struct::get_dir([[maybe_unused]] disk_t &disk_car,
   /* Finished with the inode; release it. */
   ntfs_inode_close(inode);
   dir_list = std::move(this->dir_list);
-  dir_list.sort(filesort);
+  std::ranges::sort(dir_list, filesort);
   return 0;
 }
 

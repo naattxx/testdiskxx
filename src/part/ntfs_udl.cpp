@@ -1264,7 +1264,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
           for (const data *d : file->data)
           {
             file_info_t new_file = ufile_to_file_data(file, d);
-            dir_list.push_front(new_file);
+            dir_list.push_back(new_file);
             results++;
           }
         }
@@ -1276,7 +1276,7 @@ done:
   log_info("\nFiles with potentially recoverable content: {}\n", results);
   delete[] buffer;
   ntfs_attr_close(attr);
-  dir_list.sort(filesort);
+  std::ranges::sort(dir_list, filesort);
 }
 
 #ifdef HAVE_NCURSES

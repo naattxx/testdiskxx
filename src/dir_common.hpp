@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <vector>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -79,7 +80,7 @@ struct file_info_t
     time_t td_ctime; /* time of last status change */
     file_status status;
 };
-using dir_list_t = std::list<file_info_t>;
+using dir_list_t = std::vector<file_info_t>;
 
 struct dir_data_t
 {
