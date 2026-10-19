@@ -30,6 +30,7 @@
 #include <format>
 #include <fstream>
 #include <ios>
+#include <utility>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
@@ -311,7 +312,7 @@ auto ntfs_dir_struct::get_dir([[maybe_unused]] disk_t &disk_car,
 {
   ntfs_inode *inode;
   s64 pos;
-  this->dir_list = dir_list;
+  this->dir_list = std::move(dir_list);
 
   inode = ntfs_inode_open(vol, cluster);
   if (!inode)
@@ -338,6 +339,7 @@ auto ntfs_dir_struct::get_dir([[maybe_unused]] disk_t &disk_car,
     log_critical("ntfs_readdir BUG not MFT_RECORD_IS_DIRECTORY");
   /* Finished with the inode; release it. */
   ntfs_inode_close(inode);
+  dir_list = std::move(this->dir_list);
   dir_list.sort(filesort);
   return 0;
 }
