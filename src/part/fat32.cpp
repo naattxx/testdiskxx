@@ -32,7 +32,7 @@
 #include "fat.hpp"
 #include "fat32.hpp"
 #include "fat_adv.hpp"
-#include "src/dirpart.hpp"
+#include "src/ui/dirpart.hpp"
 #include "src/io_redir.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
@@ -342,11 +342,11 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
       {
         io_redir_add_redir(disk_car, partition.part_offset,
                            3 * disk_car.sector_size, 0, buffer_backup_bs);
-        dir_partition(disk_car, partition, 0, 0, current_cmd);
+        dir_partition(disk_car, partition, 0, false);
         io_redir_del_redir(disk_car, partition.part_offset);
       }
       else
-        dir_partition(disk_car, partition, 0, 0, current_cmd);
+        dir_partition(disk_car, partition, 0, false);
       break;
     case 'R': /* R : rebuild boot sector */
       rebuild_FAT_BS(disk_car, partition, verbose, dump_ind, expert,

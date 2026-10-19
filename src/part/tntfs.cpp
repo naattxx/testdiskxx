@@ -31,7 +31,7 @@
 #include "ntfs.hpp"
 #include "ntfs_adv.hpp"
 #include "ntfs_fix.hpp"
-#include "src/dirpart.hpp"
+#include "src/ui/dirpart.hpp"
 #include "src/io_redir.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
@@ -308,11 +308,11 @@ auto ntfs_boot_sector(disk_t &disk, partition_t &partition, const int verbose,
       {
         io_redir_add_redir(disk, partition.part_offset, NTFS_BOOT_SECTOR_SIZE,
                            0, buffer_backup_bs);
-        dir_partition(disk, partition, 0, expert, current_cmd);
+        dir_partition(disk, partition, 0, expert);
         io_redir_del_redir(disk, partition.part_offset);
       }
       else
-        dir_partition(disk, partition, 0, expert, current_cmd);
+        dir_partition(disk, partition, 0, expert);
       break;
     case 'M':
       repair_MFT(disk, partition, verbose, expert, current_cmd);

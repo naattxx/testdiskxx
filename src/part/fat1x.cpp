@@ -31,7 +31,7 @@
 #include "fat.hpp"
 #include "fat1x.hpp"
 #include "fat_adv.hpp"
-#include "src/dirpart.hpp"
+#include "src/ui/dirpart.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
 
@@ -192,7 +192,7 @@ auto fat1x_boot_sector(disk_t &disk_car, partition_t &partition,
       FAT_init_rootdir(disk_car, partition, verbose, current_cmd);
       break;
     case 'L':
-      dir_partition(disk_car, partition, 0, 0, current_cmd);
+      dir_partition(disk_car, partition, 0, false);
       break;
     }
   }

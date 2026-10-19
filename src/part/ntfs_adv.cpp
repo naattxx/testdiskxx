@@ -34,7 +34,7 @@
 // #include "src/intrfn.hpp"
 #include "ntfs.hpp"
 #include "ntfs_adv.hpp"
-#include "src/dirpart.hpp"
+#include "src/ui/dirpart.hpp"
 #include "src/io_redir.hpp"
 #include "src/lang.h"
 #include "src/log.hpp"
@@ -158,7 +158,7 @@ static void ntfs_list(disk_t &disk, const partition_t &partition,
                       const int expert)
 {
   io_redir_add_redir(disk, partition.part_offset, NTFS_SECTOR_SIZE, 0, newboot);
-  dir_partition(disk, partition, 0, expert, current_cmd);
+  dir_partition(disk, partition, 0, expert);
   io_redir_del_redir(disk, partition.part_offset);
 }
 

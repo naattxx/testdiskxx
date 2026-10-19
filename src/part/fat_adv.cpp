@@ -47,7 +47,7 @@
 #include "fat_cluster.hpp"
 #include "fat_dir.hpp"
 #include "src/dir.hpp"
-#include "src/dirpart.hpp"
+#include "src/ui/dirpart.hpp"
 #include "src/io_redir.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
@@ -1207,7 +1207,7 @@ static void menu_write_fat_boot_sector(disk_t &disk_car, partition_t &partition,
       partition.upart_type              = upart_type;
       io_redir_add_redir(disk_car, partition.part_offset,
                          3 * disk_car.sector_size, 0, newboot);
-      dir_partition(disk_car, partition, verbose, 0, current_cmd);
+      dir_partition(disk_car, partition, verbose, false);
       io_redir_del_redir(disk_car, partition.part_offset);
       partition.upart_type = old_upart_type;
     }

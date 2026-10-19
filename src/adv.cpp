@@ -36,7 +36,7 @@
 #include "addpart.hpp"
 #include "adv.hpp"
 #include "dimage.hpp"
-#include "dirpart.hpp"
+#include "ui/dirpart.hpp"
 #include "part/fat.hpp"
 #include "part/fat1x.hpp"
 #include "part/fat32.hpp"
@@ -133,7 +133,7 @@ static void adv_menu_undelete_selected(disk_t &disk, const partition_t &partitio
         if (partition.upart_type == UP_NTFS || (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
             ntfs_undelete_part(disk, partition, verbose, current_cmd);
         else
-            dir_partition(disk, partition, 0, 0, current_cmd);
+            dir_partition(disk, partition, 0, false);
         io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
     }
     else
@@ -141,20 +141,6 @@ static void adv_menu_undelete_selected(disk_t &disk, const partition_t &partitio
         if (partition.upart_type == UP_NTFS || (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
             ntfs_undelete_part(disk, partition, verbose, current_cmd);
         else
-            dir_partition(disk, partition, 0, 0, current_cmd);
+            dir_partition(disk, partition, 0, false);
     }
-}
-
-static void adv_menu_list_selected(disk_t &disk, const partition_t &partition, const int verbose, const int expert,
-                                   char **current_cmd)
-{
-    if (partition.sb_offset != 0 && partition.sb_size > 0)
-    {
-        io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset, partition.sb_size,
-                           partition.part_offset + partition.sb_offset, nullptr);
-        dir_partition(disk, partition, verbose, expert, current_cmd);
-        io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
-    }
-    else
-        dir_partition(disk, partition, verbose, expert, current_cmd);
 }

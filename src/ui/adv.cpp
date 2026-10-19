@@ -12,6 +12,7 @@
 #include "src/adv.hpp"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
+#include "src/io_redir.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
 #include "src/part/ext2_sbn.hpp"
@@ -22,6 +23,7 @@
 #include "src/ui/dimage.hpp"
 #include "src/ui/intrfn.hpp"
 #include "src/ui/part/ext2_sb.hpp"
+#include "dirpart.hpp"
 #include <cassert>
 #include <filesystem>
 #include <format>
@@ -215,6 +217,19 @@ static void adv_menu_superblock_selected(const Component &root, disk_t &disk,
   }
 }
 
+static void adv_menu_list_selected(disk_t &disk, const partition_t &partition, const int verbose, const bool expert)
+{
+    if (partition.sb_offset != 0 && partition.sb_size > 0)
+    {
+        io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset, partition.sb_size,
+                           partition.part_offset + partition.sb_offset, nullptr);
+        dir_partition(disk, partition, verbose, expert);
+        io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
+    }
+    else
+        dir_partition(disk, partition, verbose, expert);
+}
+
 void interface_adv(disk_t &disk, const int verbose, const bool dump,
                    const bool expert)
 {
@@ -295,7 +310,9 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
       Maybe(Button(
                 "[  List  ]"
                 "List and copy files",
-                [] -> void {}, buttonOptions
+                [&] -> void {
+                  adv_menu_list_selected(disk, list_part[selected_part], verbose, expert);
+                }, buttonOptions
             ),
             &hasList),
       Maybe(Button(
