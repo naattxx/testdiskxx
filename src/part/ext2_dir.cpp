@@ -337,7 +337,7 @@ auto ext2_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
     retval = ext2fs_file_open(current_fs, file.st_ino, 0, &e2_file);
     if (retval)
     {
-      log_error("Error while opening ext2 file %s\n",
+      log_error("Error while opening ext2 file {}",
                 current_directory);
       delete new_file;
       return CP_OPEN_FAILED;
@@ -348,7 +348,7 @@ auto ext2_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
       retval = ext2fs_file_read(e2_file, buffer, sizeof(buffer), &got);
       if (retval)
       {
-        log_error("Error while reading ext2 file %s\n",
+        log_error("Error while reading ext2 file {}",
                   current_directory);
         error = CP_READ_FAILED;
       }

@@ -200,7 +200,7 @@ static auto filewin32_getfilesize(HANDLE handle, const char *device) -> uint64_t
         DWORD dw = GetLastError();
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, dw,
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
-        log_error("filewin32_getfilesize(%s) GetFileSize err %s\n", device, (char *)lpMsgBuf);
+        log_error("filewin32_getfilesize({}) GetFileSize err {}", device, (char *)lpMsgBuf);
         LocalFree(lpMsgBuf);
         return 0;
     }
@@ -221,7 +221,7 @@ static auto filewin32_setfilepointer(HANDLE handle, const char *device) -> uint6
         DWORD dw = GetLastError();
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, dw,
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, nullptr);
-        log_error("filewin32_setfilepointer(%s) SetFilePointer err %s\n", device, (char *)lpMsgBuf);
+        log_error("filewin32_setfilepointer({}) SetFilePointer err {}\n", device, (char *)lpMsgBuf);
         LocalFree(lpMsgBuf);
         return 0;
     }
@@ -303,7 +303,7 @@ auto file_test_availability_win32(const char *device, const int verbose, unsigne
         disk_car.update_fields();
         if (disk_car.disk_real_size != 0)
             return disk_car;
-        log_warning("Warning: can't get size for %s\n", device);
+        log_warning("can't get size for {}", device);
         file_win32_clean(disk_car);
     }
     return std::nullopt;

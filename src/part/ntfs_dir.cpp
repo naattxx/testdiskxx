@@ -330,12 +330,12 @@ auto ntfs_dir_struct::get_dir([[maybe_unused]] disk_t &disk_car,
     if (ntfs_readdir(inode, &pos, this,
                      reinterpret_cast<ntfs_filldir_t>(ntfs_td_list_entry)) < 0)
     {
-      log_error("ntfs_readdir failed for cluster {}: %s\n", cluster,
+      log_error("ntfs_readdir failed for cluster {}: {}", cluster,
                 strerror(errno));
     }
   }
   else
-    log_critical("ntfs_readdir BUG not MFT_RECORD_IS_DIRECTORY\n");
+    log_critical("ntfs_readdir BUG not MFT_RECORD_IS_DIRECTORY");
   /* Finished with the inode; release it. */
   ntfs_inode_close(inode);
   dir_list.sort(filesort);

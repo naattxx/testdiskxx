@@ -971,7 +971,7 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
       fd = open_file(pathname);
       if (fd < 0)
       {
-        log_error("Couldn't create file %s\n", pathname);
+        log_error("Couldn't create file {}", pathname);
         goto free;
       }
 
@@ -1011,7 +1011,7 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
       fd = open_file(pathname);
       if (fd < 0)
       {
-        log_error("Couldn't create output file %s\n", pathname);
+        log_error("Couldn't create output file {}", pathname);
         goto free;
       }
 

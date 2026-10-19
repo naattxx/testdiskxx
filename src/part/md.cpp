@@ -143,7 +143,7 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
     }
   }
   if (verbose > 0)
-    log_info("%s %s\n", partition.fsname, partition.info);
+    log_info("{} {}", partition.fsname, partition.info);
 }
 
 static void set_MD_info_be(const struct mdp_superblock_t *sb,
@@ -202,7 +202,7 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
     }
   }
   if (verbose > 0)
-    log_info("%s %s\n", partition.fsname, partition.info);
+    log_info("{} {}", partition.fsname, partition.info);
 }
 #endif
 

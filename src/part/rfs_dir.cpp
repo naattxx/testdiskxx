@@ -551,7 +551,7 @@ copy_file_t rfs_dir_struct::copy_file(disk_t &disk_car,
     void *buf=new unsigned char[file_size+1];
     if (reiserfs_file_read(in, buf, file_size) != file_size)
     {
-      log_error("Error while reading rfs file %s\n", dir_data->current_directory);
+      log_error("Error while reading rfs file {}", dir_data->current_directory);
       error = CP_READ_FAILED;
     }
     else if (f_out.write(buf, file_size).bad())
@@ -570,7 +570,7 @@ copy_file_t rfs_dir_struct::copy_file(disk_t &disk_car,
       int read_size = (file_size < sizeof(buf) ? file_size : sizeof(buf));
       if (reiserfs_file_read(in, buf, read_size) == 0)
       {
-        log_error("Error while reading rfs file %s\n",
+        log_error("Error while reading rfs file {}",
                   dir_data->current_directory);
         error = CP_READ_FAILED;
       }
@@ -626,7 +626,7 @@ auto dir_partition_reiser_init(disk_t &disk_car, const partition_t &partition,
   if (!(fs = reiserfs_fs_open(dal, dal)))
 #endif
   {
-    log_error("Couldn't open reiser filesystem %s\n", dal_error(dal));
+    log_error("Couldn't open reiser filesystem {}", dal_error(dal));
     /* file_close call delete (my_data) */
     file_close(dal);
     return std::unexpected(DIR_PART_EIO);

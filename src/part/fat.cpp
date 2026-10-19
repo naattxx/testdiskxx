@@ -215,37 +215,37 @@ static auto log_fat_info(const struct fat_boot_sector *fh1,
                          const unsigned int sector_size) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
-  log_info("sector_size  {}\n", fat_sector_size(fh1));
-  log_info("cluster_size {}\n", fh1->sectors_per_cluster);
-  log_info("reserved     {}\n", to_little_endian(fh1->reserved));
-  log_info("fats         {}\n", fh1->fats);
-  log_info("dir_entries  {}\n", get_dir_entries(fh1));
-  log_info("sectors      {}\n", fat_sectors(fh1));
-  log_info("media        %02X\n", fh1->media);
-  log_info("fat_length   {}\n", to_little_endian(fh1->fat_length));
-  log_info("secs_track   {}\n", to_little_endian(fh1->secs_track));
-  log_info("heads        {}\n", to_little_endian(fh1->heads));
-  log_info("hidden       {}\n", (unsigned int)to_little_endian(fh1->hidden));
-  log_info("total_sect   {}\n", (unsigned int)to_little_endian(fh1->total_sect));
+  log_info("sector_size  {}", fat_sector_size(fh1));
+  log_info("cluster_size {}", fh1->sectors_per_cluster);
+  log_info("reserved     {}", to_little_endian(fh1->reserved));
+  log_info("fats         {}", fh1->fats);
+  log_info("dir_entries  {}", get_dir_entries(fh1));
+  log_info("sectors      {}", fat_sectors(fh1));
+  log_info("media        {:02X}", fh1->media);
+  log_info("fat_length   {}", to_little_endian(fh1->fat_length));
+  log_info("secs_track   {}", to_little_endian(fh1->secs_track));
+  log_info("heads        {}", to_little_endian(fh1->heads));
+  log_info("hidden       {}", to_little_endian(fh1->hidden));
+  log_info("total_sect   {}", to_little_endian(fh1->total_sect));
   if (upart_type == UP_FAT32)
   {
-    log_info("fat32_length {}\n", (unsigned int)to_little_endian(fh1->fat32_length));
-    log_info("flags        %04X\n", to_little_endian(fh1->flags));
-    log_info("version      {}.{}\n", fh1->version[0], fh1->version[1]);
-    log_info("root_cluster {}\n", (unsigned int)to_little_endian(fh1->root_cluster));
-    log_info("info_sector  {}\n", to_little_endian(fh1->info_sector));
-    log_info("backup_boot  {}\n", to_little_endian(fh1->backup_boot));
+    log_info("fat32_length {}", to_little_endian(fh1->fat32_length));
+    log_info("flags        {:04X}", to_little_endian(fh1->flags));
+    log_info("version      {}.{}", fh1->version[0], fh1->version[1]);
+    log_info("root_cluster {}", to_little_endian(fh1->root_cluster));
+    log_info("info_sector  {}", to_little_endian(fh1->info_sector));
+    log_info("backup_boot  {}", to_little_endian(fh1->backup_boot));
     if (fat32_get_free_count(reinterpret_cast<const unsigned char *>(fh1),
                              sector_size) == 0xFFFFFFFF)
-      log_info("free_count   uninitialised\n");
+      log_info("free_count   uninitialised");
     else
-      log_info("free_count   {}\n",
+      log_info("free_count   {}",
                fat32_get_free_count((const unsigned char *)fh1, sector_size));
     if (fat32_get_next_free(reinterpret_cast<const unsigned char *>(fh1),
                             sector_size) == 0xFFFFFFFF)
-      log_info("next_free    uninitialised\n");
+      log_info("next_free    uninitialised");
     else
-      log_info("next_free    {}\n",
+      log_info("next_free    {}",
                fat32_get_next_free((const unsigned char *)fh1, sector_size));
   }
 #endif

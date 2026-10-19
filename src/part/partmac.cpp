@@ -244,7 +244,7 @@ static auto read_part_mac(disk_t &disk_car, const int verbose,
     else
     {
       new_partition.part_type_mac = PMAC_UNK;
-      log_error("%s\n", dpme->dpme_type);
+      log_error("{}", dpme->dpme_type);
     }
     new_partition.part_offset =
         static_cast<uint64_t>(to_big_endian(dpme->dpme_pblock_start)) * PBLOCK_SIZE;
