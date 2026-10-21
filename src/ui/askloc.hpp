@@ -32,6 +32,6 @@
   @ requires \separated(dst, msg, src_dir);
   @ assigns  *dst;
   @*/
-void ask_location(std::filesystem::path &dst, std::string_view msg, std::string_view src_dir);
+void ask_location(std::filesystem::path &dst, std::string_view msg);
 
 #endif
