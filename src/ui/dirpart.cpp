@@ -23,8 +23,10 @@
 #include "config.h"
 #include "ftxui/component/app.hpp"
 #include "ftxui/component/component.hpp"
+#include "ftxui/component/component_options.hpp"
 #include "ftxui/component/event.hpp"
 #include "ftxui/dom/elements.hpp"
+#include "ftxui/screen/color.hpp"
 #include "src/adv.hpp"
 #include "src/common.hpp"
 #include "src/dir.hpp"
@@ -39,6 +41,7 @@
 #include "src/part/ntfs.hpp"
 #include "src/part/ntfs_dir.hpp"
 #include "src/part/rfs_dir.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <expected>
@@ -121,7 +124,8 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
   dir_list_t dir_list{};
   std::filesystem::path current_directory;
 
-  int currentFile = 0;
+  static constexpr int first_file_index = 2;
+  int currentFile                       = 0;
   std::vector<std::string> menuEntries;
 
   std::string_view error_msg;
@@ -182,6 +186,26 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
   auto dir_menu =
       Menu(&menuEntries, &currentFile,
            {
+               .entries_option =
+                  {
+                      .transform = [&](const EntryState &state) -> Element {
+                        const bool marked =
+                            dir_list[state.index].status.marked;
+
+                        Element e =
+                            text(std::string(state.active ? ">" : " ") +
+                                (marked ? "*" : " ") + state.label);
+                        if (marked)
+                          e |= color(Color::Green);
+
+                        if (state.focused)
+                          e |= inverted;
+                        if (state.active)
+                          e |= bold;
+
+                        return e;
+                      },
+                  },
                .on_enter = enter_folder,
            }) |
       CatchEvent([&](const Event &event) -> bool {
@@ -212,6 +236,20 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
           currentFile = 1; // ".."
           enter_folder();
           return true;
+        }
+        if (event == Event::Character(':'))
+        {
+          dir_list[std::max(currentFile, first_file_index)].status.marked =
+              !dir_list[std::max(currentFile, first_file_index)].status.marked;
+        }
+        if (event == Event::a)
+        {
+          std::for_each(dir_list.begin() + first_file_index, dir_list.end(),
+                        [marked_status =
+                             !dir_list[std::max(currentFile, first_file_index)]
+                                  .status.marked](auto &file) -> void {
+                          file.status.marked = marked_status;
+                        });
         }
         return false;
       });
@@ -259,8 +297,21 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                             })
                           : emptyElement(),
                   }),
-                  text("'q' to quit, ':' to select the current file, 'a' to "
-                       "select all files"),
+                  hbox({
+                      text("'q' to quit, "),
+                      hflow({
+                          bold(text("':'")),
+                          dir_list[std::max(currentFile, first_file_index)]
+                                  .status.marked
+                              ? text(" to deselect the current file, ")
+                              : text(" to select the current file, "),
+                          bold(text("'a'")),
+                          dir_list[std::max(currentFile, first_file_index)]
+                                  .status.marked
+                              ? text(" to deselect all files")
+                              : text(" to select all files"),
+                      }),
+                  }),
                   text("'C' to copy the selected files, 'c' to copy the "
                        "current file"),
               })
