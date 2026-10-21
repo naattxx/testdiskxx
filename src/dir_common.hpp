@@ -96,7 +96,7 @@ using dir_list_t = std::vector<file_info_t>;
 
 struct dir_data_t
 {
-    char current_directory[DIR_NAME_LEN];
+    std::filesystem::path current_directory;
     unsigned long int current_inode;
     int verbose;
     unsigned int param;

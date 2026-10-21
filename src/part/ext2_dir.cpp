@@ -315,7 +315,7 @@ auto ext2_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
   copy_file_t error = CP_OK;
   char *new_file;
   std::ofstream f_out =
-      fopen_local(&new_file, local_dir.c_str(), current_directory);
+      fopen_local(&new_file, local_dir.c_str(), current_directory.c_str());
   if (!f_out.is_open())
   {
     log_critical("Can't create file {}: {}", new_file, strerror(errno));
@@ -398,8 +398,7 @@ auto dir_partition_ext2_init(disk_t &disk_car, const partition_t &partition,
     return std::unexpected(DIR_PART_EIO);
   }
   auto *dir_data = new ext2_dir_struct;
-  strncpy(dir_data->current_directory, "/",
-          sizeof(dir_data->current_directory));
+  dir_data->current_directory = "/";
   dir_data->current_inode    = EXT2_ROOT_INO;
   dir_data->param            = FLAG_LIST::DELETED;
   dir_data->verbose          = verbose;

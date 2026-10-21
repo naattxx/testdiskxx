@@ -440,8 +440,7 @@ auto dir_partition_exfat_init(disk_t &disk, const partition_t &partition,
   log_info("allocated_percent={}", exfat_header->allocated_percent);
 #endif
   auto *dir_data = new exfat_dir_struct;
-  strncpy(dir_data->current_directory, "/",
-          sizeof(dir_data->current_directory));
+  dir_data->current_directory = "/";
   dir_data->current_inode    = 0;
   dir_data->param            = FLAG_LIST::DELETED;
   dir_data->verbose          = verbose;
@@ -481,7 +480,7 @@ auto exfat_dir_struct::copy_file(disk_t &disk, const partition_t &partition,
   unsigned long int clus_blocknr;
   unsigned long int total_clusters;
   std::ofstream f_out =
-      fopen_local(&new_file, local_dir.string().c_str(), current_directory);
+      fopen_local(&new_file, local_dir.string().c_str(), current_directory.string().c_str());
   if (!f_out.is_open())
   {
     log_critical("Can't create file: {}", new_file);

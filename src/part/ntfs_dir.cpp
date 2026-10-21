@@ -375,7 +375,8 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
       ntfs_inode_close(inode);
       return CP_NOMEM;
     }
-    stream_name = strrchr(current_directory, ':');
+    stream_name = strdup(current_directory.string().c_str() +
+                         current_directory.string().find_last_of(':'));
     if (stream_name)
       stream_name++;
     if (stream_name != nullptr)
@@ -421,7 +422,7 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
                           current_directory);
 #else
     f_out = fopen_local(&new_file, local_dir.c_str(),
-                        current_directory);
+                        current_directory.c_str());
 #endif
     if (!f_out.is_open())
     {
@@ -538,8 +539,7 @@ auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
     log_warning("NTFS Volume is dirty.\n");
   }
   auto *dir_data = new ntfs_dir_struct;
-  strncpy(dir_data->current_directory, "/",
-          sizeof(dir_data->current_directory));
+  dir_data->current_directory = "/";
   dir_data->current_inode = FILE_root;
   dir_data->param         = FLAG_LIST::ADS;
   if (expert != 0)

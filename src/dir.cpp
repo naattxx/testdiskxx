@@ -190,7 +190,7 @@ auto dir_aff_log(const std::optional<dir_data_t&> dir_data, const dir_list_t &di
                  (long long unsigned int)current_file.st_size, datestr);
         if (dir_data && (dir_data->param & FLAG_LIST::PATHNAME) != 0)
         {
-            if (dir_data->current_directory[1] != '\0')
+            if (dir_data->current_directory.c_str()[1] != '\0')
                 log_info("{}/", dir_data->current_directory);
             else
                 log_info("/");
@@ -262,7 +262,6 @@ static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partiti
 {
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
-    const unsigned int current_directory_namelength = strlen(dir_data.current_directory);
     dir_list_t dir_list;
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
@@ -274,16 +273,12 @@ static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partiti
     inode_known[dir_nbr++] = inode;
     for (file_info_t &current_file : dir_list)
     {
-        if (LINUX_S_ISDIR(current_file.st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0 &&
-            strlen(dir_data.current_directory) + 1 + current_file.name.size() <
-                sizeof(dir_data.current_directory) - 1)
+        if (LINUX_S_ISDIR(current_file.st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0)
         {
-            if (strcmp(dir_data.current_directory, "/") != 0)
-                strcat(dir_data.current_directory, "/");
-            strcat(dir_data.current_directory, current_file.name.c_str());
+            dir_data.current_directory /= current_file.name;
             dir_whole_partition_log_aux(disk, partition, dir_data, current_file.st_ino);
             /* restore current_directory name */
-            dir_data.current_directory[current_directory_namelength] = '\0';
+            dir_data.current_directory = dir_data.current_directory.parent_path();
         }
     }
     dir_nbr--;
@@ -313,7 +308,6 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
 {
     static unsigned int dir_nbr = 0;
     static unsigned long int inode_known[MAX_DIR_NBR];
-    const unsigned int current_directory_namelength = strlen(dir_data.current_directory);
     dir_list_t dir_list;
     if (dir_nbr == MAX_DIR_NBR)
         return 1; /* subdirectories depth is too high => Back */
@@ -322,29 +316,23 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
     inode_known[dir_nbr++] = inode;
     for (file_info_t &current_file : dir_list)
     {
-        if (strlen(dir_data.current_directory) + 1 + current_file.name.size() <
-            sizeof(dir_data.current_directory) - 1)
+        dir_data.current_directory /= current_file.name;
+        if (LINUX_S_ISDIR(current_file.st_mode) != 0)
         {
-            if (strcmp(dir_data.current_directory, "/") != 0)
-                strcat(dir_data.current_directory, "/");
-            strcat(dir_data.current_directory, current_file.name.c_str());
-            if (LINUX_S_ISDIR(current_file.st_mode) != 0)
+            if (is_inode_valid(current_file, dir_nbr, inode_known) > 0)
             {
-                if (is_inode_valid(current_file, dir_nbr, inode_known) > 0)
-                {
-                    dir_whole_partition_copy_aux(disk, partition, dir_data, current_file.st_ino, copy_ok, copy_bad);
-                }
-            }
-            else if (LINUX_S_ISREG(current_file.st_mode) != 0)
-            {
-                if (dir_data.copy_file(disk, partition, current_file) == 0)
-                    (*copy_ok)++;
-                else
-                    (*copy_bad)++;
+                dir_whole_partition_copy_aux(disk, partition, dir_data, current_file.st_ino, copy_ok, copy_bad);
             }
         }
+        else if (LINUX_S_ISREG(current_file.st_mode) != 0)
+        {
+            if (dir_data.copy_file(disk, partition, current_file) == 0)
+                (*copy_ok)++;
+            else
+                (*copy_bad)++;
+        }
         /* restore current_directory name */
-        dir_data.current_directory[current_directory_namelength] = '\0';
+        dir_data.current_directory = dir_data.current_directory.parent_path();
     }
     dir_nbr--;
     return 0;

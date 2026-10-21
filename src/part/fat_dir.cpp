@@ -557,8 +557,7 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
   }
   set_secwest();
   auto *dir_data = new fat_dir_struct;
-  strncpy(dir_data->current_directory, "/",
-          sizeof(dir_data->current_directory));
+  dir_data->current_directory = "/";
   dir_data->current_inode = 0;
   dir_data->param         = FLAG_LIST::DELETED;
   if (partition.upart_type == UP_FAT12)
@@ -602,7 +601,7 @@ auto fat_dir_struct::copy_file(disk_t &disk_car, const partition_t &partition,
   uint64_t start_fat1, start_data, part_size;
   unsigned long int no_of_cluster, fat_length;
   std::ofstream f_out =
-      fopen_local(&new_file, local_dir.string().c_str(), current_directory);
+      fopen_local(&new_file, local_dir.string().c_str(), current_directory.string().c_str());
   if (!f_out.is_open())
   {
 #ifndef DISABLED_FOR_FRAMAC
