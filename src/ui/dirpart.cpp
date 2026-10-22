@@ -122,7 +122,6 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
 
   dir_data_t *dir_data = tmp.value_or(nullptr);
   dir_list_t dir_list{};
-  std::filesystem::path current_directory;
 
   static constexpr int first_file_index = 2;
   int currentFile                       = 0;
@@ -139,7 +138,6 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
       log_partition(disk, partition);
     }
 
-    current_directory = dir_data->current_directory;
     dir_data->get_dir(disk, partition, dir_data->current_inode, dir_list);
     dir_aff_log(*dir_data, dir_list);
 
@@ -166,19 +164,17 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
     log_warning(error_msg);
 
   auto enter_folder = [&] -> void {
-    auto new_path = std::filesystem::weakly_canonical(
-        current_directory / dir_list[currentFile].name
-    );
+    auto new_path =
+        std::filesystem::weakly_canonical(dir_data->current_directory /
+                                          dir_list[currentFile].name);
     if (LINUX_S_ISDIR(dir_list[currentFile].st_mode) &&
-        new_path != current_directory)
+        new_path != dir_data->current_directory)
     {
-      current_directory       = std::move(new_path);
-      dir_data->current_inode = dir_list[currentFile].st_ino;
+      dir_data->current_directory = std::move(new_path);
+      dir_data->current_inode     = dir_list[currentFile].st_ino;
       dir_list.clear();
-      dir_data->get_dir(disk, partition, dir_data->current_inode,
-                        dir_list);
-      menuEntries = dir_list |
-                    std::views::transform(&dir_aff_entry) |
+      dir_data->get_dir(disk, partition, dir_data->current_inode, dir_list);
+      menuEntries = dir_list | std::views::transform(&dir_aff_entry) |
                     std::ranges::to<std::vector<std::string>>();
     }
   };
@@ -268,13 +264,17 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                                       partition))),
         dir_data
             ? vbox({
-                  hflow({text("Directory "), text(current_directory.string())}),
+                  hflow({
+                      text("Directory "),
+                      text(dir_data->current_directory.string()),
+                  }),
                   separatorEmpty(),
                   dir_menu->Render() | vscroll_indicator | yframe | yflex,
                   separatorEmpty(),
                   hbox({
                       text("Use "),
-                      current_directory != current_directory.root_directory()
+                      dir_data->current_directory !=
+                              dir_data->current_directory.root_directory()
                           ? hbox({bold(text("Left")),
                                   text(" arrow to go back, ")})
                           : emptyElement(),
