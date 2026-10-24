@@ -31,6 +31,7 @@
 #include <format>
 #include <fstream>
 #include <ios>
+#include <string>
 #include <utility>
 
 #ifdef DISABLED_FOR_FRAMAC
@@ -375,8 +376,8 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
       ntfs_inode_close(inode);
       return CP_NOMEM;
     }
-    stream_name = strdup(current_directory.string().c_str() +
-                         current_directory.string().find_last_of(':'));
+    std::string str = current_directory.string();
+    stream_name     = str.data() + str.find_last_of(':');
     if (stream_name)
       stream_name++;
     if (stream_name != nullptr)
