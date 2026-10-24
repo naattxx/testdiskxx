@@ -1,5 +1,6 @@
 ---
 Language: Cpp
+Standard: c++26
 BasedOnStyle: Microsoft
 AlignAfterOpenBracket: true
 AlignArrayOfStructures: Left
@@ -20,5 +21,13 @@ SortIncludes:
   Enabled: true
   IgnoreCase: true
 SortUsingDeclarations: LexicographicNumeric
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeEnumUnderlyingTypeColon: true
+SpaceBeforeInheritanceColon: true
+NumericLiteralCase:
+  HexDigit: Upper
+  Prefix: Lower
+  Suffix: Lower
 UseTab: Never
 ...
