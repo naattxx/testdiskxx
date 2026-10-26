@@ -275,12 +275,17 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                       text("Use "),
                       dir_data->current_directory !=
                               dir_data->current_directory.root_directory()
-                          ? hbox({bold(text("Left")),
-                                  text(" arrow to go back, ")})
+                          ? hbox({
+                                bold(text("Left")),
+                                text(" arrow to go back, "),
+                            })
                           : emptyElement(),
-                      hbox({bold(text("Right")),
-                            text(" to change directory, ")}),
-                      (dir_data->capabilities & CAPA_LIST::DELETED) != CAPA_LIST::NONE
+                      hbox({
+                          bold(text("Right")),
+                          text(" to change directory, "),
+                      }),
+                      (dir_data->capabilities & CAPA_LIST::DELETED) !=
+                              CAPA_LIST::NONE
                           ? hbox({
                                 bold(text("'h'")),
                                 (dir_data->param & FLAG_LIST::DELETED) == 0
@@ -288,7 +293,8 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                                     : text(" to hide deleted files"),
                             })
                           : emptyElement(),
-                      (dir_data->capabilities & CAPA_LIST::ADS) != CAPA_LIST::NONE
+                      (dir_data->capabilities & CAPA_LIST::ADS) !=
+                              CAPA_LIST::NONE
                           ? hbox({
                                 bold(text("'h'")),
                                 (dir_data->param & FLAG_LIST::ADS) == 0
@@ -298,8 +304,9 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                           : emptyElement(),
                   }),
                   hbox({
-                      text("'q' to quit, "),
                       hflow({
+                          bold(text("'q'")),
+                          text(" to quit, "),
                           bold(text("':'")),
                           dir_list[std::max(currentFile, first_file_index)]
                                   .status.marked
@@ -312,8 +319,17 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                               : text(" to select all files"),
                       }),
                   }),
-                  text("'C' to copy the selected files, 'c' to copy the "
-                       "current file"),
+                  hbox({
+                      bold(text("'C'")),
+                      text(" to copy the selected files"),
+                      currentFile >= first_file_index
+                          ? hflow({
+                                text(", "),
+                                bold(text("'c'")),
+                                text(" to copy the current file"),
+                            })
+                          : emptyElement(),
+                  }),
               })
             : text(error_msg),
     });
