@@ -20,13 +20,16 @@
 
  */
 #include "dirpart.hpp"
+#include "askloc.hpp"
 #include "config.h"
+#include "dir.hpp"
 #include "ftxui/component/app.hpp"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_options.hpp"
 #include "ftxui/component/event.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/color.hpp"
+#include "intrfn.hpp"
 #include "src/adv.hpp"
 #include "src/common.hpp"
 #include "src/dir.hpp"
@@ -179,6 +182,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
     }
   };
 
+  Component root;
   auto dir_menu =
       Menu(&menuEntries, &currentFile,
            {
@@ -247,10 +251,46 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                           file.status.marked = marked_status;
                         });
         }
+        if (event == Event::c && currentFile >= first_file_index)
+        {
+          if (LINUX_S_ISDIR(dir_list[currentFile].st_mode) != 0)
+            ask_location(
+                dir_data->local_dir,
+                std::format("Please select a destination where '{}' and "
+                            "any files below will be copied.",
+                            dir_list[currentFile].name)
+            );
+          else if (LINUX_S_ISREG(dir_list[currentFile].st_mode) != 0)
+            ask_location(
+                dir_data->local_dir,
+                std::format(
+                    "Please select a destination where '{}' will be copied.",
+                    dir_list[currentFile].name
+                )
+            );
+          else
+          {
+            display_message(root, std::format("'{}' is not a regular file",
+                                              dir_list[currentFile].name));
+            return true;
+          }
+          if (!dir_data->local_dir.empty())
+          {
+            unsigned int copy_ok {0}, copy_bad {0};
+            dir_data->current_directory /= dir_list[currentFile].name;
+            if (LINUX_S_ISDIR(dir_list[currentFile].st_mode) != 0)
+              copy_dir(root, disk, partition, dir_data, dir_list[currentFile],
+                       copy_ok, copy_bad);
+            else // if (LINUX_S_ISREG(dir_list[currentFile].st_mode) != 0)
+              copy_file(root, disk, partition, dir_data, dir_list[currentFile],
+                        copy_ok, copy_bad);
+          }
+          return true;
+        }
         return false;
       });
 
-  Component root = Renderer(dir_menu, [&] -> Element {
+  root = Renderer(dir_menu, [&] -> Element {
     return vbox({
         hflow({
             text("TestDisk++ "),

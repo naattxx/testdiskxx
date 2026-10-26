@@ -326,6 +326,7 @@ sources = files(
   'src/ui/chgarch.cpp',
   'src/ui/chgtype.cpp',
   'src/ui/dimage.cpp',
+  'src/ui/dir.cpp',
   'src/ui/dirpart.cpp',
   'src/ui/diskacc.cpp',
   'src/ui/diskcapa.cpp',
