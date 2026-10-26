@@ -358,7 +358,7 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
   inode           = ntfs_inode_open(vol, first_inode);
   if (!inode)
   {
-    log_error("ntfs_copy: ntfs_inode_open failed for %s\n",
+    log_error("ntfs_copy: ntfs_inode_open failed for {}",
               current_directory);
     return CP_STAT_FAILED;
   }
@@ -389,7 +389,7 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
       const int len = ntfs_mbstoucs(stream_name, &stream_name_ucs, 0);
 #endif
       if (len < 0)
-        log_error("ntfs_mbstoucs failed\n");
+        log_error("ntfs_mbstoucs failed");
       else
         attr = ntfs_attr_open(inode, AT_DATA, stream_name_ucs, len);
     }
@@ -397,7 +397,7 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
       attr = ntfs_attr_open(inode, AT_DATA, nullptr, 0);
     if (!attr)
     {
-      log_error("Cannot find attribute type 0x%lx.\n", (long)AT_DATA);
+      log_error("Cannot find attribute type 0x{:x}.", (long)AT_DATA);
       delete[] buffer;
       ntfs_inode_close(inode);
       return CP_STAT_FAILED;
@@ -437,7 +437,7 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
     offset = 0;
     for (;;)
     {
-      s64 bytes_read, written;
+      s64 bytes_read;
       if (block_size > 0)
       {
         // These types have fixup
