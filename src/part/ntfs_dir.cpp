@@ -378,9 +378,9 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
     }
     std::string str = current_directory.string();
     stream_name     = str.data() + str.find_last_of(':');
-    if (stream_name)
+    if (*stream_name != '\0')
       stream_name++;
-    if (stream_name != nullptr)
+    if (*stream_name != '\0')
     {
       ntfschar *stream_name_ucs = nullptr;
 #ifdef NTFS_MBSTOUCS_HAVE_TWO_ARGUMENTS
