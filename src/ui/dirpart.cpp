@@ -286,6 +286,18 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
           }
           return true;
         }
+        if (event == Event::C)
+        {
+          ask_location(dir_data->local_dir,
+                       "Please select a destination where the marked files "
+                       "will be copied.");
+          if (!dir_data->local_dir.empty())
+          {
+            unsigned int copy_ok {0}, copy_bad {0};
+            copy_selection(root, disk, partition, dir_data, dir_list, copy_ok,
+                           copy_bad);
+          }
+        }
         return false;
       });
 

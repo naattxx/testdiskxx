@@ -108,6 +108,44 @@ static auto do_dir_copy(disk_t &disk, const partition_t &partition,
   return copy_dir_t::FINISHED;
 }
 
+static auto do_selection_copy(disk_t &disk, const partition_t &partition,
+                              dir_data_t *&dir_data, dir_list_t &dir_list,
+                              unsigned int &copy_ok, unsigned int &copy_bad,
+                              bool &stop) -> copy_dir_t
+{
+  for (auto &file : dir_list)
+  {
+    copy_dir_t copy_stopped = copy_dir_t::FINISHED;
+    if (file.status.marked)
+    {
+      file.status.marked = false;
+
+      if (LINUX_S_ISDIR(file.st_mode) != 0)
+      {
+        copy_stopped = do_dir_copy(disk, partition, dir_data, file, copy_ok,
+                                   copy_bad, stop);
+      }
+      else if (LINUX_S_ISREG(file.st_mode) != 0)
+      {
+        if (stop)
+          copy_stopped = copy_dir_t::STOPPED;
+        else
+        {
+          copy_file_t res =
+              do_file_copy(disk, partition, dir_data, file, copy_ok, copy_bad);
+          if (res == CP_NOSPACE)
+            copy_stopped = copy_dir_t::NOSPACE;
+        }
+      }
+
+      if (copy_stopped != copy_dir_t::FINISHED)
+        return copy_stopped;
+    }
+  }
+
+  return copy_dir_t::FINISHED;
+}
+
 auto copy_dir(const Component &root, disk_t &disk, const partition_t &partition,
               dir_data_t *&dir_data, const file_info_t &dir,
               unsigned int &copy_ok, unsigned int &copy_bad) -> copy_dir_t
@@ -218,4 +256,59 @@ auto copy_file(const Component &root, disk_t &disk,
   }
 
   return res;
+}
+
+auto copy_selection(const Component &root, disk_t &disk,
+                    const partition_t &partition, dir_data_t *&dir_data,
+                    dir_list_t &dir_list, unsigned int &copy_ok,
+                    unsigned int &copy_bad) -> copy_dir_t
+{
+  bool show_modal = true;
+  auto screen     = App::Fullscreen();
+
+  static bool stop = false;
+
+  std::future<copy_dir_t> copy_stopped = std::async([&] -> copy_dir_t {
+    return do_selection_copy(disk, partition, dir_data, dir_list, copy_ok,
+                             copy_bad, stop);
+  });
+
+  auto stopButton = Button("  Stop  ", [&] -> void {
+    stop = true;
+    screen.Exit();
+  });
+
+  auto dialog =
+      Renderer(
+          stopButton,
+          [&] -> Element {
+            if (copy_stopped.valid())
+              screen.Exit();
+            screen.RequestAnimationFrame();
+            return vbox({
+                text(std::format("Copying, please wait... {} ok, {} failed",
+                                 copy_ok, copy_bad)),
+                separator(),
+                stopButton->Render(),
+            });
+          }
+      ) |
+      border | center;
+
+  screen.Loop(root | Modal(dialog, &show_modal));
+
+  copy_dir_t res = copy_stopped.get();
+  if (res == copy_dir_t::STOPPED)
+    display_message(root, std::format("Copy stopped! {} ok, {} failed", copy_ok,
+                                      copy_bad));
+  else if (res == copy_dir_t::NOSPACE)
+    display_message(
+        root, std::format("Copy stopped! {} ok, {} failed - Not enough space",
+                          copy_ok, copy_bad)
+    );
+  else
+    display_message(root, std::format("Copy done! {} ok, {} failed", copy_ok,
+                                      copy_bad));
+
+  return copy_dir_t::FINISHED;
 }

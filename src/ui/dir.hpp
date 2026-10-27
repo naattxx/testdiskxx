@@ -21,3 +21,8 @@ auto copy_file(const ftxui::Component &root, disk_t &disk,
                const partition_t &partition, dir_data_t *&dir_data,
                const file_info_t &file, unsigned int &copy_ok,
                unsigned int &copy_bad) -> copy_file_t;
+
+auto copy_selection(const ftxui::Component &root, disk_t &disk,
+                    const partition_t &partition, dir_data_t *&dir_data,
+                    dir_list_t &dir_list, unsigned int &copy_ok,
+                    unsigned int &copy_bad) -> copy_dir_t;
