@@ -355,32 +355,39 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                           : emptyElement(),
                   }),
                   hbox({
-                      hflow({
-                          bold(text("'q'")),
-                          text(" to quit, "),
-                          bold(text("':'")),
-                          dir_list[std::max(currentFile, first_file_index)]
-                                  .status.marked
-                              ? text(" to deselect the current file, ")
-                              : text(" to select the current file, "),
-                          bold(text("'a'")),
-                          dir_list[std::max(currentFile, first_file_index)]
-                                  .status.marked
-                              ? text(" to deselect all files")
-                              : text(" to select all files"),
-                      }),
-                  }),
-                  hbox({
-                      bold(text("'C'")),
-                      text(" to copy the selected files"),
-                      currentFile >= first_file_index
+                      bold(text("'q'")),
+                      text(" to quit"),
+                      dir_list.size() > first_file_index
                           ? hflow({
                                 text(", "),
-                                bold(text("'c'")),
-                                text(" to copy the current file"),
+                                bold(text("':'")),
+                                dir_list[std::max(currentFile,
+                                                  first_file_index)]
+                                        .status.marked
+                                    ? text(" to deselect the current file, ")
+                                    : text(" to select the current file, "),
+                                bold(text("'a'")),
+                                dir_list[std::max(currentFile,
+                                                  first_file_index)]
+                                        .status.marked
+                                    ? text(" to deselect all files")
+                                    : text(" to select all files"),
                             })
                           : emptyElement(),
                   }),
+                  dir_list.size() > first_file_index
+                      ? hbox({
+                            bold(text("'C'")),
+                            text(" to copy the selected files"),
+                            currentFile >= first_file_index
+                                ? hflow({
+                                      text(", "),
+                                      bold(text("'c'")),
+                                      text(" to copy the current file"),
+                                  })
+                                : emptyElement(),
+                        })
+                      : emptyElement(),
               })
             : text(error_msg),
     });
