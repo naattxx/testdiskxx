@@ -65,7 +65,8 @@ static auto do_dir_copy(disk_t &disk, const partition_t &partition,
 
   assert(dir_name != nullptr && "mkdir_local failed");
 
-  static std::vector<unsigned long> inode_known = {dir.st_ino};
+  static std::vector<unsigned long> inode_known;
+  inode_known.push_back(dir.st_ino);
   for (auto &file : dir_list)
   {
     copy_dir_t copy_stopped = copy_dir_t::FINISHED;
