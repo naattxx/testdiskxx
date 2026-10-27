@@ -9,6 +9,7 @@
 #include "src/ui/intrfn.hpp"
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <filesystem>
 #include <format>
 #include <future>
@@ -16,6 +17,7 @@
 #include <vector>
 
 using namespace ftxui;
+using namespace std::chrono_literals;
 
 static auto is_inode_valid(const unsigned long new_inode,
                            const std::vector<unsigned long> &inode_known)
@@ -168,7 +170,7 @@ auto copy_dir(const Component &root, disk_t &disk, const partition_t &partition,
       Renderer(
           stopButton,
           [&] -> Element {
-            if (copy_stopped.valid())
+            if (copy_stopped.wait_for(10ms) == std::future_status::ready)
               screen.Exit();
             screen.RequestAnimationFrame();
             return vbox({
@@ -213,7 +215,7 @@ auto copy_file(const Component &root, disk_t &disk,
 
   auto dialog =
       Renderer([&] -> Element {
-        if (copy_stopped.valid())
+        if (copy_stopped.wait_for(10ms) == std::future_status::ready)
           screen.Exit();
         screen.RequestAnimationFrame();
         return vbox({
@@ -282,7 +284,7 @@ auto copy_selection(const Component &root, disk_t &disk,
       Renderer(
           stopButton,
           [&] -> Element {
-            if (copy_stopped.valid())
+            if (copy_stopped.wait_for(10ms) == std::future_status::ready)
               screen.Exit();
             screen.RequestAnimationFrame();
             return vbox({
