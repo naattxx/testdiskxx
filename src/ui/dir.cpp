@@ -57,6 +57,8 @@ static auto do_dir_copy(disk_t &disk, const partition_t &partition,
                         unsigned int &copy_ok, unsigned int &copy_bad,
                         bool &stop) -> copy_dir_t
 {
+  dir_data->current_directory /= dir.name;
+
   dir_list_t dir_list;
   dir_data->get_dir(disk, partition, dir.st_ino, dir_list);
 
@@ -75,10 +77,8 @@ static auto do_dir_copy(disk_t &disk, const partition_t &partition,
     {
       if (can_copy_dir(file, inode_known))
       {
-        dir_data->current_directory /= file.name;
         copy_stopped = do_dir_copy(disk, partition, dir_data, file, copy_ok,
                                    copy_bad, stop);
-        dir_data->current_directory = dir_data->current_directory.parent_path();
       }
     }
     else if (LINUX_S_ISREG(file.st_mode) != 0)

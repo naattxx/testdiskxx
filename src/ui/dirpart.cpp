@@ -277,7 +277,6 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
           if (!dir_data->local_dir.empty())
           {
             unsigned int copy_ok {0}, copy_bad {0};
-            dir_data->current_directory /= dir_list[currentFile].name;
             if (LINUX_S_ISDIR(dir_list[currentFile].st_mode) != 0)
               copy_dir(root, disk, partition, dir_data, dir_list[currentFile],
                        copy_ok, copy_bad);
