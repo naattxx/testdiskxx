@@ -37,10 +37,10 @@
 #undef min
 #undef max
 
-#define ARGS_VERSION "6.6.0"
+#define ARGS_VERSION "6.6.1"
 #define ARGS_VERSION_MAJOR 6
 #define ARGS_VERSION_MINOR 6
-#define ARGS_VERSION_PATCH 0
+#define ARGS_VERSION_PATCH 1
 
 #include <algorithm>
 #include <iterator>
@@ -398,13 +398,7 @@ namespace args
             
             if (can_reserve && total > 0)
             {
-                try
-                {
-                    res.reserve(total);
-                }
-                catch (...) {
-                    // Fall back to default allocation
-                }
+                res.reserve(total);
             }
             
             bool first = true;
@@ -1284,6 +1278,22 @@ namespace args
             return {};
         }
 
+        // Keep emplace_back for sequences: insert can require move assignment
+        // even when appending a copyable value at the end of a vector.
+        template <typename Container, typename T>
+        auto AppendMappedValue(Container &container, const T &value, int)
+            -> decltype(container.emplace_back(value), void())
+        {
+            container.emplace_back(value);
+        }
+
+        template <typename Container, typename T>
+        auto AppendMappedValue(Container &container, const T &value, long)
+            -> decltype(container.insert(std::end(container), value), void())
+        {
+            container.insert(std::end(container), value);
+        }
+
         template <typename T>
         std::vector<std::string> MapKeysToStrings(const T &map)
         {
@@ -1721,7 +1731,24 @@ namespace args
                 children.emplace_back(&child);
 
                 if(child.IsFlag()) {
+#ifndef ARGS_NOEXCEPT
+                    // Detection runs from the child's own constructor, so a
+                    // duplicate throws before that constructor completes and the
+                    // child's storage is released while the stack unwinds. Undo
+                    // the registration first, or a caller that catches the error
+                    // leaves this group holding a pointer to a dead object.
+                    try
+                    {
+                        SignalDetectDuplicates();
+                    }
+                    catch (...)
+                    {
+                        children.pop_back();
+                        throw;
+                    }
+#else
                     SignalDetectDuplicates();
+#endif
                 }
             }
 
@@ -2807,8 +2834,11 @@ namespace args
                     {
                         return "Flag '" + arg + "' was passed a separate argument, but these are disallowed";
                     }
-                }
-                {
+                } else if (allowSeparate && (!hasJoined || !values.empty())) {
+                    // Only gather separate values when they are allowed. A joined
+                    // value that was discarded rather than taken (short chunks such
+                    // as -nf when joined short values are off) means this flag isn't
+                    // taking an argument here, so the rest of the chunk is flags.
                     auto valueIt = it;
                     ++valueIt;
 
@@ -3392,8 +3422,11 @@ namespace args
 
             void AddCompletion(CompletionFlag &completionFlag)
             {
-                completion = &completionFlag;
+                // Only take the pointer once registration has succeeded: Add()
+                // throws on a duplicate flag, and the flag it was handed is
+                // gone by the time that error reaches the caller.
                 Add(completionFlag);
+                completion = &completionFlag;
             }
 
             /** The program name for help generation
@@ -4751,7 +4784,7 @@ namespace args
 #endif
                 } else
                 {
-                    this->values.emplace_back(it->second);
+                    detail::AppendMappedValue(values, it->second, 0);
                 }
             }
 
@@ -5259,7 +5292,7 @@ namespace args
 #endif
                 } else
                 {
-                    this->values.emplace_back(it->second);
+                    detail::AppendMappedValue(values, it->second, 0);
                     matched = true;
                 }
             }
