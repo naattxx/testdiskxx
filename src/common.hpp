@@ -548,7 +548,7 @@ constexpr efi_guid_t GPT_ENT_TYPE_BEOS_BFS{
     .node                      = {0x48, 0x61, 0x69, 0x6b, 0x75, 0x21},
 };
 
-enum TESTDISK_O : uint16_t{
+enum class TESTDISK_O : uint16_t{
     RDONLY = 00,
     RDWR = 02,
     DIRECT = 040000,
@@ -556,6 +556,35 @@ enum TESTDISK_O : uint16_t{
     READAHEAD_32K = 010,
     ALL = 020,
 };
+
+[[nodiscard]]
+constexpr auto operator|(TESTDISK_O __x, TESTDISK_O __y) noexcept -> TESTDISK_O
+{
+  using __utype = std::underlying_type_t<TESTDISK_O>;
+  return static_cast<TESTDISK_O>(static_cast<__utype>(__x) |
+                               static_cast<__utype>(__y));
+}
+[[nodiscard]]
+constexpr auto operator&(TESTDISK_O __x, TESTDISK_O __y) noexcept -> TESTDISK_O
+{
+  using __utype = std::underlying_type_t<TESTDISK_O>;
+  return static_cast<TESTDISK_O>(static_cast<__utype>(__x) &
+                               static_cast<__utype>(__y));
+}
+[[nodiscard]]
+constexpr auto operator~(TESTDISK_O __x) noexcept -> TESTDISK_O
+{
+  using __utype = std::underlying_type_t<TESTDISK_O>;
+  return static_cast<TESTDISK_O>(~static_cast<__utype>(__x));
+}
+inline auto operator|=(TESTDISK_O &__x, TESTDISK_O __y) noexcept -> TESTDISK_O &
+{
+  return __x = __x | __y;
+}
+inline auto operator&=(TESTDISK_O &__x, TESTDISK_O __y) noexcept -> TESTDISK_O &
+{
+  return __x = __x & __y;
+}
 
 enum upart_type_t : uint8_t
 {
@@ -787,7 +816,7 @@ struct disk_t
     std::vector<char> wbuffer;
     int write_used{0};
     int autodetect{0};
-    int access_mode;
+    TESTDISK_O access_mode;
     UNIT unit{UNIT::CHS};
     unsigned int sector_size;
 };

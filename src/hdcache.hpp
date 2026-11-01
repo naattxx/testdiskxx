@@ -30,7 +30,7 @@
   @ requires valid_disk(disk_car);
   @ ensures \valid(\result);
   @*/
-auto new_diskcache(disk_t &disk_car, const unsigned int cache_size_min) -> disk_t;
+auto new_diskcache(disk_t &disk_car, const TESTDISK_O cache_size_min) -> disk_t;
 
 #endif
 #endif

@@ -40,7 +40,7 @@ static void display_version() noexcept
         ; // << "OS: " << get_os() << '\n';
 }
 
-static auto display_disk_list(list_disk_t list_disk, const unsigned int testdisk_mode, const int create_backup, const int safe,
+static auto display_disk_list(list_disk_t list_disk, const TESTDISK_O testdisk_mode, const int create_backup, const int safe,
                              const int saveheader, const UNIT unit, const int verbose) noexcept -> int
 {
     std::println("Please wait...");
@@ -116,7 +116,7 @@ auto main(int argc, char **argv) -> int
     bool log_opened = false;
     int verbose = 0;
     list_disk_t list_disk;
-    unsigned int testdisk_mode = TESTDISK_O::RDWR | TESTDISK_O::READAHEAD_8K;
+    TESTDISK_O testdisk_mode = TESTDISK_O::RDWR | TESTDISK_O::READAHEAD_8K;
     UNIT unit = UNIT::DEFAULT;
 
     args::ArgumentParser parser("TestDisk " VERSION ", Data Recovery Utility, " TESTDISKDATE

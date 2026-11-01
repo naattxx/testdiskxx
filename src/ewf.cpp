@@ -91,13 +91,13 @@ struct info_fewf_struct
 #endif
   uint64_t offset;
   char *file_name;
-  int mode;
+  TESTDISK_O mode;
   void *buffer;
   unsigned int buffer_size;
 };
 
 #ifdef HAVE_LIBEWF_V2_API
-auto fewf_init(const char *device, const unsigned int mode) -> std::optional<disk_t>
+auto fewf_init(const char *device, const TESTDISK_O mode) -> std::optional<disk_t>
 {
   int num_files=0;
   char **filenames= nullptr;
@@ -237,7 +237,7 @@ auto fewf_init(const char *device, const unsigned int mode) -> std::optional<dis
   disk.description=&fewf_description;
   disk.description_short=&fewf_description_short;
   disk.pread=&fewf_pread;
-  disk.pwrite=((data->mode&TESTDISK_O::RDWR)?&fewf_pwrite:&fewf_nopwrite);
+  disk.pwrite=((data->mode&TESTDISK_O::RDWR) == TESTDISK_O::RDWR)?&fewf_pwrite:&fewf_nopwrite;
   disk.sync=&fewf_sync;
   disk.access_mode=(data->mode&TESTDISK_O::RDWR);
   disk.clean=&fewf_clean;
@@ -282,7 +282,7 @@ auto fewf_init(const char *device, const unsigned int mode) -> std::optional<dis
   return disk;
 }
 #else
-std::optional<disk_t> fewf_init(const char *device, const unsigned int mode)
+std::optional<disk_t> fewf_init(const char *device, const TESTDISK_O mode)
 {
   unsigned int num_files=0;
   char **filenames = nullptr;
@@ -377,7 +377,7 @@ std::optional<disk_t> fewf_init(const char *device, const unsigned int mode)
   disk.description=&fewf_description;
   disk.description_short=&fewf_description_short;
   disk.pread=&fewf_pread;
-  disk.pwrite=((data->mode&TESTDISK_O::RDWR)?&fewf_pwrite:&fewf_nopwrite);
+  disk.pwrite=((data->mode&TESTDISK_O::RDWR) == TESTDISK_O::RDWR)?&fewf_pwrite:&fewf_nopwrite;
   disk.sync=&fewf_sync;
   disk.access_mode=(data->mode&TESTDISK_O::RDWR);
   disk.clean=&fewf_clean;
@@ -435,7 +435,7 @@ static auto fewf_description(disk_t &disk) -> std::string_view
   disk.description_txt = std::format("Image {} - {} - CHS {} {} {}{}",
       data->file_name, disk_size_str,
       disk.geom.cylinders, disk.geom.heads_per_cylinder, disk.geom.sectors_per_head,
-      ((data->mode&O_RDWR)==O_RDWR?"":" (RO)"));
+      ((data->mode&TESTDISK_O::RDWR)==TESTDISK_O::RDWR?"":" (RO)"));
   return disk.description_txt;
 }
 
@@ -445,7 +445,7 @@ static auto fewf_description_short(disk_t &disk) -> std::string_view
   const std::string disk_size_str = size_to_unit(disk.disk_size);
   disk.description_short_txt = std::format("Image {} - {}{}",
       data->file_name, disk_size_str,
-      ((data->mode&O_RDWR)==O_RDWR?"":" (RO)"));
+      ((data->mode&TESTDISK_O::RDWR)==TESTDISK_O::RDWR?"":" (RO)"));
   return disk.description_short_txt;
 }
 

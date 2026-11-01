@@ -304,7 +304,7 @@ static auto cache_description_short(disk_t &disk_car) -> std::string_view
     return tmp;
 }
 
-auto new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode) -> disk_t
+auto new_diskcache(disk_t &disk_car, const TESTDISK_O testdisk_mode) -> disk_t
 {
     unsigned int i;
     auto *data = new struct cache_struct;
@@ -318,9 +318,9 @@ auto new_diskcache(disk_t &disk_car, const unsigned int testdisk_mode) -> disk_t
 #endif
     data->cache_buffer_nbr = 0;
     data->last_io_error_nbr = 0;
-    if (testdisk_mode & TESTDISK_O::READAHEAD_8K)
+    if ((testdisk_mode & TESTDISK_O::READAHEAD_8K) == TESTDISK_O::READAHEAD_8K)
         data->cache_size_min = 16 * 512;
-    else if (testdisk_mode & TESTDISK_O::READAHEAD_32K)
+    else if ((testdisk_mode & TESTDISK_O::READAHEAD_32K) == TESTDISK_O::READAHEAD_32K)
         data->cache_size_min = 64 * 512;
     else
         data->cache_size_min = 0;
