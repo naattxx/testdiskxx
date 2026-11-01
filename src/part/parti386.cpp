@@ -544,7 +544,7 @@ static auto get_geometry_from_i386mbr(const unsigned char *buffer,
         geometry->heads_per_cylinder == 255)))
   {
 #ifndef DISABLED_FOR_FRAMAC
-    log_info("Geometry from i386 MBR: head={} sector={}\n",
+    log_info("Geometry from i386 MBR: head={} sector={}",
              geometry->heads_per_cylinder, geometry->sectors_per_head);
 #endif
   }
@@ -552,7 +552,7 @@ static auto get_geometry_from_i386mbr(const unsigned char *buffer,
   {
 #ifndef DISABLED_FOR_FRAMAC
     if (geometry->sectors_per_head > 0)
-      log_warning("Geometry from i386 MBR: head={} sector={}\n",
+      log_warning("Geometry from i386 MBR: head={} sector={}",
                   geometry->heads_per_cylinder, geometry->sectors_per_head);
 #endif
     /* Don't trust the geometry */
@@ -580,7 +580,7 @@ static void init_part_order_i386(const disk_t &disk_car, list_part_t &list_part)
       element.order = (++nbr_log) + 4;
       break;
     default:
-      log_critical("init_part_order_i386: severe error\n");
+      log_critical("init_part_order_i386: severe error");
       break;
     }
   }
@@ -690,7 +690,7 @@ static void test_MBR_data(const list_part_t &list_part)
       nb_ext++;
       break;
     default:
-      log_critical("test_MBR_data: severe error\n");
+      log_critical("test_MBR_data: severe error");
       break;
     }
   }
@@ -988,7 +988,7 @@ static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part,
   else
   {
     if (verbose > 0)
-      log_info("Store new MBR code\n");
+      log_info("Store new MBR code");
     write_MBR_code_i386_aux(buffer);
   }
   /* Remove Mac signature */
@@ -1013,7 +1013,7 @@ static auto write_mbr_i386(disk_t &disk_car, const list_part_t &list_part,
     case STATUS_LOG:
       break;
     default:
-      log_critical("write_mbr_i386: severe error\n");
+      log_critical("write_mbr_i386: severe error");
       break;
     }
   }
@@ -1059,12 +1059,12 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
       if (is_extended(element->part_type_i386))
       {
         if (pos_ext != list_part.cend())
-          log_critical("write_all_log_i386: pos_ext already defined\n");
+          log_critical("write_all_log_i386: pos_ext already defined");
         pos_ext = element;
       }
       else
       {
-        log_critical("write_all_log_i386: STATUS_EXT with bad part_type\n");
+        log_critical("write_all_log_i386: STATUS_EXT with bad part_type");
       }
     }
   }
@@ -1082,7 +1082,7 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
     unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
     if (verbose > 0)
     {
-      log_info("write_all_log_i386: CHS: {}/{}/{},lba={}\n",
+      log_info("write_all_log_i386: CHS: {}/{}/{},lba={}",
                offset2cylinder(disk_car, current_pos),
                offset2head(disk_car, current_pos),
                offset2sector(disk_car, current_pos),
@@ -1121,7 +1121,7 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
       unsigned char buffer_org[DEFAULT_SECTOR_SIZE];
       if (verbose > 0)
       {
-        log_info("write_all_log_i386: CHS: {}/{}/{},lba={}\n",
+        log_info("write_all_log_i386: CHS: {}/{}/{},lba={}",
                  offset2cylinder(disk_car, current_pos),
                  offset2head(disk_car, current_pos),
                  offset2sector(disk_car, current_pos),
@@ -1157,7 +1157,7 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
         }
         nextext_start.sector = 1;
         if (verbose > 1)
-          ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
+          ; // log_verbose("nextext_start {}/{}/{} {} ? {}",
             // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
             //     (long
             //     unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
@@ -1169,7 +1169,7 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
           offset2CHS(disk_car, bloc_nextext.part_offset, &nextext_start);
           nextext_start.sector = 1;
           if (verbose > 1)
-            ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
+            ; // log_verbose("nextext_start {}/{}/{} {} ? {}",
               // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
               //     (long
               //     unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
@@ -1182,7 +1182,7 @@ static auto write_all_log_i386(disk_t &disk_car, const list_part_t &list_part,
           }
         }
         if (verbose > 1)
-          ; // log_verbose("nextext_start {}/{}/{} {} ? {}\n",
+          ; // log_verbose("nextext_start {}/{}/{} {} ? {}",
             // nextext_start.cylinder,nextext_start.head,nextext_start.sector,
             //     (long
             //     unsigned)(CHS2offset(disk_car,&nextext_start)/disk_car.sector_size),
@@ -1232,14 +1232,14 @@ static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE],
   {
     unsigned int j;
     log_info("\nSectors are different.\n");
-    log_info("buffer_org\n");
+    log_info("buffer_org");
     for (j = 0; j < 4; j++)
     {
       const struct partition_dos *p = pt_offset_const(buffer_org, j);
       if (p->sys_ind != 0)
         log_dos_entry(p);
     }
-    log_info("buffer\n");
+    log_info("buffer");
     for (j = 0; j < 4; j++)
     {
       const struct partition_dos *p = pt_offset_const(buffer, j);
@@ -1248,7 +1248,7 @@ static auto diff(const unsigned char buffer[DEFAULT_SECTOR_SIZE],
     }
     for (j = 0; j < DEFAULT_SECTOR_SIZE; j++)
       if (buffer_org[j] != buffer[j])
-        log_info("%02X %02X %02X\n", j, buffer_org[j], buffer[j]);
+        log_info("{:02X} {:02X} {:02X}", j, buffer_org[j], buffer[j]);
     log_info("\n");
   }
   return 0;
@@ -1456,7 +1456,7 @@ static auto i386_entry2partition(disk_t &disk_car, const uint64_t offset,
       ((start_calculated.cylinder > 1023) && (start.cylinder != 1023) &&
        (start.cylinder != (start_calculated.cylinder & 1023u))))
   {
-    log_error("BAD_RS LBA={} {}\n",
+    log_error("BAD_RS LBA={} {}",
               (long unsigned)(partition.part_offset / disk_car.sector_size),
               C_H_S2LBA(disk_car, start.cylinder, start.head, start.sector));
     if (partition.errcode == BAD_NOERR)
@@ -1502,21 +1502,21 @@ static auto errmsg_i386_entry2partition(const errcode_type_t errcode) -> const
   case BAD_NOERR:
     return "";
   }
-  log_critical("errmsg_i386_entry2partition: unhandled error\n");
+  log_critical("errmsg_i386_entry2partition: unhandled error");
   return "";
 }
 
 static void log_dos_entry(const struct partition_dos *entree)
 {
   if (!get_partition_typename_i386_aux(entree->sys_ind).empty())
-    log_info(" %-20s ", get_partition_typename_i386_aux(entree->sys_ind));
+    log_info(" {:>20s} ", get_partition_typename_i386_aux(entree->sys_ind));
   else
-    log_info(" Sys=%02X               ", entree->sys_ind);
+    log_info(" Sys={:02X}               ", entree->sys_ind);
   log_info(
-      "%4u %3u %2u"
-      " %4u %3u %2u"
-      " %10lu"
-      " %10lu\n",
+      "{:4} {:3} {:2}"
+      " {:4} {:3} {:2}"
+      " {:10}"
+      " {:10}",
       s_cyl(entree), entree->head, s_sect(entree), e_cyl(entree),
       entree->end_head, e_sect(entree), (long unsigned)get_start_sect(entree),
       (long unsigned)get_nr_sects(entree)
@@ -1566,7 +1566,7 @@ static auto test_structure_i386(const list_part_t &list_part) -> int
     case STATUS_DELETED:
       break;
     default:
-      log_critical("test_structure_i386: severe error\n");
+      log_critical("test_structure_i386: severe error");
       break;
     }
   }
@@ -1840,7 +1840,7 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part,
       nbr_log_block++;
     }
     if (verbose > 1)
-      log_info("\nRes: nbr_prim {}, nbr_log_block {}, vista_partition={}\n",
+      log_info("Res: nbr_prim {}, nbr_log_block {}, vista_partition={}",
                nbr_prim, nbr_log_block, vista_partition);
     if (nbr_prim + nbr_log_block <= 4)
     {
@@ -2047,7 +2047,7 @@ static auto check_part_i386(disk_t &disk_car, const int verbose,
   default:
     if (verbose > 0)
     {
-      log_warning("check_part_i386 {} type %02X: no test\n", partition.order,
+      log_warning("check_part_i386 {} type {:02X}: no test", partition.order,
                   partition.part_type_i386);
     }
     if (saveheader > 0)
@@ -2058,7 +2058,7 @@ static auto check_part_i386(disk_t &disk_car, const int verbose,
   }
   if (ret != 0)
   {
-    log_error("check_part_i386 failed for partition type %02X\n",
+    log_error("check_part_i386 failed for partition type {:02X}",
               partition.part_type_i386);
     aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     if (saveheader > 0)

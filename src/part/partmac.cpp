@@ -447,14 +447,14 @@ static auto check_part_mac(disk_t &disk_car, const int verbose,
   default:
     if (verbose > 0)
     {
-      log_info("check_part_mac {} type %02X: no test\n", partition.order,
+      log_info("check_part_mac {} type {:02X}: no test", partition.order,
                partition.part_type_mac);
     }
     break;
   }
   if (ret != 0)
   {
-    log_error("check_part_mac failed for partition type %02X\n",
+    log_error("check_part_mac failed for partition type {:02X}",
               partition.part_type_mac);
     aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     if (saveheader > 0)

@@ -365,12 +365,12 @@ static auto check_part_xbox(disk_t &disk_car, const int verbose,
   }
   else if (verbose > 0)
   {
-    log_info("check_part_xbox {} type {:02X}: no test\n", partition.order,
+    log_info("check_part_xbox {} type {:02X}: no test", partition.order,
              partition.part_type_xbox);
   }
   if (ret != 0)
   {
-    log_error("check_part_xbox failed for partition type {:02X}\n",
+    log_error("check_part_xbox failed for partition type {:02X}",
               partition.part_type_xbox);
     aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     if (saveheader > 0)

@@ -196,7 +196,7 @@ static auto get_geometry_from_sunmbr(const unsigned char *buffer,
 #ifndef DISABLED_FOR_FRAMAC
   if (geometry->sectors_per_head > 0)
   {
-    log_info("Geometry from SUN MBR: head={} sector={}\n",
+    log_info("Geometry from SUN MBR: head={} sector={}",
              geometry->heads_per_cylinder, geometry->sectors_per_head);
   }
 #endif
@@ -284,7 +284,7 @@ static void init_part_order_sun(const disk_t &disk_car, list_part_t &list_part)
       element.order = nbr_prim++;
       break;
     default:
-      log_critical("init_part_order_sun: severe error\n");
+      log_critical("init_part_order_sun: severe error");
       break;
     }
   }
@@ -452,14 +452,14 @@ static auto check_part_sun(disk_t &disk_car, const int verbose,
   default:
     if (verbose > 0)
     {
-      log_info("check_part_sun {} type %02X: no test\n", partition.order,
+      log_info("check_part_sun {} type {:02X}: no test", partition.order,
                partition.part_type_sun);
     }
     break;
   }
   if (ret != 0)
   {
-    log_error("check_part_sun failed for partition type %02X\n",
+    log_error("check_part_sun failed for partition type {:02X}",
               partition.part_type_sun);
     aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     if (saveheader > 0)

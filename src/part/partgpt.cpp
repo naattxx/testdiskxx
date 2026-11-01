@@ -243,20 +243,20 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   }
   if (verbose > 0)
   {
-    log_info("hdr_size={}\n", (long long unsigned)to_little_endian(gpt->hdr_size));
-    log_info("hdr_lba_self={}\n", (long long unsigned)to_little_endian(gpt->hdr_lba_self));
-    log_info("hdr_lba_alt={} (expected {})\n",
+    log_info("hdr_size={}", (long long unsigned)to_little_endian(gpt->hdr_size));
+    log_info("hdr_lba_self={}", (long long unsigned)to_little_endian(gpt->hdr_lba_self));
+    log_info("hdr_lba_alt={} (expected {})",
              (long long unsigned)to_little_endian(gpt->hdr_lba_alt),
              (hdr_lba == 1 ? (long long unsigned)((disk_car.disk_size - 1) /
                                                   disk_car.sector_size)
                            : 1));
-    log_info("hdr_lba_start={}\n",
+    log_info("hdr_lba_start={}",
              (long long unsigned)to_little_endian(gpt->hdr_lba_start));
-    log_info("hdr_lba_end={}\n", (long long unsigned)to_little_endian(gpt->hdr_lba_end));
-    log_info("hdr_lba_table={}\n",
+    log_info("hdr_lba_end={}", (long long unsigned)to_little_endian(gpt->hdr_lba_end));
+    log_info("hdr_lba_table={}",
              (long long unsigned)to_little_endian(gpt->hdr_lba_table));
-    log_info("hdr_entries={}\n", (long long unsigned)to_little_endian(gpt->hdr_entries));
-    log_info("hdr_entsz={}\n", (long long unsigned)to_little_endian(gpt->hdr_entsz));
+    log_info("hdr_entries={}", (long long unsigned)to_little_endian(gpt->hdr_entries));
+    log_info("hdr_entsz={}", (long long unsigned)to_little_endian(gpt->hdr_entsz));
   }
   /* Check header size */
   if (to_little_endian(gpt->hdr_size) < 92 || to_little_endian(gpt->hdr_size) > disk_car.sector_size)
@@ -604,7 +604,7 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
   // log_set_levels(old_levels);
   if (ret != 0)
   {
-    log_error("check_part_gpt failed for partition\n");
+    log_error("check_part_gpt failed for partition");
     log_partition(disk, partition);
     aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
     if (saveheader > 0)
@@ -623,7 +623,7 @@ static auto get_gpt_typename(const efi_guid_t part_type_gpt) -> std::string_view
 #ifndef DISABLED_FOR_FRAMAC
   log_info(
       "{:8x} {:04x} {:04x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} "
-      "{:02x}\n",
+      "{:02x}",
       part_type_gpt.time_low, part_type_gpt.time_mid,
       part_type_gpt.time_hi_and_version,
       part_type_gpt.clock_seq_hi_and_reserved, part_type_gpt.clock_seq_low,

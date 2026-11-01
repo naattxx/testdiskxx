@@ -230,7 +230,7 @@ static void init_part_order_humax(const disk_t &disk_car,
     if (element.status == STATUS_PRIM)
       element.order = nbr_prim++;
     else
-      log_critical("init_part_order_humax: severe error\n");
+      log_critical("init_part_order_humax: severe error");
   }
 }
 
