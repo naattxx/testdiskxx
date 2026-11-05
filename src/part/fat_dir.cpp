@@ -285,7 +285,7 @@ RecEnd:
     {
       unsigned int i, o;
       file_info_t new_file;
-      new_file.name = new char[DIR_NAME_LEN];
+      new_file.name.resize(DIR_NAME_LEN);
       for (i = 0, o = 0; o < DIR_NAME_LEN - 2 && unicode[i] != 0; i++)
       {
         if (utf8 && unicode[i] > 0x7f)
