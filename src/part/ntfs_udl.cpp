@@ -195,7 +195,7 @@ static void free_file(struct ufile *file)
   }
 
   delete file->mft;
-  free (file);
+  delete file;
 }
 
 /**
@@ -560,10 +560,10 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
   if (!vol)
     return nullptr;
 
-  file = static_cast<struct ufile *>(calloc(1, sizeof(*file)));
-  if (!file)
-  {
-    log_error("ERROR: Couldn't allocate memory in read_record()\n");
+  try {
+    file = new struct ufile;
+  } catch (...) {
+    log_error("ERROR: Couldn't allocate memory in read_record()");
     return nullptr;
   }
 
