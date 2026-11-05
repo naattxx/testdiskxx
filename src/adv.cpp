@@ -122,25 +122,3 @@ static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition, const i
     }
     return 0;
 }
-
-static void adv_menu_undelete_selected(disk_t &disk, const partition_t &partition, const int verbose,
-                                       char **current_cmd)
-{
-    if (partition.sb_offset != 0 && partition.sb_size > 0)
-    {
-        io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset, partition.sb_size,
-                           partition.part_offset + partition.sb_offset, nullptr);
-        if (partition.upart_type == UP_NTFS || (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
-            ntfs_undelete_part(disk, partition, verbose, current_cmd);
-        else
-            dir_partition(disk, partition, 0, false);
-        io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
-    }
-    else
-    {
-        if (partition.upart_type == UP_NTFS || (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
-            ntfs_undelete_part(disk, partition, verbose, current_cmd);
-        else
-            dir_partition(disk, partition, 0, false);
-    }
-}

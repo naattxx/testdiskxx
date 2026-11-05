@@ -11,6 +11,7 @@
 #include "ftxui/dom/table.hpp"
 #include "src/adv.hpp"
 #include "src/common.hpp"
+#include "src/dir_common.hpp"
 #include "src/intrf.hpp"
 #include "src/io_redir.hpp"
 #include "src/log.hpp"
@@ -230,6 +231,56 @@ static void adv_menu_list_selected(disk_t &disk, const partition_t &partition, c
         dir_partition(disk, partition, verbose, expert);
 }
 
+static void adv_menu_undelete_selected(const Component &root, disk_t &disk,
+                                       const partition_t &partition,
+                                       const int verbose)
+{
+  if (partition.sb_offset != 0 && partition.sb_size > 0)
+  {
+    io_redir_add_redir(disk, partition.part_offset + partition.sborg_offset,
+                       partition.sb_size,
+                       partition.part_offset + partition.sb_offset, nullptr);
+    if (partition.upart_type == UP_NTFS ||
+        (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
+    {
+      //TODO:
+      // auto data = ntfs_undelete_part_data(disk, partition, verbose);
+      // if (data)
+      // {
+      //   auto [dir_data, dir_list] = *data;
+      //   ntfs_undelete_menu(disk, partition, dir_data, dir_list);
+      //   dir_data->close();
+      //   delete dir_data;
+      // }
+      // else
+      //   display_message(root, data.error());
+    }
+    else
+      dir_partition(disk, partition, 0, false);
+    io_redir_del_redir(disk, partition.part_offset + partition.sborg_offset);
+  }
+  else
+  {
+    if (partition.upart_type == UP_NTFS ||
+        (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
+    {
+      //TODO:
+      // auto data = ntfs_undelete_part_data(disk, partition, verbose);
+      // if (data)
+      // {
+      //   auto [dir_data, dir_list] = *data;
+      //   ntfs_undelete_menu(disk, partition, dir_data, dir_list);
+      //   dir_data->close();
+      //   delete dir_data;
+      // }
+      // else
+      //   display_message(root, data.error());
+    }
+    else
+      dir_partition(disk, partition, 0, false);
+  }
+}
+
 void interface_adv(disk_t &disk, const int verbose, const bool dump,
                    const bool expert)
 {
@@ -318,7 +369,9 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
       Maybe(Button(
                 "[Undelete]"
                 "File undelete",
-                [] -> void {}, buttonOptions
+                [&] -> void {
+                  adv_menu_undelete_selected(root, disk, list_part[selected_part], verbose);
+                }, buttonOptions
             ),
             &hasUndelete),
       Button(
