@@ -159,7 +159,7 @@ struct ufile
   char *pref_pname;     /*	     parent filename */
   uint64_t max_size;    /* Largest size we find */
   int attr_list;        /* MFT record may be one of many */
-  int directory;        /* MFT record represents a directory */
+  bool directory;       /* MFT record represents a directory */
   MFT_RECORD *mft;      /* Raw MFT record */
   ~ufile();
 };
@@ -606,7 +606,7 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
   if (attr20 || !attr10)
     file->attr_list = 1;
   if (attr90)
-    file->directory = 1;
+    file->directory = true;
 
   if (get_filenames(file, vol) < 0)
   {
