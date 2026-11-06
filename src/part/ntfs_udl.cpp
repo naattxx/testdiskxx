@@ -161,41 +161,35 @@ struct ufile
   int attr_list;        /* MFT record may be one of many */
   int directory;        /* MFT record represents a directory */
   MFT_RECORD *mft;      /* Raw MFT record */
+  ~ufile();
 };
 
 static const char *UNKNOWN = "unknown";
 static struct options opts;
 
 /**
- * free_file - Release the resources used by a file object
- * @file:  The unwanted file object
+ * ~ufile - Release the resources used by a file object
  *
  * This will free up the memory used by a file object and iterate through the
  * object's children, freeing their resources too.
- *
- * Return:  none
  */
-static void free_file(struct ufile *file)
+ufile::~ufile()
 {
-  if (!file)
-    return;
-
-  for (filename *f : file->name)
+  for (filename *&f : name)
   { /* List of filenames */
     delete f->name;
     delete f->parent_name;
     delete f;
   }
 
-  for (data *d : file->data)
+  for (struct data *&d : data)
   { /* List of data streams */
     delete d->name;
     delete d->runlist;
     delete d;
   }
 
-  delete file->mft;
-  delete file;
+  delete mft;
 }
 
 /**
@@ -576,7 +570,7 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
   if (!mft)
   {
     log_error("ERROR: Couldn't open $MFT/$DATA\n");
-    free_file(file);
+    delete file;
     return nullptr;
   }
 
@@ -586,7 +580,7 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
     log_error("ERROR: Couldn't read MFT Record {}.\n",
               (long long unsigned)record);
     ntfs_attr_close(mft);
-    free_file(file);
+    delete file;
     return nullptr;
   }
 
@@ -930,7 +924,7 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
   {
     log_error("Record is in use by the mft\n");
     delete[] buffer;
-    free_file(file);
+    delete file;
     return -2;
   }
 
@@ -1153,11 +1147,11 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
     set_date(pathname, file->date, file->date);
   }
   delete[] buffer;
-  free_file(file);
+  delete file;
   return 0;
 free:
   delete[] buffer;
-  free_file(file);
+  delete file;
   return -2;
 }
 
@@ -1268,7 +1262,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
             results++;
           }
         }
-        free_file(file);
+        delete file;
       }
     }
   }
