@@ -241,6 +241,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
         {
           dir_list[std::max(currentFile, first_file_index)].status.marked =
               !dir_list[std::max(currentFile, first_file_index)].status.marked;
+          return true;
         }
         if (event == Event::a)
         {
@@ -250,6 +251,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
                                   .status.marked](auto &file) -> void {
                           file.status.marked = marked_status;
                         });
+          return true;
         }
         if (event == Event::c && currentFile >= first_file_index)
         {
@@ -297,6 +299,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
             copy_selection(root, disk, partition, dir_data, dir_list, copy_ok,
                            copy_bad);
           }
+          return true;
         }
         return false;
       });
