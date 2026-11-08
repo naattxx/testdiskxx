@@ -443,7 +443,7 @@ static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
   }
 
   ntfs_attr_put_search_ctx(ctx);
-  log_debug("File has %d names.\n", count);
+  log_debug("File has {} names.", count);
   return count;
 }
 
@@ -519,7 +519,7 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
     data->runlist = ntfs_mapping_pairs_decompress(vol, rec, nullptr);
     if (!data->runlist)
     {
-      log_debug("Couldn't decompress the data runs.\n");
+      log_debug("Couldn't decompress the data runs.");
     }
 
     file->max_size = std::max(file->max_size, data->size_data);
@@ -530,7 +530,7 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
   }
 
   ntfs_attr_put_search_ctx(ctx);
-  log_debug("File has %d data streams.\n", count);
+  log_debug("File has {} data streams.", count);
   return count;
 }
 
@@ -591,7 +591,7 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
   attr20 = find_first_attribute(AT_ATTRIBUTE_LIST, file->mft);
   attr90 = find_first_attribute(AT_INDEX_ROOT, file->mft);
 
-  log_debug("Attributes present: %s %s %s.\n", attr10 ? "0x10" : "",
+  log_debug("Attributes present: {} {} {}.", attr10 ? "0x10" : "",
             attr20 ? "0x20" : "", attr90 ? "0x90" : "");
 
   if (attr10)
@@ -670,13 +670,13 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
 
     if (data->encrypted)
     {
-      log_debug("File is encrypted, recovery is impossible.\n");
+      log_debug("File is encrypted, recovery is impossible.");
       continue;
     }
 
     if (data->compressed)
     {
-      log_debug("File is compressed, recovery not yet implemented.\n");
+      log_debug("File is compressed, recovery not yet implemented.");
       continue;
     }
 
@@ -690,19 +690,19 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
     rl = data->runlist;
     if (!rl)
     {
-      log_debug("File has no runlist, hence no data.\n");
+      log_debug("File has no runlist, hence no data.");
       continue;
     }
 
     if (rl[0].length <= 0)
     {
-      log_debug("File has an empty runlist, hence no data.\n");
+      log_debug("File has an empty runlist, hence no data.");
       continue;
     }
 
     if (rl[0].lcn == LCN_RL_NOT_MAPPED)
     { /* extended mft record */
-      log_debug("Missing segment at beginning, %lld clusters\n",
+      log_debug("Missing segment at beginning, {} clusters",
                 (long long)rl[0].length);
       clusters_inuse += rl[0].length;
       rl++;
@@ -714,7 +714,7 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
       uint64_t j;
       if (rl[i].lcn == LCN_RL_NOT_MAPPED)
       {
-        log_debug("Missing segment at end, %lld clusters\n",
+        log_debug("Missing segment at end, {} clusters",
                   (long long)rl[i].length);
         clusters_inuse += rl[i].length;
         continue;
