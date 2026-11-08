@@ -95,13 +95,13 @@ auto find_attribute(const ATTR_TYPES type, ntfs_attr_search_ctx *ctx)
       0)
   {
 #ifdef DEBUG_NTFS
-    log_debug("find_attribute didn't find an attribute of type: 0x%02x.\n",
-              type);
+    log_debug("find_attribute didn't find an attribute of type: 0x{:02x}.",
+              (int)type);
 #endif
     return nullptr; /* None / no more of that type */
   }
 #ifdef DEBUG_NTFS
-  log_debug("find_attribute found an attribute of type: 0x%02x.\n", type);
+  log_debug("find_attribute found an attribute of type: 0x{:02x}.", (int)type);
 #endif
   return ctx->attr;
 }
@@ -143,9 +143,9 @@ auto find_first_attribute(const ATTR_TYPES type, MFT_RECORD *mft)
   ntfs_attr_put_search_ctx(ctx);
 #ifdef DEBUG_NTFS
   if (rec)
-    log_debug("find_first_attribute: found attr of type 0x%02x.\n", type);
+    log_debug("find_first_attribute: found attr of type 0x{:02x}.", (int)type);
   else
-    log_debug("find_first_attribute: didn't find attr of type 0x%02x.\n", type);
+    log_debug("find_first_attribute: didn't find attr of type 0x{:02x}.", (int)type);
 #endif
   return rec;
 }
