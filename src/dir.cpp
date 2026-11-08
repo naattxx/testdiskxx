@@ -810,3 +810,13 @@ auto fopen_local(char **localfilename, const char *localroot, const char *filena
     return f_out;
 #endif
 }
+
+auto dir_aff_entry(const file_info_t &file_info) -> std::string
+{
+  std::string datestr;
+  set_datestr(datestr, file_info.td_mtime);
+  const std::string str = mode_string(file_info.st_mode);
+  return std::format("{} {:5} {:5} {:9} {} {}", str, file_info.st_uid,
+                     file_info.st_gid, file_info.st_size, datestr,
+                     file_info.name);
+}

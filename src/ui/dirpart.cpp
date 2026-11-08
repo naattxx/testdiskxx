@@ -58,16 +58,6 @@
 
 using namespace ftxui;
 
-static auto dir_aff_entry(const file_info_t &file_info) -> std::string
-{
-  std::string datestr;
-  set_datestr(datestr, file_info.td_mtime);
-  const std::string str = mode_string(file_info.st_mode);
-  return std::format("{} {:5} {:5} {:9} {} {}", str, file_info.st_uid,
-                     file_info.st_gid, file_info.st_size, datestr,
-                     file_info.name);
-}
-
 static auto dir_partition_init(disk_t &disk, const partition_t &partition,
                                const int verbose, const int expert)
     -> std::expected<dir_data_t *, dir_partition_t>

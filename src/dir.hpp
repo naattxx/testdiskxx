@@ -105,4 +105,9 @@ void mkdir_local_for_file(const char *filename);
   @*/
 auto filesort(const struct file_info_t &a, const struct file_info_t &b) -> bool;
 
+/*@
+  @ requires \valid_read(file_info);
+  @*/
+auto dir_aff_entry(const file_info_t &file_info) -> std::string;
+
 #endif
