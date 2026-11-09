@@ -303,7 +303,7 @@ auto ntfs_findattribute(const ntfs_recordheader *record, uint32_t attrType,
 }
 
 #if 0
-static const ntfs_attribheader* ntfs_nextattribute(const ntfs_attribheader* attrib, uint32_t attrType, const char* end)
+static constexpr ntfs_attribheader* ntfs_nextattribute(const ntfs_attribheader* attrib, uint32_t attrType, const char* end)
 {
   return ntfs_searchattribute(attrib, attrType, end, 1);
 }

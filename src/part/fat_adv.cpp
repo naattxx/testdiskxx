@@ -661,7 +661,7 @@ static auto fat32_find_root_cluster(
 static void fat_date_unix2dos(time_t unix_date, unsigned short *mstime,
                               unsigned short *msdate)
 {
-  static const int day_n[] = {0,   31,  59,  90,  120, 151, 181, 212,
+  static constexpr int day_n[] = {0,   31,  59,  90,  120, 151, 181, 212,
                               243, 273, 304, 334, 0,   0,   0,   0};
   /* JanFebMarApr May Jun Jul Aug Sep Oct Nov Dec */
   int day, year, nl_day, month;

@@ -101,7 +101,7 @@ static auto get_partition_typename_humax(const partition_t &partition) -> std::s
 static auto get_part_type_humax(const partition_t &partition) -> unsigned int;
 
 #if 0
-static const struct systypes humax_sys_types[] = {
+static constexpr struct systypes humax_sys_types[] = {
   {0x00,	 	"Empty"        	},
   {PHUMAX_PARTITION,	"Partition"	},
   {0, NULL }

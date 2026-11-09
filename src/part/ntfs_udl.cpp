@@ -168,7 +168,7 @@ struct ufile
   ~ufile();
 };
 
-static const char *UNKNOWN = "unknown";
+static constexpr char *UNKNOWN = "unknown";
 static struct options opts;
 
 /**

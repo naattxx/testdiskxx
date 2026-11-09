@@ -284,7 +284,7 @@ auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
         unsigned int menu = 2;
         int real_key;
         int command;
-        static const struct MenuItem menuMFT[] = {
+        static constexpr struct MenuItem menuMFT[] = {
             {'B', "MFT",        "Fix MFT using MFT mirror"},
             {'M', "MFT Mirror", "Fix MFT mirror using MFT"},
             {'Q', "Quit",       "Return to NTFS functions"},

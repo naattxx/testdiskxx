@@ -34,14 +34,14 @@
 
 // blocksize=1024, 2048, 4096, 65536
 // blocks per blocksgroup=8*blocksize
-static const uint64_t group_size[4] = {
+static constexpr uint64_t group_size[4] = {
     (EXT2_MIN_BLOCK_SIZE << 0) * 8 * (EXT2_MIN_BLOCK_SIZE << 0),
     (EXT2_MIN_BLOCK_SIZE << 1) * 8 * (EXT2_MIN_BLOCK_SIZE << 1),
     (EXT2_MIN_BLOCK_SIZE << 2) * 8 * (EXT2_MIN_BLOCK_SIZE << 2),
     static_cast<uint64_t>(EXT2_MIN_BLOCK_SIZE << 6) * 8 *
         (EXT2_MIN_BLOCK_SIZE << 6),
 };
-static const uint64_t factors[3] = {3, 5, 7};
+static constexpr uint64_t factors[3] = {3, 5, 7};
 
 static auto next_sb(const uint64_t hd_offset_old) -> uint64_t
 {

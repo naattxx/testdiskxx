@@ -45,7 +45,7 @@ static void set_ISO_info(const struct iso_primary_descriptor *iso,
   @*/
 static auto test_ISO(const struct iso_primary_descriptor *iso) -> int
 {
-  static const unsigned char iso_header[6] = {0x01, 'C', 'D', '0', '0', '1'};
+  static constexpr unsigned char iso_header[6] = {0x01, 'C', 'D', '0', '0', '1'};
   if (memcmp(iso, iso_header, sizeof(iso_header)) != 0)
     return 1;
   return 0;
