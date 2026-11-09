@@ -555,7 +555,7 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
     return nullptr;
 
   try {
-    file = new struct ufile;
+    file = new struct ufile();
   } catch (...) {
     log_error("ERROR: Couldn't allocate memory in read_record()");
     return nullptr;
