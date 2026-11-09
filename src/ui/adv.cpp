@@ -19,12 +19,14 @@
 #include "src/part/ext2_sbn.hpp"
 #include "src/part/fat.hpp"
 #include "src/part/ntfs.hpp"
+#include "src/part/ntfs_udl.hpp"
 #include "src/part/thfs.hpp"
 #include "src/ui/askloc.hpp"
 #include "src/ui/dimage.hpp"
 #include "src/ui/intrfn.hpp"
 #include "src/ui/part/ext2_sb.hpp"
 #include "dirpart.hpp"
+#include "src/ui/part/ntfs_udl.hpp"
 #include <cassert>
 #include <filesystem>
 #include <format>
@@ -243,17 +245,16 @@ static void adv_menu_undelete_selected(const Component &root, disk_t &disk,
     if (partition.upart_type == UP_NTFS ||
         (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
     {
-      //TODO:
-      // auto data = ntfs_undelete_part_data(disk, partition, verbose);
-      // if (data)
-      // {
-      //   auto [dir_data, dir_list] = *data;
-      //   ntfs_undelete_menu(disk, partition, dir_data, dir_list);
-      //   dir_data->close();
-      //   delete dir_data;
-      // }
-      // else
-      //   display_message(root, data.error());
+      const auto data = ntfs_undelete_part_data(disk, partition, verbose);
+      if (data)
+      {
+        auto [dir_data, dir_list] = *data;
+        ntfs_undelete_menu(disk, partition, dir_data, dir_list);
+        dir_data->close();
+        delete dir_data;
+      }
+      else
+        display_message(root, data.error());
     }
     else
       dir_partition(disk, partition, 0, false);
@@ -264,17 +265,16 @@ static void adv_menu_undelete_selected(const Component &root, disk_t &disk,
     if (partition.upart_type == UP_NTFS ||
         (is_part_ntfs(partition) && partition.upart_type != UP_EXFAT))
     {
-      //TODO:
-      // auto data = ntfs_undelete_part_data(disk, partition, verbose);
-      // if (data)
-      // {
-      //   auto [dir_data, dir_list] = *data;
-      //   ntfs_undelete_menu(disk, partition, dir_data, dir_list);
-      //   dir_data->close();
-      //   delete dir_data;
-      // }
-      // else
-      //   display_message(root, data.error());
+      const auto data = ntfs_undelete_part_data(disk, partition, verbose);
+      if (data)
+      {
+        auto [dir_data, dir_list] = *data;
+        ntfs_undelete_menu(disk, partition, dir_data, dir_list);
+        dir_data->close();
+        delete dir_data;
+      }
+      else
+        display_message(root, data.error());
     }
     else
       dir_partition(disk, partition, 0, false);

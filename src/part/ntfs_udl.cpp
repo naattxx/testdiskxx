@@ -28,8 +28,10 @@
 #include <algorithm>
 #include <config.h>
 #include <cstdint>
+#include <expected>
 #include <filesystem>
 #include <format>
+#include <string>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_LIBNTFS
@@ -77,6 +79,7 @@
 #include <ntfs/layout.h>
 #include <ntfs/mft.h>
 #include <ntfs/ntfstime.h>
+#include <ntfs/volume.h>
 #if __has_include(<ntfs/version.h>)
 #include <ntfs/version.h>
 #endif
@@ -93,6 +96,7 @@ extern "C"
 #include <ntfs-3g/layout.h>
 #include <ntfs-3g/mft.h>
 #include <ntfs-3g/ntfstime.h>
+#include <ntfs-3g/volume.h>
 }
 #undef min
 #undef max
@@ -895,7 +899,7 @@ static auto open_file(const char *pathname) -> int
  * Return:  -2  Error, something went wrong
  *	    0  Success, the data was recovered
  */
-static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
+auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path &dest) -> int
 {
   char *buffer = nullptr;
   unsigned int bufsize;
@@ -957,7 +961,7 @@ static auto undelete_file(ntfs_volume *vol, uint64_t inode) -> int
     }
 
     // dir_data->local_dir;
-    create_pathname(opts.dest.c_str(), file->pref_pname, name, d->name, pathname,
+    create_pathname(dest.c_str(), file->pref_pname, name, d->name, pathname,
                     sizeof(pathname));
     if (d->resident)
     {
@@ -1273,572 +1277,58 @@ done:
   std::ranges::sort(dir_list, filesort);
 }
 
-#ifdef HAVE_NCURSES
-#define INTER_DIR (LINES - 25 + 16)
-
-static struct td_list_head *ntfs_next_non_deleted(
-    struct td_list_head *current_file, const struct td_list_head *end
-)
-{
-  struct td_list_head *walker = current_file;
-  while (walker->next != end)
-  {
-    const file_info_t *file_info;
-    walker    = walker->next;
-    file_info = td_list_entry_const(walker, const file_info_t, list);
-    if ((file_info->status & FILE_STATUS_DELETED) == 0)
-      return walker;
-  }
-  return current_file;
-}
-
-static struct td_list_head *ntfs_prev_non_deleted(
-    struct td_list_head *current_file, const struct td_list_head *start
-)
-{
-  struct td_list_head *walker = current_file;
-  while (walker->prev != start)
-  {
-    const file_info_t *file_info;
-    walker    = walker->prev;
-    file_info = td_list_entry_const(walker, const file_info_t, list);
-    if ((file_info->status & FILE_STATUS_DELETED) == 0)
-      return walker;
-  }
-  return current_file;
-}
-
-static void ntfs_undelete_menu_ncurses(const disk_t &disk_car,
-                                       const partition_t &partition,
-                                       dir_data_t &dir_data,
-                                       file_info_t *dir_list)
-{
-  struct ntfs_dir_struct *ls =
-      (struct ntfs_dir_struct *)dir_data->private_dir_data;
-  WINDOW *window = (WINDOW *)dir_data->display;
-  while (1)
-  {
-    struct td_list_head *current_file = dir_list->list.next;
-    int offset                        = 0;
-    int pos_num                       = 0;
-    int old_LINES                     = LINES;
-    aff_copy(window);
-    wmove(window, 3, 0);
-    aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
-    wmove(window, 4, 0);
-    wprintw(window, "Deleted files\n");
-    do
-    {
-      struct td_list_head *file_walker = NULL;
-      int i;
-      int car;
-      for (i = 5; i <= 6 + INTER_DIR; i++)
-      {
-        wmove(window, i, 0);
-        wclrtoeol(window); /* before addstr for BSD compatibility */
-      }
-      i = 0;
-      td_list_for_each(file_walker, &dir_list->list)
-      {
-        char datestr[80];
-        file_info_t *file_info;
-        file_info = td_list_entry(file_walker, file_info_t, list);
-        if ((file_info->status & FILE_STATUS_DELETED) != 0)
-          continue;
-        if (i++ < offset)
-          continue;
-        wmove(window, 6 - 1 + i - offset, 0);
-        wclrtoeol(window); /* before addstr for BSD compatibility */
-        if (file_walker == current_file)
-        {
-          wattrset(window, A_REVERSE);
-          waddstr(window, ">");
-        }
-        else
-          waddstr(window, " ");
-        if ((file_info->status & FILE_STATUS_MARKED) != 0 && has_colors())
-          wbkgdset(window, ' ' | COLOR_PAIR(2));
-        set_datestr((char *)&datestr, sizeof(datestr), file_info->td_mtime);
-        if (COLS <= 1 + 17 + 1 + 9 + 1)
-          wprintw(window, "%s", file_info->name);
-        else
-        {
-          const unsigned int nbr = COLS - (1 + 17 + 1 + 11 + 1);
-          if (strlen(file_info->name) < nbr)
-            wprintw(window, "%-*s", nbr, file_info->name);
-          else
-            wprintw(window, "%-*s", nbr,
-                    &file_info->name[strlen(file_info->name) - nbr]);
-        }
-        wprintw(window, " %s ", datestr);
-        wprintw(window, "%11llu", (long long unsigned int)file_info->st_size);
-        if ((file_info->status & FILE_STATUS_MARKED) != 0 && has_colors())
-          wbkgdset(window, ' ' | COLOR_PAIR(0));
-        if (file_walker == current_file)
-          wattroff(window, A_REVERSE);
-        if (offset + INTER_DIR <= i)
-          break;
-      }
-      wmove(window, 6 - 1, 51);
-      wclrtoeol(window);
-      if (offset > 0)
-        wprintw(window, "Previous");
-      /* Clear the last line, useful if overlapping */
-      wmove(window, 6 + i - offset, 0);
-      wclrtoeol(window);
-      wmove(window, 6 + INTER_DIR, 51);
-      wclrtoeol(window);
-      if (file_walker != &dir_list->list &&
-          file_walker->next != &dir_list->list)
-        wprintw(window, "Next");
-      if (td_list_empty(&dir_list->list))
-      {
-        wmove(window, 6, 0);
-        wprintw(window, "No deleted file found.");
-      }
-      /* Redraw the bottom of the screen everytime because very long filenames
-       * may have corrupt it*/
-      mvwaddstr(window, LINES - 2, 0, "Use ");
-      if (!td_list_empty(&dir_list->list))
-      {
-        if (has_colors())
-          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-        waddstr(window, ":");
-        if (has_colors())
-          wbkgdset(window, ' ' | COLOR_PAIR(0));
-        waddstr(window, " to select the current file, ");
-        if (has_colors())
-          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-        waddstr(window, "a");
-        if (has_colors())
-          wbkgdset(window, ' ' | COLOR_PAIR(0));
-        waddstr(window, " to select/deselect all files, ");
-        if (has_colors())
-          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-        mvwaddstr(window, LINES - 1, 4, "C");
-        if (has_colors())
-          wbkgdset(window, ' ' | COLOR_PAIR(0));
-        waddstr(window, " to copy the selected files, ");
-        if (has_colors())
-          wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-        waddstr(window, "c");
-        if (has_colors())
-          wbkgdset(window, ' ' | COLOR_PAIR(0));
-        waddstr(window, " to copy the current file, ");
-      }
-      if (has_colors())
-        wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(0));
-      waddstr(window, "q");
-      if (has_colors())
-        wbkgdset(window, ' ' | COLOR_PAIR(0));
-      waddstr(window, " to quit");
-      wrefresh(window);
-      /* Using gnome terminal under FC3, TERM=xterm, the screen is not always
-       * correct */
-      wredrawln(window, 0,
-                getmaxy(window)); /* redrawwin def is boggus in pdcur24 */
-      car = wgetch(window);
-      wmove(window, 5, 0);
-      wclrtoeol(window);
-      switch (car)
-      {
-      case key_ESC:
-      case 'q':
-      case 'M':
-        return;
-      }
-      switch (car)
-      {
-      case KEY_UP:
-      case '8':
-        file_walker = ntfs_prev_non_deleted(current_file, &dir_list->list);
-        if (current_file != file_walker)
-        {
-          current_file = file_walker;
-          pos_num--;
-        }
-        break;
-      case KEY_DOWN:
-      case '2':
-        file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
-        if (current_file != file_walker)
-        {
-          current_file = file_walker;
-          pos_num++;
-        }
-        break;
-      case KEY_PPAGE:
-        for (i = 0; i < INTER_DIR - 1; i++)
-        {
-          file_walker = ntfs_prev_non_deleted(current_file, &dir_list->list);
-          if (current_file != file_walker)
-          {
-            current_file = file_walker;
-            pos_num--;
-          }
-          else
-            i = INTER_DIR;
-        }
-        break;
-      case KEY_NPAGE:
-        for (i = 0; i < INTER_DIR - 1; i++)
-        {
-          file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
-          if (current_file != file_walker)
-          {
-            current_file = file_walker;
-            pos_num++;
-          }
-          else
-            i = INTER_DIR;
-        }
-        break;
-      case 'a': {
-        unsigned int status;
-        file_info_t *file_info;
-        file_info = td_list_entry(current_file, file_info_t, list);
-        status = (file_info->status ^ FILE_STATUS_MARKED) & FILE_STATUS_MARKED;
-        td_list_for_each(file_walker, &dir_list->list)
-        {
-          file_info = td_list_entry(file_walker, file_info_t, list);
-          if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
-              (file_info->status & FILE_STATUS_MARKED) != status)
-            file_info->status ^= FILE_STATUS_MARKED;
-        }
-      }
-      break;
-      case 'f': {
-        const char *needle = ask_string_ncurses("Filename filter ");
-        if (needle != NULL && needle[0] != '\0')
-        {
-          td_list_for_each(file_walker, &dir_list->list)
-          {
-            file_info_t *file_info;
-            file_info = td_list_entry(file_walker, file_info_t, list);
-            if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
-                strcasestr(file_info->name, needle) == NULL)
-              file_info->status |= FILE_STATUS_DELETED;
-          }
-          pos_num = 0;
-          current_file =
-              ntfs_next_non_deleted(&dir_list->list, &dir_list->list);
-        }
-      }
-      break;
-      case 'r':
-        td_list_for_each(file_walker, &dir_list->list)
-        {
-          file_info_t *file_info;
-          file_info = td_list_entry(file_walker, file_info_t, list);
-          file_info->status &= ~FILE_STATUS_DELETED;
-        }
-        pos_num      = 0;
-        current_file = dir_list->list.next;
-        break;
-      case 's': {
-        uint64_t min_size = ask_int_ncurses("Minimum file size ");
-        if (min_size > 0)
-        {
-          td_list_for_each(file_walker, &dir_list->list)
-          {
-            file_info_t *file_info;
-            file_info = td_list_entry(file_walker, file_info_t, list);
-            if ((file_info->status & FILE_STATUS_DELETED) == 0 &&
-                file_info->st_size < min_size)
-              file_info->status |= FILE_STATUS_DELETED;
-          }
-          pos_num = 0;
-          current_file =
-              ntfs_next_non_deleted(&dir_list->list, &dir_list->list);
-        }
-      }
-      break;
-      case ':': {
-        file_info_t *file_info;
-        file_info = td_list_entry(current_file, file_info_t, list);
-        file_info->status ^= FILE_STATUS_MARKED;
-        file_walker = ntfs_next_non_deleted(current_file, &dir_list->list);
-        if (current_file != file_walker)
-        {
-          current_file = file_walker;
-          pos_num++;
-        }
-      }
-      break;
-      case 'c': {
-        file_info_t *file_info;
-        file_info = td_list_entry(current_file, file_info_t, list);
-        if (current_file != &dir_list->list &&
-            LINUX_S_ISDIR(file_info->st_mode) == 0)
-        {
-          if (dir_data->local_dir.empty())
-          {
-            char dst_directory[4096];
-            dst_directory[0] = '\0';
-            if (LINUX_S_ISDIR(file_info->st_mode) != 0)
-              ask_location(dst_directory, sizeof(dst_directory),
-                           "Please select a destination where %s and any files "
-                           "below will be copied.",
-                           file_info->name);
-            else
-              ask_location(
-                  dst_directory, sizeof(dst_directory),
-                  "Please select a destination where %s will be copied.",
-                  file_info->name
-              );
-            if (dst_directory[0] != '\0')
-              dir_data->local_dir = opts.dest = dst_directory;
-          }
-          if (!dir_data->local_dir.empty())
-          {
-            int res = -1;
-            wmove(window, 5, 0);
-            wclrtoeol(window);
-            if (has_colors())
-              wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-            wprintw(window, "Copying, please wait...");
-            if (has_colors())
-              wbkgdset(window, ' ' | COLOR_PAIR(0));
-            wrefresh(window);
-            res = undelete_file(ls->vol, file_info->st_ino);
-            wmove(window, 5, 0);
-            wclrtoeol(window);
-            if (res < -1)
-            {
-              if (has_colors())
-                wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-              wprintw(window, "Copy failed!");
-            }
-            else
-            {
-              if (has_colors())
-                wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(2));
-              if (res < 0)
-                wprintw(window, "Copy done! (Failed to copy some files)");
-              else
-                wprintw(window, "Copy done!");
-            }
-            if (has_colors())
-              wbkgdset(window, ' ' | COLOR_PAIR(0));
-          }
-        }
-      }
-      break;
-      case 'C':
-        if (dir_data->local_dir == NULL)
-        {
-          char dst_directory[4096];
-          dst_directory[0] = '\0';
-          ask_location(dst_directory, sizeof(dst_directory),
-                       "Please select a destination where the marked files "
-                       "will be copied.",
-                       NULL);
-          if (dst_directory[0] != '\0')
-            dir_data->local_dir = opts.dest = dst_directory;
-        }
-        if (!dir_data->local_dir.empty())
-        {
-          unsigned int file_ok  = 0;
-          unsigned int file_bad = 0;
-          if (has_colors())
-            wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-          wmove(window, 5, 0);
-          wclrtoeol(window);
-          wprintw(window, "Copying, please wait...");
-          wrefresh(window);
-          td_list_for_each(file_walker, &dir_list->list)
-          {
-            file_info_t *file_info;
-            file_info = td_list_entry(file_walker, file_info_t, list);
-            if ((file_info->status & FILE_STATUS_MARKED) != 0)
-            {
-              if (undelete_file(ls->vol, file_info->st_ino) < 0)
-                file_bad++;
-              else
-              {
-                file_info->status ^= FILE_STATUS_MARKED;
-                file_ok++;
-                wmove(window, 5, 0);
-                wclrtoeol(window);
-                wprintw(window, "Copying, please wait... %u files done",
-                        file_ok);
-                wrefresh(window);
-              }
-            }
-          }
-          if (has_colors())
-            wbkgdset(window, ' ' | COLOR_PAIR(0));
-          wmove(window, 5, 0);
-          wclrtoeol(window);
-          if (file_ok == 0)
-          {
-            if (has_colors())
-              wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(1));
-            wprintw(window, "Copy failed!");
-          }
-          else
-          {
-            if (has_colors())
-              wbkgdset(window, ' ' | A_BOLD | COLOR_PAIR(2));
-            wprintw(window, "Copy done! (%u/%u)", file_ok,
-                    (file_ok + file_bad));
-          }
-          if (has_colors())
-            wbkgdset(window, ' ' | COLOR_PAIR(0));
-        }
-        break;
-      }
-      if (pos_num < offset)
-        offset = pos_num;
-      if (pos_num >= offset + INTER_DIR)
-        offset = pos_num - INTER_DIR + 1;
-    } while (old_LINES == LINES);
-  }
-}
-#endif
-
 static void ntfs_undelete_cli(ntfs_dir_struct &dir_data, const dir_list_t &dir_list)
 {
   unsigned int file_ok  = 0;
   unsigned int file_bad = 0;
 
-  dir_data.local_dir = opts.dest = std::filesystem::current_path();
+  dir_data.local_dir = std::filesystem::current_path();
   for (const file_info_t &file_info : dir_list)
   {
-    if (undelete_file(dir_data.vol, file_info.st_ino) < 0)
+    if (undelete_file(dir_data.vol, file_info.st_ino, dir_data.local_dir) < 0)
       file_bad++;
     else
       file_ok++;
   }
   log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
   dir_data.local_dir.clear();
-  opts.dest.clear();
 }
 
-static void ntfs_undelete_menu(const disk_t &disk_car,
-                               const partition_t &partition,
-                               ntfs_dir_struct &dir_data, dir_list_t &dir_list,
-                               char **current_cmd)
+auto ntfs_undelete_part_data(disk_t &disk_car, const partition_t &partition,
+                             const int verbose)
+    -> std::expected<std::pair<dir_data_t *, dir_list_t>, std::string>
 {
-  log_list_file(disk_car, partition, dir_data, dir_list);
-  if (*current_cmd != nullptr)
-  {
-    skip_comma_in_command(current_cmd);
-    if (check_command(current_cmd, "allundelete", 11) == 0)
-    {
-      ntfs_undelete_cli(dir_data, dir_list);
-    }
-    return; /* Quit */
-  }
-#ifdef HAVE_NCURSES
-  ntfs_undelete_menu_ncurses(disk_car, partition, dir_data, dir_list);
-#endif
-}
+  const auto expected_dir_data = dir_partition_ntfs_init(disk_car, partition, verbose, 0);
+  ntfs_dir_struct *dir_data = static_cast<ntfs_dir_struct*>(expected_dir_data.value_or(nullptr));
+  dir_partition_t res = expected_dir_data.error_or(DIR_PART_OK);
 
-auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
-                        const int verbose, char **current_cmd) -> int
-{
-  auto tmp = dir_partition_ntfs_init(disk_car, partition, verbose, 0);
-  ntfs_dir_struct *dir_data = static_cast<ntfs_dir_struct*>(tmp.value_or(nullptr));
-#ifdef HAVE_NCURSES
-  WINDOW *window;
-#endif
-  dir_partition_t res = tmp.error_or(DIR_PART_OK);
-#ifdef HAVE_NCURSES
-  window           = newwin(LINES, COLS, 0, 0); /* full screen */
-  dir_data.display = window;
-  aff_copy(window);
-#endif
   log_info("\n");
   switch (res)
   {
   case DIR_PART_ENOSYS:
-    screen_buffer_reset();
-#ifdef HAVE_NCURSES
-    aff_copy(window);
-    wmove(window, 4, 0);
-    aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
-#endif
     log_partition(disk_car, partition);
-    screen_buffer_add(
-        "Support for this filesystem wasn't enabled during compilation.\n"
-    );
-    screen_buffer_to_log();
-    if (*current_cmd == nullptr)
-    {
-#ifdef HAVE_NCURSES
-      screen_buffer_display(window, "", NULL);
-#endif
-    }
-    break;
+    log_warning("Support for this filesystem wasn't enabled during compilation.");
+    return std::unexpected("Support for this filesystem wasn't enabled during compilation.");
   case DIR_PART_EIO:
-    screen_buffer_reset();
-#ifdef HAVE_NCURSES
-    aff_copy(window);
-    wmove(window, 4, 0);
-    aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
-#endif
     log_partition(disk_car, partition);
-    screen_buffer_add("Can't open filesystem. Filesystem seems damaged.\n");
-    screen_buffer_to_log();
-    if (*current_cmd == nullptr)
-    {
-#ifdef HAVE_NCURSES
-      screen_buffer_display(window, "", NULL);
-#endif
-    }
-    break;
-  default: {
+    log_warning("Can't open filesystem. Filesystem seems damaged.");
+    return std::unexpected("Can't open filesystem. Filesystem seems damaged.");
+  default:
     assert(dir_data != nullptr);
     dir_list_t dir_list;
     scan_disk(dir_data->vol, dir_list);
-    ntfs_undelete_menu(disk_car, partition, *dir_data, dir_list, current_cmd);
-    dir_data->close();
-    delete dir_data;
+    return std::pair(dir_data, dir_list);
   }
-  break;
-  }
-#ifdef HAVE_NCURSES
-  delwin(window);
-  (void)clearok(stdscr, TRUE);
-#ifdef HAVE_TOUCHWIN
-  touchwin(stdscr);
-#endif
-#endif
-  return res;
 }
 #else
-auto ntfs_undelete_part(disk_t &disk_car, const partition_t &partition,
-                       const int verbose, char **current_cmd) -> int
+auto ntfs_undelete_part_data(disk_t &disk_car, const partition_t &partition,
+                             const int verbose)
+    -> std::expected<std::pair<dir_data_t *, dir_list_t>, std::string>
 {
-#ifdef HAVE_NCURSES
-  WINDOW *window;
-  window = newwin(LINES, COLS, 0, 0); /* full screen */
-  aff_copy(window);
-#endif
   log_info("\n");
-  screen_buffer_reset();
-#ifdef HAVE_NCURSES
-  aff_copy(window);
-  wmove(window, 4, 0);
-  aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
-#endif
   log_partition(disk_car, partition);
-  screen_buffer_add(
-      "Support for this filesystem wasn't enabled during compilation.\n"
+  return std::unexpected(
+      "Support for this filesystem wasn't enabled during compilation."
   );
-  screen_buffer_to_log();
-#ifdef HAVE_NCURSES
-  if (*current_cmd == NULL)
-  {
-    screen_buffer_display(window, "", NULL);
-  }
-  delwin(window);
-  (void)clearok(stdscr, TRUE);
-#ifdef HAVE_TOUCHWIN
-  touchwin(stdscr);
-#endif
-#endif
-  return -2;
 }
 #endif
