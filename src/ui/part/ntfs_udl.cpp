@@ -128,9 +128,8 @@ void ntfs_undelete_menu(disk_t &disk, const partition_t &partition,
   auto screen = App::Fullscreen();
 
   int currentFile = 0;
-  std::vector<std::string> menuEntries =
-      dir_list | std::views::transform(&dir_aff_entry) |
-      std::ranges::to<std::vector<std::string>>();
+  std::vector<std::string> menuEntries {
+      std::from_range, dir_list | std::views::transform(&dir_aff_entry)};
 
   std::string_view error_msg;
 
