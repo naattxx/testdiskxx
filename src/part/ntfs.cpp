@@ -399,7 +399,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
   unsigned char *buffer;
   uint64_t mft_pos;
   unsigned int mft_record_size;
-  partition.fsname[0] = '\0';
+  partition.fsname.clear();
   if (ntfs_header->clusters_per_mft_record > 0)
     mft_record_size = ntfs_header->clusters_per_mft_record *
                       ntfs_header->sectors_per_cluster *
@@ -441,26 +441,22 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
     );
     if (attrib && attrib->header.bNonResident == 0) /* attribute is resident */
     {
-      char *dest;
-      const char *name_it;
-      unsigned int volume_name_length = to_little_endian(attrib->cbAttribData);
-      volume_name_length /= 2; /* Unicode */
-      volume_name_length =
-          std::min<size_t>(volume_name_length, partition.fsname.size() - 1);
-      name_it = ntfs_getattributedata(
-          attrib, reinterpret_cast<char *>(buffer + mft_record_size)
-      );
+      const auto *name_it =
+          reinterpret_cast<const char16_t *>(ntfs_getattributedata(
+              attrib, reinterpret_cast<char *>(buffer + mft_record_size)
+          ));
       if (name_it == nullptr)
       {
         delete[] buffer;
         return;
       }
-      for (dest = partition.fsname.data();
-           volume_name_length > 0 && *name_it != '\0' && name_it[1] == '\0';
-           name_it += 2, volume_name_length--)
+      unsigned int volume_name_length = to_little_endian(attrib->cbAttribData);
+      volume_name_length /= 2; /* Unicode */
+      partition.fsname.resize(volume_name_length);
+      for (auto dest = partition.fsname.begin();
+           dest != partition.fsname.end() && *name_it != u'\0';
+           name_it++)
         *dest++ = *name_it;
-      *dest = '\0'; /* 27 january 2003: Correct a bug found by Andreas du
-                       Plessis-Denz */
     }
   }
   delete[] buffer;
