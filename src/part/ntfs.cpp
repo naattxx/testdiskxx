@@ -30,7 +30,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
+#include <span>
+#include <tuple>
 #include <utility>
 #include "ntfs.hpp"
 #include "src/common.hpp"
@@ -38,6 +39,7 @@
 #include "src/intrf.hpp"
 #include "src/lang.h"
 #include "src/log.hpp"
+#include "src/unicode.hpp"
 
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
 extern const arch_fnct_t arch_i386;
@@ -452,11 +454,9 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
       }
       unsigned int volume_name_length = to_little_endian(attrib->cbAttribData);
       volume_name_length /= 2; /* Unicode */
-      partition.fsname.resize(volume_name_length);
-      for (auto dest = partition.fsname.begin();
-           dest != partition.fsname.end() && *name_it != u'\0';
-           name_it++)
-        *dest++ = *name_it;
+
+      std::ignore =
+          UCSle2str(partition.fsname, std::span(name_it, volume_name_length));
     }
   }
   delete[] buffer;

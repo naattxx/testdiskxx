@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <tuple>
 #include <span>
 #include <uuid.h>
 #include <utility>
@@ -100,8 +101,11 @@ static void partition_generate_gpt_entry(struct gpt_ent *gpt_entry,
   gpt_entry->ent_lba_end =
       to_little_endian((partition.part_offset + partition.part_size - 1) /
            disk_car.sector_size);
-  str2UCSle(gpt_entry->ent_name, partition.partname,
-            sizeof(gpt_entry->ent_name) / 2);
+  std::ignore = str2UCSle(std::span<char16_t, sizeof(gpt_entry->ent_name) / 2>(
+                reinterpret_cast<char16_t *>(gpt_entry->ent_name),
+                sizeof(gpt_entry->ent_name) / 2
+            ),
+            partition.partname);
   if (entry >= 0)
     gpt_entry->ent_uuid = gpt_entries_org[entry].ent_uuid;
   else if (partition.part_uuid != GPT_ENT_TYPE_UNUSED)

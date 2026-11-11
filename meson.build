@@ -232,6 +232,10 @@ ftxui_component_dep = dependency(
 )
 conf_data.set_quoted('FTXUI_VERSION', ftxui_component_dep.version())
 
+cmake = import('cmake')
+simdutf_proj = cmake.subproject('simdutf', required: true)
+simdutf_dep = simdutf_proj.dependency('simdutf')
+
 configure_file(output: 'config.h', configuration: conf_data)
 
 inc_dirs = include_directories('include')
@@ -343,7 +347,6 @@ sources = files(
   'src/ui/tlog.cpp',
   'src/ui/toptions.cpp',
   'src/ui/tpartwr.cpp',
-  'src/unicode.cpp',
   'src/utils.cpp',
   'src/win32.cpp',
 )
@@ -358,6 +361,7 @@ deps = [
   reiserfs,
   iconv,
   stduuid,
+  simdutf_dep,
 ]
 
 if compiler.get_define('__MINGW32__') != ''

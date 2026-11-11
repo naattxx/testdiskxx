@@ -21,26 +21,39 @@
  */
 #ifndef _UNICODE_H
 #define _UNICODE_H
-#include <cstdint>
+#include <cstddef>
+#include <simdutf.h>
 #include <span>
 #include <string>
+#include <string_view>
 
-    /*@
-      @ requires \valid(to + ( 0 .. len-1));
-      @ requires \valid_read(from + ( 0 .. len-1));
-      @ requires \separated(to + (..), from + (..));
-      @ terminates \true;
-      @ assigns to[0 .. len-1];
-      @*/
-    auto UCSle2str(std::string &to, std::span<const uint16_t> from) noexcept -> unsigned int;
+/*@
+  @ requires \valid(to + ( 0 .. len-1));
+  @ requires \valid_read(from + ( 0 .. len-1));
+  @ requires \separated(to + (..), from + (..));
+  @ terminates \true;
+  @ assigns to[0 .. len-1];
+  @*/
+[[nodiscard]]
+constexpr auto UCSle2str(std::string &to,
+                         std::span<const char16_t> from) noexcept -> size_t
+{
+  to.resize(simdutf::utf8_length_from_utf16le(from));
+  return simdutf::convert_utf16le_to_utf8(from, to);
+}
 
-    /*@
-      @ requires \valid(to + ( 0 .. len-1));
-      @ requires \valid_read(from + ( 0 .. len-1));
-      @ requires \separated(to + (..), from + (..));
-      @ terminates \true;
-      @ assigns to[0 .. len-1];
-      @*/
-    auto str2UCSle(uint16_t *to, std::string_view from, const unsigned int len) noexcept -> unsigned int;
+/*@
+  @ requires \valid(to + ( 0 .. len-1));
+  @ requires \valid_read(from + ( 0 .. len-1));
+  @ requires \separated(to + (..), from + (..));
+  @ terminates \true;
+  @ assigns to[0 .. len-1];
+  @*/
+[[nodiscard]]
+constexpr auto str2UCSle(std::span<char16_t> to, std::string_view from) noexcept
+    -> size_t
+{
+  return simdutf::convert_utf8_to_utf16le(from, to);
+}
 
 #endif

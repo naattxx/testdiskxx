@@ -13,3 +13,8 @@ objcopy = 'x86_64-w64-mingw32-objcopy'
 strip = 'x86_64-w64-mingw32-strip'
 pkg-config = 'x86_64-w64-mingw32-pkg-config'
 windres = 'x86_64-w64-mingw32-windres'
+cmake = 'x86_64-w64-mingw32-cmake'
+
+[properties]
+cmake_toolchain_file = '/usr/share/mingw/toolchain-x86_64-w64-mingw32.cmake'
+cmake_defaults = false

@@ -381,9 +381,10 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
           (to_little_endian(gpt_entry->ent_lba_end) - to_little_endian(gpt_entry->ent_lba_start) + 1) *
           disk_car.sector_size;
       new_partition.status = STATUS_PRIM;
-      UCSle2str(new_partition.partname,
-                std::span<const uint16_t, sizeof(gpt_entry->ent_name) / 2>(
-                    gpt_entry->ent_name, sizeof(gpt_entry->ent_name) / 2
+      std::ignore = UCSle2str(new_partition.partname,
+                std::span<const char16_t, sizeof(gpt_entry->ent_name) / 2>(
+                    reinterpret_cast<const char16_t *>(gpt_entry->ent_name),
+                    sizeof(gpt_entry->ent_name) / 2
                 ));
       check_part_gpt(disk_car, verbose, new_partition, saveheader);
       /* log_debug("{} ent_attr %08llx\n", new_partition.order, (long long
