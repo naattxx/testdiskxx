@@ -34,6 +34,7 @@
 // #include "src/intrfn.hpp"
 #include "ntfs.hpp"
 #include "ntfs_adv.hpp"
+#include "ntfs_struct.hpp"
 #include "src/ui/dirpart.hpp"
 #include "src/io_redir.hpp"
 #include "src/lang.h"
@@ -860,23 +861,22 @@ static constexpr auto testdisk_ffs(unsigned int x) -> int
   return r;
 }
 
-auto log_ntfs2_info(const struct ntfs_boot_sector *nh1,
-                    const struct ntfs_boot_sector *nh2) -> int
+void log_ntfs2_info(const struct ntfs_boot_sector *nh1,
+                    const struct ntfs_boot_sector *nh2)
 {
-  log_info("filesystem size           {} {}\n",
-           (long long unsigned)(to_little_endian(nh1->sectors_nbr) + 1),
-           (long long unsigned)(to_little_endian(nh2->sectors_nbr) + 1));
-  log_info("sectors_per_cluster       {} {}\n", nh1->sectors_per_cluster,
+  log_info("filesystem size           {} {}",
+           to_little_endian(nh1->sectors_nbr) + 1,
+           to_little_endian(nh2->sectors_nbr) + 1);
+  log_info("sectors_per_cluster       {} {}", nh1->sectors_per_cluster,
            nh2->sectors_per_cluster);
-  log_info("mft_lcn                   {} {}\n",
-           (long long unsigned int)to_little_endian(nh1->mft_lcn),
-           (long long unsigned int)to_little_endian(nh2->mft_lcn));
-  log_info("mftmirr_lcn               {} {}\n",
-           (long long unsigned int)to_little_endian(nh1->mftmirr_lcn),
-           (long long unsigned int)to_little_endian(nh2->mftmirr_lcn));
-  log_info("clusters_per_mft_record   %d %d\n", nh1->clusters_per_mft_record,
+  log_info("mft_lcn                   {} {}",
+           to_little_endian(nh1->mft_lcn),
+           to_little_endian(nh2->mft_lcn));
+  log_info("mftmirr_lcn               {} {}",
+           to_little_endian(nh1->mftmirr_lcn),
+           to_little_endian(nh2->mftmirr_lcn));
+  log_info("clusters_per_mft_record   {} {}", nh1->clusters_per_mft_record,
            nh2->clusters_per_mft_record);
-  log_info("clusters_per_index_record %d %d\n", nh1->clusters_per_index_record,
+  log_info("clusters_per_index_record {} {}", nh1->clusters_per_index_record,
            nh2->clusters_per_index_record);
-  return 0;
 }
