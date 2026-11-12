@@ -8,3 +8,6 @@ Documentation:
   CommentFormat: Doxygen
 Hover:
   ShowAKA: true
+Style:
+  QuotedHeaders: ["src/.*"]
+  AngledHeaders: ["include/.*", "subprojects/.*", "config.h"]
