@@ -6,3 +6,5 @@ Diagnostics:
     FastCheckFilter: None
 Documentation:
   CommentFormat: Doxygen
+Hover:
+  ShowAKA: true
