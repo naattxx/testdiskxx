@@ -37,7 +37,7 @@ auto check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
 /*@
   @ requires \valid_read(ntfs_header);
   @*/
-auto log_ntfs_info(const struct ntfs_boot_sector *ntfs_header) -> int;
+void log_ntfs_info(const struct ntfs_boot_sector *ntfs_header);
 
 /*@
   @ requires \valid_read(partition);

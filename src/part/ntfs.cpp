@@ -39,6 +39,7 @@
 #include "src/intrf.hpp"
 #include "src/lang.h"
 #include "src/log.hpp"
+#include "src/part/ntfs_struct.hpp"
 #include "src/unicode.hpp"
 
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
@@ -485,18 +486,17 @@ auto is_ntfs(const partition_t &partition) -> int
   return (is_part_ntfs(partition) || partition.upart_type == UP_NTFS);
 }
 
-auto log_ntfs_info(const struct ntfs_boot_sector *ntfs_header) -> int
+void log_ntfs_info(const struct ntfs_boot_sector *ntfs_header)
 {
-  log_info("filesystem size           {}\n",
-           (long long unsigned)to_little_endian(ntfs_header->sectors_nbr) + 1);
-  log_info("sectors_per_cluster       {}\n", ntfs_header->sectors_per_cluster);
-  log_info("mft_lcn                   {}\n",
-           (long unsigned int)to_little_endian(ntfs_header->mft_lcn));
-  log_info("mftmirr_lcn               {}\n",
-           (long unsigned int)to_little_endian(ntfs_header->mftmirr_lcn));
-  log_info("clusters_per_mft_record   %d\n",
+  log_info("filesystem size           {}",
+           to_little_endian(ntfs_header->sectors_nbr) + 1);
+  log_info("sectors_per_cluster       {}", ntfs_header->sectors_per_cluster);
+  log_info("mft_lcn                   {}",
+           to_little_endian(ntfs_header->mft_lcn));
+  log_info("mftmirr_lcn               {}",
+           to_little_endian(ntfs_header->mftmirr_lcn));
+  log_info("clusters_per_mft_record   {}",
            ntfs_header->clusters_per_mft_record);
-  log_info("clusters_per_index_record %d\n",
+  log_info("clusters_per_index_record {}",
            ntfs_header->clusters_per_index_record);
-  return 0;
 }
