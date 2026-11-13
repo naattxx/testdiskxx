@@ -18,15 +18,20 @@
 #include "src/log_part.hpp"
 #include "src/part/ext2_sbn.hpp"
 #include "src/part/fat.hpp"
+#include "src/part/fat1x.hpp"
+#include "src/part/fat32.hpp"
 #include "src/part/ntfs.hpp"
 #include "src/part/ntfs_udl.hpp"
+#include "src/part/texfat.hpp"
 #include "src/part/thfs.hpp"
+#include "src/part/tntfs.hpp"
 #include "src/ui/askloc.hpp"
 #include "src/ui/dimage.hpp"
 #include "src/ui/intrfn.hpp"
 #include "src/ui/part/ext2_sb.hpp"
 #include "dirpart.hpp"
 #include "src/ui/part/ntfs_udl.hpp"
+#include "src/ui/part/tntfs.hpp"
 #include <cassert>
 #include <filesystem>
 #include <format>
@@ -205,6 +210,55 @@ static void adv_menu_image_selected(disk_t &disk, const partition_t &partition)
   }
 }
 
+static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition,
+                                   const int verbose, const bool dump_ind,
+                                   const bool expert)
+    -> bool
+{
+  // if (is_part_fat32(partition))
+  // {
+  //     fat32_boot_sector(disk, partition, verbose, dump_ind, expert,
+  //     current_cmd); return true;
+  // }
+  // if (is_part_fat12(partition) || is_part_fat16(partition))
+  // {
+  //   fat1x_boot_sector(disk, partition, verbose, dump_ind, expert,
+  //                     current_cmd);
+  //   return true;
+  // }
+  if (is_part_ntfs(partition))
+  {
+    if (partition.upart_type == UP_EXFAT)
+      ; // exFAT_boot_sector(disk, partition);
+    else
+      ntfs_boot_sector_menu(disk, partition, verbose, expert);
+    return true;
+  }
+  // if (partition.upart_type == UP_FAT32)
+  // {
+  //   fat32_boot_sector(disk, partition, verbose, dump_ind, expert,
+  //                     current_cmd);
+  //   return true;
+  // }
+  // if (partition.upart_type == UP_FAT12 || partition.upart_type == UP_FAT16)
+  // {
+  //   fat1x_boot_sector(disk, partition, verbose, dump_ind, expert,
+  //                     current_cmd);
+  //   return true;
+  // }
+  if (partition.upart_type == UP_NTFS)
+  {
+    ntfs_boot_sector_menu(disk, partition, verbose, expert);
+    return true;
+  }
+  // if (partition.upart_type == UP_EXFAT)
+  // {
+  //   exFAT_boot_sector(disk, partition, current_cmd);
+  //   return true;
+  // }
+  return false;
+}
+
 static void adv_menu_superblock_selected(const Component &root, disk_t &disk,
                                          partition_t &partition,
                                          const int verbose, const bool dump)
@@ -330,7 +384,14 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
           },
           buttonOptions
       ),
-      Maybe(Button("[  Boot  ]", [] -> void {},
+      Maybe(Button("[  Boot  ]",
+                   [&] -> void {
+                     bool success =
+                         adv_menu_boot_selected(disk, list_part[selected_part],
+                                                verbose, dump, expert);
+                     if (!success)
+                       display_message(root, "partition not detected (or yet to be implemented)");
+                   },
                    {
                        .transform = [&](const EntryState &s) -> Element {
                          if (s.focused)

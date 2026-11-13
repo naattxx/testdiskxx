@@ -20,33 +20,8 @@
 
  */
 #include <config.h>
-
-#include <cassert>
-#include <cstddef>
-#include <cctype>
-#include <cstdarg>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include "common.hpp"
-#include "intrf.hpp"
-// #include "intrfn.h"
-#include "fnctdsk.hpp"
-// #include "chgtypen.h"
-#include "addpart.hpp"
 #include "adv.hpp"
-#include "dimage.hpp"
-#include "ui/dirpart.hpp"
-#include "part/fat.hpp"
-#include "part/fat1x.hpp"
-#include "part/fat32.hpp"
-#include "part/ntfs.hpp"
-#include "part/ntfs_udl.hpp"
-#include "part/texfat.hpp"
-#include "part/thfs.hpp"
-#include "part/tntfs.hpp"
-// #include "addpartn.h"
-#include "io_redir.hpp"
+#include "common.hpp"
 
 extern const arch_fnct_t arch_gpt;
 extern const arch_fnct_t arch_i386;
@@ -54,12 +29,6 @@ extern const arch_fnct_t arch_mac;
 extern const arch_fnct_t arch_none;
 extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
-
-#ifdef HAVE_NCURSES
-#define INTER_ADV_X 0
-#define INTER_ADV_Y (LINES - 2)
-#define INTER_ADV (LINES - 2 - 7 - 1)
-#endif
 
 auto is_part_linux(const partition_t &partition) noexcept -> int
 {
@@ -73,52 +42,5 @@ auto is_part_linux(const partition_t &partition) noexcept -> int
                                          partition.part_type_gpt == GPT_ENT_TYPE_LINUX_HOME ||
                                          partition.part_type_gpt == GPT_ENT_TYPE_LINUX_SRV))
         return 1;
-    return 0;
-}
-
-static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition, const int verbose, const int dump_ind,
-                                  const unsigned int expert, char **current_cmd) -> int
-{
-    if (is_part_fat32(partition))
-    {
-        fat32_boot_sector(disk, partition, verbose, dump_ind, expert, current_cmd);
-        return 1;
-    }
-    if (is_part_fat12(partition) || is_part_fat16(partition))
-    {
-      fat1x_boot_sector(disk, partition, verbose, dump_ind, expert,
-                        current_cmd);
-      return 1;
-    }
-    if (is_part_ntfs(partition))
-    {
-      if (partition.upart_type == UP_EXFAT)
-        exFAT_boot_sector(disk, partition, current_cmd);
-      else
-        ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
-      return 1;
-    }
-    if (partition.upart_type == UP_FAT32)
-    {
-      fat32_boot_sector(disk, partition, verbose, dump_ind, expert,
-                        current_cmd);
-      return 1;
-    }
-    if (partition.upart_type == UP_FAT12 || partition.upart_type == UP_FAT16)
-    {
-      fat1x_boot_sector(disk, partition, verbose, dump_ind, expert,
-                        current_cmd);
-      return 1;
-    }
-    if (partition.upart_type == UP_NTFS)
-    {
-      ntfs_boot_sector(disk, partition, verbose, expert, current_cmd);
-      return 1;
-    }
-    if (partition.upart_type == UP_EXFAT)
-    {
-      exFAT_boot_sector(disk, partition, current_cmd);
-      return 1;
-    }
     return 0;
 }

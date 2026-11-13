@@ -338,6 +338,7 @@ sources = files(
   'src/ui/intrfn.cpp',
   'src/ui/part/ext2_sb.cpp',
   'src/ui/part/ntfs_udl.cpp',
+  'src/ui/part/tntfs.cpp',
   'src/ui/tanalyse.cpp',
   'src/ui/tdiskop.cpp',
   'src/ui/tdisksel.cpp',

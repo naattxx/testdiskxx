@@ -23,7 +23,7 @@
 #define _NTFS_STRUCT_H
 #include <cstdint>
 
-#define NTFS_BOOT_SECTOR_SIZE 0x200
+constexpr int NTFS_BOOT_SECTOR_SIZE {0x200};
 
 struct [[gnu::gcc_struct, gnu::packed]] ntfs_boot_sector
 {

@@ -1464,7 +1464,7 @@ static auto use_backup(disk_t &disk_car, list_part_t &list_part,
                           current_cmd);
         break;
       case UP_NTFS:
-        ntfs_boot_sector(disk_car, part, verbose, expert, current_cmd);
+        //ntfs_boot_sector(disk_car, part, verbose, expert, current_cmd);
         break;
       case UP_HFS:
       case UP_HFSP:
