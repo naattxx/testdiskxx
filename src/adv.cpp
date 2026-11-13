@@ -30,17 +30,17 @@ extern const arch_fnct_t arch_none;
 extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
 
-auto is_part_linux(const partition_t &partition) noexcept -> int
+auto is_part_linux(const partition_t &partition) noexcept -> bool
 {
     if (partition.arch == &arch_i386 && partition.part_type_i386 == P_LINUX)
-        return 1;
+        return true;
     if (partition.arch == &arch_sun && partition.part_type_sun == PSUN_LINUX)
-        return 1;
+        return true;
     if (partition.arch == &arch_mac && partition.part_type_mac == PMAC_LINUX)
-        return 1;
+        return true;
     if (partition.arch == &arch_gpt && (partition.part_type_gpt == GPT_ENT_TYPE_LINUX_DATA ||
                                          partition.part_type_gpt == GPT_ENT_TYPE_LINUX_HOME ||
                                          partition.part_type_gpt == GPT_ENT_TYPE_LINUX_SRV))
-        return 1;
-    return 0;
+        return true;
+    return false;
 }

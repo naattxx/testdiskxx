@@ -93,7 +93,7 @@ static auto set_part_type_mac(partition_t &partition,
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static auto is_part_known_mac(const partition_t &partition) -> int;
+static auto is_part_known_mac(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -369,7 +369,7 @@ static auto set_part_type_mac(partition_t &partition,
   return 1;
 }
 
-static auto is_part_known_mac(const partition_t &partition) -> int
+static auto is_part_known_mac(const partition_t &partition) -> bool
 {
   return (partition.part_type_mac != PMAC_UNK);
 }

@@ -227,14 +227,14 @@ auto gen_sorted_partition_list(const list_part_t &list_part) -> list_part_t
     return new_list_part;
 }
 
-auto is_part_overlapping(const list_part_t &list_part) -> int
+auto is_part_overlapping(const list_part_t &list_part) -> bool
 {
 
     /* Test overlapping
        Must be space between a primary/logical partition and a logical partition for an extended
     */
     if (list_part.empty())
-        return 0;
+        return false;
     auto element = list_part.cbegin();
     /*@
       @ loop invariant \valid_read(element);
@@ -246,7 +246,7 @@ auto is_part_overlapping(const list_part_t &list_part) -> int
         const partition_t &partition = *element;
         const partition_t &next_part = *next;
         if (next == list_part.cend())
-            return 0;
+            return false;
         /*@ assert \valid_read(partition); */
         /*@ assert \valid_read(next_part); */
         if ((partition.part_offset + partition.part_size - 1 >= next_part.part_offset) ||
@@ -254,7 +254,7 @@ auto is_part_overlapping(const list_part_t &list_part) -> int
               partition.status == STATUS_LOG) &&
              next_part.status == STATUS_LOG &&
              partition.part_offset + partition.part_size - 1 + 1 >= next_part.part_offset))
-            return 1;
+            return true;
         element = next;
     }
 }

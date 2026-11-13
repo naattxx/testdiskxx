@@ -50,49 +50,49 @@ extern const arch_fnct_t arch_sun;
 extern const arch_fnct_t arch_xbox;
 
 [[nodiscard]]
-static auto is_part_hfs(const partition_t &partition) noexcept -> int
+static auto is_part_hfs(const partition_t &partition) noexcept -> bool
 {
   if (partition.part_type_i386 == P_HFS || partition.part_type_mac == PMAC_HFS)
-    return 1;
+    return true;
   if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_HFS)
-    return 1;
-  return 0;
+    return true;
+  return false;
 }
 
 [[nodiscard]]
-static auto is_part_hfsp(const partition_t &partition) noexcept -> int
+static auto is_part_hfsp(const partition_t &partition) noexcept -> bool
 {
   if (partition.part_type_i386 == P_HFSP || partition.part_type_mac == PMAC_HFS)
-    return 1;
+    return true;
   if (partition.part_type_gpt == GPT_ENT_TYPE_MAC_HFS)
-    return 1;
-  return 0;
+    return true;
+  return false;
 }
 
 [[nodiscard]]
-static auto is_exfat(const partition_t &partition) noexcept -> int
+static auto is_exfat(const partition_t &partition) noexcept -> bool
 {
   return (is_part_ntfs(partition) || partition.upart_type == UP_EXFAT);
 }
 
 [[nodiscard]]
-static auto is_hfs(const partition_t &partition) noexcept -> int
+static auto is_hfs(const partition_t &partition) noexcept -> bool
 {
   return (is_part_hfs(partition) || partition.upart_type == UP_HFS);
 }
 
 [[nodiscard]]
-static auto is_hfsp(const partition_t &partition) noexcept -> int
+static auto is_hfsp(const partition_t &partition) noexcept -> bool
 {
   return (is_part_hfsp(partition) || partition.upart_type == UP_HFSP ||
           partition.upart_type == UP_HFSX);
 }
 
 [[nodiscard]]
-static auto is_linux(const partition_t &partition) noexcept -> int
+static auto is_linux(const partition_t &partition) noexcept -> bool
 {
   if (is_part_linux(partition))
-    return 1;
+    return true;
   switch (partition.upart_type)
   {
   case UP_CRAMFS:
@@ -109,11 +109,11 @@ static auto is_linux(const partition_t &partition) noexcept -> int
   case UP_XFS3:
   case UP_XFS4:
   case UP_XFS5:
-    return 1;
+    return true;
   default:
     break;
   }
-  return 0;
+  return false;
 }
 
 [[nodiscard]]

@@ -64,7 +64,7 @@
 /*@
   @ assigns \nothing;
   @*/
-static auto is_extended(const unsigned int part_type) -> int;
+static auto is_extended(const unsigned int part_type) -> bool;
 
 /*@
   @ requires list_part == \null || \valid_read(list_part);
@@ -224,7 +224,7 @@ static auto set_part_type_i386(partition_t &partition, unsigned int part_type)
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static auto is_part_known_i386(const partition_t &partition) -> int;
+static auto is_part_known_i386(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -1577,7 +1577,7 @@ static auto test_structure_i386(const list_part_t &list_part) -> int
   return res;
 }
 
-static auto is_extended(const unsigned int part_type) -> int
+static auto is_extended(const unsigned int part_type) -> bool
 {
   return (part_type == static_cast<const unsigned char>(P_EXTENDX) ||
           part_type == static_cast<const unsigned char>(P_EXTENDED) ||
@@ -1752,7 +1752,7 @@ static auto set_part_type_i386(partition_t &partition, unsigned int part_type)
   return 1;
 }
 
-static auto is_part_known_i386(const partition_t &partition) -> int
+static auto is_part_known_i386(const partition_t &partition) -> bool
 {
   return (partition.part_type_i386 != P_NO_OS &&
           partition.part_type_i386 != P_UNK);

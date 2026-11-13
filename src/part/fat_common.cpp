@@ -72,7 +72,7 @@ auto fat_get_cluster_from_entry(const struct msdos_dir_entry *entry)
   return (hi << 16u) | lo;
 }
 
-auto is_fat_directory(const unsigned char *buffer) -> int
+auto is_fat_directory(const unsigned char *buffer) -> bool
 {
   return (buffer[0] == '.' && memcmp(buffer, ".          ", 8 + 3) == 0 &&
           memcmp(&buffer[0x20], "..         ", 8 + 3) == 0 &&

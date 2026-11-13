@@ -769,7 +769,7 @@ struct arch_fnct_t
     void (*init_structure)(const disk_t &disk, list_part_t &list_part, const int verbose);
     int (*erase_list_part)(disk_t &disk);
     std::string_view (*get_partition_typename)(const partition_t &partition);
-    int (*is_part_known)(const partition_t &partition);
+    bool (*is_part_known)(const partition_t &partition);
 };
 
 /*@

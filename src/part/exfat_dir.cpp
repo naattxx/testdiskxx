@@ -318,7 +318,7 @@ enum exfat_method_t : uint8_t
   exFAT_NEXT_CLUSTER,
 };
 
-static auto is_EOC(const unsigned int cluster) -> int
+static auto is_EOC(const unsigned int cluster) -> bool
 {
   return (cluster == 0xFFFFFFFF);
 }

@@ -43,13 +43,13 @@ void log_ntfs_info(const struct ntfs_boot_sector *ntfs_header);
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-auto is_ntfs(const partition_t &partition) -> int;
+auto is_ntfs(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-auto is_part_ntfs(const partition_t &partition) -> int;
+auto is_part_ntfs(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid(disk_car);

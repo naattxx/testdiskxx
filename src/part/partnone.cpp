@@ -132,7 +132,7 @@ static auto set_part_type_none(partition_t &partition, unsigned int part_type)
   @ requires \valid_read(partition);
   @ assigns \nothing;
   @*/
-static auto is_part_known_none(const partition_t &partition) -> int;
+static auto is_part_known_none(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -412,9 +412,9 @@ static auto set_part_type_none(partition_t &partition, unsigned int part_type)
   return 0;
 }
 
-static auto is_part_known_none(const partition_t &partition) -> int
+static auto is_part_known_none(const partition_t &partition) -> bool
 {
-  return 1;
+  return true;
 }
 
 static void init_structure_none(const disk_t &disk_car, list_part_t &list_part,

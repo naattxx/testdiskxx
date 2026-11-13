@@ -463,7 +463,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
   delete[] buffer;
 }
 
-auto is_part_ntfs(const partition_t &partition) -> int
+auto is_part_ntfs(const partition_t &partition) -> bool
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
   if (partition.arch == &arch_i386)
@@ -472,16 +472,16 @@ auto is_part_ntfs(const partition_t &partition) -> int
     {
     case P_NTFS:
     case P_NTFSH:
-      return 1;
+      return true;
     default:
       break;
     }
   }
 #endif
-  return 0;
+  return false;
 }
 
-auto is_ntfs(const partition_t &partition) -> int
+auto is_ntfs(const partition_t &partition) -> bool
 {
   return (is_part_ntfs(partition) || partition.upart_type == UP_NTFS);
 }

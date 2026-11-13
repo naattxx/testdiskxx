@@ -52,19 +52,19 @@ extern const arch_fnct_t arch_mac;
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-static auto is_fat12(const partition_t &partition) -> int;
+static auto is_fat12(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-static auto is_fat16(const partition_t &partition) -> int;
+static auto is_fat16(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(partition);
   @ assigns  \nothing;
   @*/
-static auto is_fat32(const partition_t &partition) -> int;
+static auto is_fat32(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid(disk_car);
@@ -1343,18 +1343,18 @@ auto recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header,
   return 0;
 }
 
-auto is_fat(const partition_t &partition) -> int
+auto is_fat(const partition_t &partition) -> bool
 {
   return (is_fat12(partition) || is_fat16(partition) || is_fat32(partition));
 }
 
-auto is_part_fat(const partition_t &partition) -> int
+auto is_part_fat(const partition_t &partition) -> bool
 {
   return (is_part_fat12(partition) || is_part_fat16(partition) ||
           is_part_fat32(partition));
 }
 
-auto is_part_fat12(const partition_t &partition) -> int
+auto is_part_fat12(const partition_t &partition) -> bool
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
   if (partition.arch == &arch_i386)
@@ -1363,21 +1363,21 @@ auto is_part_fat12(const partition_t &partition) -> int
     {
     case P_12FAT:
     case P_12FATH:
-      return 1;
+      return true;
     default:
       break;
     }
   }
 #endif
-  return 0;
+  return false;
 }
 
-static auto is_fat12(const partition_t &partition) -> int
+static auto is_fat12(const partition_t &partition) -> bool
 {
   return (is_part_fat12(partition) || partition.upart_type == UP_FAT12);
 }
 
-auto is_part_fat16(const partition_t &partition) -> int
+auto is_part_fat16(const partition_t &partition) -> bool
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
   if (partition.arch == &arch_i386)
@@ -1390,21 +1390,21 @@ auto is_part_fat16(const partition_t &partition) -> int
     case P_16FATBD:
     case P_16FATBDH:
     case P_16FATBD_LBAH:
-      return 1;
+      return true;
     default:
       break;
     }
   }
 #endif
-  return 0;
+  return false;
 }
 
-static auto is_fat16(const partition_t &partition) -> int
+static auto is_fat16(const partition_t &partition) -> bool
 {
   return (is_part_fat16(partition) || partition.upart_type == UP_FAT16);
 }
 
-auto is_part_fat32(const partition_t &partition) -> int
+auto is_part_fat32(const partition_t &partition) -> bool
 {
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
   if (partition.arch == &arch_i386)
@@ -1415,7 +1415,7 @@ auto is_part_fat32(const partition_t &partition) -> int
     case P_32FAT_LBA:
     case P_32FATH:
     case P_32FAT_LBAH:
-      return 1;
+      return true;
     default:
       break;
     }
@@ -1425,13 +1425,13 @@ auto is_part_fat32(const partition_t &partition) -> int
   if (partition.arch == &arch_mac)
   {
     if (partition.part_type_mac == PMAC_FAT32)
-      return 1;
+      return true;
   }
 #endif
-  return 0;
+  return false;
 }
 
-static auto is_fat32(const partition_t &partition) -> int
+static auto is_fat32(const partition_t &partition) -> bool
 {
   return (is_part_fat32(partition) || partition.upart_type == UP_FAT32);
 }

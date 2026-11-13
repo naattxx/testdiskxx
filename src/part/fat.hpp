@@ -76,35 +76,35 @@ auto set_next_cluster(disk_t &disk, const partition_t &partition,
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-auto is_fat(const partition_t &partition) -> int;
+auto is_fat(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(partition);
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-auto is_part_fat(const partition_t &partition) -> int;
+auto is_part_fat(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(partition);
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-auto is_part_fat12(const partition_t &partition) -> int;
+auto is_part_fat12(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(partition);
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-auto is_part_fat16(const partition_t &partition) -> int;
+auto is_part_fat16(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(partition);
   @ terminates \true;
   @ assigns  \nothing;
   @*/
-auto is_part_fat32(const partition_t &partition) -> int;
+auto is_part_fat32(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid(disk);

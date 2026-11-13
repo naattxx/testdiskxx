@@ -149,7 +149,7 @@ auto fat_get_cluster_from_entry(const struct msdos_dir_entry *entry)
   @ requires \valid_read(buffer + (0 .. 0x40-1));
   @ assigns \nothing;
   @ */
-auto is_fat_directory(const unsigned char *buffer) -> int;
+auto is_fat_directory(const unsigned char *buffer) -> bool;
 
 /*@
   @ requires \valid_read(fat_header);

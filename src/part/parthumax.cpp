@@ -79,7 +79,7 @@ static auto test_structure_humax(const list_part_t &list_part) -> int;
   @ requires \valid(partition);
   @ assigns \nothing;
   @*/
-static auto is_part_known_humax(const partition_t &partition) -> int;
+static auto is_part_known_humax(const partition_t &partition) -> bool;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -144,7 +144,7 @@ arch_fnct_t arch_humax = {
     .is_part_known          = &is_part_known_humax,
 };
 
-static auto is_part_known_humax(const partition_t &partition) -> int
+static auto is_part_known_humax(const partition_t &partition) -> bool
 {
   return (partition.part_type_humax != PHUMAX_PARTITION);
 }

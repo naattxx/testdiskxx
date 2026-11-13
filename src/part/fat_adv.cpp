@@ -355,7 +355,7 @@ static int ask_root_directory(const disk_t &disk_car,
 }
 #endif
 
-static auto is_root_cluster_candidat(const dir_list_t &dir_list) -> int
+static auto is_root_cluster_candidat(const dir_list_t &dir_list) -> bool
 {
   const file_info_t &file1 = dir_list.front();
   const file_info_t &file2 = *std::next(dir_list.begin());

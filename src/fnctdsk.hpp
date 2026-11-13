@@ -168,7 +168,7 @@
       @ requires valid_list_part(list_part);
       @ assigns \nothing;
       @*/
-    auto is_part_overlapping(const list_part_t &list_part) -> int;
+    auto is_part_overlapping(const list_part_t &list_part) -> bool;
 
     /*@
       @ requires valid_list_disk(list_disk);

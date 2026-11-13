@@ -230,22 +230,22 @@ void log_list_file(const disk_t &disk, const partition_t &partition, const dir_d
   @ assigns \nothing;
   @*/
 static auto is_inode_valid(const file_info_t &current_file, const unsigned int dir_nbr,
-                          const unsigned long int *inode_known) -> int
+                          const unsigned long int *inode_known) -> bool
 {
     const unsigned long int new_inode = current_file.st_ino;
     unsigned int i;
     if (new_inode < 2)
-        return 0;
+        return false;
     if (current_file.name == "..")
-        return 0;
+        return false;
     /*@
       @ loop assigns i;
       @ loop variant dir_nbr - i;
       @*/
     for (i = 0; i < dir_nbr; i++)
         if (new_inode == inode_known[i]) /* Avoid loop */
-            return 0;
-    return 1;
+            return false;
+    return true;
 }
 
 /*@

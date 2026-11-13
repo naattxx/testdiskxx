@@ -1657,12 +1657,15 @@ void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose) no
   @ requires \valid_read(hdr);
   @ assigns \nothing;
   @*/
-static auto is_dosemu_image(const struct dosemu_image_header *hdr) -> int
+static auto is_dosemu_image(const struct dosemu_image_header *hdr) -> bool
 {
-    if (memcmp(&hdr->sig, "DOSEMU", 6) == 0 && 0 < to_little_endian(hdr->sectors) && to_little_endian(hdr->sectors) <= 63 &&
-        0 < to_little_endian(hdr->heads) && to_little_endian(hdr->heads) <= 255 && 0 < to_little_endian(hdr->cylinders) && 0 < to_little_endian(hdr->header_end))
-        return 1;
-    return 0;
+  return memcmp(&hdr->sig, "DOSEMU", 6) == 0 &&
+         0 < to_little_endian(hdr->sectors) &&
+         to_little_endian(hdr->sectors) <= 63 &&
+         0 < to_little_endian(hdr->heads) &&
+         to_little_endian(hdr->heads) <= 255 &&
+         0 < to_little_endian(hdr->cylinders) &&
+         0 < to_little_endian(hdr->header_end);
 }
 
 auto file_test_availability(const char *device, const int verbose, TESTDISK_O testdisk_mode) -> std::optional<disk_t>
