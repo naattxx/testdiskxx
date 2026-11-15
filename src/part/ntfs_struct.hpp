@@ -56,6 +56,7 @@ struct [[gnu::gcc_struct, gnu::packed]] ntfs_boot_sector
   uint8_t bootstrap[426];           /* 0x54 Irrelevant (boot up code). */
   uint16_t marker;                  /* 0x1FE */
 };
+static_assert(sizeof(ntfs_boot_sector) == NTFS_BOOT_SECTOR_SIZE);
 
 #define NTFS_Magic 0x454c4946 /* FILE */
 
