@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/log.hpp"
@@ -58,13 +59,13 @@ auto check_VMFS(disk_t &disk, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_VMFS(disk, reinterpret_cast<struct vmfs_volume *>(buffer), partition,
+  if (test_VMFS(disk, std::start_lifetime_as<struct vmfs_volume>(buffer), partition,
                 0) != 0)
   {
     delete[] buffer;
     return 1;
   }
-  set_VMFS_info(reinterpret_cast<struct vmfs_volume *>(buffer), partition);
+  set_VMFS_info(std::start_lifetime_as<struct vmfs_volume>(buffer), partition);
   delete[] buffer;
   return 0;
 }
@@ -73,7 +74,7 @@ auto recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
                   partition_t &partition, const int verbose, const int dump_ind)
     -> int
 {
-  const auto *lvm = reinterpret_cast<const struct vmfs_lvm *>(
+  const auto *lvm = std::start_lifetime_as<struct vmfs_lvm>(
       (reinterpret_cast<const char *>(sb)) + 0x200
   );
   if (test_VMFS(disk, sb, partition, dump_ind) != 0)

@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/log.hpp"
@@ -59,7 +60,7 @@ auto check_WBFS(disk_t &disk, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_WBFS(disk, reinterpret_cast<struct wbfs_head *>(buffer), partition,
+  if (test_WBFS(disk, std::start_lifetime_as<struct wbfs_head>(buffer), partition,
                 0) != 0)
   {
     delete[] buffer;

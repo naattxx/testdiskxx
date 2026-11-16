@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #include "src/log.hpp"
@@ -61,13 +62,13 @@ auto check_ZFS(disk_t &disk, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_ZFS(disk, reinterpret_cast<struct vdev_boot_header *>(buffer),
+  if (test_ZFS(disk, std::start_lifetime_as<struct vdev_boot_header>(buffer),
                partition, 0) != 0)
   {
     delete[] buffer;
     return 1;
   }
-  set_ZFS_info(reinterpret_cast<struct vdev_boot_header *>(buffer), partition);
+  set_ZFS_info(std::start_lifetime_as<struct vdev_boot_header>(buffer), partition);
   delete[] buffer;
   return 0;
 }

@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "f2fs.hpp"
 #include "f2fs_fs.hpp"
 #include "src/common.hpp"
@@ -53,12 +54,12 @@ auto check_f2fs(disk_t &disk, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_f2fs(reinterpret_cast<struct f2fs_super_block *>(buffer)) != 0)
+  if (test_f2fs(std::start_lifetime_as<struct f2fs_super_block>(buffer)) != 0)
   {
     delete[] buffer;
     return 1;
   }
-  set_f2fs_info(partition, reinterpret_cast<struct f2fs_super_block *>(buffer));
+  set_f2fs_info(partition, std::start_lifetime_as<struct f2fs_super_block>(buffer));
   delete[] buffer;
   return 0;
 }

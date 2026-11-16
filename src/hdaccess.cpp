@@ -22,6 +22,7 @@
 #include <config.h>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -1866,7 +1867,7 @@ auto file_test_availability(const char *device, const int verbose, TESTDISK_O te
 #endif
         disk_car.sector_size = DEFAULT_SECTOR_SIZE;
         buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-        ewf = reinterpret_cast<const struct tdewf_file_header *>(buffer);
+        ewf = std::start_lifetime_as<struct tdewf_file_header>(buffer);
         if (read(hd_h, buffer, DEFAULT_SECTOR_SIZE) != DEFAULT_SECTOR_SIZE)
         {
             memset(buffer, 0, DEFAULT_SECTOR_SIZE);
@@ -1875,7 +1876,7 @@ auto file_test_availability(const char *device, const int verbose, TESTDISK_O te
         Frama_C_make_unknown((char *)buffer, DEFAULT_SECTOR_SIZE);
 #endif
 #ifndef DISABLED_FOR_FRAMAC
-        hdr = reinterpret_cast<const struct dosemu_image_header *>(buffer);
+        hdr = std::start_lifetime_as<struct dosemu_image_header>(buffer);
         if (is_dosemu_image(hdr))
         {
             log_info("{} DOSEMU", device);

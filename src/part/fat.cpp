@@ -28,6 +28,7 @@
 #include <cstring>
 #include <ctime>
 
+#include <memory>
 #include <string_view>
 #include <utility>
 #include "fat.hpp"
@@ -350,7 +351,7 @@ auto check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
   }
   if (test_FAT(disk_car,
-               reinterpret_cast<const struct fat_boot_sector *>(buffer),
+               std::start_lifetime_as<struct fat_boot_sector>(buffer),
                partition, verbose, 0) != 0)
   {
 #ifndef DISABLED_FOR_FRAMAC
@@ -358,7 +359,7 @@ auto check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
     {
       log_error("\n\ntest_FAT()\n");
       log_partition(disk_car, partition);
-      log_fat_info(reinterpret_cast<const struct fat_boot_sector *>(buffer),
+      log_fat_info(std::start_lifetime_as<struct fat_boot_sector>(buffer),
                    partition.upart_type, disk_car.sector_size);
     }
 #endif
@@ -366,7 +367,7 @@ auto check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
   }
   set_FAT_info(disk_car,
-               reinterpret_cast<const struct fat_boot_sector *>(buffer),
+               std::start_lifetime_as<struct fat_boot_sector>(buffer),
                partition);
   /*  screen_buffer_add("Ok\n"); */
   delete[] buffer;
@@ -1123,7 +1124,7 @@ auto fat32_get_free_count(const unsigned char *boot_fat32,
                           const unsigned int sector_size) -> unsigned long int
 {
   const auto *fsinfo =
-      reinterpret_cast<const struct fat_fsinfo *>(&boot_fat32[sector_size]);
+      std::start_lifetime_as<struct fat_fsinfo>(&boot_fat32[sector_size]);
   /*@ assert \valid_read(fsinfo); */
   return to_little_endian(fsinfo->freecnt);
 }
@@ -1132,7 +1133,7 @@ auto fat32_get_next_free(const unsigned char *boot_fat32,
                          const unsigned int sector_size) -> unsigned long int
 {
   const auto *fsinfo =
-      reinterpret_cast<const struct fat_fsinfo *>(&boot_fat32[sector_size]);
+      std::start_lifetime_as<struct fat_fsinfo>(&boot_fat32[sector_size]);
   /*@ assert \valid_read(fsinfo); */
   return to_little_endian(fsinfo->nextfree);
 }
@@ -1309,7 +1310,7 @@ auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_OS2MB(disk, reinterpret_cast<const struct fat_boot_sector *>(buffer),
+  if (test_OS2MB(disk, std::start_lifetime_as<struct fat_boot_sector>(buffer),
                  partition, verbose, 0) != 0)
   {
 #ifndef DISABLED_FOR_FRAMAC

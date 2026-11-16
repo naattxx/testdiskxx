@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <string_view>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -247,7 +248,7 @@ static auto get_geometry_from_nonembr(const unsigned char *buffer,
   {
     /* Ugly hack to get geometry from FAT and NTFS */
     const auto *fat_header =
-        reinterpret_cast<const struct fat_boot_sector *>(buffer);
+        std::start_lifetime_as<struct fat_boot_sector>(buffer);
     /*@ assert \valid_read(fat_header); */
     if ((to_little_endian(fat_header->marker) == 0xAA55) &&
         (to_little_endian(fat_header->secs_track) > 0 &&
@@ -312,7 +313,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
       res = search_type_64(buffer_disk, disk, partition, verbose, 0);
   }
   if (res <= 0)
-    res = (recover_ISO(reinterpret_cast<const struct iso_primary_descriptor *>(
+    res = (recover_ISO(std::start_lifetime_as<struct iso_primary_descriptor>(
                            buffer_disk + 0x200
                        ),
                        partition) == 0);
@@ -362,7 +363,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
       if (disk.pread(disk, buffer_disk, 1024, hd_offset) == 1024)
       {
         const auto *sb =
-            reinterpret_cast<const struct ext2_super_block *>(buffer_disk);
+            std::start_lifetime_as<struct ext2_super_block>(buffer_disk);
         partition.part_offset = hd_offset;
         if (to_little_endian(sb->s_block_group_nr) > 0 &&
             to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC &&

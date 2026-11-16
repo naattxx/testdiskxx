@@ -24,6 +24,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 
@@ -171,9 +172,9 @@ static void menu_write_ntfs_boot_sector_cli(disk_t &disk_car,
                                             const int expert)
 {
   const auto *org_ntfs_header =
-      reinterpret_cast<const struct ntfs_boot_sector *>(orgboot);
+      std::start_lifetime_as<struct ntfs_boot_sector>(orgboot);
   const auto *ntfs_header =
-      reinterpret_cast<const struct ntfs_boot_sector *>(newboot);
+      std::start_lifetime_as<struct ntfs_boot_sector>(newboot);
   int no_confirm = 0;
   while (true)
   {
@@ -303,8 +304,8 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
 {
   unsigned char orgboot[NTFS_SECTOR_SIZE];
   unsigned char newboot[NTFS_SECTOR_SIZE];
-  auto *org_ntfs_header = reinterpret_cast<struct ntfs_boot_sector *>(&orgboot);
-  auto *ntfs_header     = reinterpret_cast<struct ntfs_boot_sector *>(&newboot);
+  auto *org_ntfs_header = std::start_lifetime_as<struct ntfs_boot_sector>(&orgboot);
+  auto *ntfs_header     = std::start_lifetime_as<struct ntfs_boot_sector>(&newboot);
   if (disk_car.pread(disk_car, &orgboot, NTFS_SECTOR_SIZE,
                      partition.part_offset) != NTFS_SECTOR_SIZE)
   {
@@ -395,7 +396,7 @@ static auto read_mft_info(disk_t &disk_car, const partition_t &partition,
     -> int
 {
   char buffer[8 * DEFAULT_SECTOR_SIZE];
-  const auto *record = reinterpret_cast<const struct ntfs_mft_record *>(buffer);
+  const auto *record = std::start_lifetime_as<struct ntfs_mft_record>(buffer);
   const ntfs_attribnonresident *attr80;
   if (disk_car.pread(disk_car, &buffer, sizeof(buffer),
                      partition.part_offset +
@@ -418,7 +419,7 @@ static auto read_mft_info(disk_t &disk_car, const partition_t &partition,
   {
     *mft_lcn = ntfs_get_first_rl_element(attr80, buffer + sizeof(buffer));
   }
-  record = reinterpret_cast<const struct ntfs_mft_record *>(buffer +
+  record = std::start_lifetime_as<struct ntfs_mft_record>(buffer +
                                                             (*mft_record_size));
   if (reinterpret_cast<const char *>(record) < buffer ||
       reinterpret_cast<const char *>(record) > buffer + sizeof(buffer))
@@ -569,7 +570,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
                                                         )) == 0x400)
     {
       const auto *record =
-          reinterpret_cast<const struct ntfs_mft_record *>(&buffer);
+          std::start_lifetime_as<struct ntfs_mft_record>(&buffer);
       if (memcmp(buffer, "FILE", 4) == 0 &&
           to_little_endian(record->attrs_offset) % 8 == 0 &&
           to_little_endian(record->attrs_offset) >= 42 &&
@@ -657,7 +658,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
                                                         )) == 0x400)
     {
       const auto *record =
-          reinterpret_cast<const struct ntfs_mft_record *>(&buffer);
+          std::start_lifetime_as<struct ntfs_mft_record>(&buffer);
       if (memcmp(buffer, "FILE", 4) == 0 &&
           to_little_endian(record->attrs_offset) % 8 == 0 &&
           to_little_endian(record->attrs_offset) >= 42 &&

@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "luks.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -67,13 +68,13 @@ auto check_LUKS(disk_t &disk_car, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_LUKS(disk_car, reinterpret_cast<struct luks_phdr *>(buffer),
+  if (test_LUKS(disk_car, std::start_lifetime_as<struct luks_phdr>(buffer),
                 partition, 0) != 0)
   {
     delete[] buffer;
     return 1;
   }
-  set_LUKS_info(reinterpret_cast<struct luks_phdr *>(buffer), partition);
+  set_LUKS_info(std::start_lifetime_as<struct luks_phdr>(buffer), partition);
   delete[] buffer;
   return 0;
 }

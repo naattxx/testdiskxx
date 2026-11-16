@@ -72,21 +72,20 @@ static void set_exFAT_info(partition_t &partition,
 
 auto check_exFAT(disk_t &disk, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[EXFAT_BS_SIZE];
-  if (disk.pread(disk, buffer, EXFAT_BS_SIZE, partition.part_offset) !=
+  auto *super_block = new struct exfat_super_block;
+  if (disk.pread(disk, super_block, EXFAT_BS_SIZE, partition.part_offset) !=
       EXFAT_BS_SIZE)
   {
-    delete[] buffer;
+    delete super_block;
     return 1;
   }
-  if (test_exFAT(reinterpret_cast<struct exfat_super_block *>(buffer)) != 0)
+  if (test_exFAT(super_block) != 0)
   {
-    delete[] buffer;
+    delete super_block;
     return 1;
   }
-  set_exFAT_info(partition,
-                 reinterpret_cast<struct exfat_super_block *>(buffer));
-  delete[] buffer;
+  set_exFAT_info(partition, super_block);
+  delete super_block;
   return 0;
 }
 

@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 #include "src/lang.h"
@@ -119,7 +120,7 @@ static auto HFS_HFSP_boot_sector_rescan(disk_t &disk_car,
     memset(buffer_bs, 0, HFSP_BOOT_SECTOR_SIZE);
   }
   else if (test_HFSP(disk_car,
-                     reinterpret_cast<const struct hfsp_vh *>(buffer_bs),
+                     std::start_lifetime_as<struct hfsp_vh>(buffer_bs),
                      partition, verbose, 0) == 0)
   {
     screen_buffer_add("HFS+ OK\n");
@@ -142,7 +143,7 @@ static auto HFS_HFSP_boot_sector_rescan(disk_t &disk_car,
     memset(buffer_backup_bs, 0, HFSP_BOOT_SECTOR_SIZE);
   }
   else if (test_HFSP(disk_car,
-                     reinterpret_cast<const struct hfsp_vh *>(buffer_backup_bs),
+                     std::start_lifetime_as<struct hfsp_vh>(buffer_backup_bs),
                      partition, verbose, 0) == 0)
   {
     screen_buffer_add("HFS+ OK\n");

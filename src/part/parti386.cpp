@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <array>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <string_view>
 #include <utility>
@@ -1923,7 +1924,7 @@ static auto erase_list_part_i386(disk_t &disk) -> int
   {
     /* Erase XBOX signature if present */
     auto *xboxlabel =
-        reinterpret_cast<struct xbox_partition *>(new unsigned char[0x800]);
+        std::start_lifetime_as<struct xbox_partition>(new unsigned char[0x800]);
     if ((static_cast<unsigned>(disk.pread(disk, xboxlabel, 0x800, 0)) ==
          0x800) &&
         (memcmp(xboxlabel->magic, "BRFR", 4) == 0))
@@ -1938,7 +1939,7 @@ static auto erase_list_part_i386(disk_t &disk) -> int
   {
     /* Erase EFI GPT signature if present */
     auto *gpt =
-        reinterpret_cast<struct gpt_hdr *>(new unsigned char[disk.sector_size]);
+        std::start_lifetime_as<struct gpt_hdr>(new unsigned char[disk.sector_size]);
     if (std::cmp_equal(disk.pread(disk, gpt, disk.sector_size,
                                   disk.sector_size),
                        disk.sector_size) &&

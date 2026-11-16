@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <string_view>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -112,13 +113,13 @@ auto check_xfs(disk_t &disk_car, partition_t &partition, const int verbose)
     delete[] buffer;
     return 1;
   }
-  if (test_xfs(disk_car, reinterpret_cast<struct xfs_sb *>(buffer), partition,
+  if (test_xfs(disk_car, std::start_lifetime_as<struct xfs_sb>(buffer), partition,
                verbose) != 0)
   {
     delete[] buffer;
     return 1;
   }
-  set_xfs_info(reinterpret_cast<struct xfs_sb *>(buffer), partition);
+  set_xfs_info(std::start_lifetime_as<struct xfs_sb>(buffer), partition);
   delete[] buffer;
   return 0;
 }

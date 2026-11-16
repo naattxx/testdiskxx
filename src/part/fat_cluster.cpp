@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <memory>
 #include <utility>
 #include "src/common.hpp"
 #include "src/intrf.hpp"
@@ -90,7 +91,7 @@ auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
 
     {
       const unsigned long int cluster = fat_get_cluster_from_entry(
-          reinterpret_cast<const struct msdos_dir_entry *>(buffer)
+          std::start_lifetime_as<struct msdos_dir_entry>(buffer)
       );
       log_info("sector {}, cluster {}\n",
                (unsigned long)(offset / disk_car.sector_size), cluster);

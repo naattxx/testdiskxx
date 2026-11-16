@@ -21,6 +21,7 @@
  */
 
 #include <array>
+#include <memory>
 #include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
 #include <config.h>
@@ -171,7 +172,7 @@ static auto read_part_xbox(disk_t &disk_car, const int verbose,
         0x00080000, 0x2ee80000, 0x5dc80000, 0x8ca80000, 0xabe80000,
     };
     unsigned int i;
-    auto *xboxlabel = reinterpret_cast<struct xbox_partition *>(&buffer);
+    auto *xboxlabel = std::start_lifetime_as<struct xbox_partition>(&buffer);
     if (memcmp(xboxlabel->magic, "BRFR", 4) != 0)
     {
       screen_buffer_add("\nBad XBOX partition, invalid signature\n");

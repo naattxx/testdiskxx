@@ -21,6 +21,7 @@
  */
 
 #include <cstdlib>
+#include <memory>
 
 // #include <stdio.h>
 #include "bsd.hpp"
@@ -121,14 +122,14 @@ auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
     delete[] buffer;
     return 1;
   }
-  if (test_BSD(disk_car, reinterpret_cast<const struct disklabel *>(buffer),
+  if (test_BSD(disk_car, std::start_lifetime_as<struct disklabel>(buffer),
                partition, verbose, 0, max_partitions))
   {
     delete[] buffer;
     return 1;
   }
   partition.set_name(
-      std::string_view(reinterpret_cast<const struct disklabel *>(buffer)->d_packname, 16)
+      std::string_view(std::start_lifetime_as<struct disklabel>(buffer)->d_packname, 16)
   );
   delete[] buffer;
   return 0;

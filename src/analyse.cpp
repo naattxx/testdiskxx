@@ -23,6 +23,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include "analyse.hpp"
 #include "common.hpp"
 #include "part/exfat.hpp"
@@ -68,7 +69,7 @@ auto search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partit
     if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
     {
-        const auto *ntfs_header = reinterpret_cast<const struct ntfs_boot_sector *>(buffer);
+        const auto *ntfs_header = std::start_lifetime_as<struct ntfs_boot_sector>(buffer);
 #ifndef DISABLED_FOR_FRAMAC
         /* NTFS recovery using backup sector */
         if (to_little_endian(ntfs_header->marker) == 0xAA55 &&
@@ -86,8 +87,8 @@ auto search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
         return -1;
 #ifndef DISABLED_FOR_FRAMAC
     {
-        const auto *hfs_mdb = reinterpret_cast<const hfs_mdb_t *>(buffer);
-        const auto *vh = reinterpret_cast<const struct hfsp_vh *>(buffer);
+        const auto *hfs_mdb = std::start_lifetime_as<hfs_mdb_t>(buffer);
+        const auto *vh = std::start_lifetime_as<struct hfsp_vh>(buffer);
         /* HFS recovery using backup sector */
         if (hfs_mdb->drSigWord == to_big_endian(HFS_SUPER_MAGIC) &&
             recover_HFS(disk, hfs_mdb, partition, verbose, dump_ind, 1) == 0)
@@ -111,7 +112,7 @@ auto search_exFAT_backup(unsigned char *buffer, disk_t &disk, partition_t &parti
     if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
     {
-        const auto *exfat_header = reinterpret_cast<const struct exfat_super_block *>(buffer);
+        const auto *exfat_header = std::start_lifetime_as<struct exfat_super_block>(buffer);
         /* EXFAT recovery using backup sector */
         if (to_little_endian(exfat_header->signature) == 0xAA55 && recover_exFAT(disk, exfat_header, partition) == 0)
         {
@@ -128,7 +129,7 @@ auto search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
     if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
     {
-        const auto *fat_header = reinterpret_cast<const struct fat_boot_sector *>(buffer);
+        const auto *fat_header = std::start_lifetime_as<struct fat_boot_sector>(buffer);
         /* FAT32 recovery using backup sector */
         if (to_little_endian(fat_header->marker) == 0xAA55 && recover_FAT(disk, fat_header, partition, verbose, dump_ind, 1) == 0)
             return 1;
@@ -141,25 +142,25 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
 {
 #ifndef DISABLED_FOR_FRAMAC
   /* Expect a buffer filled with 8k to handle the SWAP detection */
-  const auto *pv     = reinterpret_cast<const pv_disk_t *>(buffer);
-  const auto *cramfs = reinterpret_cast<const struct cramfs_super *>(buffer);
-  const auto *fatx_block = reinterpret_cast<const struct disk_fatx *>(buffer);
+  const auto *pv     = std::start_lifetime_as<pv_disk_t>(buffer);
+  const auto *cramfs = std::start_lifetime_as<struct cramfs_super>(buffer);
+  const auto *fatx_block = std::start_lifetime_as<struct disk_fatx>(buffer);
   const auto *netware_block =
-      reinterpret_cast<const struct disk_netware *>(buffer);
+      std::start_lifetime_as<struct disk_netware>(buffer);
   const auto *exfat_header =
-      reinterpret_cast<const struct exfat_super_block *>(buffer);
+      std::start_lifetime_as<struct exfat_super_block>(buffer);
   const auto *fat_header =
-      reinterpret_cast<const struct fat_boot_sector *>(buffer);
-  const auto *luks = reinterpret_cast<const struct luks_phdr *>(buffer);
-  const auto *sb1  = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
+      std::start_lifetime_as<struct fat_boot_sector>(buffer);
+  const auto *luks = std::start_lifetime_as<struct luks_phdr>(buffer);
+  const auto *sb1  = std::start_lifetime_as<struct mdp_superblock_1>(buffer);
   const auto *ntfs_header =
-      reinterpret_cast<const struct ntfs_boot_sector *>(buffer);
-  const auto *wbfs        = reinterpret_cast<const struct wbfs_head *>(buffer);
-  const auto *xfs         = reinterpret_cast<const struct xfs_sb *>(buffer);
-  const auto *swap_header = reinterpret_cast<const union swap_header *>(buffer);
+      std::start_lifetime_as<struct ntfs_boot_sector>(buffer);
+  const auto *wbfs        = std::start_lifetime_as<struct wbfs_head>(buffer);
+  const auto *xfs         = std::start_lifetime_as<struct xfs_sb>(buffer);
+  const auto *swap_header = std::start_lifetime_as<union swap_header>(buffer);
   const auto *refs_header =
-      reinterpret_cast<const struct ReFS_boot_sector *>(buffer);
-  const auto *apfs = reinterpret_cast<const nx_superblock_t *>(buffer);
+      std::start_lifetime_as<struct ReFS_boot_sector>(buffer);
+  const auto *apfs = std::start_lifetime_as<nx_superblock_t>(buffer);
   static constexpr uint8_t LUKS_MAGIC[LUKS_MAGIC_L] = {
       'L', 'U', 'K', 'S', 0xba, 0xbe,
   };
@@ -218,8 +219,7 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
     return 1;
   /* MD 1.1 */
   if (to_little_endian(sb1->major_version) == 1 &&
-      recover_MD(disk,
-                 reinterpret_cast<const struct mdp_superblock_t *>(buffer),
+      recover_MD(disk, std::start_lifetime_as<struct mdp_superblock_t>(buffer),
                  partition, verbose, dump_ind) == 0)
   {
     partition.part_offset -= to_little_endian(sb1->super_offset) * 512;
@@ -246,17 +246,17 @@ auto search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t 
 {
 #ifndef DISABLED_FOR_FRAMAC
   const auto *bsd_header =
-      reinterpret_cast<const struct disklabel *>(buffer + 0x200);
+      std::start_lifetime_as<struct disklabel>(buffer + 0x200);
   const auto *beos_block =
-      reinterpret_cast<const struct disk_super_block *>(buffer + 0x200);
+      std::start_lifetime_as<struct disk_super_block>(buffer + 0x200);
   const auto *cramfs =
-      reinterpret_cast<const struct cramfs_super *>(buffer + 0x200);
+      std::start_lifetime_as<struct cramfs_super>(buffer + 0x200);
   const auto *lvm2 =
-      reinterpret_cast<const struct lvm2_label_header *>(buffer + 0x200);
+      std::start_lifetime_as<struct lvm2_label_header>(buffer + 0x200);
   const auto *sysv4 =
-      reinterpret_cast<const struct sysv4_super_block *>(buffer + 0x200);
+      std::start_lifetime_as<struct sysv4_super_block>(buffer + 0x200);
   const auto *sunlabel =
-      reinterpret_cast<const sun_partition_i386 *>(buffer + 0x200);
+      std::start_lifetime_as<sun_partition_i386>(buffer + 0x200);
   //  assert(sizeof(struct disklabel)<=2*0x200);
   //  assert(sizeof(struct disk_super_block)<=0x200);
   //  assert(sizeof(struct cramfs_super)<=2*0x200);
@@ -297,11 +297,11 @@ auto search_type_2(const unsigned char *buffer, disk_t &disk, partition_t &parti
 {
 #ifndef DISABLED_FOR_FRAMAC
   const auto *hfs_mdb = reinterpret_cast<const hfs_mdb_t *>(buffer + 0x400);
-  const auto *vh = reinterpret_cast<const struct hfsp_vh *>(buffer + 0x400);
+  const auto *vh = std::start_lifetime_as<struct hfsp_vh>(buffer + 0x400);
   const auto *sb =
-      reinterpret_cast<const struct ext2_super_block *>(buffer + 0x400);
+      std::start_lifetime_as<struct ext2_super_block>(buffer + 0x400);
   const auto *sb_f2fs =
-      reinterpret_cast<const struct f2fs_super_block *>(buffer + 0x400);
+      std::start_lifetime_as<struct f2fs_super_block>(buffer + 0x400);
   //  assert(sizeof(struct ext2_super_block)<=1024);
   //  assert(sizeof(hfs_mdb_t)<=1024);
   //  assert(sizeof(struct hfsp_vh)<=1024);
@@ -338,9 +338,9 @@ auto search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, 
         return -1;
 #ifndef DISABLED_FOR_FRAMAC
     { /* MD 1.2 */
-        const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
+        const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(buffer);
         if (to_little_endian(sb1->major_version) == 1 &&
-            recover_MD(disk, reinterpret_cast<const struct mdp_superblock_t *>(buffer), partition, verbose, dump_ind) == 0)
+            recover_MD(disk, std::start_lifetime_as<struct mdp_superblock_t>(buffer), partition, verbose, dump_ind) == 0)
         {
             partition.part_offset -= to_little_endian(sb1->super_offset) * 512 - 4096;
             return 1;
@@ -363,8 +363,8 @@ auto search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition,
         return -1;
 #ifndef DISABLED_FOR_FRAMAC
     {
-        const auto *ufs = reinterpret_cast<const struct ufs_super_block *>(buffer);
-        const auto *zfs = reinterpret_cast<const struct vdev_boot_header *>(buffer);
+        const auto *ufs = std::start_lifetime_as<struct ufs_super_block>(buffer);
+        const auto *zfs = std::start_lifetime_as<struct vdev_boot_header>(buffer);
         /* Test UFS */
         if ((to_little_endian(ufs->fs_magic) == UFS_MAGIC || to_big_endian(ufs->fs_magic) == UFS_MAGIC ||
              to_little_endian(ufs->fs_magic) == UFS2_MAGIC || to_big_endian(ufs->fs_magic) == UFS2_MAGIC) &&
@@ -390,7 +390,7 @@ auto search_type_64(unsigned char *buffer, disk_t &disk, partition_t &partition,
         return -1;
 #ifndef DISABLED_FOR_FRAMAC
     {
-        const auto *jfs = reinterpret_cast<const struct jfs_superblock *>(buffer + 0x200);
+        const auto *jfs = std::start_lifetime_as<struct jfs_superblock>(buffer + 0x200);
         /* Test JFS */
         if (memcmp(jfs->s_magic, "JFS1", 4) == 0 && recover_JFS(disk, jfs, partition, verbose, dump_ind) == 0)
             return 1;
@@ -412,11 +412,11 @@ auto search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition
 #ifndef DISABLED_FOR_FRAMAC
     {
         const unsigned char *buffer_1024 = buffer + 0x400;
-        const auto *rfs = reinterpret_cast<const struct reiserfs_super_block *>(buffer_1024);
-        const auto *rfs4 = reinterpret_cast<const struct reiser4_master_sb *>(buffer_1024);
-        const auto *ufs = reinterpret_cast<const struct ufs_super_block *>(buffer_1024);
-        const auto *btrfs = reinterpret_cast<const struct btrfs_super_block *>(buffer_1024);
-        const auto *gfs2 = reinterpret_cast<const struct gfs2_sb *>(buffer_1024);
+        const auto *rfs = std::start_lifetime_as<struct reiserfs_super_block>(buffer_1024);
+        const auto *rfs4 = std::start_lifetime_as<struct reiser4_master_sb>(buffer_1024);
+        const auto *ufs = std::start_lifetime_as<struct ufs_super_block>(buffer_1024);
+        const auto *btrfs = std::start_lifetime_as<struct btrfs_super_block>(buffer_1024);
+        const auto *gfs2 = std::start_lifetime_as<struct gfs2_sb>(buffer_1024);
         /* 64k offset */
         /* Test ReiserFS */
         if ((memcmp(rfs->s_magic, "ReIs", 4) == 0 ||
@@ -449,7 +449,7 @@ auto search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partitio
         return -1;
 #ifndef DISABLED_FOR_FRAMAC
     {
-        const auto *sb_vmfs = reinterpret_cast<const struct vmfs_volume *>(buffer);
+        const auto *sb_vmfs = std::start_lifetime_as<struct vmfs_volume>(buffer);
         if (to_little_endian(sb_vmfs->magic) == 0xc001d00d && recover_VMFS(disk, sb_vmfs, partition, verbose, dump_ind) == 0)
             return 1;
     }

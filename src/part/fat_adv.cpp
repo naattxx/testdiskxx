@@ -31,6 +31,7 @@
 #include <ctime>
 #include <format>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <utility>
 #if __has_include(<sys/stat.h>)
@@ -205,9 +206,9 @@ static auto get_subdirectory(disk_t &disk_car, const uint64_t hd_offset,
 {
   unsigned char buffer[DEFAULT_SECTOR_SIZE];
   const auto *entry1 =
-      reinterpret_cast<const struct msdos_dir_entry *>(&buffer[0]);
+      std::start_lifetime_as<struct msdos_dir_entry>(&buffer[0]);
   const auto *entry2 =
-      reinterpret_cast<const struct msdos_dir_entry *>(&buffer[0x20]);
+      std::start_lifetime_as<struct msdos_dir_entry>(&buffer[0x20]);
   if (disk_car.pread(disk_car, &buffer, sizeof(buffer), hd_offset) !=
       sizeof(buffer))
   {
@@ -421,9 +422,9 @@ static auto fat32_find_root_cluster(
                          cluster_size))
       {
         const auto *entry1 =
-            reinterpret_cast<const struct msdos_dir_entry *>(&buffer[0]);
+            std::start_lifetime_as<struct msdos_dir_entry>(&buffer[0]);
         const auto *entry2 =
-            reinterpret_cast<const struct msdos_dir_entry *>(&buffer[0x20]);
+            std::start_lifetime_as<struct msdos_dir_entry>(&buffer[0x20]);
         if (verbose > 1)
         {
           ; // log_verbose("fat32_find_root_cluster test
@@ -489,7 +490,7 @@ static auto fat32_find_root_cluster(
           for (i = 0; found && (i < cluster_size / 32); i++)
           {
             const auto *entry =
-                reinterpret_cast<const struct msdos_dir_entry *>(
+                std::start_lifetime_as<struct msdos_dir_entry>(
                     &buffer[i * 0x20]
                 );
             if ((buffer[i * 0x20] != DELETED_FLAG) &&
@@ -1022,10 +1023,10 @@ static auto analyse_dir_entries2(disk_t &disk_car, const partition_t &partition,
 
         {
           const unsigned long int cluster = fat_get_cluster_from_entry(
-              reinterpret_cast<const struct msdos_dir_entry *>(&buffer_dir[0])
+              std::start_lifetime_as<struct msdos_dir_entry>(&buffer_dir[0])
           );
           const unsigned long int cluster_prev = fat_get_cluster_from_entry(
-              reinterpret_cast<const struct msdos_dir_entry *>(
+              std::start_lifetime_as<struct msdos_dir_entry>(
                   &buffer_dir[0x20]
               )
           );
@@ -1099,7 +1100,7 @@ static void menu_write_fat_boot_sector(disk_t &disk_car, partition_t &partition,
                                        const int error, char **current_cmd)
 {
   const auto *fat_header =
-      reinterpret_cast<const struct fat_boot_sector *>(newboot);
+      std::start_lifetime_as<struct fat_boot_sector>(newboot);
 #ifdef HAVE_NCURSES
   const struct MenuItem menuSaveBoot[] = {
       {'D', "Dump",  "Dump sector"               },
@@ -1278,8 +1279,8 @@ static void create_fat_boot_sector(disk_t &disk_car, partition_t &partition,
   unsigned long int part_size = 0;
   orgboot                     = new unsigned char[3 * disk_car.sector_size];
   newboot                     = new unsigned char[3 * disk_car.sector_size];
-  org_fat_header = reinterpret_cast<const struct fat_boot_sector *>(orgboot);
-  fat_header     = reinterpret_cast<struct fat_boot_sector *>(newboot);
+  org_fat_header = std::start_lifetime_as<struct fat_boot_sector>(orgboot);
+  fat_header     = std::start_lifetime_as<struct fat_boot_sector>(newboot);
   if (static_cast<unsigned>(disk_car.pread(
           disk_car, orgboot, 3 * disk_car.sector_size, partition.part_offset
       )) != 3 * disk_car.sector_size)
@@ -2607,7 +2608,7 @@ auto FAT_init_rootdir(disk_t &disk_car, partition_t &partition,
     return 1;
   }
   buffer     = new unsigned char[disk_car.sector_size];
-  fat_header = reinterpret_cast<struct fat_boot_sector *>(buffer);
+  fat_header = std::start_lifetime_as<struct fat_boot_sector>(buffer);
   if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
                                         partition.part_offset),
                          disk_car.sector_size))
@@ -2719,7 +2720,7 @@ auto repair_FAT_table(disk_t &disk_car, partition_t &partition,
       uint64_t part_size, start_data;
       unsigned char *buffer;
       buffer     = new unsigned char[disk_car.sector_size];
-      fat_header = reinterpret_cast<struct fat_boot_sector *>(buffer);
+      fat_header = std::start_lifetime_as<struct fat_boot_sector>(buffer);
       if (std::cmp_not_equal(disk_car.pread(disk_car, buffer,
                                             disk_car.sector_size,
                                             partition.part_offset),

@@ -49,29 +49,27 @@ static void set_HFSP_info(partition_t &partition, const struct hfsp_vh *vh)
 auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
+  auto *buffer = new struct hfsp_vh;
   if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
                      partition.part_offset + 0x400) != HFSP_BOOT_SECTOR_SIZE)
   {
-    delete[] buffer;
+    delete buffer;
     return 1;
   }
-  if (test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition,
-                verbose, 0) != 0)
+  if (test_HFSP(disk_car, buffer, partition, verbose, 0) != 0)
   {
-    delete[] buffer;
+    delete buffer;
     return 1;
   }
-  set_HFSP_info(partition, reinterpret_cast<const struct hfsp_vh *>(buffer));
+  set_HFSP_info(partition, buffer);
   if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
                      partition.part_offset + partition.part_size - 0x400) ==
           HFSP_BOOT_SECTOR_SIZE &&
-      test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer), partition,
-                verbose, 0) == 0)
+      test_HFSP(disk_car, buffer, partition, verbose, 0) == 0)
   {
     partition.info += " + Backup";
   }
-  delete[] buffer;
+  delete buffer;
   return 0;
 }
 
@@ -98,16 +96,16 @@ auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
   set_HFSP_info(partition, vh);
   if (backup == 0)
   {
-    auto *buffer = new unsigned char[HFSP_BOOT_SECTOR_SIZE];
+    auto *buffer = new struct hfsp_vh;
     if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
                        partition.part_offset + partition.part_size - 0x400) ==
             HFSP_BOOT_SECTOR_SIZE &&
-        test_HFSP(disk_car, reinterpret_cast<struct hfsp_vh *>(buffer),
+        test_HFSP(disk_car, buffer,
                   partition, verbose, 0) == 0)
     {
       partition.info += " + Backup";
     }
-    delete[] buffer;
+    delete buffer;
   }
   partition.part_type_i386 = P_HFSP;
   partition.part_type_mac  = PMAC_HFS;

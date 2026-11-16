@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "lvm.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -172,7 +173,7 @@ auto check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
   }
   if (test_LVM2(disk_car,
-                reinterpret_cast<const struct lvm2_label_header *>(buffer),
+                std::start_lifetime_as<struct lvm2_label_header>(buffer),
                 partition, verbose, 0) != 0)
   {
     delete[] buffer;
@@ -187,7 +188,7 @@ auto recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
                   partition_t &partition, const int verbose, const int dump_ind)
     -> int
 {
-  const auto *lh = reinterpret_cast<const struct lvm2_label_header *>(buf);
+  const auto *lh = std::start_lifetime_as<struct lvm2_label_header>(buf);
   if (test_LVM2(disk_car, lh, partition, verbose, dump_ind) != 0)
     return 1;
   set_LVM2_info(partition);
@@ -196,9 +197,9 @@ auto recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
   partition.part_type_gpt  = GPT_ENT_TYPE_LINUX_LVM;
   {
     const struct lvm2_pv_header *pvhdr;
-    pvhdr =
-        reinterpret_cast<const struct lvm2_pv_header *>(buf +
-                                                        to_little_endian(lh->offset_xl));
+    pvhdr = std::start_lifetime_as<struct lvm2_pv_header>(
+        buf + to_little_endian(lh->offset_xl)
+    );
     partition.part_size = to_little_endian(pvhdr->device_size_xl);
   }
   if (verbose > 0)

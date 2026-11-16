@@ -53,22 +53,21 @@ static auto test_ISO(const struct iso_primary_descriptor *iso) -> int
 
 auto check_ISO(disk_t &disk_car, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[ISO_PD_SIZE];
+  auto *primary_descriptor = new struct iso_primary_descriptor;
   /*@ assert \valid(buffer + (0 .. ISO_PD_SIZE-1)); */
-  if (disk_car.pread(disk_car, buffer, ISO_PD_SIZE,
+  if (disk_car.pread(disk_car, primary_descriptor, ISO_PD_SIZE,
                      partition.part_offset + 64 * 512) != ISO_PD_SIZE)
   {
-    delete[] buffer;
+    delete primary_descriptor;
     return 1;
   }
-  if (test_ISO(reinterpret_cast<struct iso_primary_descriptor *>(buffer)) != 0)
+  if (test_ISO(primary_descriptor) != 0)
   {
-    delete[] buffer;
+    delete primary_descriptor;
     return 1;
   }
-  set_ISO_info(reinterpret_cast<struct iso_primary_descriptor *>(buffer),
-               partition);
-  delete[] buffer;
+  set_ISO_info(primary_descriptor, partition);
+  delete primary_descriptor;
   return 0;
 }
 

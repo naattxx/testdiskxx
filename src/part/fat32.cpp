@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 #include "src/lang.h"
@@ -68,8 +69,8 @@ static void dump_fat32(disk_t &disk_car, const partition_t &partition,
   // log_info("Boot sector                        Backup boot sector\n");
   // dump2_log(buffer_bs, buffer_backup_bs, 3*disk_car.sector_size);
   log_fat2_info(
-      reinterpret_cast<const struct fat_boot_sector *>(buffer_bs),
-      reinterpret_cast<const struct fat_boot_sector *>(buffer_backup_bs),
+      std::start_lifetime_as<struct fat_boot_sector>(buffer_bs),
+      std::start_lifetime_as<struct fat_boot_sector>(buffer_backup_bs),
       UP_FAT32, disk_car.sector_size
   );
   if (*current_cmd == nullptr)
@@ -133,7 +134,7 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
         memset(buffer_bs, 0, 3 * disk_car.sector_size);
       }
       if (test_FAT(disk_car,
-                   reinterpret_cast<struct fat_boot_sector *>(buffer_bs),
+                   std::start_lifetime_as<struct fat_boot_sector>(buffer_bs),
                    partition, verbose, 0) == 0)
       {
         screen_buffer_add("OK\n");
@@ -165,7 +166,7 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
         memset(buffer_backup_bs, 0, 3 * disk_car.sector_size);
       }
       if (test_FAT(disk_car,
-                   reinterpret_cast<struct fat_boot_sector *>(buffer_backup_bs),
+                   std::start_lifetime_as<struct fat_boot_sector>(buffer_backup_bs),
                    partition, verbose, 0) == 0)
       {
         screen_buffer_add("OK\n");

@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <string_view>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -42,7 +43,7 @@ auto check_ufs(disk_t &disk_car, partition_t &partition, const int verbose)
   const struct ufs_super_block *sb;
   unsigned char *buffer;
   buffer = new unsigned char[UFS_SUPERBLOCK_SIZE];
-  sb     = reinterpret_cast<const struct ufs_super_block *>(buffer);
+  sb     = std::start_lifetime_as<struct ufs_super_block>(buffer);
   if (disk_car.pread(disk_car, buffer, UFS_SUPERBLOCK_SIZE,
                      partition.part_offset + UFS_SBLOCK) != UFS_SUPERBLOCK_SIZE)
   {

@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <format>
+#include <memory>
 #include <string_view>
 #include "rfs.hpp"
 #include "src/common.hpp"
@@ -64,18 +65,18 @@ auto check_rfs(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
   }
   if (test_rfs(disk_car,
-               reinterpret_cast<struct reiserfs_super_block *>(buffer),
+               std::start_lifetime_as<struct reiserfs_super_block>(buffer),
                partition, verbose) == 0)
   {
-    set_rfs_info(reinterpret_cast<struct reiserfs_super_block *>(buffer),
+    set_rfs_info(std::start_lifetime_as<struct reiserfs_super_block>(buffer),
                  partition);
     delete[] buffer;
     return 0;
   }
-  if (test_rfs4(disk_car, reinterpret_cast<struct reiser4_master_sb *>(buffer),
+  if (test_rfs4(disk_car, std::start_lifetime_as<struct reiser4_master_sb>(buffer),
                 partition, verbose) == 0)
   {
-    set_rfs4_info(reinterpret_cast<const struct reiser4_master_sb *>(buffer),
+    set_rfs4_info(std::start_lifetime_as<struct reiser4_master_sb>(buffer),
                   partition);
     delete[] buffer;
     return 0;
@@ -152,7 +153,7 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
                  partition_t &partition, const int verbose, const int dump_ind)
     -> int
 {
-  const auto *sb4 = reinterpret_cast<const struct reiser4_master_sb *>(sb);
+  const auto *sb4 = std::start_lifetime_as<struct reiser4_master_sb>(sb);
   if (test_rfs(disk_car, sb, partition, verbose) == 0)
   {
     if (verbose > 0 || dump_ind != 0)
@@ -178,7 +179,7 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
   }
   if (test_rfs4(disk_car, sb4, partition, verbose) == 0)
   {
-    const auto *fmt40_super = reinterpret_cast<const struct format40_super *>(
+    const auto *fmt40_super = std::start_lifetime_as<struct format40_super>(
         reinterpret_cast<const char *>(sb4) + to_little_endian(sb4->blocksize)
     );
     if (verbose > 0 || dump_ind != 0)

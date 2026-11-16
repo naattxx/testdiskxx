@@ -59,23 +59,20 @@ static auto test_sysv4(const disk_t &disk_car,
 auto check_sysv(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[SYSV4_SECTOR_SIZE];
-  if (disk_car.pread(disk_car, buffer, SYSV4_SECTOR_SIZE,
+  auto *super_block = new struct sysv4_super_block;
+  if (disk_car.pread(disk_car, super_block, SYSV4_SECTOR_SIZE,
                      partition.part_offset + 0x200) != SYSV4_SECTOR_SIZE)
   {
-    delete[] buffer;
+    delete super_block;
     return 1;
   }
-  if (test_sysv4(disk_car,
-                 reinterpret_cast<const struct sysv4_super_block *>(buffer),
-                 partition, verbose) == 0)
+  if (test_sysv4(disk_car, super_block, partition, verbose) == 0)
   {
-    set_sysv4_info(reinterpret_cast<const struct sysv4_super_block *>(buffer),
-                   partition);
-    delete[] buffer;
+    set_sysv4_info(super_block, partition);
+    delete super_block;
     return 0;
   }
-  delete[] buffer;
+  delete super_block;
   return 1;
 }
 

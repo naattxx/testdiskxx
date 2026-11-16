@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 #include "src/lang.h"
@@ -116,7 +117,7 @@ auto fat1x_boot_sector(disk_t &disk_car, partition_t &partition,
         memset(buffer_bs, 0, FAT1x_BOOT_SECTOR_SIZE);
       }
       if (test_FAT(disk_car,
-                   reinterpret_cast<const struct fat_boot_sector *>(buffer_bs),
+                   std::start_lifetime_as<struct fat_boot_sector>(buffer_bs),
                    partition, verbose, 0) == 0)
       {
         screen_buffer_add("OK\n");

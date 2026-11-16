@@ -79,7 +79,7 @@ static auto next_sb(const uint64_t hd_offset_old) -> uint64_t
 auto search_superblock(disk_t &disk_car, partition_t &partition,
                        const int verbose, const bool dump) -> list_part_t
 {
-  auto *buffer = new unsigned char[2 * 0x200];
+  auto *sb = new struct ext2_super_block;
   uint64_t hd_offset;
   int nbr_sb = 0;
   list_part_t list_part;
@@ -87,7 +87,6 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
 #ifdef HAVE_NCURSES
   unsigned long int old_percent = 0;
 #endif
-  auto *sb = reinterpret_cast<struct ext2_super_block *>(buffer);
   partition_t new_partition(disk_car.arch);
   log_trace("search_superblock");
 #ifdef HAVE_NCURSES
@@ -121,7 +120,7 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
       old_percent = percent;
     }
 #endif
-    if (disk_car.pread(disk_car, buffer, 1024,
+    if (disk_car.pread(disk_car, sb, 1024,
                        partition.part_offset + hd_offset) == 1024)
     {
       /* ext2/ext3/ext4 */
@@ -165,6 +164,6 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
       }
     }
   }
-  delete[] buffer;
+  delete sb;
   return list_part;
 }

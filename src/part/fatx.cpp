@@ -22,6 +22,7 @@
 #include <config.h>
 
 #include <cstring>
+#include <memory>
 #include "fatx.hpp"
 #include "src/common.hpp"
 static void set_FATX_info(partition_t &partition);
@@ -41,7 +42,7 @@ auto check_FATX(disk_t &disk_car, partition_t &partition) -> int
   {
     return 1;
   }
-  if (test_fatx(reinterpret_cast<const struct disk_fatx *>(&buffer)) != 0)
+  if (test_fatx(std::start_lifetime_as<struct disk_fatx>(&buffer)) != 0)
     return 1;
   set_FATX_info(partition);
   return 0;

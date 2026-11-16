@@ -26,6 +26,7 @@
 #include <cstdlib> /* free */
 #include <cstring>
 
+#include <memory>
 #include <utility>
 #include "fat.hpp"
 #include "fat_common.hpp"
@@ -101,7 +102,7 @@ auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
   }
   if (test_HPFS(disk_car,
-                reinterpret_cast<const struct fat_boot_sector *>(buffer),
+                std::start_lifetime_as<struct fat_boot_sector>(buffer),
                 partition, verbose, 0) != 0)
   {
     if (verbose > 0)

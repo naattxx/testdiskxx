@@ -23,6 +23,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "netware.hpp"
 #include "src/common.hpp"
 
@@ -44,7 +45,7 @@ auto check_netware(disk_t &disk_car, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_netware(reinterpret_cast<const struct disk_netware *>(buffer)) != 0)
+  if (test_netware(std::start_lifetime_as<struct disk_netware>(buffer)) != 0)
   {
     delete[] buffer;
     return 1;

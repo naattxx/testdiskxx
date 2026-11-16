@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <span>
 #include <tuple>
 #include <utility>
@@ -79,24 +80,22 @@ auto ntfs_sector_size(const struct ntfs_boot_sector *ntfs_header)
 auto check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
                 const int dump_ind) -> int
 {
-  auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
+  auto *boot_sector = new struct ntfs_boot_sector;
   /*  log_trace("check_NTFS part_offset={}\n",(long long
    * unsigned)partition.part_offset); */
-  if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+  if (disk_car.pread(disk_car, boot_sector, DEFAULT_SECTOR_SIZE,
                      partition.part_offset) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] buffer;
+    delete boot_sector;
     return 1;
   }
-  if (test_NTFS(disk_car, reinterpret_cast<struct ntfs_boot_sector *>(buffer),
-                partition, verbose, dump_ind) != 0)
+  if (test_NTFS(disk_car, boot_sector, partition, verbose, dump_ind) != 0)
   {
-    delete[] buffer;
+    delete boot_sector;
     return 1;
   }
-  set_NTFS_info(disk_car, reinterpret_cast<struct ntfs_boot_sector *>(buffer),
-                partition);
-  delete[] buffer;
+  set_NTFS_info(disk_car, boot_sector, partition);
+  delete boot_sector;
   return 0;
 }
 
@@ -261,7 +260,7 @@ static auto ntfs_getattributeheaders(const ntfs_recordheader *record)
       to_little_endian(record->attrs_offset) % 8 != 0 || to_little_endian(record->attrs_offset) < 42)
     return nullptr;
   location += to_little_endian(record->attrs_offset);
-  return reinterpret_cast<const ntfs_attribheader *>(location);
+  return std::start_lifetime_as<ntfs_attribheader>(location);
 }
 
 /*@
@@ -399,7 +398,7 @@ auto ntfs_get_first_rl_element(const ntfs_attribnonresident *attrnr,
 static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
                                  const struct ntfs_boot_sector *ntfs_header)
 {
-  unsigned char *buffer;
+  unsigned char *mft_record;
   uint64_t mft_pos;
   unsigned int mft_record_size;
   partition.fsname.clear();
@@ -427,30 +426,30 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
     log_error("Invalid MFT record size or NTFS sector size\n");
     return;
   }
-  buffer = new unsigned char[mft_record_size];
-  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, mft_record_size,
+  mft_record = new unsigned char[mft_record_size];
+  if (std::cmp_not_equal(disk_car.pread(disk_car, mft_record, mft_record_size,
                                         mft_pos),
                          mft_record_size))
   {
     log_error("NTFS: Can't read MFT\n");
-    delete[] buffer;
+    delete[] mft_record;
     return;
   }
   {
-    const auto *attrib = reinterpret_cast<const ntfs_attribresident *>(
-        ntfs_findattribute(reinterpret_cast<const ntfs_recordheader *>(buffer),
+    const auto *attrib = std::start_lifetime_as<ntfs_attribresident>(
+        ntfs_findattribute(std::start_lifetime_as<ntfs_recordheader>(mft_record),
                            0x60,
-                           reinterpret_cast<char *>(buffer) + mft_record_size)
+                           reinterpret_cast<char *>(mft_record) + mft_record_size)
     );
     if (attrib && attrib->header.bNonResident == 0) /* attribute is resident */
     {
       const auto *name_it =
           reinterpret_cast<const char16_t *>(ntfs_getattributedata(
-              attrib, reinterpret_cast<char *>(buffer + mft_record_size)
+              attrib, reinterpret_cast<char *>(mft_record + mft_record_size)
           ));
       if (name_it == nullptr)
       {
-        delete[] buffer;
+        delete[] mft_record;
         return;
       }
       unsigned int volume_name_length = to_little_endian(attrib->cbAttribData);
@@ -460,7 +459,7 @@ static void ntfs_get_volume_name(disk_t &disk_car, partition_t &partition,
           UCSle2str(partition.fsname, std::span(name_it, volume_name_length));
     }
   }
-  delete[] buffer;
+  delete[] mft_record;
 }
 
 auto is_part_ntfs(const partition_t &partition) -> bool

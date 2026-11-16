@@ -132,6 +132,7 @@ struct hfsp_vh
   hfsp_fork_raw start_file;
   // a special startup file may be described here (used by ?)
 };
+static_assert(sizeof(hfsp_vh) == HFSP_BOOT_SECTOR_SIZE);
 
 /* HFS+ volume attributes */
 /* 0-6 reserved, may be used in memory only */

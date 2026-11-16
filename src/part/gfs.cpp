@@ -23,6 +23,7 @@
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
+#include <memory>
 
 #include "gfs2.hpp"
 #include "src/common.hpp"
@@ -64,7 +65,7 @@ auto check_gfs2(disk_t &disk, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_gfs2(disk, reinterpret_cast<const struct gfs2_sb *>(buffer),
+  if (test_gfs2(disk, std::start_lifetime_as<struct gfs2_sb>(buffer),
                 partition, 0) != 0)
   {
     delete[] buffer;

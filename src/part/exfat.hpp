@@ -50,6 +50,7 @@ struct [[gnu::gcc_struct, gnu::packed]] exfat_super_block
   unsigned char xxxx05[397];       /* ??? (0x00...) */
   uint16_t signature;              /* 0xaa55 */
 };
+static_assert(sizeof(exfat_super_block) == EXFAT_BS_SIZE);
 
 struct [[gnu::gcc_struct, gnu::packed]] exfat_file_entry
 {

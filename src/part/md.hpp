@@ -184,6 +184,7 @@ struct mdp_superblock_t
    */
   mdp_disk_t this_disk;
 };
+static_assert(sizeof(mdp_superblock_t) == MD_SB_BYTES);
 
 /*
  * The version-1 superblock :

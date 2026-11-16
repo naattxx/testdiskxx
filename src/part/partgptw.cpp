@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <tuple>
 #include <span>
 #include <uuid.h>
@@ -225,10 +226,10 @@ auto write_part_gpt(disk_t &disk_car, const list_part_t &list_part,
                                    disk_car, gpt_entries_org);
     }
   }
-  gpt = reinterpret_cast<struct gpt_hdr *>(
+  gpt = std::start_lifetime_as<struct gpt_hdr>(
       new unsigned char[disk_car.sector_size]
   );
-  gpt_org = reinterpret_cast<struct gpt_hdr *>(
+  gpt_org = std::start_lifetime_as<struct gpt_hdr>(
       new unsigned char[disk_car.sector_size]
   );
   if (std::cmp_equal(disk_car.pread(disk_car, gpt_org, disk_car.sector_size,

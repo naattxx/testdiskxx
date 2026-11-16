@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <string_view>
 #include "btrfs.hpp"
 #include "src/common.hpp"
@@ -57,12 +58,12 @@ auto check_btrfs(disk_t &disk_car, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_btrfs(reinterpret_cast<struct btrfs_super_block *>(buffer)) != 0)
+  if (test_btrfs(std::start_lifetime_as<struct btrfs_super_block>(buffer)) != 0)
   {
     delete[] buffer;
     return 1;
   }
-  set_btrfs_info(reinterpret_cast<struct btrfs_super_block *>(buffer),
+  set_btrfs_info(std::start_lifetime_as<struct btrfs_super_block>(buffer),
                  partition);
   delete[] buffer;
   return 0;

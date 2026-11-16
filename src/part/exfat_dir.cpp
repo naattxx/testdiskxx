@@ -29,6 +29,7 @@
 #include <expected>
 #include <fstream>
 #include <ios>
+#include <memory>
 #include <optional>
 #if __has_include(<iconv.h>)
 #include <iconv.h>
@@ -246,7 +247,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
     if ((buffer[offset] & 0x7fu) == 0x05)
     { /* File directory entry */
       const auto *entry =
-          reinterpret_cast<const struct exfat_file_entry *>(&buffer[offset]);
+          std::start_lifetime_as<struct exfat_file_entry>(&buffer[offset]);
       file_info_t new_file;
       sec_count        = entry->sec_count;
       new_file.name    = new char[512];
@@ -271,7 +272,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
       {
         /* Stream extension */
         const auto *entry =
-            reinterpret_cast<const struct exfat_stream_ext_entry *>(
+            std::start_lifetime_as<struct exfat_stream_ext_entry>(
                 &buffer[offset]
             );
         current_file->st_size = to_little_endian(entry->data_length);

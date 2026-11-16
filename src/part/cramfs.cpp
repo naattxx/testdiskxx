@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <string_view>
 #include "cramfs.hpp"
 #include "src/common.hpp"
@@ -43,10 +44,10 @@ auto check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE,
                      partition.part_offset + 0x200) == CRAMFS_SUPERBLOCK_SIZE)
   {
-    if (test_cramfs(disk_car, reinterpret_cast<struct cramfs_super *>(buffer),
+    if (test_cramfs(disk_car, std::start_lifetime_as<struct cramfs_super>(buffer),
                     partition, verbose) == 0)
     {
-      set_cramfs_info(reinterpret_cast<struct cramfs_super *>(buffer),
+      set_cramfs_info(std::start_lifetime_as<struct cramfs_super>(buffer),
                       partition);
       delete[] buffer;
       return 0;
@@ -55,10 +56,10 @@ auto check_cramfs(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, CRAMFS_SUPERBLOCK_SIZE,
                      partition.part_offset) == CRAMFS_SUPERBLOCK_SIZE)
   {
-    if (test_cramfs(disk_car, reinterpret_cast<struct cramfs_super *>(buffer),
+    if (test_cramfs(disk_car, std::start_lifetime_as<struct cramfs_super>(buffer),
                     partition, verbose) == 0)
     {
-      set_cramfs_info(reinterpret_cast<struct cramfs_super *>(buffer),
+      set_cramfs_info(std::start_lifetime_as<struct cramfs_super>(buffer),
                       partition);
       delete[] buffer;
       return 0;

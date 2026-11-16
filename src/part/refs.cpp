@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "refs.hpp"
 #include "src/common.hpp"
 
@@ -52,7 +53,7 @@ auto check_ReFS(disk_t &disk, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_ReFS(reinterpret_cast<struct ReFS_boot_sector *>(buffer)) != 0)
+  if (test_ReFS(std::start_lifetime_as<struct ReFS_boot_sector>(buffer)) != 0)
   {
     delete[] buffer;
     return 1;

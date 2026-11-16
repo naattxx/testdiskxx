@@ -60,6 +60,6 @@ struct [[gnu::gcc_struct, gnu::packed]] iso_primary_descriptor
   char application_data[512];
   char unused5[653];
 };
-#define ISO_PD_SIZE (sizeof(struct iso_primary_descriptor))
+constexpr int ISO_PD_SIZE {sizeof(struct iso_primary_descriptor)};
 
 #endif

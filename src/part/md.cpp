@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <format>
+#include <memory>
 #include <string_view>
 #include "md.hpp"
 #include "src/common.hpp"
@@ -114,7 +115,7 @@ static void set_MD_info(const struct mdp_superblock_t *sb,
   }
   else
   {
-    const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
+    const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
     partition.upart_type = UP_MD1;
     partition.set_name(std::string_view(sb1->set_name, 32));
     partition.info = std::format("md {}.x L.Endian Raid {} - Array Slot : {}",
@@ -173,7 +174,7 @@ static void set_MD_info_be(const struct mdp_superblock_t *sb,
   }
   else
   {
-    const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
+    const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
     partition.upart_type = UP_MD1;
     partition.set_name(std::string_view(sb1->set_name, 32));
     partition.info = std::format("md {}.x B.Endian Raid {} - Array Slot : {}",
@@ -210,68 +211,61 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
-  auto *buffer = new unsigned char[MD_SB_BYTES];
+  auto *sb = new struct mdp_superblock_t;
   /* MD version 1.1 */
-  if (disk_car.pread(disk_car, buffer, MD_SB_BYTES, partition.part_offset) ==
+  if (disk_car.pread(disk_car, sb, MD_SB_BYTES, partition.part_offset) ==
       MD_SB_BYTES)
   {
-    const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
+    const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
     if (to_little_endian(sb1->md_magic) == MD_SB_MAGIC && to_little_endian(sb1->major_version) == 1 &&
         to_little_endian(sb1->super_offset) == 0 &&
-        test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
+        test_MD(disk_car, sb,
                 partition, 0) == 0)
     {
       log_info("check_MD 1.1\n");
-      set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                  partition, verbose);
-      delete[] buffer;
+      set_MD_info(sb, partition, verbose);
+      delete sb;
       return 0;
     }
-    if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC && to_big_endian(sb1->major_version) == 1 &&
+    if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC &&
+        to_big_endian(sb1->major_version) == 1 &&
         to_big_endian(sb1->super_offset) == 0 &&
-        test_MD_be(disk_car,
-                   reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                   partition, 0) == 0)
+        test_MD_be(disk_car, sb, partition, 0) == 0)
     {
       log_info("check_MD 1.1 (BigEndian)\n");
-      set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                     partition, verbose);
-      delete[] buffer;
+      set_MD_info_be(sb, partition, verbose);
+      delete sb;
       return 0;
     }
   }
   /* MD version 1.2 */
-  if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
+  if (disk_car.pread(disk_car, sb, MD_SB_BYTES,
                      partition.part_offset + 4096) == MD_SB_BYTES)
   {
-    const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
-    if (to_little_endian(sb1->md_magic) == MD_SB_MAGIC && to_little_endian(sb1->major_version) == 1 &&
+    const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
+    if (to_little_endian(sb1->md_magic) == MD_SB_MAGIC &&
+        to_little_endian(sb1->major_version) == 1 &&
         to_little_endian(sb1->super_offset) == 8 &&
-        test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                partition, 0) == 0)
+        test_MD(disk_car, sb, partition, 0) == 0)
     {
       log_info("check_MD 1.2\n");
-      set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                  partition, verbose);
-      delete[] buffer;
+      set_MD_info(sb, partition, verbose);
+      delete sb;
       return 0;
     }
-    if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC && to_big_endian(sb1->major_version) == 1 &&
+    if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC &&
+        to_big_endian(sb1->major_version) == 1 &&
         to_big_endian(sb1->super_offset) == 8 &&
-        test_MD_be(disk_car,
-                   reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                   partition, 0) == 0)
+        test_MD_be(disk_car, sb, partition, 0) == 0)
     {
       log_info("check_MD 1.2 (BigEndian)\n");
-      set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                     partition, verbose);
-      delete[] buffer;
+      set_MD_info_be(sb, partition, verbose);
+      delete sb;
       return 0;
     }
   }
   /* MD version 0.90 */
   {
-    const auto *sb = reinterpret_cast<const struct mdp_superblock_t *>(buffer);
     const uint64_t offset =
         MD_NEW_SIZE_SECTORS(partition.part_size / 512) * 512;
     if (verbose > 1)
@@ -279,28 +273,24 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
       ; // log_verbose("Raid md 0.90 offset {}\n", (long long
         // unsigned)offset/512);
     }
-    if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
+    if (disk_car.pread(disk_car, sb, MD_SB_BYTES,
                        partition.part_offset + offset) == MD_SB_BYTES)
     {
       if (to_little_endian(sb->md_magic) == MD_SB_MAGIC && to_little_endian(sb->major_version) == 0 &&
-          test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                  partition, 0) == 0)
+          test_MD(disk_car, sb, partition, 0) == 0)
       {
         log_info("check_MD 0.90\n");
-        set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                    partition, verbose);
-        delete[] buffer;
+        set_MD_info(sb, partition, verbose);
+        delete sb;
         return 0;
       }
-      if (to_big_endian(sb->md_magic) == MD_SB_MAGIC && to_big_endian(sb->major_version) == 0 &&
-          test_MD_be(disk_car,
-                     reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                     partition, 0) == 0)
+      if (to_big_endian(sb->md_magic) == MD_SB_MAGIC &&
+          to_big_endian(sb->major_version) == 0 &&
+          test_MD_be(disk_car, sb, partition, 0) == 0)
       {
         log_info("check_MD 0.90 (BigEndian)\n");
-        set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                       partition, verbose);
-        delete[] buffer;
+        set_MD_info_be(sb, partition, verbose);
+        delete sb;
         return 0;
       }
     }
@@ -315,37 +305,32 @@ auto check_MD(disk_t &disk_car, partition_t &partition, const int verbose)
       ; // log_verbose("Raid md 1.0 offset {}\n", (long long
         // unsigned)offset/512);
     }
-    if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
+    if (disk_car.pread(disk_car, sb, MD_SB_BYTES,
                        partition.part_offset + offset) == MD_SB_BYTES)
     {
-      const auto *sb1 =
-          reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
+      const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
       if (to_little_endian(sb1->md_magic) == MD_SB_MAGIC && to_little_endian(sb1->major_version) == 1 &&
           to_little_endian(sb1->super_offset) == (offset / 512) &&
-          test_MD(disk_car, reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                  partition, 0) == 0)
+          test_MD(disk_car, sb, partition, 0) == 0)
       {
         log_info("check_MD 1.0\n");
-        set_MD_info(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                    partition, verbose);
-        delete[] buffer;
+        set_MD_info(sb, partition, verbose);
+        delete sb;
         return 0;
       }
-      if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC && to_big_endian(sb1->major_version) == 1 &&
+      if (to_big_endian(sb1->md_magic) == MD_SB_MAGIC &&
+          to_big_endian(sb1->major_version) == 1 &&
           to_big_endian(sb1->super_offset) == (offset / 512) &&
-          test_MD_be(disk_car,
-                     reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                     partition, 0) == 0)
+          test_MD_be(disk_car, sb, partition, 0) == 0)
       {
         log_info("check_MD 1.0 (BigEndian)\n");
-        set_MD_info_be(reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                       partition, verbose);
-        delete[] buffer;
+        set_MD_info_be(sb, partition, verbose);
+        delete sb;
         return 0;
       }
     }
   }
-  delete[] buffer;
+  delete sb;
 #endif
   return 1;
 }
@@ -354,19 +339,17 @@ auto recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
                                const int verbose) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
-  auto *buffer = new unsigned char[MD_SB_BYTES];
+  auto *sb = new struct mdp_superblock_t;
   /* MD version 0.90 */
   {
     const uint64_t offset =
         MD_NEW_SIZE_SECTORS(partition.part_size / 512) * 512;
-    if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
+    if (disk_car.pread(disk_car, sb, MD_SB_BYTES,
                        partition.part_offset + offset) == MD_SB_BYTES)
     {
-      if (recover_MD(disk_car,
-                     reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                     partition, verbose, 0) == 0)
+      if (recover_MD(disk_car, sb, partition, verbose, 0) == 0)
       {
-        delete[] buffer;
+        delete sb;
         return 0;
       }
     }
@@ -376,24 +359,21 @@ auto recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
   {
     const uint64_t offset =
         (((partition.part_size / 512) - 8 * 2) & ~(4 * 2 - 1)) * 512;
-    if (disk_car.pread(disk_car, buffer, MD_SB_BYTES,
+    if (disk_car.pread(disk_car, sb, MD_SB_BYTES,
                        partition.part_offset + offset) == MD_SB_BYTES)
     {
-      const auto *sb1 =
-          reinterpret_cast<const struct mdp_superblock_1 *>(buffer);
+      const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
       if (to_little_endian(sb1->major_version) == 1 &&
-          recover_MD(disk_car,
-                     reinterpret_cast<struct mdp_superblock_t *>(buffer),
-                     partition, verbose, 0) == 0)
+          recover_MD(disk_car, sb, partition, verbose, 0) == 0)
       {
         partition.part_offset -= to_little_endian(sb1->super_offset) * 512 - offset;
-        delete[] buffer;
+        delete sb;
         return 0;
       }
     }
   }
   /* md 1.1 & 1.2 don't need special operation to be recovered */
-  delete[] buffer;
+  delete sb;
 #endif
   return 1;
 }
@@ -419,7 +399,7 @@ auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
     }
     else
     {
-      const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
+      const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
       partition.part_size = to_little_endian(sb1->size) * 512 + 4096; /* 512-byte sectors */
       memcpy(&partition.part_uuid, &sb1->set_uuid, 16);
     }
@@ -441,7 +421,7 @@ auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
     }
     else
     {
-      const auto *sb1 = reinterpret_cast<const struct mdp_superblock_1 *>(sb);
+      const auto *sb1 = std::start_lifetime_as<struct mdp_superblock_1>(sb);
       partition.part_size = static_cast<uint64_t>(to_big_endian(sb1->size)) * 512 +
                             4096; /* 512-byte sectors */
       memcpy(&partition.part_uuid, &sb1->set_uuid, 16);

@@ -21,6 +21,7 @@
  */
 
 #include <array>
+#include <memory>
 #include <span>
 #include <string_view>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_GPT)
@@ -224,7 +225,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
   uint32_t gpt_entries_size;
   uint64_t gpt_entries_offset;
 
-  gpt = reinterpret_cast<struct gpt_hdr *>(
+  gpt = std::start_lifetime_as<struct gpt_hdr>(
       new unsigned char[disk_car.sector_size]
   );
   if (std::cmp_not_equal(disk_car.pread(disk_car, gpt, disk_car.sector_size,

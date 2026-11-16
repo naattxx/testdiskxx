@@ -203,6 +203,7 @@ struct ext2_super_block
   uint32_t s_reserved[108];   /* Padding to the end of the block */
   uint32_t s_checksum;        /* crc32c(superblock) */
 };
+static_assert(sizeof(ext2_super_block) == EXT2_SUPERBLOCK_SIZE);
 
 /*@
   @ requires \valid_read(super);

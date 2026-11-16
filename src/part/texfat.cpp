@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 #include "src/lang.h"
@@ -118,7 +119,7 @@ static auto exFAT_boot_sector_rescan(disk_t &disk, const partition_t &partition,
     memset(buffer_bs, 0, size_bs);
   }
   else if (test_exFAT(
-               reinterpret_cast<const struct exfat_super_block *>(buffer_bs)
+               std::start_lifetime_as<struct exfat_super_block>(buffer_bs)
            ) == 0)
   {
     screen_buffer_add("exFAT OK\n");
@@ -133,7 +134,7 @@ static auto exFAT_boot_sector_rescan(disk_t &disk, const partition_t &partition,
     screen_buffer_add("Bad: can't read exFAT backup boot record.\n");
     memset(buffer_backup_bs, 0, size_bs);
   }
-  else if (test_exFAT(reinterpret_cast<const struct exfat_super_block *>(
+  else if (test_exFAT(std::start_lifetime_as<struct exfat_super_block>(
                buffer_backup_bs
            )) == 0)
   {

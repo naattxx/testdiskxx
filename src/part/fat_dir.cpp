@@ -32,6 +32,7 @@
 #include <expected>
 #include <fstream>
 #include <ios>
+#include <memory>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -97,7 +98,7 @@ static inline void fat16_towchar(wchar_t *dst, const uint8_t *src, size_t len)
 auto dir_fat_aux(const unsigned char *buffer, const unsigned int size,
                  const unsigned int param, dir_list_t &dir_list) -> int
 {
-  const auto *de = reinterpret_cast<const struct msdos_dir_entry *>(buffer);
+  const auto *de = std::start_lifetime_as<struct msdos_dir_entry>(buffer);
   wchar_t unicode[1000];
   unsigned char long_slots;
   unsigned int inode;
@@ -121,7 +122,7 @@ GetNew:
   ParseLongDeleted:
     de_initial     = de;
     long_slots     = 0;
-    ds             = reinterpret_cast<const struct msdos_dir_slot *>(de);
+    ds             = std::start_lifetime_as<struct msdos_dir_slot>(de);
     alias_checksum = ds->alias_checksum;
     /* The number of slot has been overwritten, try to find it */
     while (true)
@@ -129,7 +130,7 @@ GetNew:
       if (reinterpret_cast<const void *>(de) >=
           reinterpret_cast<const void *>(buffer + size))
         return 0;
-      ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
+      ds = std::start_lifetime_as<struct msdos_dir_slot>(de);
       if (de->name[0] != DELETED_FLAG)
         goto GetNew;
       if (ds->attr != ATTR_EXT)
@@ -146,7 +147,7 @@ GetNew:
       goto RecEnd;
     }
     {
-      ds = reinterpret_cast<const struct msdos_dir_slot *>(de_initial);
+      ds = std::start_lifetime_as<struct msdos_dir_slot>(de_initial);
       unicode[long_slots * 13] = 0;
       for (slot = long_slots; slot != 0;)
       {
@@ -180,7 +181,7 @@ GetNew:
     unsigned char sum;
     unsigned char alias_checksum;
   ParseLong:
-    ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
+    ds = std::start_lifetime_as<struct msdos_dir_slot>(de);
     id = ds->id;
     if ((id & 0x40u) == 0)
       goto RecEnd;
@@ -214,7 +215,7 @@ GetNew:
           return 0;
         if (slot == 0)
           break;
-        ds = reinterpret_cast<const struct msdos_dir_slot *>(de);
+        ds = std::start_lifetime_as<struct msdos_dir_slot>(de);
         if (ds->attr != ATTR_EXT)
         {
           long_slots = 0;
@@ -545,9 +546,9 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
                             const int verbose)
     -> std::expected<dir_data_t*, dir_partition_t>
 {
-  static unsigned char *buffer;
-  buffer = new unsigned char[0x200];
-  if (disk_car.pread(disk_car, buffer, 0x200, partition.part_offset) != 0x200)
+  static fat_boot_sector *buffer;
+  buffer = new struct fat_boot_sector;
+  if (disk_car.pread(disk_car, buffer, FAT1x_BOOT_SECTOR_SIZE, partition.part_offset) != FAT1x_BOOT_SECTOR_SIZE)
   {
 #ifndef DISABLED_FOR_FRAMAC
     log_error("Can't read FAT boot sector.\n");
@@ -567,7 +568,7 @@ auto dir_partition_fat_init(disk_t &disk_car, const partition_t &partition,
   dir_data->verbose          = verbose;
   dir_data->capabilities     = CAPA_LIST::DELETED;
   dir_data->local_dir.clear();
-  dir_data->boot_sector = reinterpret_cast<struct fat_boot_sector *>(buffer);
+  dir_data->boot_sector = buffer;
   return {dir_data};
 }
 

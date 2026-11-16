@@ -39,22 +39,21 @@ static void set_EXT2_info(const struct ext2_super_block *sb,
 auto check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[EXT2_SUPERBLOCK_SIZE];
+  auto *buffer = new struct ext2_super_block;
   if (disk_car.pread(disk_car, buffer, EXT2_SUPERBLOCK_SIZE,
-                     partition.part_offset + 0x400) != int(EXT2_SUPERBLOCK_SIZE))
+                     partition.part_offset + 0x400) !=
+      int(EXT2_SUPERBLOCK_SIZE))
   {
-    delete[] buffer;
+    delete buffer;
     return 1;
   }
-  if (test_EXT2(reinterpret_cast<struct ext2_super_block *>(buffer),
-                partition) != 0)
+  if (test_EXT2(buffer, partition) != 0)
   {
-    delete[] buffer;
+    delete buffer;
     return 1;
   }
-  set_EXT2_info(reinterpret_cast<struct ext2_super_block *>(buffer), partition,
-                verbose);
-  delete[] buffer;
+  set_EXT2_info(buffer, partition, verbose);
+  delete buffer;
   return 0;
 }
 

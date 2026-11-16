@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <string_view>
 #include "jfs.hpp"
 #include "jfs_superblock.hpp"
@@ -82,13 +83,13 @@ auto check_JFS(disk_t &disk_car, partition_t &partition) -> int
     delete[] buffer;
     return 1;
   }
-  if (test_JFS(disk_car, reinterpret_cast<struct jfs_superblock *>(buffer),
+  if (test_JFS(disk_car, std::start_lifetime_as<struct jfs_superblock>(buffer),
                partition, 0) != 0)
   {
     delete[] buffer;
     return 1;
   }
-  set_JFS_info(reinterpret_cast<struct jfs_superblock *>(buffer), partition);
+  set_JFS_info(std::start_lifetime_as<struct jfs_superblock>(buffer), partition);
   delete[] buffer;
   return 0;
 }

@@ -29,6 +29,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include "parthumax.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -167,7 +168,7 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
     return new_list_part;
   buffer = new unsigned char[disk_car.sector_size];
   screen_buffer_reset();
-  humaxlabel = reinterpret_cast<struct humaxlabel *>(buffer);
+  humaxlabel = std::start_lifetime_as<struct humaxlabel>(buffer);
   p32        = reinterpret_cast<uint32_t *>(buffer);
   if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
                      static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
