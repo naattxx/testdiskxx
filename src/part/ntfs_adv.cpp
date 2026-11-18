@@ -163,7 +163,7 @@ static void ntfs_write_boot_sector(
 
 static void ntfs_list(disk_t &disk, const partition_t &partition,
                       std::span<std::byte, NTFS_SECTOR_SIZE> newboot,
-                      char **current_cmd, const int expert)
+                      char **current_cmd, const bool expert)
 {
   io_redir_add_redir(disk, partition.part_offset, newboot.size(), 0, newboot.data());
   dir_partition(disk, partition, 0, expert);
@@ -174,7 +174,7 @@ static void menu_write_ntfs_boot_sector_cli(
     disk_t &disk_car, partition_t &partition,
     std::span<std::byte, NTFS_SECTOR_SIZE> orgboot,
     std::span<std::byte, NTFS_SECTOR_SIZE> newboot, char **current_cmd,
-    const int expert
+    const bool expert
 )
 {
   const auto *org_ntfs_header =
@@ -228,7 +228,7 @@ static void menu_write_ntfs_boot_sector_ncurses(disk_t &disk_car,
                                                 partition_t &partition,
                                                 std::span<std::byte, NTFS_SECTOR_SIZE> orgboot,
                                                 std::span<std::byte, NTFS_SECTOR_SIZE> newboot,
-                                                const int expert)
+                                                const bool expert)
 {
   const struct ntfs_boot_sector *org_ntfs_header =
       (const struct ntfs_boot_sector *)orgboot.data();
@@ -306,7 +306,7 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
                                     const uint64_t mftmirr_lcn,
                                     const uint32_t mft_record_size,
                                     const uint32_t index_block_size,
-                                    const int expert, char **current_cmd)
+                                    const bool expert, char **current_cmd)
 {
   std::array<std::byte, NTFS_SECTOR_SIZE> orgboot;
   std::array<std::byte, NTFS_SECTOR_SIZE> newboot;
@@ -536,7 +536,7 @@ static auto read_mft_info(disk_t &disk_car, const partition_t &partition,
 }
 
 auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
-                     const int verbose, const unsigned int expert,
+                     const int verbose, const bool expert,
                      char **current_cmd) -> int
 {
   uint64_t sector;
@@ -613,7 +613,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
                      (long long unsigned int)mft_lcn);
             log_info("ntfs_find_mft: mftmirr_lcn         {}\n",
                      (long long unsigned int)mftmirr_lcn);
-            if (expert == 0
+            if (!expert
 #ifdef HAVE_NCURSES
                             ||
                             ask_confirmation("Use MFT from %llu, confirm ? (Y/N)", (long long unsigned int)mft_lcn) != 0
@@ -701,7 +701,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
                      (long long unsigned int)mft_lcn);
             log_info("ntfs_find_mft: mftmirr_lcn         {}\n",
                      (long long unsigned int)mftmirr_lcn);
-            if (expert == 0
+            if (!expert
 #ifdef HAVE_NCURSES
                             ||
                             ask_confirmation("Use MFT from %llu, confirm ? (Y/N)", (long long unsigned int)mft_lcn) != 0
@@ -763,7 +763,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
     }
   }
 #ifdef HAVE_NCURSES
-  if (expert > 0)
+  if (expert)
   {
     wmove(stdscr, INTER_NTFS_Y, INTER_NTFS_X);
     sectors_per_cluster =

@@ -74,7 +74,7 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
                           const uint64_t max_offset, const int p_fat12,
                           const int p_fat16, const int p_fat32,
                           const int verbose, const int dump_ind,
-                          const unsigned int expert, unsigned int *fats)
+                          const bool expert, unsigned int *fats)
     -> upart_type_t;
 static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
                           const uint64_t max_offset, const int p_fat12,
@@ -101,7 +101,7 @@ static auto fat32_find_root_cluster(
     disk_t &disk_car, const partition_t &partition,
     const unsigned int sectors_per_cluster,
     const unsigned long int no_of_cluster, const unsigned int reserved,
-    const unsigned int fat_length, const int verbose, const unsigned int expert,
+    const unsigned int fat_length, const int verbose, const bool expert,
     const unsigned int first_free_cluster, const unsigned int fats
 ) -> unsigned int;
 static auto write_FAT_boot_code_aux(unsigned char *buffer) -> int;
@@ -370,7 +370,7 @@ static auto fat32_find_root_cluster(
     disk_t &disk_car, const partition_t &partition,
     const unsigned int sectors_per_cluster,
     const unsigned long int no_of_cluster, const unsigned int reserved,
-    const unsigned int fat_length, const int verbose, const unsigned int expert,
+    const unsigned int fat_length, const int verbose, const bool expert,
     const unsigned int first_free_cluster, const unsigned int fats
 ) -> unsigned int
 {
@@ -637,7 +637,7 @@ static auto fat32_find_root_cluster(
     {
       dir_aff_log(std::nullopt, rootdir_list);
 #ifdef HAVE_NCURSES
-      if (expert > 0)
+      if (expert)
       {
         if (ask_confirmation("Create a new root cluster with {} first-level "
                              "directories (Expert only) (Y/N)",
@@ -1976,7 +1976,7 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
                           const uint64_t max_offset, const int p_fat12,
                           const int p_fat16, const int p_fat32,
                           const int verbose, const int dump_ind,
-                          const unsigned int expert, unsigned int *fats)
+                          const bool expert, unsigned int *fats)
     -> upart_type_t
 {
   unsigned int nbr_offset = 0;
@@ -2126,7 +2126,7 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
                info_offset[second_fat].offset);
     }
   }
-  if (expert > 0)
+  if (expert)
   {
 #ifdef HAVE_NCURSES
     return select_fat_info(info_offset, nbr_offset, reserved, fat_length,
@@ -2231,7 +2231,7 @@ static upart_type_t select_fat_info(const info_offset_t *info_offset,
 #endif
 
 auto rebuild_FAT_BS(disk_t &disk_car, partition_t &partition, const int verbose,
-                    const int dump_ind, const unsigned int expert,
+                    const int dump_ind, const bool expert,
                     char **current_cmd) -> int
 {
   unsigned long int max_offset;
@@ -2514,7 +2514,7 @@ auto rebuild_FAT_BS(disk_t &disk_car, partition_t &partition, const int verbose,
           sectors_per_cluster = 0;
         }
       }
-      if (expert > 0)
+      if (expert)
       {
 #ifdef HAVE_NCURSES
         wmove(stdscr, INTER_FAT_ASK_Y, INTER_FAT_ASK_X);
@@ -2555,7 +2555,7 @@ auto rebuild_FAT_BS(disk_t &disk_car, partition_t &partition, const int verbose,
                                   data_size / sectors_per_cluster, reserved,
                                   fat_length, verbose, expert,
                                   first_free_cluster, fats);
-      if (expert > 0)
+      if (expert)
       {
 #ifdef HAVE_NCURSES
         int i;

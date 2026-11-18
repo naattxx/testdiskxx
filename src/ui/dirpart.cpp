@@ -59,7 +59,7 @@
 using namespace ftxui;
 
 static auto dir_partition_init(disk_t &disk, const partition_t &partition,
-                               const int verbose, const int expert)
+                               const int verbose, const bool expert)
     -> std::expected<dir_data_t *, dir_partition_t>
 {
   std::expected<dir_data_t *, dir_partition_t> res;

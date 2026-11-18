@@ -36,7 +36,7 @@ void log_ntfs2_info(const struct ntfs_boot_sector *nh1,
   @ requires \separated(disk_car, partition);
   @*/
 auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
-                     const int verbose, const unsigned int expert,
+                     const int verbose, const bool expert,
                      char **current_cmd) -> int;
 
 #endif

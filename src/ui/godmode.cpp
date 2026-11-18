@@ -1447,7 +1447,7 @@ static auto add_ext_part_i386(const disk_t &disk, list_part_t &list_part,
 
 static auto use_backup(disk_t &disk_car, list_part_t &list_part,
                        const int verbose, const int dump_ind,
-                       const unsigned int expert, char **current_cmd) -> int
+                       const bool expert, char **current_cmd) -> int
 {
   if (verbose > 1)
   {
@@ -1517,7 +1517,7 @@ static auto ask_write_partition_table(const list_part_t &list_part_org,
                                       disk_t &disk_car, const int verbose,
                                       const int dump_ind,
                                       const int ask_part_order,
-                                      const unsigned int expert,
+                                      const bool expert,
                                       char **current_cmd, unsigned int *menu,
                                       int *fast_mode) -> int
 {

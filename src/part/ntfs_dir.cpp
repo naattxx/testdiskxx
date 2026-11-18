@@ -491,7 +491,7 @@ void ntfs_dir_struct::close()
 #endif
 
 auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
-                             const int verbose, const int expert)
+                             const int verbose, const bool expert)
     -> std::expected<dir_data_t *, dir_partition_t>
 {
 #if defined(HAVE_LIBNTFS) || defined(HAVE_LIBNTFS3G)
@@ -543,7 +543,7 @@ auto dir_partition_ntfs_init(disk_t &disk_car, const partition_t &partition,
   dir_data->current_directory = "/";
   dir_data->current_inode = FILE_root;
   dir_data->param         = FLAG_LIST::ADS;
-  if (expert != 0)
+  if (expert)
     dir_data->param |= FLAG_LIST::SYSTEM;
   dir_data->verbose          = verbose;
   dir_data->capabilities     = CAPA_LIST::ADS;
