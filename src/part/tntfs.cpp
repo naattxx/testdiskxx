@@ -117,15 +117,15 @@ auto ntfs_boot_sectors::get_options(int *selected,
     if (ntfs_boot_sectors::are_identical)
       return {
           .has_list     = true,
-          .has_original = true,
-          .has_backup   = true,
-          .has_mft      = false,
+          .has_original = false,
+          .has_backup   = false,
+          .has_mft      = true,
       };
     return {
         .has_list     = true,
-        .has_original = false,
-        .has_backup   = false,
-        .has_mft      = true,
+        .has_original = true,
+        .has_backup   = true,
+        .has_mft      = false,
     };
   }
   if (backup.bootsector_status == status::OK)
