@@ -24,7 +24,6 @@
 #include "src/part/ntfs_udl.hpp"
 #include "src/part/texfat.hpp"
 #include "src/part/thfs.hpp"
-#include "src/part/tntfs.hpp"
 #include "src/ui/askloc.hpp"
 #include "src/ui/dimage.hpp"
 #include "src/ui/intrfn.hpp"
