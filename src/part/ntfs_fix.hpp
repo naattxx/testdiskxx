@@ -22,14 +22,52 @@
 #ifndef _NTFS_FIX_H
 #define _NTFS_FIX_H
 #include "src/common.hpp"
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <expected>
+#include <span>
+#include <string_view>
 
-/*@
-  @ requires \valid(disk_car);
-  @ requires valid_disk(disk_car);
-  @ requires \valid(partition);
-  @ requires \separated(disk_car, partition);
-  @*/
-auto repair_MFT(disk_t &disk_car, partition_t &partition, const int verbose,
-                const unsigned int expert, char **current_cmd) -> int;
+class mft_state
+{
+private:
+  disk_t &disk;
+  std::span<std::byte> buffer_mft;
+  std::span<std::byte> buffer_mftmirr;
+  uint64_t mft_pos;
+  uint64_t mftmirr_pos;
+
+public:
+  bool good_mft, good_mft_mirror;
+
+  explicit mft_state(disk_t &disk, std::span<std::byte> buffer_mft,
+                     std::span<std::byte> buffer_mftmirr, uint64_t mft_pos,
+                     uint64_t mftmirr_pos, bool is_mft_good,
+                     bool is_mftmirr_good)
+      : disk(disk), buffer_mft(buffer_mft), buffer_mftmirr(buffer_mftmirr),
+        mft_pos(mft_pos), mftmirr_pos(mftmirr_pos), good_mft(is_mft_good),
+        good_mft_mirror(is_mftmirr_good) {};
+
+  ~mft_state()
+  {
+    delete buffer_mft.data();
+    delete buffer_mftmirr.data();
+  }
+
+  [[nodiscard]] auto fix_mft() -> std::string_view;
+  [[nodiscard]] auto fix_mft_mirror() -> std::string_view;
+
+  /*@
+    @ requires \valid(disk_car);
+    @ requires valid_disk(disk_car);
+    @ requires \valid(partition);
+    @ requires \separated(disk_car, partition);
+    @*/
+  [[nodiscard]]
+  static auto get(disk_t &disk, partition_t &partition, const int verbose,
+                  const bool expert)
+      -> std::expected<mft_state, std::string_view>;
+};
 
 #endif

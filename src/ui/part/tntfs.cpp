@@ -4,6 +4,7 @@
 #include "ftxui/component/component_base.hpp"
 #include "ftxui/component/component_options.hpp"
 #include "ftxui/dom/elements.hpp"
+#include "ntfs_fix.hpp"
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 #include "src/io_redir.hpp"
@@ -136,7 +137,7 @@ auto ntfs_boot_sector_menu(disk_t &disk, partition_t &partition,
                 "[Repair MFT]"
                 "Check MFT",
                 [&] -> void {
-                  //repair_MFT(disk, partition, verbose, expert, current_cmd);
+                  repair_MFT_menu(root, disk, partition, verbose, expert);
                 },
                 buttonOptions
             ),
