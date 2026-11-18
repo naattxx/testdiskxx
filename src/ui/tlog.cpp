@@ -11,6 +11,7 @@
 
 using namespace ftxui;
 
+[[nodiscard]]
 auto ask_testdisk_log_creation(App &app) -> TD_LOG
 {
   std::vector<std::string> entries = {
