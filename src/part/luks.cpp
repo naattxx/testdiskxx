@@ -41,14 +41,14 @@ static void set_LUKS_info(const struct luks_phdr *sb, partition_t &partition)
 }
 
 static auto test_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
-                      const partition_t &partition, const int dump_ind) -> int
+                      const partition_t &partition, const bool dump_ind) -> int
 {
   static constexpr uint8_t LUKS_MAGIC[LUKS_MAGIC_L] = {
       'L', 'U', 'K', 'S', 0xba, 0xbe,
   };
   if (memcmp(sb->magic, LUKS_MAGIC, LUKS_MAGIC_L) != 0)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nLUKS magic value at {}/{}/{}\n",
              offset2cylinder(disk_car, partition.part_offset),
@@ -80,7 +80,7 @@ auto check_LUKS(disk_t &disk_car, partition_t &partition) -> int
 }
 
 auto recover_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_LUKS(disk_car, sb, partition, dump_ind) != 0)

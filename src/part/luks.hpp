@@ -42,7 +42,7 @@ auto check_LUKS(disk_t &disk_car, partition_t &partition) -> int;
   @ requires \separated(disk_car, sb, partition);
   @*/
 auto recover_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

@@ -91,7 +91,7 @@ struct [[gnu::gcc_struct, gnu::packed]] sun_partition_i386
 auto recover_sun_i386(const disk_t &disk_car,
                       const sun_partition_i386 *sunlabel,
                       partition_t &partition, const int verbose,
-                      const int dump_ind) -> int;
+                      const bool dump_ind) -> int;
 
 /*@
   @ requires \valid(disk_car);

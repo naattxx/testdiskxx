@@ -31,7 +31,7 @@
 
 static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
                      const partition_t &partition, const int verbose,
-                     const int dump_ind, const unsigned int max_partitions)
+                     const bool dump_ind, const unsigned int max_partitions)
     -> int
 {
   unsigned int i;
@@ -104,7 +104,7 @@ static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
   }
   if (crc)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     ; // dump_log(bsd_header,DEFAULT_SECTOR_SIZE);
   }
@@ -136,7 +136,7 @@ auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
 }
 
 auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   int i;

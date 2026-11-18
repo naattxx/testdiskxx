@@ -150,18 +150,18 @@ static auto test_rfs4(const disk_t &disk_car,
 }
 
 auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   const auto *sb4 = std::start_lifetime_as<struct reiser4_master_sb>(sb);
   if (test_rfs(disk_car, sb, partition, verbose) == 0)
   {
-    if (verbose > 0 || dump_ind != 0)
+    if (verbose > 0 || dump_ind)
     {
       log_info("\nrecover_rfs\n");
       log_info("block_count={}\n", (unsigned int)to_little_endian(sb->s_block_count));
       log_info("block_size={}\n", to_little_endian(sb->s_blocksize));
-      if (dump_ind != 0)
+      if (dump_ind)
       {
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
       }
@@ -182,13 +182,13 @@ auto recover_rfs(const disk_t &disk_car, const struct reiserfs_super_block *sb,
     const auto *fmt40_super = std::start_lifetime_as<struct format40_super>(
         reinterpret_cast<const char *>(sb4) + to_little_endian(sb4->blocksize)
     );
-    if (verbose > 0 || dump_ind != 0)
+    if (verbose > 0 || dump_ind)
     {
       log_info("\nrecover_rfs\n");
       log_info("block_count={}\n",
                (unsigned long int)to_little_endian(fmt40_super->sb_block_count));
       log_info("block_size={}\n", to_little_endian(sb4->blocksize));
-      if (dump_ind != 0)
+      if (dump_ind)
       {
         ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
       }

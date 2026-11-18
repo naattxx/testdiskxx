@@ -30,7 +30,7 @@
   @ requires \separated(disk_car, partition);
   @*/
 auto fat1x_boot_sector(disk_t &disk_car, partition_t &partition,
-                       const int verbose, const int dump_ind,
+                       const int verbose, const bool dump_ind,
                        const bool expert, char **current_cmd) -> int;
 
 #endif

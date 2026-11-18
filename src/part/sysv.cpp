@@ -92,15 +92,15 @@ static auto test_sysv4(const disk_t &disk_car,
 }
 
 auto recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_sysv4(disk_car, sbd, partition, verbose) != 0)
     return 1;
-  if (verbose > 0 || dump_ind != 0)
+  if (verbose > 0 || dump_ind)
   {
     log_info("\nrecover_sysv4\n");
-    if (dump_ind != 0)
+    if (dump_ind)
     {
       ; // dump_log(sbd,sizeof(*sbd));
     }

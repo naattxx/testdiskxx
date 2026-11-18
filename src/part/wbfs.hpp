@@ -44,6 +44,6 @@ struct [[gnu::gcc_struct, gnu::packed]] wbfs_head
   @*/
 auto check_WBFS(disk_t &disk, partition_t &partition) -> int;
 auto recover_WBFS(const disk_t &disk, const struct wbfs_head *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 #endif

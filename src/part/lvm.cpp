@@ -40,21 +40,21 @@ static void set_LVM_info(partition_t &partition)
 
 static auto test_LVM(const disk_t &disk_car, const pv_disk_t *pv,
                      const partition_t &partition, const int verbose,
-                     const int dump_ind) -> int
+                     const bool dump_ind) -> int
 {
   if ((memcmp(reinterpret_cast<const char *>(pv->id), LVM_ID, sizeof(pv->id)) ==
        0) &&
       (to_little_endian(pv->version) == 1 || to_little_endian(pv->version) == 2))
   {
     uint32_t size;
-    if (verbose > 0 || dump_ind != 0)
+    if (verbose > 0 || dump_ind)
     {
       log_info("\nLVM magic value at {}/{}/{}\n",
                offset2cylinder(disk_car, partition.part_offset),
                offset2head(disk_car, partition.part_offset),
                offset2sector(disk_car, partition.part_offset));
     }
-    if (dump_ind != 0)
+    if (dump_ind)
     {
       /* There is a little offset ... */
       ; // dump_log(pv,DEFAULT_SECTOR_SIZE);
@@ -106,7 +106,7 @@ auto check_LVM(disk_t &disk_car, partition_t &partition, const int verbose)
 }
 
 auto recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_LVM(disk_car, pv, partition, verbose, dump_ind) != 0)
@@ -138,12 +138,12 @@ static void set_LVM2_info(partition_t &partition)
 static auto test_LVM2(const disk_t &disk_car,
                       const struct lvm2_label_header *lh,
                       const partition_t &partition, const int verbose,
-                      const int dump_ind) -> int
+                      const bool dump_ind) -> int
 {
   if (memcmp(reinterpret_cast<const char *>(lh->type), LVM2_LABEL,
              sizeof(lh->type)) == 0)
   {
-    if (verbose > 0 || dump_ind != 0)
+    if (verbose > 0 || dump_ind)
     {
       log_info("\nLVM2 magic value at {}/{}/{}\n",
                offset2cylinder(disk_car, partition.part_offset),
@@ -152,7 +152,7 @@ static auto test_LVM2(const disk_t &disk_car,
     }
     if (to_little_endian(lh->offset_xl) > 400)
       return 1;
-    if (dump_ind != 0)
+    if (dump_ind)
     {
       /* There is a little offset ... */
       ; // dump_log(lh,DEFAULT_SECTOR_SIZE);
@@ -185,7 +185,7 @@ auto check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
 }
 
 auto recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   const auto *lh = std::start_lifetime_as<struct lvm2_label_header>(buf);

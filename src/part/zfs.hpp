@@ -53,6 +53,6 @@ auto check_ZFS(disk_t &disk, partition_t &partition) -> int;
   @ requires separation: \separated(disk, ZFS_header, partition);
   @*/
 auto recover_ZFS(const disk_t &disk, const struct vdev_boot_header *ZFS_header,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 #endif

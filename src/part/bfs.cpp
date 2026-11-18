@@ -42,13 +42,13 @@ static void set_BeFS_info(const struct disk_super_block *beos_block,
 
 static auto test_BeFS(const disk_t &disk_car,
                       const struct disk_super_block *beos_block,
-                      const partition_t &partition, const int dump_ind) -> int
+                      const partition_t &partition, const bool dump_ind) -> int
 {
   if (beos_block->magic1 != to_little_endian(SUPER_BLOCK_MAGIC1) &&
       beos_block->magic2 != to_little_endian(SUPER_BLOCK_MAGIC2) &&
       beos_block->magic3 != to_little_endian(SUPER_BLOCK_MAGIC3))
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nBeFS magic value at {}/{}/{}",
              offset2cylinder(disk_car, partition.part_offset),
@@ -82,7 +82,7 @@ auto check_BeFS(disk_t &disk_car, partition_t &partition) -> int
 
 auto recover_BeFS(const disk_t &disk_car,
                   const struct disk_super_block *beos_block,
-                  partition_t &partition, const int dump_ind) -> int
+                  partition_t &partition, const bool dump_ind) -> int
 {
   if (test_BeFS(disk_car, beos_block, partition, dump_ind) != 0)
     return 1;

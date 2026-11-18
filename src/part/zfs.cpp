@@ -38,11 +38,11 @@ static void set_ZFS_info(const struct vdev_boot_header *sb,
 }
 
 static auto test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,
-                     const partition_t &partition, const int dump_ind) -> int
+                     const partition_t &partition, const bool dump_ind) -> int
 {
   if (to_little_endian(sb->vb_magic) != VDEV_BOOT_MAGIC)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nZFS magic value at {}/{}/{}\n",
              offset2cylinder(disk, partition.part_offset),
@@ -74,7 +74,7 @@ auto check_ZFS(disk_t &disk, partition_t &partition) -> int
 }
 
 auto recover_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_ZFS(disk, sb, partition, dump_ind) != 0)

@@ -47,7 +47,7 @@ static void set_JFS_info(const struct jfs_superblock *sb,
 }
 
 static auto test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
-                     const partition_t &partition, const int dump_ind) -> int
+                     const partition_t &partition, const bool dump_ind) -> int
 {
   if (memcmp(sb->s_magic, "JFS1", 4) != 0)
     return 1;
@@ -55,7 +55,7 @@ static auto test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
   if (to_little_endian(sb->s_bsize) < 512 ||
       ((to_little_endian(sb->s_bsize) - 1) & to_little_endian(sb->s_bsize)) != 0)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nJFS magic value at {}/{}/{}\n",
              offset2cylinder(disk_car, partition.part_offset),
@@ -98,7 +98,7 @@ auto check_JFS(disk_t &disk_car, partition_t &partition) -> int
 Primary superblock is at 0x8000
 */
 auto recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_JFS(disk_car, sb, partition, dump_ind) != 0)

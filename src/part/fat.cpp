@@ -662,7 +662,7 @@ prev_cluster)==cluster) return prev_cluster;
 
 auto test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
               const partition_t &partition, const int verbose,
-              const int dump_ind) -> int
+              const bool dump_ind) -> int
 {
   uint64_t start_fat1;
   uint64_t start_fat2;
@@ -679,13 +679,13 @@ auto test_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
       (fat_header->fats != 1 && fat_header->fats != 2))
     return 1; /* Obviously not a FAT */
 #ifndef DISABLED_FOR_FRAMAC
-  if (verbose > 1 || dump_ind != 0)
+  if (verbose > 1 || dump_ind)
   {
     log_trace("test_FAT");
     log_partition(disk_car, partition);
   }
 #endif
-  if (dump_ind != 0)
+  if (dump_ind)
     ; // dump_log(fat_header, DEFAULT_SECTOR_SIZE);
   if ((fat_header->ignored[0] != 0xeb || fat_header->ignored[2] != 0x90) &&
       fat_header->ignored[0] != 0xe9)
@@ -1173,7 +1173,7 @@ static auto fat_has_EFI_entry(disk_t &disk, const partition_t &partition,
 }
 
 auto recover_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
-                 partition_t &partition, const int verbose, const int dump_ind,
+                 partition_t &partition, const int verbose, const bool dump_ind,
                  const int backup) -> int
 {
   int efi = 0;
@@ -1274,7 +1274,7 @@ auto recover_FAT(disk_t &disk_car, const struct fat_boot_sector *fat_header,
 static auto test_OS2MB(const disk_t &disk,
                        const struct fat_boot_sector *fat_header,
                        const partition_t &partition, const int verbose,
-                       const int dump_ind) -> int
+                       const bool dump_ind) -> int
 {
   const char *buffer = reinterpret_cast<const char *>(fat_header);
   if (to_little_endian(fat_header->marker) == 0xAA55 &&
@@ -1330,7 +1330,7 @@ auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose) -> int
 
 auto recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header,
                    partition_t &partition, const int verbose,
-                   const int dump_ind) -> int
+                   const bool dump_ind) -> int
 {
   if (test_OS2MB(disk, fat_header, partition, verbose, dump_ind))
     return 1;

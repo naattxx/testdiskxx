@@ -75,11 +75,11 @@ Group 0 begin at s_first_data_block
 */
 auto recover_btrfs(const disk_t &disk, const struct btrfs_super_block *sb,
                    partition_t &partition, const int verbose,
-                   const int dump_ind) -> int
+                   const bool dump_ind) -> int
 {
   if (test_btrfs(sb) != 0)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nbtrfs magic value at {}/{}/{}\n",
              offset2cylinder(disk, partition.part_offset),

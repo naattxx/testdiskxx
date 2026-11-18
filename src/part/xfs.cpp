@@ -125,15 +125,15 @@ auto check_xfs(disk_t &disk_car, partition_t &partition, const int verbose)
 }
 
 auto recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_xfs(disk_car, sb, partition, verbose) != 0)
     return 1;
-  if (verbose > 0 || dump_ind != 0)
+  if (verbose > 0 || dump_ind)
   {
     log_info("\nrecover_xfs\n");
-    if (dump_ind != 0)
+    if (dump_ind)
     {
       ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
     }

@@ -159,7 +159,7 @@ auto fat32_get_next_free(const unsigned char *boot_fat32,
   @ requires separation: \separated(disk, partition, fat_header);
   @*/
 auto recover_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
-                 partition_t &partition, const int verbose, const int dump_ind,
+                 partition_t &partition, const int verbose, const bool dump_ind,
                  const int backup) -> int;
 
 /*@
@@ -182,7 +182,7 @@ auto check_FAT(disk_t &disk, partition_t &partition, const int verbose) -> int;
   @*/
 auto test_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
               const partition_t &partition, const int verbose,
-              const int dump_ind) -> int;
+              const bool dump_ind) -> int;
 
 /*@
   @ requires \valid(disk);
@@ -194,7 +194,7 @@ auto test_FAT(disk_t &disk, const struct fat_boot_sector *fat_header,
   @*/
 auto recover_OS2MB(const disk_t &disk, const struct fat_boot_sector *fat_header,
                    partition_t &partition, const int verbose,
-                   const int dump_ind) -> int;
+                   const bool dump_ind) -> int;
 
 /*@
   @ requires \valid(disk);

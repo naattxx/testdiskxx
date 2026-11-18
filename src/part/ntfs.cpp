@@ -78,7 +78,7 @@ auto ntfs_sector_size(const struct ntfs_boot_sector *ntfs_header)
 }
 
 auto check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
-                const int dump_ind) -> int
+                const bool dump_ind) -> int
 {
   auto *boot_sector = new struct ntfs_boot_sector;
   /*  log_trace("check_NTFS part_offset={}\n",(long long
@@ -100,7 +100,7 @@ auto check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
 }
 
 auto recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header,
-                  partition_t &partition, const int verbose, const int dump_ind,
+                  partition_t &partition, const int verbose, const bool dump_ind,
                   const int backup) -> int
 {
   uint64_t part_size;
@@ -159,7 +159,7 @@ static void set_NTFS_info(disk_t &disk_car,
 auto test_NTFS(const disk_t &disk_car,
                const struct ntfs_boot_sector *ntfs_header,
                const partition_t &partition, const int verbose,
-               const int dump_ind) -> int
+               const bool dump_ind) -> int
 {
   if (to_little_endian(ntfs_header->marker) != 0xAA55 || to_little_endian(ntfs_header->reserved) > 0 ||
       ntfs_header->fats > 0 || ntfs_header->dir_entries[0] != 0 ||
@@ -183,7 +183,7 @@ auto test_NTFS(const disk_t &disk_car,
   default:
     return 1;
   }
-  if (verbose > 0 || dump_ind != 0)
+  if (verbose > 0 || dump_ind)
   {
     log_info("NTFS at {}/{}/{}\n",
              offset2cylinder(disk_car, partition.part_offset),

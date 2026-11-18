@@ -34,7 +34,7 @@
 
 #ifndef DISABLED_FOR_FRAMAC
 static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
-                    const partition_t &partition, const int dump_ind) -> int
+                    const partition_t &partition, const bool dump_ind) -> int
 {
   if (to_little_endian(sb->md_magic) != MD_SB_MAGIC)
     return 1;
@@ -52,7 +52,7 @@ static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
   }
   if (to_little_endian(sb->major_version) > 1)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     /* There is a little offset ... */
     ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
@@ -62,7 +62,7 @@ static auto test_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
 
 static auto test_MD_be(const disk_t &disk_car,
                        const struct mdp_superblock_t *sb,
-                       const partition_t &partition, const int dump_ind) -> int
+                       const partition_t &partition, const bool dump_ind) -> int
 {
   if (to_big_endian(sb->md_magic) != MD_SB_MAGIC)
     return 1;
@@ -80,7 +80,7 @@ static auto test_MD_be(const disk_t &disk_car,
   }
   if (to_big_endian(sb->major_version) > 1)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     /* There is a little offset ... */
     ; // dump_log(sb,DEFAULT_SECTOR_SIZE);
@@ -379,7 +379,7 @@ auto recover_MD_from_partition(disk_t &disk_car, partition_t &partition,
 }
 
 auto recover_MD(const disk_t &disk_car, const struct mdp_superblock_t *sb,
-                partition_t &partition, const int verbose, const int dump_ind)
+                partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
 #ifndef DISABLED_FOR_FRAMAC

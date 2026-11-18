@@ -30,11 +30,11 @@
 #include "wbfs.hpp"
 
 static auto test_WBFS(const disk_t &disk, const struct wbfs_head *sb,
-                      const partition_t &partition, const int dump_ind) -> int
+                      const partition_t &partition, const bool dump_ind) -> int
 {
   if (to_big_endian(sb->magic) != WBFS_MAGIC)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nWBFS magic value at {}/{}/{}\n",
              offset2cylinder(disk, partition.part_offset),
@@ -72,7 +72,7 @@ auto check_WBFS(disk_t &disk, partition_t &partition) -> int
 }
 
 auto recover_WBFS(const disk_t &disk, const struct wbfs_head *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_WBFS(disk, sb, partition, dump_ind) != 0)

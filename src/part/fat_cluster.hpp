@@ -48,7 +48,7 @@ struct cluster_offset_t
   @ decreases 0;
   @*/
 auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
-                              const int verbose, const int dump_ind,
+                              const int verbose, const bool dump_ind,
                               unsigned int *sectors_per_cluster,
                               uint64_t *offset, const upart_type_t upart_type)
     -> int;

@@ -98,6 +98,6 @@ auto check_gfs2(disk_t &disk_car, partition_t &partition) -> int;
   @ requires \separated(disk_car, sb, partition);
   @*/
 auto recover_gfs2(const disk_t &disk_car, const struct gfs2_sb *sb,
-                  partition_t &partition, const int dump_ind) -> int;
+                  partition_t &partition, const bool dump_ind) -> int;
 
 #endif

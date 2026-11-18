@@ -64,7 +64,7 @@
 #include "part/parti386.hpp"
 
 auto search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
-                       const int dump_ind) -> int
+                       const bool dump_ind) -> int
 {
     if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
@@ -81,7 +81,7 @@ auto search_NTFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partit
 }
 
 auto search_HFS_backup(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
-                      const int dump_ind) -> int
+                      const bool dump_ind) -> int
 {
     if (disk.pread(disk, buffer, 0x400, partition.part_offset) != 0x400)
         return -1;
@@ -124,7 +124,7 @@ auto search_exFAT_backup(unsigned char *buffer, disk_t &disk, partition_t &parti
 }
 
 auto search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
-                      const int dump_ind) -> int
+                      const bool dump_ind) -> int
 {
     if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE, partition.part_offset) != DEFAULT_SECTOR_SIZE)
         return -1;
@@ -138,7 +138,7 @@ auto search_FAT_backup(unsigned char *buffer, disk_t &disk, partition_t &partiti
 }
 
 auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
-                  const int dump_ind) -> int
+                  const bool dump_ind) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
   /* Expect a buffer filled with 8k to handle the SWAP detection */
@@ -242,7 +242,7 @@ auto search_type_0(const unsigned char *buffer, disk_t &disk, partition_t &parti
 }
 
 auto search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t &partition, const int verbose,
-                  const int dump_ind) -> int
+                  const bool dump_ind) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
   const auto *bsd_header =
@@ -293,7 +293,7 @@ auto search_type_1(const unsigned char *buffer, const disk_t &disk, partition_t 
 }
 
 auto search_type_2(const unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose,
-                  const int dump_ind) -> int
+                  const bool dump_ind) -> int
 {
 #ifndef DISABLED_FOR_FRAMAC
   const auto *hfs_mdb = reinterpret_cast<const hfs_mdb_t *>(buffer + 0x400);
@@ -327,7 +327,7 @@ auto search_type_2(const unsigned char *buffer, disk_t &disk, partition_t &parti
     return 0;
 }
 
-auto search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind) -> int
+auto search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const bool dump_ind) -> int
 {
     if (verbose > 2)
     {
@@ -350,7 +350,7 @@ auto search_type_8(unsigned char *buffer, disk_t &disk, partition_t &partition, 
     return 0;
 }
 
-auto search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind) -> int
+auto search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const bool dump_ind) -> int
 {
     if (verbose > 2)
     {
@@ -377,7 +377,7 @@ auto search_type_16(unsigned char *buffer, disk_t &disk, partition_t &partition,
     return 0;
 }
 
-auto search_type_64(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind) -> int
+auto search_type_64(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const bool dump_ind) -> int
 {
     if (verbose > 2)
     {
@@ -399,7 +399,7 @@ auto search_type_64(unsigned char *buffer, disk_t &disk, partition_t &partition,
     return 0;
 }
 
-auto search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind) -> int
+auto search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const bool dump_ind) -> int
 {
     if (verbose > 2)
     {
@@ -437,7 +437,7 @@ auto search_type_128(unsigned char *buffer, disk_t &disk, partition_t &partition
     return 0;
 }
 
-auto search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const int dump_ind) -> int
+auto search_type_2048(unsigned char *buffer, disk_t &disk, partition_t &partition, const int verbose, const bool dump_ind) -> int
 {
     if (verbose > 2)
     {

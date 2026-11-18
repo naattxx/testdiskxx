@@ -32,7 +32,7 @@
   @ decreases 0;
   @*/
 auto check_NTFS(disk_t &disk_car, partition_t &partition, const int verbose,
-                const int dump_ind) -> int;
+                const bool dump_ind) -> int;
 
 /*@
   @ requires \valid_read(ntfs_header);
@@ -59,7 +59,7 @@ auto is_part_ntfs(const partition_t &partition) -> bool;
   @ requires \separated(disk_car, ntfs_header, partition);
   @*/
 auto recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header,
-                  partition_t &partition, const int verbose, const int dump_ind,
+                  partition_t &partition, const int verbose, const bool dump_ind,
                   const int backup) -> int;
 
 /*@
@@ -71,7 +71,7 @@ auto recover_NTFS(disk_t &disk_car, const struct ntfs_boot_sector *ntfs_header,
 auto test_NTFS(const disk_t &disk_car,
                const struct ntfs_boot_sector *ntfs_header,
                const partition_t &partition, const int verbose,
-               const int dump_ind) -> int;
+               const bool dump_ind) -> int;
 
 #define NTFS_GETU8(p) (*(const uint8_t *)(p))
 #define NTFS_GETU16(p) (to_little_endian(*(const uint16_t *)(p)))

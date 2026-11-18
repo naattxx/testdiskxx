@@ -57,12 +57,12 @@ auto check_APFS(disk_t &disk_car, partition_t &partition) -> int
 }
 
 auto recover_APFS(const disk_t &disk, const nx_superblock_t *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_APFS(sb, partition) != 0)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nAPFS magic value at {}/{}/{}",
              offset2cylinder(disk, partition.part_offset),

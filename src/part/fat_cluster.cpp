@@ -39,7 +39,7 @@
  * where the first cluster begins.
  * */
 auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
-                              const int verbose, const int dump_ind,
+                              const int verbose, const bool dump_ind,
                               unsigned int *sectors_per_cluster,
                               uint64_t *offset_org,
                               const upart_type_t upart_type) -> int
@@ -99,7 +99,7 @@ auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
       sector_cluster[nbr_subdir].sector  = offset / disk_car.sector_size;
       nbr_subdir++;
 #ifdef HAVE_NCURSES
-        if (dump_ind > 0)
+        if (dump_ind)
           dump_ncurses(buffer, disk_car.sector_size);
 #endif
     }

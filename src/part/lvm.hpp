@@ -108,7 +108,7 @@ auto check_LVM(disk_t &disk_car, partition_t &partition, const int verbose)
   @ requires \separated(disk_car, partition);
   @*/
 auto recover_LVM(const disk_t &disk_car, const pv_disk_t *pv,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #define LVM2_LABEL "LVM2 001"
@@ -158,7 +158,7 @@ auto check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
   @ requires separation: \separated(disk_car, buf, partition);
   @*/
 auto recover_LVM2(const disk_t &disk_car, const unsigned char *buf,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif /* _LVM_H */

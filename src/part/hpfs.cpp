@@ -45,7 +45,7 @@ static void set_HPFS_info(partition_t &partition)
 static auto test_HPFS(const disk_t &disk_car,
                       const struct fat_boot_sector *hpfs_header,
                       const partition_t &partition, const int verbose,
-                      const int dump_ind) -> int
+                      const bool dump_ind) -> int
 {
   const char *buffer = reinterpret_cast<const char *>(hpfs_header);
   if ((to_little_endian(hpfs_header->marker) == 0xAA55) &&
@@ -61,7 +61,7 @@ static auto test_HPFS(const disk_t &disk_car,
                offset2head(disk_car, partition.part_offset),
                offset2sector(disk_car, partition.part_offset));
     }
-    if (dump_ind != 0)
+    if (dump_ind)
       ; // dump_log(buffer, DEFAULT_SECTOR_SIZE);
     return 0;
   }

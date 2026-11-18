@@ -48,7 +48,7 @@ auto check_xfs(disk_t &disk_car, partition_t &partition, const int verbose)
   @ requires separation: \separated(disk_car, sb, partition);
   @*/
 auto recover_xfs(const disk_t &disk_car, const struct xfs_sb *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

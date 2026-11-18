@@ -95,7 +95,7 @@ auto check_HFS(disk_t &disk_car, partition_t &partition, const int verbose)
   @*/
 auto test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
               const partition_t &partition, const int verbose,
-              const int dump_ind) -> int;
+              const bool dump_ind) -> int;
 
 /*@
   @ requires \valid_read(disk_car);
@@ -105,7 +105,7 @@ auto test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
   @ requires separation: \separated(disk_car, hfs_mdb, partition);
   @*/
 auto recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
-                 partition_t &partition, const int verbose, const int dump_ind,
+                 partition_t &partition, const int verbose, const bool dump_ind,
                  const int backup) -> int;
 
 #endif /* _HFS_H */

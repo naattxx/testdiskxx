@@ -73,13 +73,13 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
                           const partition_t &partition,
                           const uint64_t max_offset, const int p_fat12,
                           const int p_fat16, const int p_fat32,
-                          const int verbose, const int dump_ind,
+                          const int verbose, const bool dump_ind,
                           const bool expert, unsigned int *fats)
     -> upart_type_t;
 static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
                           const uint64_t max_offset, const int p_fat12,
                           const int p_fat16, const int p_fat32,
-                          const int verbose, const int dump_ind,
+                          const int verbose, const bool dump_ind,
                           unsigned int *nbr_offset, info_offset_t *info_offset,
                           const unsigned int max_nbr_offset) -> int;
 
@@ -1872,7 +1872,7 @@ static auto fat_find_fat_start(const unsigned char *buffer, const int p_fat12,
 static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
                           const uint64_t max_offset, const int p_fat12,
                           const int p_fat16, const int p_fat32,
-                          const int verbose, const int dump_ind,
+                          const int verbose, const bool dump_ind,
                           unsigned int *nbr_offset, info_offset_t *info_offset,
                           const unsigned int max_nbr_offset) -> int
 {
@@ -1975,7 +1975,7 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
                           const partition_t &partition,
                           const uint64_t max_offset, const int p_fat12,
                           const int p_fat16, const int p_fat32,
-                          const int verbose, const int dump_ind,
+                          const int verbose, const bool dump_ind,
                           const bool expert, unsigned int *fats)
     -> upart_type_t
 {
@@ -1995,7 +1995,7 @@ static auto fat_find_info(disk_t &disk_car, unsigned int *reserved,
              offset2head(disk_car, end), offset2sector(disk_car, end),
              info_offset[i].nbr);
 #ifdef HAVE_NCURSES
-    if (dump_ind > 0)
+    if (dump_ind)
     {
       unsigned char *buffer = new unsigned char[disk_car->sector_size];
       if ((unsigned)disk_car->pread(disk_car, &buffer, disk_car->sector_size,
@@ -2231,7 +2231,7 @@ static upart_type_t select_fat_info(const info_offset_t *info_offset,
 #endif
 
 auto rebuild_FAT_BS(disk_t &disk_car, partition_t &partition, const int verbose,
-                    const int dump_ind, const bool expert,
+                    const bool dump_ind, const bool expert,
                     char **current_cmd) -> int
 {
   unsigned long int max_offset;

@@ -212,7 +212,7 @@ struct coh_super_block
 auto check_sysv(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int;
 auto recover_sysv(const disk_t &disk_car, const struct sysv4_super_block *sbd,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

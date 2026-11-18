@@ -54,7 +54,7 @@ auto check_HFS(disk_t &disk_car, partition_t &partition, const int verbose)
 }
 
 auto recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
-                 partition_t &partition, const int verbose, const int dump_ind,
+                 partition_t &partition, const int verbose, const bool dump_ind,
                  const int backup) -> int
 {
   uint64_t part_size;
@@ -89,7 +89,7 @@ auto recover_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
 
 auto test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
               const partition_t &partition, const int verbose,
-              const int dump_ind) -> int
+              const bool dump_ind) -> int
 {
   /* Check for HFS signature */
   if (hfs_mdb->drSigWord != to_big_endian(HFS_SUPER_MAGIC))
@@ -110,14 +110,14 @@ auto test_HFS(const disk_t &disk_car, const hfs_mdb_t *hfs_mdb,
           to_big_endian(hfs_mdb->drAlBlSt) * 512 + 0x400 >
       static_cast<uint64_t>(2049) * 1024 * 1024 * 1024)
     return 1;
-  if (verbose > 0 || dump_ind != 0)
+  if (verbose > 0 || dump_ind)
   {
     log_info("\nHFS magic value at {}/{}/{}\n",
              offset2cylinder(disk_car, partition.part_offset),
              offset2head(disk_car, partition.part_offset),
              offset2sector(disk_car, partition.part_offset));
   }
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     /* There is a little offset ... */
     ; // dump_log(hfs_mdb,DEFAULT_SECTOR_SIZE);

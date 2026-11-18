@@ -36,11 +36,11 @@ static void set_VMFS_info(const struct vmfs_volume *sb, partition_t &partition)
 }
 
 static auto test_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
-                      const partition_t &partition, const int dump_ind) -> int
+                      const partition_t &partition, const bool dump_ind) -> int
 {
   if (to_little_endian(sb->magic) != 0xc001d00d || to_little_endian(sb->version) > 20)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nVMFS magic value at {}/{}/{}\n",
              offset2cylinder(disk, partition.part_offset),
@@ -71,7 +71,7 @@ auto check_VMFS(disk_t &disk, partition_t &partition) -> int
 }
 
 auto recover_VMFS(const disk_t &disk, const struct vmfs_volume *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   const auto *lvm = std::start_lifetime_as<struct vmfs_lvm>(

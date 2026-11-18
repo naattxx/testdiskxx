@@ -32,7 +32,7 @@
       @ decreases 0;
       @*/
     auto search_type_0(const unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                      const int dump_ind) -> int;
+                      const bool dump_ind) -> int;
 
     /*@
       @ requires \valid_read(disk_car);
@@ -43,7 +43,7 @@
       @ decreases 0;
       @*/
     auto search_type_1(const unsigned char *buffer, const disk_t &disk_car, partition_t &partition, const int verbose,
-                      const int dump_ind) -> int;
+                      const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -54,7 +54,7 @@
       @ decreases 0;
       @*/
     auto search_type_2(const unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                      const int dump_ind) -> int;
+                      const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -65,7 +65,7 @@
       @ decreases 0;
       @*/
     auto search_type_8(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                      const int dump_ind) -> int;
+                      const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -76,7 +76,7 @@
       @ decreases 0;
       @*/
     auto search_type_16(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                       const int dump_ind) -> int;
+                       const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -87,7 +87,7 @@
       @ decreases 0;
       @*/
     auto search_type_64(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                       const int dump_ind) -> int;
+                       const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -98,7 +98,7 @@
       @ decreases 0;
       @*/
     auto search_type_128(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                        const int dump_ind) -> int;
+                        const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -109,7 +109,7 @@
       @ decreases 0;
       @*/
     auto search_type_2048(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                         const int dump_ind) -> int;
+                         const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk);
@@ -130,7 +130,7 @@
       @ decreases 0;
       @*/
     auto search_FAT_backup(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                          const int dump_ind) -> int;
+                          const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -141,7 +141,7 @@
       @ decreases 0;
       @*/
     auto search_HFS_backup(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                          const int dump_ind) -> int;
+                          const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk_car);
@@ -152,7 +152,7 @@
       @ decreases 0;
       @*/
     auto search_NTFS_backup(unsigned char *buffer, disk_t &disk_car, partition_t &partition, const int verbose,
-                           const int dump_ind) -> int;
+                           const bool dump_ind) -> int;
 
     /*@
       @ requires \valid(disk);

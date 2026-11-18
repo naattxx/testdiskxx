@@ -74,7 +74,7 @@ auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
 }
 
 auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
-                  partition_t &partition, const int verbose, const int dump_ind,
+                  partition_t &partition, const int verbose, const bool dump_ind,
                   const int backup) -> int
 {
   uint64_t part_size;
@@ -120,7 +120,7 @@ auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
 
 auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
                const partition_t &partition, const int verbose,
-               const int dump_ind) -> int
+               const bool dump_ind) -> int
 {
   if (to_big_endian(vh->free_blocks) > to_big_endian(vh->total_blocks))
     return 1;
@@ -131,7 +131,7 @@ auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
   /* http://developer.apple.com/technotes/tn/tn1150.html */
   if (to_big_endian(vh->version) == 4 && vh->signature == to_big_endian(HFSP_VOLHEAD_SIG))
   {
-    if (verbose > 0 || dump_ind != 0)
+    if (verbose > 0 || dump_ind)
     {
       log_info("\nHFS+ magic value at {}/{}/{}\n",
                offset2cylinder(disk_car, partition.part_offset),
@@ -141,7 +141,7 @@ auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
   }
   else if (to_big_endian(vh->version) == 5 && vh->signature == to_big_endian(HFSX_VOLHEAD_SIG))
   {
-    if (verbose > 0 || dump_ind != 0)
+    if (verbose > 0 || dump_ind)
     {
       log_info("\nHFSX magic value at {}/{}/{}\n",
                offset2cylinder(disk_car, partition.part_offset),
@@ -153,7 +153,7 @@ auto test_HFSP(const disk_t &disk_car, const struct hfsp_vh *vh,
   {
     return 1;
   }
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     /* There is a little offset ... */
     ; // dump_log(vh,DEFAULT_SECTOR_SIZE);

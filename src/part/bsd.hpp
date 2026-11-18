@@ -190,7 +190,7 @@ auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
   @ requires separation: \separated(disk_car, bsd_header, partition);
   @*/
 auto recover_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

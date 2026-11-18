@@ -41,7 +41,7 @@ auto check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose)
   @ requires \separated(disk_car, partition);
   @*/
 auto recover_EXT2(const disk_t &disk_car, const struct ext2_super_block *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

@@ -496,7 +496,7 @@ auto check_ufs(disk_t &disk_car, partition_t &partition, const int verbose)
   @ requires separation: \separated(disk_car, sb, partition);
   @*/
 auto recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

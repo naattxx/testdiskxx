@@ -111,12 +111,12 @@ static auto test_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
 }
 
 auto recover_ufs(const disk_t &disk_car, const struct ufs_super_block *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_ufs(disk_car, sb, partition, verbose) != 0)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("recover_ufs\n");
     ; // dump_log(sb,sizeof(*sb));

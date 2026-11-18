@@ -40,7 +40,7 @@ auto check_APFS(disk_t &disk_car, partition_t &partition) -> int;
   @ requires \separated(disk_car, partition);
   @*/
 auto recover_APFS(const disk_t &disk_car, const nx_superblock_t *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

@@ -44,7 +44,7 @@ auto check_JFS(disk_t &disk_car, partition_t &partition) -> int;
   @ requires separation: \separated(disk_car, sb, partition);
   @*/
 auto recover_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
-                 partition_t &partition, const int verbose, const int dump_ind)
+                 partition_t &partition, const int verbose, const bool dump_ind)
     -> int;
 
 #endif

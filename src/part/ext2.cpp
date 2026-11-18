@@ -109,12 +109,12 @@ Primary superblock is at 1024 (SUPERBLOCK_OFFSET)
 Group 0 begin at s_first_data_block
 */
 auto recover_EXT2(const disk_t &disk, const struct ext2_super_block *sb,
-                  partition_t &partition, const int verbose, const int dump_ind)
+                  partition_t &partition, const int verbose, const bool dump_ind)
     -> int
 {
   if (test_EXT2(sb, partition) != 0)
     return 1;
-  if (dump_ind != 0)
+  if (dump_ind)
   {
     log_info("\nEXT2/EXT3 magic value at {}/{}/{}\n",
              offset2cylinder(disk, partition.part_offset),

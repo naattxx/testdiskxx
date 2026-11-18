@@ -100,6 +100,6 @@ auto check_BeFS(disk_t &disk_car, partition_t &partition) -> int;
   @*/
 auto recover_BeFS(const disk_t &disk_car,
                   const struct disk_super_block *beos_block,
-                  partition_t &partition, const int dump_ind) -> int;
+                  partition_t &partition, const bool dump_ind) -> int;
 
 #endif
