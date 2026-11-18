@@ -19,12 +19,15 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 
 #include <cctype>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <memory>
+#include <span>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 
@@ -43,7 +46,7 @@
 #include "src/log_part.hpp"
 
 #define MAX_INFO_MFT 10
-#define NTFS_SECTOR_SIZE 0x200
+static constexpr int NTFS_SECTOR_SIZE {0x200};
 
 struct info_mft_t
 {
@@ -99,8 +102,8 @@ static int ncurses_ntfs2_info(const struct ntfs_boot_sector *nh1,
 }
 
 static void ntfs_dump_ncurses(disk_t &disk_car, const partition_t &partition,
-                              const unsigned char *orgboot,
-                              const unsigned char *newboot)
+                              std::span<std::byte, NTFS_SECTOR_SIZE> orgboot,
+                              std::span<std::byte, NTFS_SECTOR_SIZE> newboot)
 {
   WINDOW *window = newwin(LINES, COLS, 0, 0); /* full screen */
   keypad(window, TRUE);                       /* Need it to get arrow key */
@@ -110,7 +113,7 @@ static void ntfs_dump_ncurses(disk_t &disk_car, const partition_t &partition,
   wmove(window, 5, 0);
   aff_part(window, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
   mvwaddstr(window, 6, 0, "     Rebuild Boot sector           Boot sector");
-  dump2(window, newboot, orgboot, NTFS_SECTOR_SIZE);
+  dump2(window, newboot.data(), orgboot.data(), NTFS_SECTOR_SIZE);
   delwin(window);
   (void)clearok(stdscr, TRUE);
 #ifdef HAVE_TOUCHWIN
@@ -120,8 +123,9 @@ static void ntfs_dump_ncurses(disk_t &disk_car, const partition_t &partition,
 #endif
 
 static void ntfs_dump(disk_t &disk_car, const partition_t &partition,
-                      const unsigned char *orgboot,
-                      const unsigned char *newboot, char **current_cmd)
+                      std::span<std::byte, NTFS_SECTOR_SIZE> orgboot,
+                      std::span<std::byte, NTFS_SECTOR_SIZE> newboot,
+                      char **current_cmd)
 {
   log_info("     Rebuild Boot sector           Boot sector\n");
   ; // dump2_log(newboot, orgboot, NTFS_SECTOR_SIZE);
@@ -133,21 +137,23 @@ static void ntfs_dump(disk_t &disk_car, const partition_t &partition,
   }
 }
 
-static void ntfs_write_boot_sector(disk_t &disk, partition_t &partition,
-                                   const unsigned char *newboot)
+static void ntfs_write_boot_sector(
+    disk_t &disk, partition_t &partition,
+    std::span<std::byte, NTFS_SECTOR_SIZE> newboot
+)
 {
   log_info("Write new boot!\n");
   /* Reset information about backup boot sector */
   partition.sb_offset = 0;
   /* Write boot sector and backup boot sector */
-  if (disk.pwrite(disk, newboot, NTFS_SECTOR_SIZE, partition.part_offset) !=
-      NTFS_SECTOR_SIZE)
+  if (disk.pwrite(disk, newboot.data(), newboot.size(), partition.part_offset) !=
+      newboot.size())
   {
     ; // display_message("Write error: Can't write new NTFS boot sector\n");
   }
-  if (disk.pwrite(disk, newboot, NTFS_SECTOR_SIZE,
+  if (disk.pwrite(disk, newboot.data(), newboot.size(),
                   partition.part_offset + partition.part_size -
-                      disk.sector_size) != NTFS_SECTOR_SIZE)
+                      disk.sector_size) != newboot.size())
   {
     ; // display_message("Write error: Can't write new NTFS backup boot
       // sector\n");
@@ -156,29 +162,29 @@ static void ntfs_write_boot_sector(disk_t &disk, partition_t &partition,
 }
 
 static void ntfs_list(disk_t &disk, const partition_t &partition,
-                      const unsigned char *newboot, char **current_cmd,
-                      const int expert)
+                      std::span<std::byte, NTFS_SECTOR_SIZE> newboot,
+                      char **current_cmd, const int expert)
 {
-  io_redir_add_redir(disk, partition.part_offset, NTFS_SECTOR_SIZE, 0, newboot);
+  io_redir_add_redir(disk, partition.part_offset, newboot.size(), 0, newboot.data());
   dir_partition(disk, partition, 0, expert);
   io_redir_del_redir(disk, partition.part_offset);
 }
 
-static void menu_write_ntfs_boot_sector_cli(disk_t &disk_car,
-                                            partition_t &partition,
-                                            const unsigned char *orgboot,
-                                            const unsigned char *newboot,
-                                            char **current_cmd,
-                                            const int expert)
+static void menu_write_ntfs_boot_sector_cli(
+    disk_t &disk_car, partition_t &partition,
+    std::span<std::byte, NTFS_SECTOR_SIZE> orgboot,
+    std::span<std::byte, NTFS_SECTOR_SIZE> newboot, char **current_cmd,
+    const int expert
+)
 {
   const auto *org_ntfs_header =
-      std::start_lifetime_as<struct ntfs_boot_sector>(orgboot);
+      std::start_lifetime_as<struct ntfs_boot_sector>(orgboot.data());
   const auto *ntfs_header =
-      std::start_lifetime_as<struct ntfs_boot_sector>(newboot);
+      std::start_lifetime_as<struct ntfs_boot_sector>(newboot.data());
   int no_confirm = 0;
   while (true)
   {
-    if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE) != 0)
+    if (memcmp(newboot.data(), orgboot.data(), NTFS_SECTOR_SIZE) != 0)
     {
       log_ntfs2_info(ntfs_header, org_ntfs_header);
     }
@@ -220,14 +226,14 @@ static void menu_write_ntfs_boot_sector_cli(disk_t &disk_car,
 #ifdef HAVE_NCURSES
 static void menu_write_ntfs_boot_sector_ncurses(disk_t &disk_car,
                                                 partition_t &partition,
-                                                const unsigned char *orgboot,
-                                                const unsigned char *newboot,
+                                                std::span<std::byte, NTFS_SECTOR_SIZE> orgboot,
+                                                std::span<std::byte, NTFS_SECTOR_SIZE> newboot,
                                                 const int expert)
 {
   const struct ntfs_boot_sector *org_ntfs_header =
-      (const struct ntfs_boot_sector *)orgboot;
+      (const struct ntfs_boot_sector *)orgboot.data();
   const struct ntfs_boot_sector *ntfs_header =
-      (const struct ntfs_boot_sector *)newboot;
+      (const struct ntfs_boot_sector *)newboot.data();
   const struct MenuItem menuSaveBoot[] = {
       {'D', "Dump",  "Dump sector"               },
       {'L', "List",  "List directories and files"},
@@ -246,7 +252,7 @@ static void menu_write_ntfs_boot_sector_ncurses(disk_t &disk_car,
     wmove(stdscr, 6, 0);
     aff_part(stdscr, AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
     wmove(stdscr, 8, 0);
-    if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE))
+    if (memcmp(newboot.data(), orgboot.data(), NTFS_SECTOR_SIZE))
     {
       options = "DLWQ";
       ncurses_ntfs2_info(ntfs_header, org_ntfs_header);
@@ -302,22 +308,22 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
                                     const uint32_t index_block_size,
                                     const int expert, char **current_cmd)
 {
-  unsigned char orgboot[NTFS_SECTOR_SIZE];
-  unsigned char newboot[NTFS_SECTOR_SIZE];
-  auto *org_ntfs_header = std::start_lifetime_as<struct ntfs_boot_sector>(&orgboot);
-  auto *ntfs_header     = std::start_lifetime_as<struct ntfs_boot_sector>(&newboot);
-  if (disk_car.pread(disk_car, &orgboot, NTFS_SECTOR_SIZE,
-                     partition.part_offset) != NTFS_SECTOR_SIZE)
+  std::array<std::byte, NTFS_SECTOR_SIZE> orgboot;
+  std::array<std::byte, NTFS_SECTOR_SIZE> newboot;
+  auto *org_ntfs_header = std::start_lifetime_as<struct ntfs_boot_sector>(orgboot.data());
+  auto *ntfs_header     = std::start_lifetime_as<struct ntfs_boot_sector>(newboot.data());
+  if (disk_car.pread(disk_car, orgboot.data(), orgboot.size(),
+                     partition.part_offset) != orgboot.size())
   {
     log_error("create_ntfs_boot_sector: Can't read boot sector.\n");
-    memset(&orgboot, 0, NTFS_SECTOR_SIZE);
+    orgboot.fill(std::byte{0});
   }
   if (cluster_size == 0)
   {
     ; // display_message("NTFS Bad extrapolation.\n");
     return;
   }
-  memcpy(&newboot, &orgboot, NTFS_SECTOR_SIZE);
+  newboot = orgboot;
   memcpy(ntfs_header->system_id, "NTFS    ", 8);
   ntfs_header->sector_size[0]      = disk_car.sector_size & 0xFF;
   ntfs_header->sector_size[1]      = disk_car.sector_size >> 8;
@@ -363,7 +369,7 @@ static void create_ntfs_boot_sector(disk_t &disk_car, partition_t &partition,
   */
   ntfs_header->checksum = to_little_endian(0);
   ntfs_header->marker   = to_little_endian(0xAA55);
-  if (memcmp(newboot, orgboot, NTFS_SECTOR_SIZE) != 0)
+  if (newboot != orgboot)
   {
     log_warning("             New / Current boot sector\n");
     log_ntfs2_info(ntfs_header, org_ntfs_header);
