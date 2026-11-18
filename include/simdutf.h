@@ -1,4 +1,4 @@
-/* auto-generated on 2026-10-27 23:10:33 +0000. Do not edit! */
+/* auto-generated on 2026-11-15 02:29:01 +0000. Do not edit! */
 /* begin file include/simdutf.h */
 #ifndef SIMDUTF_H
 #define SIMDUTF_H
@@ -220,8 +220,10 @@
         // users should update to GCC 15 or better.
         #define SIMDUTF_IMPLEMENTATION_LASX 0
       #endif
+    #elif defined(__clang__)
+      // LLVM supports runtime dispatch for LASX, see simdutf/lasx/intrinsics.h.
     #else
-      // We are not using GCC, so we assume that we can support runtime dispatch
+      // We are not using GCC or LLVM, so we do not support runtime dispatch
       // for LASX. https://godbolt.org/z/jcMnrjYhs
       #define SIMDUTF_IMPLEMENTATION_LASX 0
     #endif
@@ -989,7 +991,7 @@ SIMDUTF_DISABLE_UNDESIRED_WARNINGS
 #define SIMDUTF_SIMDUTF_VERSION_H
 
 /** The version of simdutf being used (major.minor.revision) */
-#define SIMDUTF_VERSION "9.3.3"
+#define SIMDUTF_VERSION "9.4.0"
 
 namespace simdutf {
 enum {
@@ -1000,11 +1002,11 @@ enum {
   /**
    * The minor version (major.MINOR.revision) of simdutf being used.
    */
-  SIMDUTF_VERSION_MINOR = 3,
+  SIMDUTF_VERSION_MINOR = 4,
   /**
    * The revision (major.minor.REVISION) of simdutf being used.
    */
-  SIMDUTF_VERSION_REVISION = 3
+  SIMDUTF_VERSION_REVISION = 0
 };
 } // namespace simdutf
 
@@ -1647,6 +1649,42 @@ concept output_span_of_byte_like = requires(T &t) {
   { *t.data() } noexcept -> is_byte_like;
   { *t.data() } noexcept -> is_mutable;
 };
+
+  #if SIMDUTF_CPLUSPLUS23
+// Give the scalar base64 code a char copy of a non-char span (constexpr only).
+template <typename F> constexpr auto with_char_input(const auto &input, F &&f) {
+  using T = std::remove_cvref_t<decltype(*input.data())>;
+  if constexpr (std::is_same_v<T, char>) {
+    return f(input.data());
+  } else {
+    char *copy = new char[input.size()];
+    for (std::size_t i = 0; i < input.size(); i++) {
+      copy[i] = static_cast<char>(input.data()[i]);
+    }
+    auto r = f(static_cast<const char *>(copy));
+    delete[] copy;
+    return r;
+  }
+}
+
+// Copy back only the written(r) bytes, leaving the rest of the output alone.
+template <typename F, typename W>
+constexpr auto with_char_output(auto &&output, F &&f, W &&written) {
+  using T = std::remove_cvref_t<decltype(*output.data())>;
+  if constexpr (std::is_same_v<T, char>) {
+    return f(output.data());
+  } else {
+    char *copy = new char[output.size()];
+    auto r = f(copy);
+    const std::size_t n = written(r);
+    for (std::size_t i = 0; i < n; i++) {
+      output.data()[i] = static_cast<T>(copy[i]);
+    }
+    delete[] copy;
+    return r;
+  }
+}
+  #endif // SIMDUTF_CPLUSPLUS23
 
 /**
  * a pointer like object, when indexed, results in a byte like result.

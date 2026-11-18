@@ -1,4 +1,4 @@
-/* auto-generated on 2026-10-27 23:10:33 +0000. Do not edit! */
+/* auto-generated on 2026-11-15 02:29:01 +0000. Do not edit! */
 /* begin file src/simdutf.cpp */
 #include "simdutf.h"
 // Overridden by kernels that must clear the upper vector state before calling
@@ -19,6 +19,8 @@ std::string_view to_string(encoding_type bom) {
     return "UTF32 big-endian";
   case UTF8:
     return "UTF8";
+  case Latin1:
+    return "Latin1";
   case unspecified:
     return "unknown";
   default:
@@ -4524,6 +4526,16 @@ template <typename T> struct simd16x32 {
         .to_bitmask();
   }
   simdutf_really_inline uint64_t not_in_range(const T low, const T high) const {
+    const T span = static_cast<T>(high - low);
+    if ((span & static_cast<T>(span + 1)) == 0 && (low & span) == 0) {
+      // Aligned power-of-two block, such as the surrogates: one AND and
+      // one compare, instead of a min/max and a compare per bound.
+      const simd16<T> keep = simd16<T>::splat(static_cast<T>(~span));
+      const simd16<T> base = simd16<T>::splat(low);
+      return ~simd16x32<bool>((this->chunks[0] & keep) == base,
+                              (this->chunks[1] & keep) == base)
+                  .to_bitmask();
+    }
     const simd16<T> mask_low = simd16<T>::splat(static_cast<T>(low - 1));
     const simd16<T> mask_high = simd16<T>::splat(static_cast<T>(high + 1));
     return simd16x32<bool>(
@@ -5558,6 +5570,18 @@ template <typename T> struct simd16x32 {
   }
 
   simdutf_really_inline uint64_t not_in_range(const T low, const T high) const {
+    const T span = static_cast<T>(high - low);
+    if ((span & static_cast<T>(span + 1)) == 0 && (low & span) == 0) {
+      // Aligned power-of-two block, such as the surrogates: one AND and
+      // one compare, instead of a min/max and a compare per bound.
+      const simd16<T> keep = simd16<T>::splat(static_cast<T>(~span));
+      const simd16<T> base = simd16<T>::splat(low);
+      return ~simd16x32<bool>((this->chunks[0] & keep) == base,
+                              (this->chunks[1] & keep) == base,
+                              (this->chunks[2] & keep) == base,
+                              (this->chunks[3] & keep) == base)
+                  .to_bitmask();
+    }
     const simd16<T> mask_low = simd16<T>::splat(static_cast<T>(low - 1));
     const simd16<T> mask_high = simd16<T>::splat(static_cast<T>(high + 1));
     return simd16x32<bool>(
@@ -7793,6 +7817,9 @@ public:
       const char16_t *input, size_t length,
       char *utf8_buffer) const noexcept override;
 
+#ifdef SIMDUTF_INTERNAL_TESTS
+  virtual std::vector<TestProcedure> internal_tests() const override;
+#endif
 };
 
 } // namespace lasx
@@ -7822,6 +7849,10 @@ SIMDUTF_TARGET_LASX
 // This should be the correct header whether
 // you use visual studio or other compilers.
 #include <lsxintrin.h>
+#if defined(__clang__) && !defined(__loongarch_asx)
+  #define __loongarch_asx 1
+  #define SIMDUTF_UNDEF_LOONGARCH_ASX 1
+#endif
 #include <lasxintrin.h>
 
 #if defined(__loongarch_asx)
@@ -7912,6 +7943,11 @@ static inline __m128i lasx_extracti128_hi(__m256i in) {
                    : [in] "f"(in));
   return out;
 }
+#endif
+
+#ifdef SIMDUTF_UNDEF_LOONGARCH_ASX
+  #undef __loongarch_asx
+  #undef SIMDUTF_UNDEF_LOONGARCH_ASX
 #endif
 
 /*
@@ -8099,11 +8135,12 @@ template <uint32_t x> constexpr __m256i lasx_splat_u32_aux() {
   #define lasx_splat_u32(v) lasx_splat_u32_aux<(v)>()
 #endif // QEMU_VLDI_BUG
 
-#ifndef lsx_splat_u16
-  #ifdef QEMU_VLDI_BUG
-    #define lsx_splat_u16(v) __lsx_vreplgr2vr_h(v)
-    #define lsx_splat_u32(v) __lsx_vreplgr2vr_w(v)
-  #else
+#ifdef QEMU_VLDI_BUG
+  #define lsx_splat_u16(v) __lsx_vreplgr2vr_h(v)
+  #define lsx_splat_u32(v) __lsx_vreplgr2vr_w(v)
+#else
+namespace simdutf {
+namespace lasx {
 namespace {
 template <uint16_t x> constexpr __m128i lsx_splat_u16_aux() {
   return ((int16_t(x) < 512) && (int16_t(x) > -512))
@@ -8127,10 +8164,11 @@ template <uint32_t x> constexpr __m128i lsx_splat_u32_aux() {
                     : __lsx_vreplgr2vr_w(x));
 }
 } // namespace
-    #define lsx_splat_u16(v) lsx_splat_u16_aux<(v)>()
-    #define lsx_splat_u32(v) lsx_splat_u32_aux<(v)>()
-  #endif // QEMU_VLDI_BUG
-#endif   // lsx_splat_u16
+} // namespace lasx
+} // namespace simdutf
+  #define lsx_splat_u16(v) lsx_splat_u16_aux<(v)>()
+  #define lsx_splat_u32(v) lsx_splat_u32_aux<(v)>()
+#endif // QEMU_VLDI_BUG
 
 #endif //  SIMDUTF_LASX_INTRINSICS_H
 /* end file src/simdutf/lasx/intrinsics.h */
@@ -8454,11 +8492,7 @@ template <> struct simd8<bool> : base8<bool> {
     uint32_t mask1 = __lasx_xvpickve2gr_wu(mask, 4);
     return (mask0 | (mask1 << 16));
   }
-  simdutf_really_inline bool any() const {
-    if (__lasx_xbz_b(this->value))
-      return false;
-    return true;
-  }
+  simdutf_really_inline bool any() const { return !__lasx_xbz_v(this->value); }
   simdutf_really_inline simd8<bool> operator~() const { return *this ^ true; }
 };
 
@@ -9393,11 +9427,12 @@ public:
 // #define QEMU_VLDI_BUG 1
 #endif
 
-#ifndef lsx_splat_u16
-  #ifdef QEMU_VLDI_BUG
-    #define lsx_splat_u16(v) __lsx_vreplgr2vr_h(v)
-    #define lsx_splat_u32(v) __lsx_vreplgr2vr_w(v)
-  #else
+#ifdef QEMU_VLDI_BUG
+  #define lsx_splat_u16(v) __lsx_vreplgr2vr_h(v)
+  #define lsx_splat_u32(v) __lsx_vreplgr2vr_w(v)
+#else
+namespace simdutf {
+namespace lsx {
 namespace {
 template <uint16_t x> constexpr __m128i lsx_splat_u16_aux() {
   return ((int16_t(x) < 512) && (int16_t(x) > -512))
@@ -9421,11 +9456,12 @@ template <uint32_t x> constexpr __m128i lsx_splat_u32_aux() {
                     : __lsx_vreplgr2vr_w(x));
 }
 } // namespace
-    #define lsx_splat_u16(v) lsx_splat_u16_aux<(v)>()
-    #define lsx_splat_u32(v) lsx_splat_u32_aux<(v)>()
-  #endif // QEMU_VLDI_BUG
-#endif   // lsx_splat_u16
-#endif   //  SIMDUTF_LSX_INTRINSICS_H
+} // namespace lsx
+} // namespace simdutf
+  #define lsx_splat_u16(v) lsx_splat_u16_aux<(v)>()
+  #define lsx_splat_u32(v) lsx_splat_u32_aux<(v)>()
+#endif // QEMU_VLDI_BUG
+#endif //  SIMDUTF_LSX_INTRINSICS_H
 /* end file src/simdutf/lsx/intrinsics.h */
 /* begin file src/simdutf/lsx/bitmanipulation.h */
 #ifndef SIMDUTF_LSX_BITMANIPULATION_H
@@ -14494,7 +14530,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -14591,7 +14627,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -20937,7 +20973,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -21034,7 +21070,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -21660,13 +21696,19 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
   const auto v_fc = simd8<uint8_t>::splat(0xfc);
   const auto v_dc = simd8<uint8_t>::splat(0xdc);
 
-  while (input + simd16<uint16_t>::SIZE * 2 < end) {
+  // Each iteration gathers the high bytes of two registers into one byte
+  // register: N code units, one mask bit each.
+  constexpr size_t N = simd16<uint16_t>::SIZE;
+  static_assert(N == 16 || N == 32, "one mask bit per code unit");
+  using mask_t = std::conditional_t<N == 32, uint32_t, uint16_t>;
+  constexpr mask_t all = mask_t(~mask_t(0));
+
+  while (input + N <= end) {
     // 0. Load data: since the validation takes into account only higher
     //    byte of each word, we compress the two vectors into one which
     //    consists only the higher bytes.
     auto in0 = simd16<uint16_t>(input);
-    auto in1 =
-        simd16<uint16_t>(input + simd16<uint16_t>::SIZE / sizeof(char16_t));
+    auto in1 = simd16<uint16_t>(input + N / 2);
 
     // Function `utf16_gather_high_bytes` consumes two vectors of UTF-16
     // and yields a single vector having only higher bytes of characters.
@@ -21674,10 +21716,10 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
     // 1. Check whether we have any 0xD800..DFFF word (0b1101'1xxx'yyyy'yyyy).
     const auto surrogates_wordmask = (in & v_f8) == v_d8;
-    const uint16_t surrogates_bitmask =
-        static_cast<uint16_t>(surrogates_wordmask.to_bitmask());
-    if (surrogates_bitmask == 0x0000) {
-      input += 16;
+    const mask_t surrogates_bitmask =
+        static_cast<mask_t>(surrogates_wordmask.to_bitmask());
+    if (surrogates_bitmask == 0) {
+      input += N;
     } else {
       // 2. We have some surrogates that have to be distinguished:
       //    - low  surrogates: 0b1101'10xx'yyyy'yyyy (0xD800..0xDBFF)
@@ -21687,36 +21729,36 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
       // V - non-surrogate code units
       //     V = not surrogates_wordmask
-      const uint16_t V = static_cast<uint16_t>(~surrogates_bitmask);
+      const mask_t V = static_cast<mask_t>(~surrogates_bitmask);
 
       // H - word-mask for high surrogates: the six highest bits are 0b1101'11
       const auto vH = (in & v_fc) == v_dc;
-      const uint16_t H = static_cast<uint16_t>(vH.to_bitmask());
+      const mask_t H = static_cast<mask_t>(vH.to_bitmask());
 
       // L - word mask for low surrogates
       //     L = not H and surrogates_wordmask
-      const uint16_t L = static_cast<uint16_t>(~H & surrogates_bitmask);
+      const mask_t L = static_cast<mask_t>(~H & surrogates_bitmask);
 
-      const uint16_t a = static_cast<uint16_t>(
+      const mask_t a = static_cast<mask_t>(
           L & (H >> 1)); // A low surrogate must be followed by high one.
                          // (A low surrogate placed in the 7th register's word
                          // is an exception we handle.)
-      const uint16_t b = static_cast<uint16_t>(
+      const mask_t b = static_cast<mask_t>(
           a << 1); // Just mark that the opinput - startite fact is hold,
                    // thanks to that we have only two masks for valid case.
-      const uint16_t c = static_cast<uint16_t>(
+      const mask_t c = static_cast<mask_t>(
           V | a | b); // Combine all the masks into the final one.
 
-      if (c == 0xffff) {
+      if (c == all) {
         // The whole input register contains valid UTF-16, i.e.,
         // either single code units or proper surrogate pairs.
-        input += 16;
-      } else if (c == 0x7fff) {
-        // The 15 lower code units of the input register contains valid UTF-16.
-        // The 15th word may be either a low or high surrogate. It the next
-        // iteration we 1) check if the low surrogate is followed by a high
-        // one, 2) reject sole high surrogate.
-        input += 15;
+        input += N;
+      } else if (c == all >> 1) {
+        // The N - 1 lower code units of the input register contain valid
+        // UTF-16. The last word may be either a low or high surrogate. In the
+        // next iteration we 1) check if the low surrogate is followed by a
+        // high one, 2) reject sole high surrogate.
+        input += N - 1;
       } else {
         return result(error_code::SURROGATE, input - start);
       }
@@ -24556,7 +24598,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -24653,7 +24695,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -25097,13 +25139,19 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
   const auto v_fc = simd8<uint8_t>::splat(0xfc);
   const auto v_dc = simd8<uint8_t>::splat(0xdc);
 
-  while (input + simd16<uint16_t>::SIZE * 2 < end) {
+  // Each iteration gathers the high bytes of two registers into one byte
+  // register: N code units, one mask bit each.
+  constexpr size_t N = simd16<uint16_t>::SIZE;
+  static_assert(N == 16 || N == 32, "one mask bit per code unit");
+  using mask_t = std::conditional_t<N == 32, uint32_t, uint16_t>;
+  constexpr mask_t all = mask_t(~mask_t(0));
+
+  while (input + N <= end) {
     // 0. Load data: since the validation takes into account only higher
     //    byte of each word, we compress the two vectors into one which
     //    consists only the higher bytes.
     auto in0 = simd16<uint16_t>(input);
-    auto in1 =
-        simd16<uint16_t>(input + simd16<uint16_t>::SIZE / sizeof(char16_t));
+    auto in1 = simd16<uint16_t>(input + N / 2);
 
     // Function `utf16_gather_high_bytes` consumes two vectors of UTF-16
     // and yields a single vector having only higher bytes of characters.
@@ -25111,10 +25159,10 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
     // 1. Check whether we have any 0xD800..DFFF word (0b1101'1xxx'yyyy'yyyy).
     const auto surrogates_wordmask = (in & v_f8) == v_d8;
-    const uint16_t surrogates_bitmask =
-        static_cast<uint16_t>(surrogates_wordmask.to_bitmask());
-    if (surrogates_bitmask == 0x0000) {
-      input += 16;
+    const mask_t surrogates_bitmask =
+        static_cast<mask_t>(surrogates_wordmask.to_bitmask());
+    if (surrogates_bitmask == 0) {
+      input += N;
     } else {
       // 2. We have some surrogates that have to be distinguished:
       //    - low  surrogates: 0b1101'10xx'yyyy'yyyy (0xD800..0xDBFF)
@@ -25124,36 +25172,36 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
       // V - non-surrogate code units
       //     V = not surrogates_wordmask
-      const uint16_t V = static_cast<uint16_t>(~surrogates_bitmask);
+      const mask_t V = static_cast<mask_t>(~surrogates_bitmask);
 
       // H - word-mask for high surrogates: the six highest bits are 0b1101'11
       const auto vH = (in & v_fc) == v_dc;
-      const uint16_t H = static_cast<uint16_t>(vH.to_bitmask());
+      const mask_t H = static_cast<mask_t>(vH.to_bitmask());
 
       // L - word mask for low surrogates
       //     L = not H and surrogates_wordmask
-      const uint16_t L = static_cast<uint16_t>(~H & surrogates_bitmask);
+      const mask_t L = static_cast<mask_t>(~H & surrogates_bitmask);
 
-      const uint16_t a = static_cast<uint16_t>(
+      const mask_t a = static_cast<mask_t>(
           L & (H >> 1)); // A low surrogate must be followed by high one.
                          // (A low surrogate placed in the 7th register's word
                          // is an exception we handle.)
-      const uint16_t b = static_cast<uint16_t>(
+      const mask_t b = static_cast<mask_t>(
           a << 1); // Just mark that the opinput - startite fact is hold,
                    // thanks to that we have only two masks for valid case.
-      const uint16_t c = static_cast<uint16_t>(
+      const mask_t c = static_cast<mask_t>(
           V | a | b); // Combine all the masks into the final one.
 
-      if (c == 0xffff) {
+      if (c == all) {
         // The whole input register contains valid UTF-16, i.e.,
         // either single code units or proper surrogate pairs.
-        input += 16;
-      } else if (c == 0x7fff) {
-        // The 15 lower code units of the input register contains valid UTF-16.
-        // The 15th word may be either a low or high surrogate. It the next
-        // iteration we 1) check if the low surrogate is followed by a high
-        // one, 2) reject sole high surrogate.
-        input += 15;
+        input += N;
+      } else if (c == all >> 1) {
+        // The N - 1 lower code units of the input register contain valid
+        // UTF-16. The last word may be either a low or high surrogate. In the
+        // next iteration we 1) check if the low surrogate is followed by a
+        // high one, 2) reject sole high surrogate.
+        input += N - 1;
       } else {
         return result(error_code::SURROGATE, input - start);
       }
@@ -28434,7 +28482,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -28531,7 +28579,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -29155,13 +29203,19 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
   const auto v_fc = simd8<uint8_t>::splat(0xfc);
   const auto v_dc = simd8<uint8_t>::splat(0xdc);
 
-  while (input + simd16<uint16_t>::SIZE * 2 < end) {
+  // Each iteration gathers the high bytes of two registers into one byte
+  // register: N code units, one mask bit each.
+  constexpr size_t N = simd16<uint16_t>::SIZE;
+  static_assert(N == 16 || N == 32, "one mask bit per code unit");
+  using mask_t = std::conditional_t<N == 32, uint32_t, uint16_t>;
+  constexpr mask_t all = mask_t(~mask_t(0));
+
+  while (input + N <= end) {
     // 0. Load data: since the validation takes into account only higher
     //    byte of each word, we compress the two vectors into one which
     //    consists only the higher bytes.
     auto in0 = simd16<uint16_t>(input);
-    auto in1 =
-        simd16<uint16_t>(input + simd16<uint16_t>::SIZE / sizeof(char16_t));
+    auto in1 = simd16<uint16_t>(input + N / 2);
 
     // Function `utf16_gather_high_bytes` consumes two vectors of UTF-16
     // and yields a single vector having only higher bytes of characters.
@@ -29169,10 +29223,10 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
     // 1. Check whether we have any 0xD800..DFFF word (0b1101'1xxx'yyyy'yyyy).
     const auto surrogates_wordmask = (in & v_f8) == v_d8;
-    const uint16_t surrogates_bitmask =
-        static_cast<uint16_t>(surrogates_wordmask.to_bitmask());
-    if (surrogates_bitmask == 0x0000) {
-      input += 16;
+    const mask_t surrogates_bitmask =
+        static_cast<mask_t>(surrogates_wordmask.to_bitmask());
+    if (surrogates_bitmask == 0) {
+      input += N;
     } else {
       // 2. We have some surrogates that have to be distinguished:
       //    - low  surrogates: 0b1101'10xx'yyyy'yyyy (0xD800..0xDBFF)
@@ -29182,36 +29236,36 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
       // V - non-surrogate code units
       //     V = not surrogates_wordmask
-      const uint16_t V = static_cast<uint16_t>(~surrogates_bitmask);
+      const mask_t V = static_cast<mask_t>(~surrogates_bitmask);
 
       // H - word-mask for high surrogates: the six highest bits are 0b1101'11
       const auto vH = (in & v_fc) == v_dc;
-      const uint16_t H = static_cast<uint16_t>(vH.to_bitmask());
+      const mask_t H = static_cast<mask_t>(vH.to_bitmask());
 
       // L - word mask for low surrogates
       //     L = not H and surrogates_wordmask
-      const uint16_t L = static_cast<uint16_t>(~H & surrogates_bitmask);
+      const mask_t L = static_cast<mask_t>(~H & surrogates_bitmask);
 
-      const uint16_t a = static_cast<uint16_t>(
+      const mask_t a = static_cast<mask_t>(
           L & (H >> 1)); // A low surrogate must be followed by high one.
                          // (A low surrogate placed in the 7th register's word
                          // is an exception we handle.)
-      const uint16_t b = static_cast<uint16_t>(
+      const mask_t b = static_cast<mask_t>(
           a << 1); // Just mark that the opinput - startite fact is hold,
                    // thanks to that we have only two masks for valid case.
-      const uint16_t c = static_cast<uint16_t>(
+      const mask_t c = static_cast<mask_t>(
           V | a | b); // Combine all the masks into the final one.
 
-      if (c == 0xffff) {
+      if (c == all) {
         // The whole input register contains valid UTF-16, i.e.,
         // either single code units or proper surrogate pairs.
-        input += 16;
-      } else if (c == 0x7fff) {
-        // The 15 lower code units of the input register contains valid UTF-16.
-        // The 15th word may be either a low or high surrogate. It the next
-        // iteration we 1) check if the low surrogate is followed by a high
-        // one, 2) reject sole high surrogate.
-        input += 15;
+        input += N;
+      } else if (c == all >> 1) {
+        // The N - 1 lower code units of the input register contain valid
+        // UTF-16. The last word may be either a low or high surrogate. In the
+        // next iteration we 1) check if the low surrogate is followed by a
+        // high one, 2) reject sole high surrogate.
+        input += N - 1;
       } else {
         return result(error_code::SURROGATE, input - start);
       }
@@ -29759,7 +29813,7 @@ size_t convert_masked_utf8_to_utf16(const char *input,
 
   // 2 byte sequences occur in short bursts in languages like Greek and Russian.
   if ((utf8_end_of_code_point_mask & 0xFFFF) == 0xAAAA) {
-    // We want to take 6 2-byte UTF-8 code units and turn them into 6 2-byte
+    // We want to take 8 2-byte UTF-8 code units and turn them into 8 2-byte
     // UTF-16 code units.
     __m128i composed = convert_utf8_2_byte_to_utf16(in);
     // Byte swap if necessary
@@ -29768,8 +29822,8 @@ size_t convert_masked_utf8_to_utf16(const char *input,
     }
 
     __lsx_vst(composed, reinterpret_cast<uint16_t *>(utf16_output), 0);
-    utf16_output += 8; // We wrote 6 16-bit characters.
-    return 16;         // We consumed 12 bytes.
+    utf16_output += 8; // We wrote 8 16-bit characters.
+    return 16;         // We consumed 16 bytes.
   }
 
   /// We do not have a fast path available, or the fast path is unimportant, so
@@ -31437,7 +31491,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -31534,7 +31588,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -32283,13 +32337,19 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
   const auto v_fc = simd8<uint8_t>::splat(0xfc);
   const auto v_dc = simd8<uint8_t>::splat(0xdc);
 
-  while (input + simd16<uint16_t>::SIZE * 2 < end) {
+  // Each iteration gathers the high bytes of two registers into one byte
+  // register: N code units, one mask bit each.
+  constexpr size_t N = simd16<uint16_t>::SIZE;
+  static_assert(N == 16 || N == 32, "one mask bit per code unit");
+  using mask_t = std::conditional_t<N == 32, uint32_t, uint16_t>;
+  constexpr mask_t all = mask_t(~mask_t(0));
+
+  while (input + N <= end) {
     // 0. Load data: since the validation takes into account only higher
     //    byte of each word, we compress the two vectors into one which
     //    consists only the higher bytes.
     auto in0 = simd16<uint16_t>(input);
-    auto in1 =
-        simd16<uint16_t>(input + simd16<uint16_t>::SIZE / sizeof(char16_t));
+    auto in1 = simd16<uint16_t>(input + N / 2);
 
     // Function `utf16_gather_high_bytes` consumes two vectors of UTF-16
     // and yields a single vector having only higher bytes of characters.
@@ -32297,10 +32357,10 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
     // 1. Check whether we have any 0xD800..DFFF word (0b1101'1xxx'yyyy'yyyy).
     const auto surrogates_wordmask = (in & v_f8) == v_d8;
-    const uint16_t surrogates_bitmask =
-        static_cast<uint16_t>(surrogates_wordmask.to_bitmask());
-    if (surrogates_bitmask == 0x0000) {
-      input += 16;
+    const mask_t surrogates_bitmask =
+        static_cast<mask_t>(surrogates_wordmask.to_bitmask());
+    if (surrogates_bitmask == 0) {
+      input += N;
     } else {
       // 2. We have some surrogates that have to be distinguished:
       //    - low  surrogates: 0b1101'10xx'yyyy'yyyy (0xD800..0xDBFF)
@@ -32310,36 +32370,36 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
       // V - non-surrogate code units
       //     V = not surrogates_wordmask
-      const uint16_t V = static_cast<uint16_t>(~surrogates_bitmask);
+      const mask_t V = static_cast<mask_t>(~surrogates_bitmask);
 
       // H - word-mask for high surrogates: the six highest bits are 0b1101'11
       const auto vH = (in & v_fc) == v_dc;
-      const uint16_t H = static_cast<uint16_t>(vH.to_bitmask());
+      const mask_t H = static_cast<mask_t>(vH.to_bitmask());
 
       // L - word mask for low surrogates
       //     L = not H and surrogates_wordmask
-      const uint16_t L = static_cast<uint16_t>(~H & surrogates_bitmask);
+      const mask_t L = static_cast<mask_t>(~H & surrogates_bitmask);
 
-      const uint16_t a = static_cast<uint16_t>(
+      const mask_t a = static_cast<mask_t>(
           L & (H >> 1)); // A low surrogate must be followed by high one.
                          // (A low surrogate placed in the 7th register's word
                          // is an exception we handle.)
-      const uint16_t b = static_cast<uint16_t>(
+      const mask_t b = static_cast<mask_t>(
           a << 1); // Just mark that the opinput - startite fact is hold,
                    // thanks to that we have only two masks for valid case.
-      const uint16_t c = static_cast<uint16_t>(
+      const mask_t c = static_cast<mask_t>(
           V | a | b); // Combine all the masks into the final one.
 
-      if (c == 0xffff) {
+      if (c == all) {
         // The whole input register contains valid UTF-16, i.e.,
         // either single code units or proper surrogate pairs.
-        input += 16;
-      } else if (c == 0x7fff) {
-        // The 15 lower code units of the input register contains valid UTF-16.
-        // The 15th word may be either a low or high surrogate. It the next
-        // iteration we 1) check if the low surrogate is followed by a high
-        // one, 2) reject sole high surrogate.
-        input += 15;
+        input += N;
+      } else if (c == all >> 1) {
+        // The N - 1 lower code units of the input register contain valid
+        // UTF-16. The last word may be either a low or high surrogate. In the
+        // next iteration we 1) check if the low surrogate is followed by a
+        // high one, 2) reject sole high surrogate.
+        input += N - 1;
       } else {
         return result(error_code::SURROGATE, input - start);
       }
@@ -32387,6 +32447,10 @@ const result validate_utf16_as_ascii_with_errors(const char16_t *input,
 } // namespace lasx
 } // namespace simdutf
 /* end file src/generic/validate_utf16.h */
+
+#ifdef SIMDUTF_INTERNAL_TESTS
+  #include "lasx_internal_tests.cpp"
+#endif // SIMDUTF_INTERNAL_TESTS
 
 //
 // Implementation-specific overrides
@@ -32699,6 +32763,16 @@ implementation::convert_utf16be_to_utf8_with_replacement(
       },
       input, length, utf8_buffer);
 }
+
+#ifdef SIMDUTF_INTERNAL_TESTS
+std::vector<implementation::TestProcedure>
+implementation::internal_tests() const {
+  #define entry(proc)                                                          \
+    TestProcedure { #proc, proc }
+  return {entry(simd8_bool_any)};
+  #undef entry
+}
+#endif
 
 } // namespace lasx
 } // namespace simdutf
@@ -33225,7 +33299,7 @@ lsx_convert_utf16_to_utf8(const char16_t *buf, size_t len, char *utf8_out) {
         // 1. pack the bytes
         // obviously suboptimal.
         __m128i utf8_packed = __lsx_vpickev_b(in, in);
-        // 2. store (8 bytes)
+        // 2. store (16 bytes)
         __lsx_vst(utf8_packed, utf8_output, 0);
         // 3. adjust pointers
         buf += 8;
@@ -33460,7 +33534,7 @@ lsx_convert_utf16_to_utf8_with_errors(const char16_t *buf, size_t len,
         // 1. pack the bytes
         // obviously suboptimal.
         __m128i utf8_packed = __lsx_vpickev_b(in, in);
-        // 2. store (8 bytes)
+        // 2. store (16 bytes)
         __lsx_vst(utf8_packed, utf8_output, 0);
         // 3. adjust pointers
         buf += 8;
@@ -34541,7 +34615,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -34638,7 +34712,7 @@ struct validating_transcoder {
     for (; margin > 0 && leading_byte < 8; margin--) {
       leading_byte += (int8_t(in[margin - 1]) > -65);
     }
-    // If the input is long enough, then we have that margin-1 is the eight last
+    // If the input is long enough, then we have that margin is the eighth last
     // leading byte.
     const size_t safety_margin = size - margin + 1; // to avoid overruns!
     while (pos + 64 + safety_margin <= size) {
@@ -35387,13 +35461,19 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
   const auto v_fc = simd8<uint8_t>::splat(0xfc);
   const auto v_dc = simd8<uint8_t>::splat(0xdc);
 
-  while (input + simd16<uint16_t>::SIZE * 2 < end) {
+  // Each iteration gathers the high bytes of two registers into one byte
+  // register: N code units, one mask bit each.
+  constexpr size_t N = simd16<uint16_t>::SIZE;
+  static_assert(N == 16 || N == 32, "one mask bit per code unit");
+  using mask_t = std::conditional_t<N == 32, uint32_t, uint16_t>;
+  constexpr mask_t all = mask_t(~mask_t(0));
+
+  while (input + N <= end) {
     // 0. Load data: since the validation takes into account only higher
     //    byte of each word, we compress the two vectors into one which
     //    consists only the higher bytes.
     auto in0 = simd16<uint16_t>(input);
-    auto in1 =
-        simd16<uint16_t>(input + simd16<uint16_t>::SIZE / sizeof(char16_t));
+    auto in1 = simd16<uint16_t>(input + N / 2);
 
     // Function `utf16_gather_high_bytes` consumes two vectors of UTF-16
     // and yields a single vector having only higher bytes of characters.
@@ -35401,10 +35481,10 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
     // 1. Check whether we have any 0xD800..DFFF word (0b1101'1xxx'yyyy'yyyy).
     const auto surrogates_wordmask = (in & v_f8) == v_d8;
-    const uint16_t surrogates_bitmask =
-        static_cast<uint16_t>(surrogates_wordmask.to_bitmask());
-    if (surrogates_bitmask == 0x0000) {
-      input += 16;
+    const mask_t surrogates_bitmask =
+        static_cast<mask_t>(surrogates_wordmask.to_bitmask());
+    if (surrogates_bitmask == 0) {
+      input += N;
     } else {
       // 2. We have some surrogates that have to be distinguished:
       //    - low  surrogates: 0b1101'10xx'yyyy'yyyy (0xD800..0xDBFF)
@@ -35414,36 +35494,36 @@ const result validate_utf16_with_errors(const char16_t *input, size_t size) {
 
       // V - non-surrogate code units
       //     V = not surrogates_wordmask
-      const uint16_t V = static_cast<uint16_t>(~surrogates_bitmask);
+      const mask_t V = static_cast<mask_t>(~surrogates_bitmask);
 
       // H - word-mask for high surrogates: the six highest bits are 0b1101'11
       const auto vH = (in & v_fc) == v_dc;
-      const uint16_t H = static_cast<uint16_t>(vH.to_bitmask());
+      const mask_t H = static_cast<mask_t>(vH.to_bitmask());
 
       // L - word mask for low surrogates
       //     L = not H and surrogates_wordmask
-      const uint16_t L = static_cast<uint16_t>(~H & surrogates_bitmask);
+      const mask_t L = static_cast<mask_t>(~H & surrogates_bitmask);
 
-      const uint16_t a = static_cast<uint16_t>(
+      const mask_t a = static_cast<mask_t>(
           L & (H >> 1)); // A low surrogate must be followed by high one.
                          // (A low surrogate placed in the 7th register's word
                          // is an exception we handle.)
-      const uint16_t b = static_cast<uint16_t>(
+      const mask_t b = static_cast<mask_t>(
           a << 1); // Just mark that the opinput - startite fact is hold,
                    // thanks to that we have only two masks for valid case.
-      const uint16_t c = static_cast<uint16_t>(
+      const mask_t c = static_cast<mask_t>(
           V | a | b); // Combine all the masks into the final one.
 
-      if (c == 0xffff) {
+      if (c == all) {
         // The whole input register contains valid UTF-16, i.e.,
         // either single code units or proper surrogate pairs.
-        input += 16;
-      } else if (c == 0x7fff) {
-        // The 15 lower code units of the input register contains valid UTF-16.
-        // The 15th word may be either a low or high surrogate. It the next
-        // iteration we 1) check if the low surrogate is followed by a high
-        // one, 2) reject sole high surrogate.
-        input += 15;
+        input += N;
+      } else if (c == all >> 1) {
+        // The N - 1 lower code units of the input register contain valid
+        // UTF-16. The last word may be either a low or high surrogate. In the
+        // next iteration we 1) check if the low surrogate is followed by a
+        // high one, 2) reject sole high surrogate.
+        input += N - 1;
       } else {
         return result(error_code::SURROGATE, input - start);
       }
