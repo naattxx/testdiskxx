@@ -273,7 +273,7 @@ static auto dir_whole_partition_log_aux(disk_t &disk, const partition_t &partiti
     inode_known[dir_nbr++] = inode;
     for (file_info_t &current_file : dir_list)
     {
-        if (LINUX_S_ISDIR(current_file.st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known) > 0)
+        if (LINUX_S_ISDIR(current_file.st_mode) != 0 && is_inode_valid(current_file, dir_nbr, inode_known))
         {
             dir_data.current_directory /= current_file.name;
             dir_whole_partition_log_aux(disk, partition, dir_data, current_file.st_ino);
@@ -319,7 +319,7 @@ static auto dir_whole_partition_copy_aux(disk_t &disk, const partition_t &partit
         dir_data.current_directory /= current_file.name;
         if (LINUX_S_ISDIR(current_file.st_mode) != 0)
         {
-            if (is_inode_valid(current_file, dir_nbr, inode_known) > 0)
+            if (is_inode_valid(current_file, dir_nbr, inode_known))
             {
                 dir_whole_partition_copy_aux(disk, partition, dir_data, current_file.st_ino, copy_ok, copy_bad);
             }
