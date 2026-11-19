@@ -46,22 +46,8 @@ auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
   std::shared_future<list_part_t> list_part;
   auto screen = ftxui::App::Fullscreen();
   Component root;
-  auto buttonDescription = text("");
-  auto buttonOptions     = ButtonOption();
-  buttonOptions.transform =
-      [&buttonDescription](const EntryState &s) -> Element {
-    if (s.focused)
-    {
-      buttonDescription = text(s.label.substr(s.label.find(']') + 1));
-      return hflow({
-          text(">" + s.label.substr(0, s.label.find(']') + 1)) |
-              bgcolor(Color::White) | color(Color::Black) | bold,
-          text(" "),
-      });
-    }
-
-    return text(" " + s.label.substr(0, s.label.find(']') + 1) + " ");
-  };
+  Element buttonDescription;
+  auto buttonOptions = labled_button_options(buttonDescription);
   auto options = Container::Horizontal({
       Button("[ Quit        ]"
              "Return to menu",

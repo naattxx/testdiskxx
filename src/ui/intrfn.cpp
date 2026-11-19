@@ -12,6 +12,28 @@
 
 using namespace ftxui;
 
+// Format "[name]lable"
+auto labled_button_options(Element &buttonDescription) -> ButtonOption
+{
+  buttonDescription = text("");
+  auto buttonOptions     = ButtonOption();
+  buttonOptions.transform =
+      [&buttonDescription](const EntryState &s) -> Element {
+    if (s.focused)
+    {
+      buttonDescription = text(s.label.substr(s.label.find(']') + 1));
+      return hbox({
+          text(">" + s.label.substr(0, s.label.find(']') + 1)) | inverted |
+              bold,
+          text(" "),
+      });
+    }
+
+    return text(" " + s.label.substr(0, s.label.find(']') + 1) + " ");
+  };
+  return buttonOptions;
+}
+
 auto ask_confirmation(std::string_view msg) -> bool
 {
   auto screen    = App::Fullscreen();

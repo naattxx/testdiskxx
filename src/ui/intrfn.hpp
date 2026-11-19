@@ -2,8 +2,13 @@
 #define _INTRFN_H
 
 #include "ftxui/component/app.hpp"
+#include <ftxui/component/component_options.hpp>
+#include <ftxui/dom/elements.hpp>
 #include <string>
 #include <string_view>
+
+[[nodiscard]]
+auto labled_button_options(ftxui::Element &buttonDescription) -> ftxui::ButtonOption;
 
 [[nodiscard]]
 auto ask_confirmation(std::string_view msg) -> bool;

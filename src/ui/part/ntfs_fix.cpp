@@ -54,23 +54,8 @@ void repair_MFT_menu(const Component &root, disk_t &disk,
          "non expert user should recive an error message and abort repair");
 
   auto screen = App::Fullscreen();
-
-  auto buttonDescription = text("");
-  auto buttonOptions     = ButtonOption();
-  buttonOptions.transform =
-      [&buttonDescription](const EntryState &s) -> Element {
-    if (s.focused)
-    {
-      buttonDescription = text(s.label.substr(s.label.find(']') + 1));
-      return hbox({
-          text(">" + s.label.substr(0, s.label.find(']') + 1)) | inverted |
-              bold,
-          text(" "),
-      });
-    }
-
-    return text(" " + s.label.substr(0, s.label.find(']') + 1) + " ");
-  };
+  Element buttonDescription;
+  auto buttonOptions = labled_button_options(buttonDescription);
 
   Components buttons {
       Button(

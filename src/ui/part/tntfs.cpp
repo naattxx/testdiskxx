@@ -26,22 +26,8 @@ auto ntfs_boot_sector_menu(disk_t &disk, partition_t &partition,
   auto screen = App::Fullscreen();
   Component root;
 
-  auto buttonDescription = text("");
-  auto buttonOptions     = ButtonOption();
-  buttonOptions.transform =
-      [&buttonDescription](const EntryState &s) -> Element {
-    if (s.focused)
-    {
-      buttonDescription = text(s.label.substr(s.label.find(']') + 1));
-      return hbox({
-          text(">" + s.label.substr(0, s.label.find(']') + 1)) | inverted |
-              bold,
-          text(" "),
-      });
-    }
-
-    return text(" " + s.label.substr(0, s.label.find(']') + 1) + " ");
-  };
+  Element buttonDescription;
+  auto buttonOptions = labled_button_options(buttonDescription);
 
   ntfs_boot_sectors boot_sectors =
       ntfs_boot_sectors::scan(disk, partition, verbose);
