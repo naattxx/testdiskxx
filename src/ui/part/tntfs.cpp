@@ -186,6 +186,7 @@ auto ntfs_boot_sector_menu(disk_t &disk, partition_t &partition,
                   "any data; even if the partition is not bootable."),
         filler(),
         buttonsContainer->Render(),
+        buttonDescription | hcenter,
     });
   });
 
