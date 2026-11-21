@@ -286,31 +286,31 @@ static auto read_part_none(disk_t &disk, const int verbose,
   {
     if (disk.pread(disk, buffer_disk, 16 * DEFAULT_SECTOR_SIZE,
                    partition.part_offset) == 16 * DEFAULT_SECTOR_SIZE)
-      res = search_type_2(buffer_disk, disk, partition, verbose, 0);
+      res = search_type_2(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   {
-    res = search_type_1(buffer_disk, disk, partition, verbose, 0);
+    res = search_type_1(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   {
-    res = search_type_0(buffer_disk, disk, partition, verbose, 0);
+    res = search_type_0(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   {
-    res = search_type_8(buffer_disk, disk, partition, verbose, 0);
+    res = search_type_8(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   {
     if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE,
                    partition.part_offset + 16 * 512) == 3 * DEFAULT_SECTOR_SIZE)
-      res = search_type_16(buffer_disk, disk, partition, verbose, 0);
+      res = search_type_16(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   {
     if (disk.pread(disk, buffer_disk, 3 * DEFAULT_SECTOR_SIZE,
                    partition.part_offset + 63 * 512) == 3 * DEFAULT_SECTOR_SIZE)
-      res = search_type_64(buffer_disk, disk, partition, verbose, 0);
+      res = search_type_64(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
     res = (recover_ISO(std::start_lifetime_as<struct iso_primary_descriptor>(
@@ -323,16 +323,16 @@ static auto read_part_none(disk_t &disk, const int verbose,
     if (disk.pread(disk, buffer_disk, 11 * DEFAULT_SECTOR_SIZE,
                    partition.part_offset + 126 * 512) ==
         11 * DEFAULT_SECTOR_SIZE)
-      res = search_type_128(buffer_disk, disk, partition, verbose, 0);
+      res = search_type_128(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   {
-    res = search_type_2048(buffer_disk, disk, partition, verbose, 0);
+    res = search_type_2048(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   { /* Search FAT32 backup */
     partition.part_offset = 6 * 512;
-    res = search_FAT_backup(buffer_disk, disk, partition, verbose, 0);
+    res = search_FAT_backup(buffer_disk, disk, partition, verbose, false);
   }
   if (res <= 0)
   { /* Search exFAT backup */
@@ -343,7 +343,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
   /* Search NTFS backup */
   {
     partition.part_offset = disk.disk_size - disk.sector_size;
-    res = search_NTFS_backup(buffer_disk, disk, partition, verbose, 0);
+    res = search_NTFS_backup(buffer_disk, disk, partition, verbose, false);
     if (res > 0 && partition.part_offset != 0)
       res = 0;
   }
@@ -367,7 +367,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
         partition.part_offset = hd_offset;
         if (to_little_endian(sb->s_block_group_nr) > 0 &&
             to_little_endian(sb->s_magic) == EXT2_SUPER_MAGIC &&
-            recover_EXT2(disk, sb, partition, 0, 0) == 0)
+            recover_EXT2(disk, sb, partition, 0, false) == 0)
           res = 1;
         if (res > 0 && partition.part_offset != 0)
           res = 0;
@@ -510,7 +510,7 @@ static auto check_part_none(disk_t &disk_car, const int verbose,
     ret = check_netware(disk_car, partition);
     break;
   case UP_NTFS:
-    ret = check_NTFS(disk_car, partition, verbose, 0);
+    ret = check_NTFS(disk_car, partition, verbose, false);
     if (ret != 0)
     {
       screen_buffer_add("Invalid NTFS boot\n");

@@ -63,7 +63,7 @@ auto check_ZFS(disk_t &disk, partition_t &partition) -> int
     return 1;
   }
   if (test_ZFS(disk, std::start_lifetime_as<struct vdev_boot_header>(buffer),
-               partition, 0) != 0)
+               partition, false) != 0)
   {
     delete[] buffer;
     return 1;

@@ -84,7 +84,7 @@ auto check_JFS(disk_t &disk_car, partition_t &partition) -> int
     return 1;
   }
   if (test_JFS(disk_car, std::start_lifetime_as<struct jfs_superblock>(buffer),
-               partition, 0) != 0)
+               partition, false) != 0)
   {
     delete[] buffer;
     return 1;

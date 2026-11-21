@@ -61,7 +61,7 @@ auto check_WBFS(disk_t &disk, partition_t &partition) -> int
     return 1;
   }
   if (test_WBFS(disk, std::start_lifetime_as<struct wbfs_head>(buffer), partition,
-                0) != 0)
+                false) != 0)
   {
     delete[] buffer;
     return 1;

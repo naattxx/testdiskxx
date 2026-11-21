@@ -43,7 +43,7 @@ auto check_HFS(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
   }
   if (test_HFS(disk_car, reinterpret_cast<hfs_mdb_t *>(buffer), partition,
-               verbose, 0) != 0)
+               verbose, false) != 0)
   {
     delete[] buffer;
     return 1;

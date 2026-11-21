@@ -352,7 +352,7 @@ auto check_FAT(disk_t &disk_car, partition_t &partition, const int verbose)
   }
   if (test_FAT(disk_car,
                std::start_lifetime_as<struct fat_boot_sector>(buffer),
-               partition, verbose, 0) != 0)
+               partition, verbose, false) != 0)
   {
 #ifndef DISABLED_FOR_FRAMAC
     if (verbose > 0)
@@ -1311,7 +1311,7 @@ auto check_OS2MB(disk_t &disk, partition_t &partition, const int verbose) -> int
     return 1;
   }
   if (test_OS2MB(disk, std::start_lifetime_as<struct fat_boot_sector>(buffer),
-                 partition, verbose, 0) != 0)
+                 partition, verbose, false) != 0)
   {
 #ifndef DISABLED_FOR_FRAMAC
     if (verbose > 0)

@@ -56,7 +56,7 @@ auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
     delete buffer;
     return 1;
   }
-  if (test_HFSP(disk_car, buffer, partition, verbose, 0) != 0)
+  if (test_HFSP(disk_car, buffer, partition, verbose, false) != 0)
   {
     delete buffer;
     return 1;
@@ -65,7 +65,7 @@ auto check_HFSP(disk_t &disk_car, partition_t &partition, const int verbose)
   if (disk_car.pread(disk_car, buffer, HFSP_BOOT_SECTOR_SIZE,
                      partition.part_offset + partition.part_size - 0x400) ==
           HFSP_BOOT_SECTOR_SIZE &&
-      test_HFSP(disk_car, buffer, partition, verbose, 0) == 0)
+      test_HFSP(disk_car, buffer, partition, verbose, false) == 0)
   {
     partition.info += " + Backup";
   }
@@ -101,7 +101,7 @@ auto recover_HFSP(disk_t &disk_car, const struct hfsp_vh *vh,
                        partition.part_offset + partition.part_size - 0x400) ==
             HFSP_BOOT_SECTOR_SIZE &&
         test_HFSP(disk_car, buffer,
-                  partition, verbose, 0) == 0)
+                  partition, verbose, false) == 0)
     {
       partition.info += " + Backup";
     }

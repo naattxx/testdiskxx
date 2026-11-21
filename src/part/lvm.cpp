@@ -95,7 +95,7 @@ auto check_LVM(disk_t &disk_car, partition_t &partition, const int verbose)
     return 1;
   }
   if (test_LVM(disk_car, reinterpret_cast<pv_disk_t *>(buffer), partition,
-               verbose, 0) != 0)
+               verbose, false) != 0)
   {
     delete[] buffer;
     return 1;
@@ -174,7 +174,7 @@ auto check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
   }
   if (test_LVM2(disk_car,
                 std::start_lifetime_as<struct lvm2_label_header>(buffer),
-                partition, verbose, 0) != 0)
+                partition, verbose, false) != 0)
   {
     delete[] buffer;
     return 1;

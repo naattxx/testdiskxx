@@ -2017,7 +2017,7 @@ static auto check_part_i386(disk_t &disk_car, const int verbose,
     break;
   case P_NTFS:
   case P_NTFSH:
-    ret = check_NTFS(disk_car, partition, verbose, 0);
+    ret = check_NTFS(disk_car, partition, verbose, false);
     if (ret != 0)
     {
       ret = check_exFAT(disk_car, partition);

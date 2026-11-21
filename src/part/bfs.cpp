@@ -70,7 +70,7 @@ auto check_BeFS(disk_t &disk_car, partition_t &partition) -> int
     return 1;
   }
   if (test_BeFS(disk_car, std::start_lifetime_as<struct disk_super_block>(buffer),
-                partition, 0) != 0)
+                partition, false) != 0)
   {
     delete[] buffer;
     return 1;

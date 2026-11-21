@@ -135,7 +135,7 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
       }
       if (test_FAT(disk_car,
                    std::start_lifetime_as<struct fat_boot_sector>(buffer_bs),
-                   partition, verbose, 0) == 0)
+                   partition, verbose, false) == 0)
       {
         screen_buffer_add("OK\n");
         if (partition.upart_type == UP_FAT32)
@@ -167,7 +167,7 @@ auto fat32_boot_sector(disk_t &disk_car, partition_t &partition,
       }
       if (test_FAT(disk_car,
                    std::start_lifetime_as<struct fat_boot_sector>(buffer_backup_bs),
-                   partition, verbose, 0) == 0)
+                   partition, verbose, false) == 0)
       {
         screen_buffer_add("OK\n");
         if (partition.upart_type == UP_FAT32)

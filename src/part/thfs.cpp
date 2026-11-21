@@ -121,13 +121,13 @@ static auto HFS_HFSP_boot_sector_rescan(disk_t &disk_car,
   }
   else if (test_HFSP(disk_car,
                      std::start_lifetime_as<struct hfsp_vh>(buffer_bs),
-                     partition, verbose, 0) == 0)
+                     partition, verbose, false) == 0)
   {
     screen_buffer_add("HFS+ OK\n");
     opt_O = 1;
   }
   else if (test_HFS(disk_car, reinterpret_cast<const hfs_mdb_t *>(buffer_bs),
-                    partition, verbose, 0) == 0)
+                    partition, verbose, false) == 0)
   {
     screen_buffer_add("HFS Ok\n");
     opt_O = 1;
@@ -144,14 +144,14 @@ static auto HFS_HFSP_boot_sector_rescan(disk_t &disk_car,
   }
   else if (test_HFSP(disk_car,
                      std::start_lifetime_as<struct hfsp_vh>(buffer_backup_bs),
-                     partition, verbose, 0) == 0)
+                     partition, verbose, false) == 0)
   {
     screen_buffer_add("HFS+ OK\n");
     opt_B = 1;
   }
   else if (test_HFS(disk_car,
                     reinterpret_cast<const hfs_mdb_t *>(buffer_backup_bs),
-                    partition, verbose, 0) == 0)
+                    partition, verbose, false) == 0)
   {
     screen_buffer_add("HFS Ok\n");
     opt_B = 1;

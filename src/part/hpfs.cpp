@@ -73,7 +73,7 @@ auto recover_HPFS(const disk_t &disk_car,
                   const struct fat_boot_sector *hpfs_header,
                   partition_t &partition, const int verbose) -> int
 {
-  if (test_HPFS(disk_car, hpfs_header, partition, verbose, 0) != 0)
+  if (test_HPFS(disk_car, hpfs_header, partition, verbose, false) != 0)
     return 1;
   set_HPFS_info(partition);
   partition.part_type_i386 = P_HPFS;
@@ -103,7 +103,7 @@ auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
   }
   if (test_HPFS(disk_car,
                 std::start_lifetime_as<struct fat_boot_sector>(buffer),
-                partition, verbose, 0) != 0)
+                partition, verbose, false) != 0)
   {
     if (verbose > 0)
     {

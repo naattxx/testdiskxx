@@ -123,7 +123,7 @@ auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
     return 1;
   }
   if (test_BSD(disk_car, std::start_lifetime_as<struct disklabel>(buffer),
-               partition, verbose, 0, max_partitions))
+               partition, verbose, false, max_partitions))
   {
     delete[] buffer;
     return 1;

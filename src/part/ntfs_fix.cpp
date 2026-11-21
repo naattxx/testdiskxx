@@ -74,7 +74,7 @@ auto mft_state::get(disk_t &disk, partition_t &partition, const int verbose,
   uint64_t mft_pos;
   uint64_t mftmirr_pos;
   log_trace("repair_MFT");
-  if (check_NTFS(disk, partition, verbose, 0) != 0)
+  if (check_NTFS(disk, partition, verbose, false) != 0)
   {
     return std::unexpected("Boot sector not valid, can't repair MFT.");
   }
@@ -193,7 +193,7 @@ auto mft_state::get(disk_t &disk, partition_t &partition, const int verbose,
   vice-versa) when listing the NTFS files. If TestDisk can get
   a file listing, it also knows which MFT to use.
   */
-  auto expected_dir_data = dir_partition_ntfs_init(disk, partition, verbose, 0);
+  auto expected_dir_data = dir_partition_ntfs_init(disk, partition, verbose, false);
   bool mft_is_good = false, mft_mirror_is_good = false;
   dir_data_t *dir_data;
   /* Use MFT */
@@ -226,7 +226,7 @@ auto mft_state::get(disk_t &disk, partition_t &partition, const int verbose,
   io_redir_del_redir(disk, mftmirr_pos);
   /* Use MFT mirror */
   io_redir_add_redir(disk, mft_pos, mftmirr_size_bytes, 0, buffer_mftmirr);
-  expected_dir_data = dir_partition_ntfs_init(disk, partition, verbose, 0);
+  expected_dir_data = dir_partition_ntfs_init(disk, partition, verbose, false);
   if (expected_dir_data)
   {
     dir_list_t dir_list;

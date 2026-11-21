@@ -60,7 +60,7 @@ auto check_VMFS(disk_t &disk, partition_t &partition) -> int
     return 1;
   }
   if (test_VMFS(disk, std::start_lifetime_as<struct vmfs_volume>(buffer), partition,
-                0) != 0)
+                false) != 0)
   {
     delete[] buffer;
     return 1;

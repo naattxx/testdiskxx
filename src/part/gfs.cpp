@@ -66,7 +66,7 @@ auto check_gfs2(disk_t &disk, partition_t &partition) -> int
     return 1;
   }
   if (test_gfs2(disk, std::start_lifetime_as<struct gfs2_sb>(buffer),
-                partition, 0) != 0)
+                partition, false) != 0)
   {
     delete[] buffer;
     return 1;

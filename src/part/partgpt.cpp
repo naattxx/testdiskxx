@@ -559,7 +559,7 @@ static auto check_part_gpt(disk_t &disk, const int verbose,
     if (ret != 0)
       ret = check_exFAT(disk, partition);
     if (ret != 0)
-      ret = check_NTFS(disk, partition, verbose, 0);
+      ret = check_NTFS(disk, partition, verbose, false);
     if (ret != 0)
       ret = check_ReFS(disk, partition);
     if (ret != 0)

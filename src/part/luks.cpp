@@ -69,7 +69,7 @@ auto check_LUKS(disk_t &disk_car, partition_t &partition) -> int
     return 1;
   }
   if (test_LUKS(disk_car, std::start_lifetime_as<struct luks_phdr>(buffer),
-                partition, 0) != 0)
+                partition, false) != 0)
   {
     delete[] buffer;
     return 1;

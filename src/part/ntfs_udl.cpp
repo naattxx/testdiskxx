@@ -1298,7 +1298,7 @@ auto ntfs_undelete_part_data(disk_t &disk_car, const partition_t &partition,
                              const int verbose)
     -> std::expected<std::pair<dir_data_t *, dir_list_t>, std::string>
 {
-  const auto expected_dir_data = dir_partition_ntfs_init(disk_car, partition, verbose, 0);
+  const auto expected_dir_data = dir_partition_ntfs_init(disk_car, partition, verbose, false);
   ntfs_dir_struct *dir_data = static_cast<ntfs_dir_struct*>(expected_dir_data.value_or(nullptr));
   dir_partition_t res = expected_dir_data.error_or(DIR_PART_OK);
 
