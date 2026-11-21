@@ -66,7 +66,15 @@ auto ask_confirmation(std::string_view msg) -> bool
   );
   auto noButton = Button("No", screen.ExitLoopClosure(), ButtonOption::Ascii());
 
-  auto container = Container::Vertical({noButton, yesButton});
+  auto container = Container::Vertical({noButton, yesButton}) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
   auto dialog    = Renderer(container, [&] -> Element {
     return vbox({
                paragraph(msg),
@@ -90,7 +98,15 @@ auto ask_log_location(const std::string &failed_filename) -> std::string
                      {
                          .multiline = false,
                          .on_enter  = screen.ExitLoopClosure(),
-                     });
+                     }) |
+                       CatchEvent([&](const Event &e) -> bool {
+                         if (e == Event::q)
+                         {
+                           screen.Exit();
+                           return true;
+                         }
+                         return false;
+                       });
 
   auto dialog = Renderer(input, [&] -> Element {
     return vbox({
@@ -119,7 +135,15 @@ void display_message(const Component &root, std::string_view msg)
 {
   auto screen = App::Fullscreen();
 
-  auto okButton = Button("Ok", screen.ExitLoopClosure(), ButtonOption::Ascii());
+  auto okButton = Button("Ok", screen.ExitLoopClosure(), ButtonOption::Ascii()) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
 
   auto dialog = Renderer(okButton, [&] -> Element {
     return vbox({

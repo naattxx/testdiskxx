@@ -35,7 +35,15 @@ void interface_options(const ftxui::Component &root, bool &dump, bool &align,
       ),
       Checkbox("Dump - Dump essential sectors", &dump),
       Button("[ Ok ]", screen.ExitLoopClosure(), buttonOptions),
-  });
+  }) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
   auto dialog =
       Renderer(options,
                [&] -> Element { return vbox({options->Render()}); }) |

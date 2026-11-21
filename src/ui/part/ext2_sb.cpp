@@ -41,7 +41,15 @@ auto interface_superblock(const Component &root, disk_t &disk,
   auto screen = App::Fullscreen();
 
   auto quitButton =
-      Button("Quit", screen.ExitLoopClosure(), ButtonOption::Ascii());
+      Button("Quit", screen.ExitLoopClosure(), ButtonOption::Ascii()) |
+        CatchEvent([&](const Event &e) -> bool {
+          if (e == Event::q)
+          {
+            screen.Exit();
+            return true;
+          }
+          return false;
+        });
 
   std::vector<std::vector<std::string>> rows{
       {"Partition", "Start", "End", "Size in sectors"},

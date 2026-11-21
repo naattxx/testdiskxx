@@ -454,6 +454,11 @@ void interface_adv(disk_t &disk, const int verbose, const bool dump,
                                         hasSuperblock, hasList, hasUndelete);
           return true;
         }
+        if (e == Event::q)
+        {
+          screen.Exit();
+          return true;
+        }
         return false;
       });
 

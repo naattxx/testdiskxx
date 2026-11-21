@@ -137,7 +137,16 @@ auto change_geometry(const Component &root, disk_t &disk) -> int
           okButton,
           cancelButton,
       }),
-  });
+  }) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        cancel = true;
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
   auto dialog    = Renderer(container, [&] -> Element {
     return vbox({
                text(disk.description(disk)),

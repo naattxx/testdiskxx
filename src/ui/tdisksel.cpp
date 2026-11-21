@@ -25,7 +25,15 @@ void testdisk_disk_selection(App &app, int verbose, bool dump,
 {
   auto diskList = Container::Vertical({});
   auto SerialN  = emptyElement();
-  auto root     = Renderer(diskList, [&] -> Element {
+  auto root     = Renderer(diskList |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        app.Exit();
+        return true;
+      }
+      return false;
+    }), [&] -> Element {
     return vbox({
         hflow({
             text("TestDisk++ "),

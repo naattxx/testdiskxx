@@ -22,7 +22,16 @@ auto ask_testdisk_log_creation(App &app) -> TD_LOG
   int selected = 0;
   MenuOption option;
   option.on_enter = app.ExitLoopClosure();
-  auto menu       = Menu(&entries, &selected, option);
+  auto menu       = Menu(&entries, &selected, option) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        selected = 2;
+        app.Exit();
+        return true;
+      }
+      return false;
+    });
 
   Elements aboutLog;
   { // workaround for in paragraph bold text

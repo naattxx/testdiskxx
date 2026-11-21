@@ -61,7 +61,15 @@ void menu_disk(disk_t &disk, const int verbose, bool dump, const int save_header
       ),
       Button("[ Quit     ] Return to disk selection", screen.ExitLoopClosure(),
              buttonOptions),
-  });
+  }) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
   root         = Renderer(options, [&] -> Element {
     return vbox({
         hflow({

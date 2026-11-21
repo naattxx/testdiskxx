@@ -30,7 +30,16 @@ void disk_image_interface(disk_t &disk, const partition_t &partition,
   auto stopButton                      = Button("  Stop  ", [&] -> void {
     stop = true;
     screen.Exit();
-  });
+  }) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        stop = true;
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
   auto root                            = Renderer(stopButton, [&] -> Element {
     if (progress >= 1.f)
       screen.Exit();

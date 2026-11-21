@@ -76,6 +76,11 @@ static void change_part_type_int(const Component &root, const disk_t &disk_car,
           screen.Exit();
           return true;
         }
+        if (event == Event::q || event == Event::Return) {
+          out = std::to_string(current_part);
+          screen.Exit();
+          return true;
+        }
 
         return (event.is_character() && (!isxdigit(event.character()[0]) || out.size() >= 2));
       });
@@ -156,7 +161,7 @@ static void change_part_type_list(const Component &root, const disk_t &disk_car,
   );
 
   grid |= CatchEvent([&](Event e) -> bool {
-    if (e == Event::Return ||
+    if (e == Event::q || e == Event::Return ||
         (e.is_mouse() && e.mouse().button == Mouse::Button::Left &&
          e.mouse().motion == Mouse::Pressed))
     {
@@ -216,7 +221,7 @@ static void gpt_change_part_type(const Component &root, const disk_t &disk_car,
   }
 
   grid |= CatchEvent([&](Event e) -> bool {
-    if (e == Event::Return ||
+    if (e == Event::q || e == Event::Return ||
         (e.is_mouse() && e.mouse().button == Mouse::Button::Left &&
          e.mouse().motion == Mouse::Pressed))
     {

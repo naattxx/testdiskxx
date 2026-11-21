@@ -164,7 +164,16 @@ auto copy_dir(const Component &root, disk_t &disk, const partition_t &partition,
   auto stopButton = Button("  Stop  ", [&] -> void {
     stop = true;
     screen.Exit();
-  });
+  }) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        stop = true;
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
 
   auto dialog =
       Renderer(
@@ -278,7 +287,16 @@ auto copy_selection(const Component &root, disk_t &disk,
   auto stopButton = Button("  Stop  ", [&] -> void {
     stop = true;
     screen.Exit();
-  });
+  }) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        stop = true;
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
 
   auto dialog =
       Renderer(

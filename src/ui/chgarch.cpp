@@ -66,7 +66,16 @@ auto change_arch_type(const Component &root, disk_t &disk)
     MenuOption option;
     auto screen     = App::Fullscreen();
     option.on_enter = screen.ExitLoopClosure();
-    const auto menu = Menu(&entries, &selected, option);
+    const auto menu = Menu(&entries, &selected, option) |
+                      CatchEvent([&](const Event &e) -> bool {
+                        if (e == Event::q)
+                        {
+                          selected = arch_list.size();
+                          screen.Exit();
+                          return true;
+                        }
+                        return false;
+                      });
     auto dialog     = Renderer(menu, [&] -> Element {
       return vbox({
                  text(disk.description_short(disk)),

@@ -76,7 +76,15 @@ auto interface_analyse(disk_t &disk, const int verbose, const bool dump,
           },
           buttonOptions
       ),
-  });
+  }) |
+    CatchEvent([&](const Event &e) -> bool {
+      if (e == Event::q)
+      {
+        screen.Exit();
+        return true;
+      }
+      return false;
+    });
   size_t frame = 0;
 
   root = Renderer(options, [&] -> Element {
