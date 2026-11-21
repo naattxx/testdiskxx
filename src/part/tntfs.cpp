@@ -58,7 +58,7 @@ auto ntfs_boot_sectors::scan(disk_t &disk, const partition_t &partition,
                 std::start_lifetime_as<struct ntfs_boot_sector>(
                     boot_sectors.original.bootsector.data()
                 ),
-                partition, verbose, 0) == 0)
+                partition, verbose, false) == 0)
   {
     boot_sectors.original.bootsector_status = ntfs_boot_sectors::status::OK;
   }
@@ -78,7 +78,7 @@ auto ntfs_boot_sectors::scan(disk_t &disk, const partition_t &partition,
                 std::start_lifetime_as<struct ntfs_boot_sector>(
                     boot_sectors.backup.bootsector.data()
                 ),
-                partition, verbose, 0) == 0)
+                partition, verbose, false) == 0)
   {
     boot_sectors.backup.bootsector_status = ntfs_boot_sectors::status::OK;
   }
