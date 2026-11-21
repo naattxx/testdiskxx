@@ -161,8 +161,10 @@ auto ntfs_boot_sectors::get_options(int *selected,
 auto ntfs_boot_sectors::dump(const std::filesystem::path &path) const noexcept
     -> std::pair<std::string, std::string>
 {
+  constexpr const char *original_bootsector_file_name = "original_bootsector.dump";
+  constexpr const char *backup_bootsector_file_name = "backup_bootsector.dump";
   std::pair<std::string, std::string> result {"SUCCESS", "SUCCESS"};
-  std::ofstream original_dump(path / "bootsector.dump");
+  std::ofstream original_dump(path / original_bootsector_file_name);
   if (original_dump.is_open())
   {
     log_info("dumping bootsector...");
@@ -195,11 +197,11 @@ auto ntfs_boot_sectors::dump(const std::filesystem::path &path) const noexcept
   }
   else
   {
-    log_warning("failed creating {}", path / "original_bootsector.dump");
+    log_warning("failed creating {}", path / original_bootsector_file_name);
     result.first = "file creation failed";
   }
 
-  std::ofstream backup_dump(path / "backup_bootsector.dump");
+  std::ofstream backup_dump(path / backup_bootsector_file_name);
   if (backup_dump.is_open())
   {
     log_info("dumping backup bootsector...");
@@ -232,7 +234,7 @@ auto ntfs_boot_sectors::dump(const std::filesystem::path &path) const noexcept
   }
   else
   {
-    log_warning("failed creating {}", path / "backup_bootsector.dump");
+    log_warning("failed creating {}", path / backup_bootsector_file_name);
     result.second = "file creation failed";
   }
 
