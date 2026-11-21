@@ -4,7 +4,6 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/node.hpp"
 #include "src/common.hpp"
-#include "src/intrf.hpp"
 #include "src/ui/intrfn.hpp"
 #include <cassert>
 #include <config.h>
@@ -47,9 +46,7 @@ void disk_image_interface(disk_t &disk, const partition_t &partition,
         text("https://github.com/naattxx/testdiskxx"),
         separatorEmpty(),
         text(disk.description_short(disk)),
-        text(std::format("{:n:>4}",
-                         aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
-                                      partition))),
+        partition_header(disk, partition),
         hbox({
             text(std::format("{:.2f} % ", progress * 100)) | vcenter,
             gauge(progress) | border | flex,

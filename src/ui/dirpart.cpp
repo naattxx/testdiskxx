@@ -34,7 +34,6 @@
 #include "src/common.hpp"
 #include "src/dir.hpp"
 #include "src/dir_common.hpp"
-#include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
 #include "src/part/exfat_dir.hpp"
@@ -303,9 +302,7 @@ auto dir_partition(disk_t &disk, const partition_t &partition,
             text(TESTDISKDATE),
         }),
         separatorEmpty(),
-        text(std::format("{:n:>4}",
-                         aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
-                                      partition))),
+        partition_header(disk, partition),
         dir_data
             ? vbox({
                   hflow({

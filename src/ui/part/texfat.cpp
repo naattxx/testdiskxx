@@ -1,6 +1,5 @@
 #include "texfat.hpp"
 #include "src/common.hpp"
-#include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/part/texfat.hpp"
 #include "src/ui/askloc.hpp"
@@ -140,9 +139,7 @@ void exFAT_boot_sector_menu(disk_t &disk, partition_t &partition)
             text(TESTDISKDATE),
         }),
         separatorEmpty(),
-        text(std::format("{:n:>4}",
-                         aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
-                                      partition))),
+        partition_header(disk, partition),
         separatorEmpty(),
         text("Boot record"),
         hflow({text("Status: "), text(boot_sectors.original.status_text())}),

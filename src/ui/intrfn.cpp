@@ -4,13 +4,31 @@
 #include "ftxui/component/component_options.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/terminal.hpp"
+#include "src/common.hpp"
+#include "src/intrf.hpp"
 #include <cerrno>
 #include <cstring>
 #include <format>
+#include <ftxui/dom/table.hpp>
 #include <string>
 #include <string_view>
 
 using namespace ftxui;
+
+auto partition_header(const disk_t &disk, const partition_t &partition) noexcept
+    -> Element
+{
+  Table partition_header {
+      {"", "", "Partition", "Start", "End", "Size in sectors", "", ""},
+      aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition),
+  };
+  partition_header.SelectColumns(3, 6).Decorate(align_right);
+  partition_header.SelectRow(0).Decorate(center);
+  partition_header.SelectRow(0).Decorate(bold);
+  partition_header.SelectRow(0).Separator(EMPTY);
+
+  return partition_header.Render();
+};
 
 // Format "[name]lable"
 auto labled_button_options(Element &buttonDescription) -> ButtonOption

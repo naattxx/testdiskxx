@@ -6,7 +6,6 @@
 #include "ftxui/dom/elements.hpp"
 #include "ntfs_fix.hpp"
 #include "src/common.hpp"
-#include "src/intrf.hpp"
 #include "src/io_redir.hpp"
 #include "src/log.hpp"
 #include "src/part/ntfs_struct.hpp"
@@ -166,9 +165,7 @@ auto ntfs_boot_sector_menu(disk_t &disk, partition_t &partition,
             text(TESTDISKDATE),
         }),
         separatorEmpty(),
-        text(std::format("{:n:>4}",
-                         aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
-                                      partition))),
+        partition_header(disk, partition),
         separatorEmpty(),
         text("Boot sector"),
         hflow({text("Status: "), text(boot_sectors.original.status_text())}),

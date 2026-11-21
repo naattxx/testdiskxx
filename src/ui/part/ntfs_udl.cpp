@@ -13,7 +13,6 @@
 #include "ftxui/screen/color.hpp"
 #include "ftxui/screen/terminal.hpp"
 #include "src/dir.hpp"
-#include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/part/ntfs_inc.hpp"
 #include "src/part/ntfs_udl.hpp"
@@ -251,9 +250,7 @@ void ntfs_undelete_menu(disk_t &disk, const partition_t &partition,
             text(TESTDISKDATE),
         }),
         separatorEmpty(),
-        text(std::format("{:n:>4}",
-                         aff_part_aux(AFF_PART::ORDER | AFF_PART::STATUS, disk,
-                                      partition))),
+        partition_header(disk, partition),
         dir_list.empty()
             ? text("No deleted file found.")
             : vbox({
