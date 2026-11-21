@@ -22,7 +22,6 @@
 #include "src/part/fat32.hpp"
 #include "src/part/ntfs.hpp"
 #include "src/part/ntfs_udl.hpp"
-#include "src/part/texfat.hpp"
 #include "src/part/thfs.hpp"
 #include "src/ui/askloc.hpp"
 #include "src/ui/dimage.hpp"
@@ -30,6 +29,7 @@
 #include "src/ui/part/ext2_sb.hpp"
 #include "dirpart.hpp"
 #include "src/ui/part/ntfs_udl.hpp"
+#include "src/ui/part/texfat.hpp"
 #include "src/ui/part/tntfs.hpp"
 #include <cassert>
 #include <filesystem>
@@ -228,7 +228,7 @@ static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition,
   if (is_part_ntfs(partition))
   {
     if (partition.upart_type == UP_EXFAT)
-      ; // exFAT_boot_sector(disk, partition);
+      exFAT_boot_sector_menu(disk, partition);
     else
       ntfs_boot_sector_menu(disk, partition, verbose, expert);
     return true;
@@ -250,11 +250,11 @@ static auto adv_menu_boot_selected(disk_t &disk, partition_t &partition,
     ntfs_boot_sector_menu(disk, partition, verbose, expert);
     return true;
   }
-  // if (partition.upart_type == UP_EXFAT)
-  // {
-  //   exFAT_boot_sector(disk, partition, current_cmd);
-  //   return true;
-  // }
+  if (partition.upart_type == UP_EXFAT)
+  {
+    exFAT_boot_sector_menu(disk, partition);
+    return true;
+  }
   return false;
 }
 

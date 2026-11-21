@@ -22,8 +22,46 @@
 #ifndef _TEXFAT_H
 #define _TEXFAT_H
 #include "src/common.hpp"
+#include <cstdint>
+#include <filesystem>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
-auto exFAT_boot_sector(disk_t &disk, partition_t &partition, char **current_cmd)
-    -> int;
+class exfat_boot_sectors
+{
+  enum class status : uint8_t
+  {
+    OK = 0,
+    BAD,
+    CANNOT_READ,
+  };
+  class raw_bootsector
+  {
+    friend exfat_boot_sectors;
+
+  private:
+    status bootsector_status;
+
+  public:
+    std::vector<unsigned char> bootsector;
+    [[nodiscard]] auto status_text() const noexcept -> std::string_view;
+  };
+
+public:
+  struct [[nodiscard]] options
+  {
+    bool has_original, has_backup;
+  };
+  bool are_identical;
+  raw_bootsector original, backup;
+
+  auto get_options() const noexcept -> options;
+  [[nodiscard]] auto dump(const std::filesystem::path &path) const noexcept
+      -> std::pair<std::string, std::string>;
+  static auto scan(disk_t &disk, const partition_t &partition)
+      -> exfat_boot_sectors;
+};
 
 #endif

@@ -23,7 +23,7 @@
 #define _EXFAT_H
 #include "src/common.hpp"
 #include <cstdint>
-#define EXFAT_BS_SIZE 512
+constexpr int EXFAT_BS_SIZE {512};
 
 struct [[gnu::gcc_struct, gnu::packed]] exfat_super_block
 {
