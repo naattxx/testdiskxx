@@ -45,7 +45,6 @@
 
 #include <cassert>
 #include <cstdio>
-// #include <features.h>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -59,8 +58,6 @@
 #if __has_include(<unistd.h>)
 #include <unistd.h>
 #endif
-#include <climits>
-#include <cstdarg>
 #include <ctime>
 
 #if !defined(REG_NOERROR) || (REG_NOERROR != 0)
@@ -68,12 +65,10 @@
 #endif
 
 #include "ntfs_udl.hpp"
-#include "src/intrf.hpp"
 #include "src/log.hpp"
 #include "src/log_part.hpp"
 #include <list>
 #include <utility>
-// #include "intrfn.h"
 
 #ifdef HAVE_LIBNTFS
 #include <ntfs/attrib.h>
@@ -434,7 +429,7 @@ static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
                   std::span(reinterpret_cast<char16_t *>(name->uname),
                             name->uname_len)) == 0)
     {
-      log_error("ERROR: Couldn't translate filename to current locale.\n");
+      log_error("ERROR: Couldn't translate filename to current locale.");
     }
 
     name->parent_mref = attr->parent_directory;
@@ -565,9 +560,8 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
  */
 static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
 {
-  ATTR_RECORD *attr10, *attr20, *attr90;
+  ATTR_RECORD *attr_STANDARD_INFORMATION, *attr_ATTRIBUTE_LIST, *attr_INDEX_ROOT;
   struct ufile *file;
-  ntfs_attr *mft;
 
   if (!vol)
     return nullptr;
@@ -582,12 +576,12 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
   file->inode = record;
 
   file->mft =
-      reinterpret_cast<MFT_RECORD *>(new unsigned char[vol->mft_record_size]);
+      std::start_lifetime_as<MFT_RECORD>(new unsigned char[vol->mft_record_size]);
 
-  mft = ntfs_attr_open(vol->mft_ni, AT_DATA, AT_UNNAMED, 0);
+  ntfs_attr *mft = ntfs_attr_open(vol->mft_ni, AT_DATA, AT_UNNAMED, 0);
   if (!mft)
   {
-    log_error("ERROR: Couldn't open $MFT/$DATA\n");
+    log_error("ERROR: Couldn't open $MFT/$DATA");
     delete file;
     return nullptr;
   }
@@ -595,8 +589,7 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
   if (ntfs_attr_mst_pread(mft, vol->mft_record_size * record, 1,
                           vol->mft_record_size, file->mft) < 1)
   {
-    log_error("ERROR: Couldn't read MFT Record {}.\n",
-              (long long unsigned)record);
+    log_error("ERROR: Couldn't read MFT Record {}.", record);
     ntfs_attr_close(mft);
     delete file;
     return nullptr;
@@ -605,25 +598,27 @@ static auto read_record(ntfs_volume *vol, uint64_t record) -> struct ufile *
   ntfs_attr_close(mft);
   mft = nullptr;
 
-  attr10 = find_first_attribute(AT_STANDARD_INFORMATION, file->mft);
-  attr20 = find_first_attribute(AT_ATTRIBUTE_LIST, file->mft);
-  attr90 = find_first_attribute(AT_INDEX_ROOT, file->mft);
+  attr_STANDARD_INFORMATION = find_first_attribute(AT_STANDARD_INFORMATION, file->mft);
+  attr_ATTRIBUTE_LIST = find_first_attribute(AT_ATTRIBUTE_LIST, file->mft);
+  attr_INDEX_ROOT = find_first_attribute(AT_INDEX_ROOT, file->mft);
 
-  log_debug("Attributes present: {} {} {}.", attr10 ? "0x10" : "",
-            attr20 ? "0x20" : "", attr90 ? "0x90" : "");
+  log_debug("Attributes present: {} {} {}.",
+            attr_STANDARD_INFORMATION ? "0x10 (STANDARD_INFORMATION)" : "",
+            attr_ATTRIBUTE_LIST ? "0x20 (ATTRIBUTE_LIST)" : "",
+            attr_INDEX_ROOT ? "0x90 (INDEX_ROOT)" : "");
 
-  if (attr10)
+  if (attr_STANDARD_INFORMATION)
   {
-    STANDARD_INFORMATION *si;
-    si = reinterpret_cast<STANDARD_INFORMATION *>(
-        reinterpret_cast<char *>(attr10) + le16_to_cpu(attr10->value_offset)
+    auto *si = std::start_lifetime_as<STANDARD_INFORMATION>(
+        reinterpret_cast<char *>(attr_STANDARD_INFORMATION) +
+        le16_to_cpu(attr_STANDARD_INFORMATION->value_offset)
     );
     file->date = td_ntfs2utc(si->last_data_change_time);
   }
 
-  if (attr20 || !attr10)
+  if (attr_ATTRIBUTE_LIST || !attr_STANDARD_INFORMATION)
     file->attr_list = 1;
-  if (attr90)
+  if (attr_INDEX_ROOT)
     file->directory = true;
 
   if (get_filenames(file, vol) < 0)
@@ -681,7 +676,6 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
   for (data *&data : file->data)
   {
     runlist_element *rl = nullptr;
-    uint64_t i;
     unsigned int clusters_inuse, clusters_free;
     clusters_inuse = 0;
     clusters_free  = 0;
@@ -726,10 +720,9 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
       rl++;
     }
 
-    for (i = 0; rl[i].length > 0; i++)
+    for (uint64_t i = 0; rl[i].length > 0; i++)
     {
       uint64_t start, end;
-      uint64_t j;
       if (rl[i].lcn == LCN_RL_NOT_MAPPED)
       {
         log_debug("Missing segment at end, {} clusters",
@@ -747,7 +740,7 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
       start = rl[i].lcn;
       end   = rl[i].lcn + rl[i].length;
 
-      for (j = start; j < end; j++)
+      for (uint64_t j = start; j < end; j++)
       {
         if (utils_cluster_in_use(vol, j))
           clusters_inuse++;
@@ -915,24 +908,19 @@ static auto open_file(const char *pathname) -> int
  */
 auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path &dest) -> int
 {
-  char *buffer = nullptr;
-  unsigned int bufsize;
-  struct ufile *file;
-
   if (!vol)
     return -2;
 
   /* try to get record */
-  file = read_record(vol, inode);
-  if (!file || !file->mft)
+  struct ufile *file = read_record(vol, inode);
+  if (file == nullptr || file->mft == nullptr)
   {
-    log_error("Can't read info from mft record {}.\n",
-              (long long unsigned)inode);
+    log_error("Can't read info from mft record {}.", inode);
     return -2;
   }
 
-  bufsize = vol->cluster_size;
-  buffer  = new char[bufsize];
+  const unsigned int bufsize = vol->cluster_size;
+  char *buffer = new char[bufsize];
 
   /* calc_percentage() must be called before
    * list_record(). Otherwise, when undeleting, a file will always be
@@ -976,8 +964,7 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
                     sizeof(pathname));
     if (d->resident)
     {
-      int fd;
-      fd = open_file(pathname);
+      int fd = open_file(pathname);
       if (fd < 0)
       {
         log_error("Couldn't create file {}", pathname);
@@ -988,21 +975,18 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
       if (write_data(fd, static_cast<const char *>(d->data), d->size_data) <
           d->size_data)
       {
-        log_error("Write failed\n");
+        log_error("Write failed");
         close(fd);
         goto free;
       }
 
       if (close(fd) < 0)
       {
-        log_error("Close failed\n");
+        log_error("Close failed");
       }
     }
     else
     {
-      int i;
-      int fd;
-      uint64_t cluster_count; /* I'll need this variable (see below). +mabs */
       runlist_element *rl;
       rl = d->runlist;
       if (!rl)
@@ -1017,7 +1001,7 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
         continue;
       }
 
-      fd = open_file(pathname);
+      int fd = open_file(pathname);
       if (fd < 0)
       {
         log_error("Couldn't create output file {}", pathname);
@@ -1026,39 +1010,35 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
 
       if (rl[0].lcn == LCN_RL_NOT_MAPPED)
       { /* extended mft record */
-        uint64_t k;
         ; // log_verbose("Missing segment at beginning, %lld "
         //            "clusters.\n",
         //            (long long)rl[0].length);
         memset(buffer, 0, bufsize);
-        for (k = 0; k < static_cast<uint64_t>(rl[0].length) * vol->cluster_size;
+        for (uint64_t k = 0; k < static_cast<uint64_t>(rl[0].length) * vol->cluster_size;
              k += bufsize)
         {
           if (write_data(fd, buffer, bufsize) < bufsize)
           {
-            log_error("Write failed\n");
+            log_error("Write failed");
             close(fd);
             goto free;
           }
         }
       }
 
-      cluster_count = 0;
-      for (i = 0; rl[i].length > 0; i++)
+      uint64_t cluster_count = 0; /* I'll need this variable (see below). +mabs */
+      for (uint64_t i = 0; rl[i].length > 0; i++)
       {
         uint64_t start, end;
-        uint64_t j;
 
         if (rl[i].lcn == LCN_RL_NOT_MAPPED)
         {
-          uint64_t k;
           // log_verbose("Missing segment at end, "
-          //             "%lld clusters.\n",
-          //             (long long)rl[i].length);
+          //             "{} clusters.",
+          //             rl[i].length);
           memset(buffer, 0, bufsize);
-          for (k = 0;
-               k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size;
-               k += bufsize)
+          for (uint64_t k = 0;
+               std::cmp_less(k, rl[i].length * vol->cluster_size); k += bufsize)
           {
             if (write_data(fd, buffer, bufsize) < bufsize)
             {
@@ -1073,10 +1053,9 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
 
         if (rl[i].lcn == LCN_HOLE)
         {
-          uint64_t k;
           // log_verbose("File has a sparse section.\n");
           memset(buffer, 0, bufsize);
-          for (k = 0;
+          for (uint64_t k = 0;
                k < static_cast<uint64_t>(rl[i].length) * vol->cluster_size;
                k += bufsize)
           {
@@ -1093,7 +1072,7 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
         start = rl[i].lcn;
         end   = rl[i].lcn + rl[i].length;
 
-        for (j = start; j < end; j++)
+        for (uint64_t j = start; j < end; j++)
         {
           /* Don't check if clusters are in used or not */
 #if 0
@@ -1146,17 +1125,17 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
               d->size_alloc)
       {
         if (ftruncate(fd, static_cast<off_t>(d->size_data)))
-          log_error("Truncation failed\n");
+          log_error("Truncation failed");
       }
       else
         log_warning(
             "Truncation not performed because file has an "
-            "inconsistent $MFT record.\n"
+            "inconsistent $MFT record."
         );
 
       if (close(fd) < 0)
       {
-        log_error("Close failed\n");
+        log_error("Close failed");
       }
     }
     set_date(pathname, file->date, file->date);
@@ -1206,13 +1185,7 @@ static auto ufile_to_file_data(const struct ufile *file, const struct data *d)
  */
 static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
 {
-  uint64_t nr_mft_records;
-  const unsigned int BUFSIZE = 8192;
-  unsigned int results       = 0;
-  ntfs_attr *attr;
-  uint64_t bmpsize;
-  uint64_t i;
-  struct ufile *file;
+  constexpr const unsigned int BUFSIZE = 8192;
   if (!vol)
     return;
 #ifdef NTFS_LOG_LEVEL_VERBOSE
@@ -1220,48 +1193,45 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
   ntfs_log_set_handler(ntfs_log_handler_stderr);
 #endif
 
-  attr = ntfs_attr_open(vol->mft_ni, AT_BITMAP, AT_UNNAMED, 0);
+  ntfs_attr *attr = ntfs_attr_open(vol->mft_ni, AT_BITMAP, AT_UNNAMED, 0);
   if (!attr)
   {
-    log_error("ERROR: Couldn't open $MFT/$BITMAP\n");
+    log_error("ERROR: Couldn't open $MFT/$BITMAP");
     return;
   }
-  bmpsize = attr->initialized_size;
+  uint64_t bmpsize = attr->initialized_size;
 
   std::array<unsigned char, BUFSIZE> buffer;
 
-  nr_mft_records = vol->mft_na->initialized_size >> vol->mft_record_size_bits;
+  uint64_t nr_mft_records =
+      vol->mft_na->initialized_size >> vol->mft_record_size_bits;
 
-  for (i = 0; i < bmpsize; i += BUFSIZE)
+  unsigned int results = 0;
+  for (uint64_t i = 0; i < bmpsize; i += BUFSIZE)
   {
-    int64_t size;
-    unsigned int j;
     uint64_t read_count = std::min<uint64_t>((bmpsize - i), BUFSIZE);
-    size                = ntfs_attr_pread(attr, i, read_count, buffer);
+    int64_t size        = ntfs_attr_pread(attr, i, read_count, buffer.data());
     if (size < 0)
       break;
 
-    for (j = 0; std::cmp_less(j, size); j++)
+    for (unsigned int j = 0; std::cmp_less(j, size); j++)
     {
-      unsigned int k;
-      unsigned int b;
-      b = buffer[j];
-      for (k = 0; k < 8; k++, b >>= 1)
+      unsigned char byte = buffer[j];
+      for (unsigned int k = 0; k < 8; k++, byte >>= 1u)
       {
-        unsigned int percent;
         if (((i + j) * 8 + k) >= nr_mft_records)
           goto done;
-        if (b & 1)
+        if (byte & 1u)
           continue;
-        file = read_record(vol, (i + j) * 8 + k);
+
+        struct ufile *file = read_record(vol, (i + j) * 8 + k);
         if (!file)
         {
-          log_error("Couldn't read MFT Record {}.\n",
-                    (long long unsigned)(i + j) * 8 + k);
+          log_error("Couldn't read MFT Record {}.", (i + j) * 8 + k);
           continue;
         }
 
-        percent = calc_percentage(file, vol);
+        unsigned int percent = calc_percentage(file, vol);
         if (percent > 0)
         {
           for (data *&d : file->data)
@@ -1302,7 +1272,7 @@ static void ntfs_undelete_cli(ntfs_dir_struct &dir_data, const dir_list_t &dir_l
     else
       file_ok++;
   }
-  log_info("NTFS undelete done ({}/{})\n", file_ok, (file_ok + file_bad));
+  log_info("NTFS undelete done ({}/{})", file_ok, (file_ok + file_bad));
   dir_data.local_dir.clear();
 }
 
