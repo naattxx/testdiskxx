@@ -182,18 +182,18 @@ ufile::~ufile()
   for (filename *&f : name)
   { /* List of filenames */
     delete f->name;
-    delete f->parent_name;
+    free(f->parent_name);
     delete f;
   }
 
   for (struct data *&d : data)
   { /* List of data streams */
     delete d->name;
-    delete d->runlist;
+    free(d->runlist);
     delete d;
   }
 
-  delete mft;
+  delete[] mft;
 }
 
 /**

@@ -128,7 +128,7 @@ static auto cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int c
         cache = &data->cache[data->cache_buffer_nbr];
         if (cache->buffer_size < count_new)
         { /* Buffer is too small, drop it */
-          delete cache->buffer;
+          delete[] cache->buffer;
           cache->buffer = nullptr;
         }
         if (cache->buffer == nullptr)
