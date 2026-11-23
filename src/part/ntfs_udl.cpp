@@ -406,10 +406,13 @@ static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
     attr = reinterpret_cast<FILE_NAME_ATTR *>(reinterpret_cast<char *>(rec) +
                                               le16_to_cpu(rec->value_offset));
 
-    name = static_cast<struct filename *>(calloc(1, sizeof(*name)));
-    if (!name)
+    try
     {
-      log_error("ERROR: Couldn't allocate memory in get_filenames().\n");
+      name = new struct filename;
+    }
+    catch (...)
+    {
+      log_error("ERROR: Couldn't allocate memory in get_filenames().");
       count = -1;
       break;
     }
