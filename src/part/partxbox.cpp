@@ -23,6 +23,7 @@
 #include <array>
 #include <memory>
 #include <string_view>
+#include <tuple>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_XBOX)
 #include <config.h>
 
@@ -185,7 +186,6 @@ static auto read_part_xbox(disk_t &disk_car, const int verbose,
     {
       if (offsets[i] < disk_car.disk_size)
       {
-        bool _insert_error = false;
         partition_t partition(&arch_xbox);
         partition.part_type_xbox = PXBOX_FATX;
         partition.part_offset    = offsets[i];
@@ -198,7 +198,7 @@ static auto read_part_xbox(disk_t &disk_car, const int verbose,
         partition.status = STATUS_PRIM;
         check_part_xbox(disk_car, verbose, partition, saveheader);
         aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car, partition);
-        insert_new_partition(new_list_part, partition, false, &_insert_error);
+        std::ignore = insert_new_partition(new_list_part, partition, false);
       }
     }
   }
@@ -267,8 +267,7 @@ void add_partition_xbox_cli(const disk_t &disk_car, list_part_t &list_part,
     }
     else if (new_partition.part_size > 0 && new_partition.part_type_xbox > 0)
     {
-      bool insert_error = false;
-      insert_new_partition(list_part, new_partition, false, &insert_error);
+      bool insert_error = insert_new_partition(list_part, new_partition, false);
       /*@ assert valid_list_part(list_part); */
       if (insert_error)
       {
@@ -328,7 +327,6 @@ static void init_structure_xbox(const disk_t &disk_car, list_part_t &list_part,
   for (auto element = list_part.begin(); element != list_part.end();
        element      = std::next(element))
   {
-    bool insert_error = false;
     for (auto element2 = std::next(element); element2 != list_part.end();
          element2      = std::next(element2))
     {
@@ -340,7 +338,7 @@ static void init_structure_xbox(const disk_t &disk_car, list_part_t &list_part,
       }
     }
     if (!element->to_be_removed)
-      insert_new_partition(new_list_part, *element, false, &insert_error);
+      std::ignore = insert_new_partition(new_list_part, *element, false);
   }
   for (partition_t &element : new_list_part)
     element.status = STATUS_PRIM;

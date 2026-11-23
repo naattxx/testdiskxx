@@ -27,6 +27,7 @@
 #include <cstring>
 #include <optional>
 #include <string>
+#include <tuple>
 #include "common.hpp"
 #include "fnctdsk.hpp"
 #include "log.hpp"
@@ -131,13 +132,11 @@ void insert_new_disk(list_disk_t &list_disk, disk_t &disk)
     insert_new_disk_aux(list_disk, disk, nullptr);
 }
 
-void insert_new_partition(list_part_t &list_part, partition_t &new_partition, const bool force_insert, bool *insert_error)
+auto insert_new_partition(list_part_t &list_part, partition_t &new_partition, const bool force_insert) -> bool
 {
-    *insert_error = false;
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_partition(part);
-      @ loop invariant \valid(insert_error);
       @*/
     for (auto next_part = list_part.begin(); ; ++next_part)
     { /* prev new next */
@@ -159,16 +158,16 @@ void insert_new_partition(list_part_t &list_part, partition_t &new_partition, co
                 {
                     next_part->status = new_partition.status;
                 }
-                *insert_error = true;
                 /*@ assert valid_list_part(list_part); */
-                return;
+                return true;
             }
             { /* prev new_element next */
                 list_part.insert(next_part, new_partition);
-                return;
+                return false;
             }
         }
     }
+    return false;
 }
 
 auto delete_list_disk(list_disk_t& list_disk) -> int
@@ -198,9 +197,8 @@ void sort_partition_list(list_part_t &list_part)
       @*/
     for (partition_t &element : list_part)
     {
-        bool insert_error;
         /*@ assert \valid(element); */
-        insert_new_partition(new_list_part, element, false, &insert_error);
+        std::ignore = insert_new_partition(new_list_part, element, false);
     }
     /*@ assert valid_list_part(new_list_part); */
     list_part = new_list_part;
@@ -217,10 +215,9 @@ auto gen_sorted_partition_list(const list_part_t &list_part) -> list_part_t
     for (partition_t element : list_part)
     {
         /*@ assert \valid_read(element); */
-        bool _insert_error;
 
         if (element.status != STATUS_DELETED)
-            insert_new_partition(new_list_part, element, true, &_insert_error);
+            std::ignore = insert_new_partition(new_list_part, element, true);
         /*@ assert \valid_read(element); */
     }
     /*@ assert valid_list_part(new_list_part); */

@@ -160,10 +160,8 @@ auto partition_load(const disk_t &disk_car, const int verbose) noexcept -> backu
               new_partition.status = STATUS_DELETED;
               break;
           }
-          {
-              bool _insert_error = false;
-              insert_new_partition(new_backup->list_part, new_partition, false, &_insert_error);
-          }
+          std::ignore =
+              insert_new_partition(new_backup->list_part, new_partition, false);
         }
         else {
           log_critical("partition_load: unexpected character: {}", f_backup.peek());

@@ -119,8 +119,10 @@
       @ requires (list_part==\null && part==\null) || \separated(list_part, part, insert_error);
       @ ensures  valid_list_part(\result);
       @*/
-    void insert_new_partition(list_part_t &list_part, partition_t &part, const bool force_insert,
-                                      bool *insert_error);
+    [[nodiscard("Check for an insert error")]]
+    auto insert_new_partition(list_part_t &list_part,
+                              partition_t &new_partition,
+                              const bool force_insert) -> bool;
 
     /*@
       @ requires \valid(list_part);

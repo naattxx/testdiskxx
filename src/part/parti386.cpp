@@ -634,7 +634,6 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
     }
     if (p->sys_ind != P_NO_OS)
     {
-      bool insert_error = false;
       partition_t new_partition(&arch_i386);
       i386_entry2partition(disk_car, 0, new_partition, p,
                            status, i + 1, verbose, saveheader);
@@ -647,7 +646,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
         screen_buffer_add("%s\n",
                           errmsg_i386_entry2partition(new_partition.errcode));
       }
-      insert_new_partition(new_list_part, new_partition, false, &insert_error);
+      std::ignore = insert_new_partition(new_list_part, new_partition, false);
     }
   }
   test_MBR_data(new_list_part);
@@ -799,7 +798,6 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
       const struct partition_dos *p = pt_offset(buffer, i);
       if (p->sys_ind != 0)
       {
-        bool insert_error = false;
         partition_t new_partition(&arch_i386);
         new_partition.order = order;
         if (verbose > 1)
@@ -889,7 +887,8 @@ static auto get_ext_data_i386(disk_t &disk_car, list_part_t &list_part,
             }
           }
         }
-        insert_new_partition(list_part, new_partition, false, &insert_error);
+        bool insert_error =
+            insert_new_partition(list_part, new_partition, false);
         if (!insert_error)
         {
           nbr_part++;
@@ -1648,8 +1647,7 @@ void add_partition_i386_cli(disk_t &disk_car, list_part_t &list_part,
              new_partition.part_offset > 0 &&
              new_partition.part_type_i386 != P_NO_OS)
     {
-      bool insert_error = false;
-      insert_new_partition(list_part, new_partition, false, &insert_error);
+      bool insert_error = insert_new_partition(list_part, new_partition, false);
       /*@ assert valid_list_part(list_part); */
       if (insert_error)
       {
@@ -1790,8 +1788,7 @@ static void init_structure_i386(const disk_t &disk_car, list_part_t &list_part,
     }
     if (!element->to_be_removed)
     {
-      bool insert_error = false;
-      insert_new_partition(new_list_part, *element, false, &insert_error);
+      std::ignore = insert_new_partition(new_list_part, *element, false);
     }
   }
 

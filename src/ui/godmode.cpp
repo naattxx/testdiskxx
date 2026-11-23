@@ -53,6 +53,7 @@
 #include "tpartwr.hpp"
 #include <cassert>
 #include <string>
+#include <tuple>
 
 #define RO 1
 #define RW 0
@@ -585,8 +586,7 @@ static void search_NTFS_from_backup(disk_t &disk_car, list_part_t &list_part,
                     search_location_max)
             {
               partition_t new_partition = partition;
-              bool _insert_error;
-              insert_new_partition(list_part, new_partition, false, &_insert_error);
+              std::ignore = insert_new_partition(list_part, new_partition, false);
             }
           }
         }
@@ -1022,9 +1022,7 @@ static auto search_part(disk_t &disk_car, const list_part_t &list_part_org,
             {
               {
                 partition_t new_partition = partition;
-                bool _insert_error;
-                insert_new_partition(list_part, new_partition, false,
-                                     &_insert_error);
+                std::ignore = insert_new_partition(list_part, new_partition, false);
               }
               {
                 const uint64_t next_part_offset =
@@ -1063,9 +1061,7 @@ static auto search_part(disk_t &disk_car, const list_part_t &list_part_org,
             {
               {
                 partition_t new_partition = partition;
-                bool _insert_error;
-                insert_new_partition(list_part_bad, new_partition, false,
-                                     &_insert_error);
+                std::ignore = insert_new_partition(list_part_bad, new_partition, false);
               }
               if (verbose > 0)
                 log_warning(
@@ -1266,8 +1262,7 @@ static auto reduce_structure(const list_part_t &list_part_org) -> list_part_t
     if (part.status != STATUS_DELETED)
     {
       partition_t new_partition = part;
-      bool _insert_error;
-      insert_new_partition(list_part, new_partition, false, &_insert_error);
+      std::ignore = insert_new_partition(list_part, new_partition, false);
     }
   }
   return list_part;
@@ -1440,8 +1435,7 @@ static auto add_ext_part_i386(const disk_t &disk, list_part_t &list_part,
   new_partition.part_offset = part_extended_offset;
   new_partition.part_size =
       part_extended_end - new_partition.part_offset + disk.sector_size;
-  bool _insert_error = false;
-  insert_new_partition(list_part, new_partition, false, &_insert_error);
+  std::ignore = insert_new_partition(list_part, new_partition, false);
   return list_part;
 }
 

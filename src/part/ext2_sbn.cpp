@@ -23,6 +23,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <tuple>
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 // #include "intrfn.h"
@@ -130,7 +131,6 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
         new_partition.part_offset += hd_offset;
         if (recover_EXT2(disk_car, sb, new_partition, verbose, dump) == 0)
         {
-          bool insert_error = false;
           if (hd_offset <= (EXT2_MIN_BLOCK_SIZE << 2))
             new_partition.part_offset -= hd_offset;
           if (partition.blocksize == 0)
@@ -157,7 +157,7 @@ auto search_superblock(disk_t &disk_car, partition_t &partition,
                       (EXT2_MIN_BLOCK_LOG_SIZE + to_little_endian(sb->s_log_block_size)),
                   EXT2_MIN_BLOCK_SIZE << to_little_endian(sb->s_log_block_size));
 #endif
-          insert_new_partition(list_part, new_partition, true, &insert_error);
+          std::ignore = insert_new_partition(list_part, new_partition, true);
           new_partition = partition_t(disk_car.arch);
           nbr_sb++;
         }

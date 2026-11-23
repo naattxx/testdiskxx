@@ -29,6 +29,7 @@
 #include <cstring>
 #include <memory>
 #include <string_view>
+#include <tuple>
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
 #ifndef DISABLED_FOR_FRAMAC
@@ -270,7 +271,6 @@ static auto get_geometry_from_nonembr(const unsigned char *buffer,
 static auto read_part_none(disk_t &disk, const int verbose,
                            const int saveheader) -> list_part_t
 {
-  bool _insert_error = false;
   unsigned char *buffer_disk;
   list_part_t list_part;
   partition_t partition(&arch_none);
@@ -387,7 +387,7 @@ static auto read_part_none(disk_t &disk, const int verbose,
 #ifndef DISABLED_FOR_FRAMAC
   aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk, partition);
 #endif
-  insert_new_partition(list_part, partition, false, &_insert_error);
+  std::ignore = insert_new_partition(list_part, partition, false);
   /*@ assert valid_list_part(list_part); */
   return list_part;
 }

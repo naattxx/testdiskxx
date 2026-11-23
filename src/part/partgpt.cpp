@@ -371,7 +371,6 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
     if (gpt_entry->ent_type != GPT_ENT_TYPE_UNUSED &&
         to_little_endian(gpt_entry->ent_lba_start) < to_little_endian(gpt_entry->ent_lba_end))
     {
-      bool _insert_error = false;
       partition_t new_partition(&arch_gpt);
       new_partition.order = i + 1;
       new_partition.part_uuid = gpt_entry->ent_uuid;
@@ -393,7 +392,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
        */
       aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       new_partition);
-      insert_new_partition(new_list_part, new_partition, false, &_insert_error);
+      std::ignore = insert_new_partition(new_list_part, new_partition, false);
     }
   }
   /* TODO: The backup GUID Partition Entry array must be
@@ -478,9 +477,8 @@ void add_partition_gpt_cli(const disk_t &disk_car, list_part_t &list_part,
     else if (new_partition.part_size > 0 &&
              new_partition.part_type_gpt != GPT_ENT_TYPE_UNUSED)
     {
-      bool insert_error = false;
-      insert_new_partition(list_part, new_partition, false, &insert_error);
-      if (insert_error > 0)
+      bool insert_error = insert_new_partition(list_part, new_partition, false);
+      if (insert_error)
         return;
       new_partition.status = STATUS_PRIM;
       if (test_structure_gpt(list_part) != 0)
@@ -522,7 +520,6 @@ static void init_structure_gpt(const disk_t &disk_car, list_part_t &list_part,
   for (auto element = list_part.begin(); element != list_part.end();
        element      = std::next(element))
   {
-    bool insert_error = false;
     for (auto element2 = std::next(element); element2 != list_part.end();
          element2      = std::next(element2))
     {
@@ -534,7 +531,7 @@ static void init_structure_gpt(const disk_t &disk_car, list_part_t &list_part,
       }
     }
     if (!element->to_be_removed)
-      insert_new_partition(new_list_part, *element, false, &insert_error);
+      std::ignore = insert_new_partition(new_list_part, *element, false);
   }
   for (partition_t &element : new_list_part)
     element.status = STATUS_PRIM;
