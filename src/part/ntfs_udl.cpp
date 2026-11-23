@@ -293,10 +293,13 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
     log_error("ERROR: Couldn't open $MFT/$DATA\n");
     return;
   }
-  rec = new MFT_RECORD;
-  if (!rec)
+  try
   {
-    log_error("ERROR: Couldn't allocate memory in get_parent_name()\n");
+    rec = new MFT_RECORD;
+  }
+  catch (...)
+  {
+    log_error("ERROR: Couldn't allocate memory in get_parent_name()");
     ntfs_attr_close(mft_data);
     return;
   }
