@@ -113,7 +113,7 @@ auto disk_image(disk_t &disk, const partition_t &partition,
   unsigned int readsize = READ_SIZE;
   int disk_dst;
 #ifdef HAVE_PWRITE
-  int use_pwrite = 1;
+  bool use_pwrite = true;
 #endif
   assert(disk.sector_size > 0);
   assert(disk.sector_size <= READ_SIZE);
@@ -129,17 +129,17 @@ auto disk_image(disk_t &disk, const partition_t &partition,
   while (ind_stop == 0 && !in_stop && src_offset < src_offset_end)
   {
     ssize_t pread_res;
-    int update = 0;
+    bool update = false;
     readsize   = std::min<uint64_t>(src_offset_end - src_offset, readsize);
     pread_res  = disk.pread(disk, buffer, readsize, src_offset);
     if (pread_res > 0)
     {
 #ifdef HAVE_PWRITE
-      if (use_pwrite > 0 && pwrite(disk_dst, buffer, pread_res, dst_offset) < 0)
+      if (use_pwrite && pwrite(disk_dst, buffer, pread_res, dst_offset) < 0)
 #endif
       {
 #ifdef HAVE_PWRITE
-        use_pwrite = 0;
+        use_pwrite = false;
 #endif
         if (lseek(disk_dst, dst_offset, SEEK_SET) < 0)
         {
@@ -167,7 +167,7 @@ auto disk_image(disk_t &disk, const partition_t &partition,
     }
     else
     {
-      update = 1;
+      update = true;
       nbr_read_error++;
       readsize = disk.sector_size;
       src_offset += SKIP_SIZE;
@@ -175,7 +175,7 @@ auto disk_image(disk_t &disk, const partition_t &partition,
     }
     if (src_offset > src_offset_next)
     {
-      update          = 1;
+      update          = true;
       src_offset_next = src_offset + offset_inc;
     }
     if (update && ind_stop == 0 && !in_stop)

@@ -371,7 +371,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
     if (gpt_entry->ent_type != GPT_ENT_TYPE_UNUSED &&
         to_little_endian(gpt_entry->ent_lba_start) < to_little_endian(gpt_entry->ent_lba_end))
     {
-      int _insert_error = 0;
+      bool _insert_error = false;
       partition_t new_partition(&arch_gpt);
       new_partition.order = i + 1;
       new_partition.part_uuid = gpt_entry->ent_uuid;
@@ -393,7 +393,7 @@ static auto read_part_gpt_aux(disk_t &disk_car, const int verbose,
        */
       aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       new_partition);
-      insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
+      insert_new_partition(new_list_part, new_partition, false, &_insert_error);
     }
   }
   /* TODO: The backup GUID Partition Entry array must be
@@ -478,8 +478,8 @@ void add_partition_gpt_cli(const disk_t &disk_car, list_part_t &list_part,
     else if (new_partition.part_size > 0 &&
              new_partition.part_type_gpt != GPT_ENT_TYPE_UNUSED)
     {
-      int insert_error = 0;
-      insert_new_partition(list_part, new_partition, 0, &insert_error);
+      bool insert_error = false;
+      insert_new_partition(list_part, new_partition, false, &insert_error);
       if (insert_error > 0)
         return;
       new_partition.status = STATUS_PRIM;
@@ -518,23 +518,23 @@ static void init_structure_gpt(const disk_t &disk_car, list_part_t &list_part,
   list_part_t new_list_part;
   /* Create new list */
   for (partition_t &element : list_part)
-    element.to_be_removed = 0;
+    element.to_be_removed = false;
   for (auto element = list_part.begin(); element != list_part.end();
        element      = std::next(element))
   {
-    int insert_error = 0;
+    bool insert_error = false;
     for (auto element2 = std::next(element); element2 != list_part.end();
          element2      = std::next(element2))
     {
       if (element->part_offset + element->part_size - 1 >=
           element2->part_offset)
       {
-        element->to_be_removed  = 1;
-        element2->to_be_removed = 1;
+        element->to_be_removed  = true;
+        element2->to_be_removed = true;
       }
     }
-    if (element->to_be_removed == 0)
-      insert_new_partition(new_list_part, *element, 0, &insert_error);
+    if (!element->to_be_removed)
+      insert_new_partition(new_list_part, *element, false, &insert_error);
   }
   for (partition_t &element : new_list_part)
     element.status = STATUS_PRIM;

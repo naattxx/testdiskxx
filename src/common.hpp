@@ -814,8 +814,8 @@ struct disk_t
     uint64_t offset{0}; /* offset to first sector, may be modified in the futur to handle broken raid */
     std::vector<char> rbuffer;
     std::vector<char> wbuffer;
-    int write_used{0};
-    int autodetect{0};
+    bool write_used {false};
+    bool autodetect {false};
     TESTDISK_O access_mode;
     UNIT unit{UNIT::CHS};
     unsigned int sector_size;
@@ -854,7 +854,7 @@ valid_list_disk(list->next);
 
 struct partition_t
 {
-    int to_be_removed;
+    bool to_be_removed;
 
     void set_name(std::string_view src) noexcept;
     void set_name_chomp(std::string_view src) noexcept;

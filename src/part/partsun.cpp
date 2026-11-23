@@ -237,7 +237,7 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
     if (sunlabel->partitions[i].num_sectors > 0 && sunlabel->infos[i].id > 0 &&
         sunlabel->infos[i].id != PSUN_WHOLE_DISK)
     {
-      int _insert_error = 0;
+      bool _insert_error = false;
       partition_t new_partition(&arch_sun);
       new_partition.order         = i;
       new_partition.part_type_sun = sunlabel->infos[i].id;
@@ -251,7 +251,7 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
       check_part_sun(disk_car, verbose, new_partition, saveheader);
       aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       new_partition);
-      insert_new_partition(new_list_part, new_partition, 0, &_insert_error);
+      insert_new_partition(new_list_part, new_partition, false, &_insert_error);
     }
   }
   delete[] buffer;
@@ -270,7 +270,7 @@ static auto write_part_sun(disk_t &disk_car, const list_part_t &list_part,
 
 static void init_part_order_sun(const disk_t &disk_car, list_part_t &list_part)
 {
-  int _insert_error = 0;
+  bool _insert_error = false;
   int nbr_prim      = 0;
   partition_t new_partition(&arch_sun);
   for (partition_t &element : list_part)
@@ -293,7 +293,7 @@ static void init_part_order_sun(const disk_t &disk_car, list_part_t &list_part)
   new_partition.status        = STATUS_PRIM;
   new_partition.part_type_sun = PSUN_WHOLE_DISK;
   new_partition.order         = 2;
-  insert_new_partition(list_part, new_partition, 0, &_insert_error);
+  insert_new_partition(list_part, new_partition, false, &_insert_error);
 }
 
 void add_partition_sun_cli(const disk_t &disk_car, list_part_t &list_part,
@@ -334,10 +334,10 @@ void add_partition_sun_cli(const disk_t &disk_car, list_part_t &list_part,
     else if ((CHS2offset(disk_car, &end) > new_partition.part_offset) &&
              new_partition.part_type_sun > 0)
     {
-      int insert_error = 0;
-      insert_new_partition(list_part, new_partition, 0, &insert_error);
+      bool insert_error = false;
+      insert_new_partition(list_part, new_partition, false, &insert_error);
       /*@ assert valid_list_part(list_part); */
-      if (insert_error > 0)
+      if (insert_error)
       {
         /*@ assert valid_list_part(list_part); */
         return;
@@ -390,23 +390,23 @@ static void init_structure_sun(const disk_t &disk_car, list_part_t &list_part,
   list_part_t new_list_part;
   /* Create new list */
   for (partition_t &element : list_part)
-    element.to_be_removed = 0;
+    element.to_be_removed = false;
   for (auto element = list_part.begin(); element != list_part.end();
        element      = std::next(element))
   {
-    int _insert_error = 0;
+    bool _insert_error = false;
     for (auto element2 = std::next(element); element2 != list_part.end();
          element2      = std::next(element2))
     {
       if (element->part_offset + element->part_size - 1 >=
           element2->part_offset)
       {
-        element->to_be_removed  = 1;
-        element2->to_be_removed = 1;
+        element->to_be_removed  = true;
+        element2->to_be_removed = true;
       }
     }
-    if (element->to_be_removed == 0)
-      insert_new_partition(new_list_part, *element, 0, &_insert_error);
+    if (!element->to_be_removed)
+      insert_new_partition(new_list_part, *element, false, &_insert_error);
   }
   for (partition_t &element : new_list_part)
     element.status = STATUS_PRIM;

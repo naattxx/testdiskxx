@@ -142,46 +142,46 @@ static auto write_part_gpt_i386(disk_t &disk_car, const list_part_t &list_part)
      * 4 Windows
      */
     {
-      int insert_error          = 0;
+      bool insert_error         = false;
       partition_t new_partition = *part_mac;
       new_partition.arch        = &arch_i386;
       new_partition.status      = STATUS_PRIM;
       new_partition.order       = 2;
-      insert_new_partition(list_part_i386, new_partition, 0, &insert_error);
-      if (insert_error == 0 && efi_psize > new_partition.part_offset)
+      insert_new_partition(list_part_i386, new_partition, false, &insert_error);
+      if (!insert_error && efi_psize > new_partition.part_offset)
         efi_psize = new_partition.part_offset;
     }
     if (part_linux != nullptr)
     {
-      int insert_error          = 0;
+      bool insert_error         = false;
       partition_t new_partition = *part_linux;
       new_partition.arch        = &arch_i386;
       new_partition.status      = STATUS_PRIM;
       new_partition.order       = 3;
-      insert_new_partition(list_part_i386, new_partition, 0, &insert_error);
-      if (insert_error == 0 && efi_psize > new_partition.part_offset)
+      insert_new_partition(list_part_i386, new_partition, false, &insert_error);
+      if (!insert_error && efi_psize > new_partition.part_offset)
         efi_psize = new_partition.part_offset;
     }
     if (part_windows != nullptr)
     {
-      int insert_error          = 0;
+      bool insert_error         = false;
       partition_t new_partition = *part_windows;
       new_partition.arch        = &arch_i386;
       new_partition.status      = STATUS_PRIM;
       new_partition.order       = 4;
-      insert_new_partition(list_part_i386, new_partition, 0, &insert_error);
-      if (insert_error == 0 && efi_psize > new_partition.part_offset)
+      insert_new_partition(list_part_i386, new_partition, false, &insert_error);
+      if (!insert_error && efi_psize > new_partition.part_offset)
         efi_psize = new_partition.part_offset;
     }
     {
-      int insert_error = 0;
+      bool insert_error = false;
       partition_t new_partition(nullptr);
       new_partition.status         = STATUS_PRIM;
       new_partition.order          = 1;
       new_partition.part_type_i386 = 0xee;
       new_partition.part_offset    = disk_car.sector_size;
       new_partition.part_size      = efi_psize - new_partition.part_offset;
-      insert_new_partition(list_part_i386, new_partition, 0, &insert_error);
+      insert_new_partition(list_part_i386, new_partition, false, &insert_error);
     }
   }
   else
@@ -189,14 +189,14 @@ static auto write_part_gpt_i386(disk_t &disk_car, const list_part_t &list_part)
      * reserves the entire space used on the disk by the GPT partitions,
      * including all headers.
      */
-    int insert_error = 0;
+    bool insert_error = false;
     partition_t new_partition(nullptr);
     new_partition.status         = STATUS_PRIM;
     new_partition.order          = 1;
     new_partition.part_type_i386 = 0xee;
     new_partition.part_offset    = disk_car.sector_size;
     new_partition.part_size = disk_car.disk_size - new_partition.part_offset;
-    insert_new_partition(list_part_i386, new_partition, 0, &insert_error);
+    insert_new_partition(list_part_i386, new_partition, false, &insert_error);
   }
   arch_i386.write_part(disk_car, list_part_i386, 0, 0);
   return 0;

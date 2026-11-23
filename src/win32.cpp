@@ -470,7 +470,7 @@ static auto file_win32_pwrite_aux(disk_t &disk_car, const void *buf, const unsig
         if (ret)
             ret = dwByteRead;
     }
-    disk_car.write_used = 1;
+    disk_car.write_used = true;
     if (ret != (signed)count)
     {
         log_error("file_win32_pwrite({},{},buffer,{}({}/{}/{})) write err", (size_t)fd,

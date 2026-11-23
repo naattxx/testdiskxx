@@ -212,7 +212,7 @@ static auto cache_pwrite(disk_t &disk_car, const void *buffer, const unsigned in
             cache->cache_size = 0;
         }
     }
-    disk_car.write_used = 1;
+    disk_car.write_used = true;
     return data->disk_car->pwrite(*data->disk_car, buffer, count, offset);
 }
 
@@ -327,7 +327,7 @@ auto new_diskcache(disk_t &disk_car, const TESTDISK_O testdisk_mode) -> disk_t
     dup_geometry(&new_disk_car.geom, &disk_car.geom);
     new_disk_car.disk_size = disk_car.disk_size;
     new_disk_car.disk_real_size = disk_car.disk_real_size;
-    new_disk_car.write_used = 0;
+    new_disk_car.write_used = false;
     new_disk_car.data = data;
     new_disk_car.pread = &cache_pread;
     new_disk_car.pwrite = &cache_pwrite;

@@ -75,7 +75,7 @@ auto io_redir_add_redir(disk_t &disk_car, const uint64_t org_offset, const unsig
 #endif
         data->disk_car = &old_disk_car;
         data->list_redir = nullptr;
-        disk_car.write_used = 0;
+        disk_car.write_used = false;
         disk_car.data = data;
         disk_car.description = old_disk_car.description;
         disk_car.pwrite = old_disk_car.pwrite;

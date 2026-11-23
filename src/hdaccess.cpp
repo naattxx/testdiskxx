@@ -1535,7 +1535,7 @@ static auto file_pwrite_aux(disk_t &disk_car, const void *buf, const unsigned in
 #endif
         ret = write(fd, buf, count);
     }
-    disk_car.write_used = 1;
+    disk_car.write_used = true;
     if (std::cmp_not_equal(ret , count))
     {
         log_error("file_pwrite({},{},buffer,{}({}/{}/{})) write err {}", fd, (unsigned)(count / disk_car.sector_size),
@@ -1621,7 +1621,7 @@ void disk_t::autoset_geometry(const unsigned char *buffer, const int verbose) no
         geometry.sectors_per_head = 0;
         geometry.bytes_per_sector = 0;
         arch->get_geometry_from_mbr(buffer, verbose, &geometry);
-        autodetect = 1;
+        autodetect = true;
         if (geometry.heads_per_cylinder > 0 && geometry.heads_per_cylinder <= 255 && geometry.sectors_per_head > 0 &&
             geometry.sectors_per_head <= 63)
         {
@@ -1972,7 +1972,7 @@ auto file_test_availability(const char *device, const int verbose, TESTDISK_O te
 
 void disk_t::update_geometry()
 {
-    if (autodetect != 0)
+    if (autodetect)
     {
         auto *buffer = new unsigned char[sector_size];
         if (std::cmp_equal(pread(*this, buffer, sector_size, 0), sector_size))

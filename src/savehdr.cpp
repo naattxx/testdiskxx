@@ -161,8 +161,8 @@ auto partition_load(const disk_t &disk_car, const int verbose) noexcept -> backu
               break;
           }
           {
-              int _insert_error = 0;
-              insert_new_partition(new_backup->list_part, new_partition, 0, &_insert_error);
+              bool _insert_error = false;
+              insert_new_partition(new_backup->list_part, new_partition, false, &_insert_error);
           }
         }
         else {

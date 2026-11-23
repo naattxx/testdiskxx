@@ -193,7 +193,7 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
   {
     if (humaxlabel->partitions[i].num_sectors > 0)
     {
-      int insert_error = 0;
+      bool insert_error = false;
       partition_t new_partition(&arch_humax);
       new_partition.order           = i + 1;
       new_partition.part_type_humax = PHUMAX_PARTITION;
@@ -206,7 +206,7 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
       //       disk_car.arch->check_part(disk_car,verbose,new_partition,saveheader);
       aff_part_buffer(AFF_PART::ORDER | AFF_PART::STATUS, disk_car,
                       new_partition);
-      insert_new_partition(new_list_part, new_partition, 0, &insert_error);
+      insert_new_partition(new_list_part, new_partition, false, &insert_error);
     }
   }
   delete[] buffer;
@@ -274,10 +274,10 @@ void add_partition_humax_cli(const disk_t &disk_car, list_part_t &list_part,
     else if ((CHS2offset(disk_car, &end) > new_partition.part_offset) &&
              new_partition.part_type_humax > 0)
     {
-      int insert_error = 0;
-      insert_new_partition(list_part, new_partition, 0, &insert_error);
+      bool insert_error = false;
+      insert_new_partition(list_part, new_partition, false, &insert_error);
       /*@ assert valid_list_part(new_list_part); */
-      if (insert_error > 0)
+      if (insert_error)
       {
         /*@ assert valid_list_part(new_list_part); */
         return;
@@ -327,23 +327,23 @@ static void init_structure_humax(const disk_t &disk_car, list_part_t &list_part,
   list_part_t new_list_part;
   /* Create new list */
   for (partition_t &element : list_part)
-    element.to_be_removed = 0;
+    element.to_be_removed = false;
   for (auto element = list_part.begin(); element != list_part.end();
        element      = std::next(element))
   {
-    int insert_error = 0;
+    bool insert_error = false;
     for (auto element2 = std::next(element); element2 != list_part.end();
          element2      = std::next(element2))
     {
       if (element->part_offset + element->part_size - 1 >=
           element2->part_offset)
       {
-        element->to_be_removed  = 1;
-        element2->to_be_removed = 1;
+        element->to_be_removed  = true;
+        element2->to_be_removed = true;
       }
     }
-    if (element->to_be_removed == 0)
-      insert_new_partition(new_list_part, *element, 0, &insert_error);
+    if (!element->to_be_removed)
+      insert_new_partition(new_list_part, *element, false, &insert_error);
   }
   for (partition_t &element : new_list_part)
     element.status = STATUS_PRIM;

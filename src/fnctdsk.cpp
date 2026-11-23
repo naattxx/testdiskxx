@@ -131,9 +131,9 @@ void insert_new_disk(list_disk_t &list_disk, disk_t &disk)
     insert_new_disk_aux(list_disk, disk, nullptr);
 }
 
-void insert_new_partition(list_part_t &list_part, partition_t &new_partition, const int force_insert, int *insert_error)
+void insert_new_partition(list_part_t &list_part, partition_t &new_partition, const bool force_insert, bool *insert_error)
 {
-    *insert_error = 0;
+    *insert_error = false;
     /*@
       @ loop invariant valid_list_part(list_part);
       @ loop invariant valid_partition(part);
@@ -146,9 +146,9 @@ void insert_new_partition(list_part_t &list_part, partition_t &new_partition, co
             (new_partition.part_offset == next_part->part_offset &&
              ((new_partition.part_size < next_part->part_size) ||
               (new_partition.part_size == next_part->part_size &&
-               (force_insert == 0 || new_partition.sb_offset < next_part->sb_offset)))))
+               (force_insert || new_partition.sb_offset < next_part->sb_offset)))))
         {
-            if (force_insert == 0 && next_part != list_part.end() && (next_part->part_offset == new_partition.part_offset) &&
+            if (force_insert && next_part != list_part.end() && (next_part->part_offset == new_partition.part_offset) &&
                 (next_part->part_size == new_partition.part_size) && (next_part->part_type_i386 == new_partition.part_type_i386) &&
                 (next_part->part_type_mac == new_partition.part_type_mac) &&
                 (next_part->part_type_sun == new_partition.part_type_sun) &&
@@ -159,7 +159,7 @@ void insert_new_partition(list_part_t &list_part, partition_t &new_partition, co
                 {
                     next_part->status = new_partition.status;
                 }
-                *insert_error = 1;
+                *insert_error = true;
                 /*@ assert valid_list_part(list_part); */
                 return;
             }
@@ -173,7 +173,7 @@ void insert_new_partition(list_part_t &list_part, partition_t &new_partition, co
 
 auto delete_list_disk(list_disk_t& list_disk) -> int
 {
-    int write_used = 0;
+    bool write_used = false;
     /*@
       @ loop invariant valid_list_disk(element_disk);
       @*/
@@ -198,9 +198,9 @@ void sort_partition_list(list_part_t &list_part)
       @*/
     for (partition_t &element : list_part)
     {
-        int insert_error = 0;
+        bool insert_error;
         /*@ assert \valid(element); */
-        insert_new_partition(new_list_part, element, 0, &insert_error);
+        insert_new_partition(new_list_part, element, false, &insert_error);
     }
     /*@ assert valid_list_part(new_list_part); */
     list_part = new_list_part;
@@ -217,10 +217,10 @@ auto gen_sorted_partition_list(const list_part_t &list_part) -> list_part_t
     for (partition_t element : list_part)
     {
         /*@ assert \valid_read(element); */
-        int _insert_error = 0;
+        bool _insert_error;
 
         if (element.status != STATUS_DELETED)
-            insert_new_partition(new_list_part, element, 1, &_insert_error);
+            insert_new_partition(new_list_part, element, true, &_insert_error);
         /*@ assert \valid_read(element); */
     }
     /*@ assert valid_list_part(new_list_part); */

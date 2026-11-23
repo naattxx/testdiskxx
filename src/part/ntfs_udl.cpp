@@ -214,7 +214,7 @@ static auto verify_parent(const struct filename *name, MFT_RECORD *rec)
   ATTR_RECORD *attr30;
   FILE_NAME_ATTR *filename_attr = nullptr, *lowest_space_name = nullptr;
   ntfs_attr_search_ctx *ctx;
-  int found_same_space = 1;
+  bool found_same_space = true;
 
   if (!name || !rec)
     return nullptr;
@@ -247,7 +247,7 @@ static auto verify_parent(const struct filename *name, MFT_RECORD *rec)
   }
   if (filename_attr->file_name_type != name->name_space)
   {
-    found_same_space  = 0;
+    found_same_space  = false;
     lowest_space_name = filename_attr;
 
     while (!found_same_space && (attr30 = find_attribute(AT_FILE_NAME, ctx)))
@@ -258,7 +258,7 @@ static auto verify_parent(const struct filename *name, MFT_RECORD *rec)
 
       if (filename_attr->file_name_type == name->name_space)
       {
-        found_same_space = 1;
+        found_same_space = true;
       }
       else
       {
