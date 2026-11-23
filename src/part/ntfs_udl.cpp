@@ -25,12 +25,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "src/dir_common.hpp"
+#include "src/unicode.hpp"
 #include <algorithm>
+#include <array>
 #include <config.h>
 #include <cstdint>
 #include <expected>
 #include <filesystem>
 #include <format>
+#include <memory>
+#include <new>
+#include <span>
 #include <string>
 
 #ifdef DISABLED_FOR_FRAMAC
@@ -124,20 +129,20 @@ struct filename
   uint64_t size_alloc; /* Allocated size (multiple of cluster size) */
   uint64_t size_data;  /* Actual size of data */
   FILE_ATTR_FLAGS flags;
-  time_t date_c; /* Time created */
-  time_t date_a; /*	altered */
-  time_t date_m; /*	mft record changed */
-  time_t date_r; /*	read */
-  char *name;    /* Filename in current locale */
+  time_t date_c;    /* Time created */
+  time_t date_a;    /*	altered */
+  time_t date_m;    /*	mft record changed */
+  time_t date_r;    /*	read */
+  std::string name; /* Filename in current locale */
   FILE_NAME_TYPE_FLAGS name_space;
   uint64_t parent_mref;
-  char *parent_name;
+  std::string parent_name;
 };
 using filename_list_t = std::list<filename *>;
 
 struct data
 {
-  char *name;               /* Stream name in current locale */
+  std::string name;         /* Stream name in current locale */
   ntfschar *uname;          /* Unicode stream name */
   int uname_len;            /* and its length */
   int resident;             /* Stream is resident */
@@ -155,16 +160,16 @@ using data_list_t = std::list<data *>;
 
 struct ufile
 {
-  uint64_t inode;       /* MFT record number */
-  time_t date;          /* Last modification date/time */
-  filename_list_t name; /* A list of filenames */
-  data_list_t data;     /* A list of data streams */
-  char *pref_name;      /* Preferred filename */
-  char *pref_pname;     /*	     parent filename */
-  uint64_t max_size;    /* Largest size we find */
-  int attr_list;        /* MFT record may be one of many */
-  bool directory;       /* MFT record represents a directory */
-  MFT_RECORD *mft;      /* Raw MFT record */
+  uint64_t inode;         /* MFT record number */
+  time_t date;            /* Last modification date/time */
+  filename_list_t name;   /* A list of filenames */
+  data_list_t data;       /* A list of data streams */
+  std::string pref_name;  /* Preferred filename */
+  std::string pref_pname; /*	     parent filename */
+  uint64_t max_size;      /* Largest size we find */
+  int attr_list;          /* MFT record may be one of many */
+  bool directory;         /* MFT record represents a directory */
+  MFT_RECORD *mft;        /* Raw MFT record */
   ~ufile();
 };
 
@@ -181,14 +186,11 @@ ufile::~ufile()
 {
   for (filename *&f : name)
   { /* List of filenames */
-    delete f->name;
-    free(f->parent_name);
     delete f;
   }
 
   for (struct data *&d : data)
   { /* List of data streams */
-    delete d->name;
     free(d->runlist);
     delete d;
   }
@@ -295,7 +297,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
   }
   try
   {
-    rec = new MFT_RECORD;
+    rec = std::start_lifetime_as<MFT_RECORD>(new unsigned char[vol->mft_record_size]);
   }
   catch (...)
   {
@@ -308,7 +310,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
     uint64_t inode_num;
     int ok;
     inode_num         = MREF(name->parent_mref);
-    name->parent_name = nullptr;
+    name->parent_name.clear();
     do
     {
       FILE_NAME_ATTR *filename_attr;
@@ -321,35 +323,33 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
       }
       else if ((filename_attr = verify_parent(name, rec)))
       {
-        char *parent_name = nullptr;
-        if (ntfs_ucstombs(filename_attr->file_name,
-                          filename_attr->file_name_length, &parent_name, 0) < 0)
+        std::string parent_name;
+        if (filename_attr->file_name_length != 0 &&
+            UCSle2str(parent_name,
+                      std::span(reinterpret_cast<char16_t *>(
+                                    filename_attr->file_name
+                                ),
+                                filename_attr->file_name_length)) == 0)
         {
           log_error("ERROR: Couldn't translate filename to current locale.\n");
-          parent_name = nullptr;
+          parent_name.clear();
         }
         else
         {
-          if (name->parent_name == nullptr || parent_name == nullptr)
+          if (name->parent_name.empty() || parent_name.empty())
             name->parent_name = parent_name;
           else
           {
-            char *npn;
-            if (inode_num == 5 && strcmp(parent_name, ".") == 0)
+            if (inode_num == 5 && parent_name == ".")
             {
               /* root directory */
-              npn = new char[strlen(name->parent_name) + 2];
-              sprintf(npn, "/%s", name->parent_name);
+              name->parent_name = std::format("/{}", name->parent_name);
             }
             else
             {
-              npn =
-                  new char[strlen(parent_name) + strlen(name->parent_name) + 2];
-              sprintf(npn, "%s/%s", parent_name, name->parent_name);
+              name->parent_name =
+                  std::format("{}/{}", parent_name, name->parent_name);
             }
-            delete[] name->parent_name;
-            name->parent_name = npn;
-            delete parent_name;
           }
           if (static_cast<unsigned>(inode_num) !=
               MREF(filename_attr->parent_directory))
@@ -361,7 +361,7 @@ static void get_parent_name(struct filename *name, ntfs_volume *vol)
       }
     } while (ok);
   }
-  delete rec;
+  delete[] rec;
   ntfs_attr_close(mft_data);
 }
 
@@ -408,7 +408,7 @@ static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
 
     try
     {
-      name = new struct filename;
+      name = new struct filename();
     }
     catch (...)
     {
@@ -429,12 +429,14 @@ static auto get_filenames(struct ufile *file, ntfs_volume *vol) -> int
     name->date_m = td_ntfs2utc(attr->last_mft_change_time);
     name->date_r = td_ntfs2utc(attr->last_access_time);
 
-    if (ntfs_ucstombs(name->uname, name->uname_len, &name->name, 0) < 0)
+    if (name->uname_len != 0 &&
+        UCSle2str(name->name,
+                  std::span(reinterpret_cast<char16_t *>(name->uname),
+                            name->uname_len)) == 0)
     {
       log_error("ERROR: Couldn't translate filename to current locale.\n");
     }
 
-    name->parent_name = nullptr;
     name->parent_mref = attr->parent_directory;
     get_parent_name(name, vol);
 
@@ -488,10 +490,13 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
   while ((rec = find_attribute(AT_DATA, ctx)))
   {
     struct data *data;
-    data = static_cast<struct data *>(calloc(1, sizeof(*data)));
-    if (!data)
+    try
     {
-      log_error("ERROR: Couldn't allocate memory in get_data().\n");
+      data = new struct data();
+    }
+    catch (std::bad_alloc)
+    {
+      log_error("ERROR: Couldn't allocate memory in get_data().");
       count = -1;
       break;
     }
@@ -506,7 +511,10 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
                                                  le16_to_cpu(rec->name_offset));
       data->uname_len = rec->name_length;
 
-      if (ntfs_ucstombs(data->uname, data->uname_len, &data->name, 0) < 0)
+      if (data->uname_len != 0 &&
+          UCSle2str(data->name,
+                    std::span(reinterpret_cast<char16_t *>(data->uname),
+                              data->uname_len)) == 0)
       {
         log_error("ERROR: Cannot translate name into current locale.\n");
       }
@@ -670,7 +678,7 @@ static auto calc_percentage(struct ufile *file, ntfs_volume *vol)
     return 0;
   }
 
-  for (data *data : file->data)
+  for (data *&data : file->data)
   {
     runlist_element *rl = nullptr;
     uint64_t i;
@@ -950,24 +958,21 @@ auto undelete_file(ntfs_volume *vol, uint64_t inode, const std::filesystem::path
     goto free;
   }
 
-  for (data *d : file->data)
+  for (data *&d : file->data)
   {
     char pathname[256];
-    char defname[64];
-    char *name;
-    if (file->pref_name)
+    std::string name;
+    if (!file->pref_name.empty())
     {
       name = file->pref_name;
     }
     else
     {
-      sprintf(defname, "inode_%llu",
-              static_cast<long long unsigned>(file->inode));
-      name = defname;
+      name = std::format("inode_{}", file->inode);
     }
 
     // dir_data->local_dir;
-    create_pathname(dest.c_str(), file->pref_pname, name, d->name, pathname,
+    create_pathname(dest.c_str(), file->pref_pname.c_str(), name.c_str(), d->name.c_str(), pathname,
                     sizeof(pathname));
     if (d->resident)
     {
@@ -1169,19 +1174,13 @@ static auto ufile_to_file_data(const struct ufile *file, const struct data *d)
     -> file_info_t
 {
   file_info_t new_file;
-  char inode_name[32];
-  const unsigned int len =
-      (file->pref_pname == nullptr ? 0 : strlen(file->pref_pname)) +
-      (file->pref_name == nullptr ? sizeof(inode_name)
-                                  : strlen(file->pref_name) + 1) +
-      (d->name == nullptr ? 0 : strlen(d->name) + 1) + 1;
-  sprintf(inode_name, "inode_%llu",
-          static_cast<long long unsigned>(file->inode));
-  new_file.name = std::format("{}{}{}{}{}",
-          (file->pref_pname ? file->pref_pname : ""),
-          (file->pref_pname ? "/" : ""),
-          (file->pref_name ? file->pref_name : inode_name),
-          (d->name ? ":" : ""), (d->name ? d->name : ""));
+  std::string inode_name = std::format("inode_{}", file->inode);
+
+  new_file.name =
+      std::format("{}{}{}{}{}", file->pref_pname,
+                  (!file->pref_pname.empty() ? "/" : ""),
+                  (!file->pref_name.empty() ? file->pref_name : inode_name),
+                  (!d->name.empty() ? ":" : ""), d->name.empty());
   new_file.st_ino = file->inode;
   new_file.st_mode =
       (file->directory ? LINUX_S_IFDIR | LINUX_S_IRUGO | LINUX_S_IXUGO
@@ -1229,7 +1228,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
   }
   bmpsize = attr->initialized_size;
 
-  auto *buffer = new unsigned char[BUFSIZE];
+  std::array<unsigned char, BUFSIZE> buffer;
 
   nr_mft_records = vol->mft_na->initialized_size >> vol->mft_record_size_bits;
 
@@ -1265,11 +1264,19 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
         percent = calc_percentage(file, vol);
         if (percent > 0)
         {
-          for (const data *d : file->data)
+          for (data *&d : file->data)
           {
             file_info_t new_file = ufile_to_file_data(file, d);
-            dir_list.push_back(new_file);
-            results++;
+            try
+            {
+              dir_list.push_back(new_file);
+              results++;
+            }
+            catch (std::bad_alloc)
+            {
+              log_error("Out of memory. some files might not be displayed");
+              break;
+            }
           }
         }
         delete file;
@@ -1278,7 +1285,6 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
   }
 done:
   log_info("\nFiles with potentially recoverable content: {}\n", results);
-  delete[] buffer;
   ntfs_attr_close(attr);
   std::ranges::sort(dir_list, filesort);
 }
