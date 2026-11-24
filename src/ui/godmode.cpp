@@ -566,7 +566,7 @@ static void search_NTFS_from_backup(disk_t &disk_car, list_part_t &list_part,
       unsigned int i;
       for (i = 32; i > 0; i--)
       {
-        const uint64_t tmp = i * disk_car.sector_size;
+        const uint64_t tmp = static_cast<uint64_t>(i) * disk_car.sector_size;
         if (part.part_offset > tmp)
         {
           partition.reset(disk_car.arch);

@@ -3,7 +3,7 @@
 void disk_t::set_cylinders_from_size_up() noexcept
 {
   geom.cylinders=(disk_size / sector_size +
-      geom.sectors_per_head * geom.heads_per_cylinder - 1) /
+      static_cast<unsigned long>(geom.sectors_per_head) * geom.heads_per_cylinder - 1) /
     (geom.sectors_per_head * geom.heads_per_cylinder);
 }
 

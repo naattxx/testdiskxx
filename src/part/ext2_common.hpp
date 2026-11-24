@@ -32,7 +32,7 @@ constexpr unsigned EXT2_SUPERBLOCK_SIZE = 1024;
  * The second extended file system magic number
  */
 #define EXT2_SUPER_MAGIC 0xEF53u
-#define EXT2_MIN_BLOCK_SIZE 1024u
+#define EXT2_MIN_BLOCK_SIZE 1024z
 #define EXT2_MAX_BLOCK_SIZE 4096u
 #define EXT2_MIN_BLOCK_LOG_SIZE 10u
 

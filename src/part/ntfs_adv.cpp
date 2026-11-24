@@ -562,7 +562,7 @@ auto rebuild_NTFS_BS(disk_t &disk_car, partition_t &partition,
   wattroff(stdscr, A_REVERSE);
 #endif
   /* try to find MFT Backup first */
-  for (sector = (partition.part_size / disk_car.sector_size / 2 - 20 > 0
+  for (sector = (partition.part_size / disk_car.sector_size / 2 > 20
                      ? partition.part_size / disk_car.sector_size / 2 - 20
                      : 1);
        sector < partition.part_size / disk_car.sector_size &&

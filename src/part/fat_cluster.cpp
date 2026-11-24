@@ -123,10 +123,8 @@ auto find_sectors_per_cluster_aux(const sector_cluster_t *sector_cluster,
   unsigned int nbr_sol = 0;
   if (nbr_sector_cluster < 2)
     return 0;
-  cluster_offset = reinterpret_cast<cluster_offset_t *>(
-      new unsigned char[nbr_sector_cluster * nbr_sector_cluster *
-                        sizeof(cluster_offset_t)]
-  );
+  cluster_offset =
+      new cluster_offset_t[nbr_sector_cluster * nbr_sector_cluster]();
   log_info("find_sectors_per_cluster_aux\n");
   for (i = 0; i < nbr_sector_cluster - 1; i++)
   {
