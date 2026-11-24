@@ -1,4 +1,4 @@
-/* auto-generated on 2026-11-15 02:29:01 +0000. Do not edit! */
+/* auto-generated on 2026-11-24 00:38:05 +0000. Do not edit! */
 /* begin file include/simdutf.h */
 #ifndef SIMDUTF_H
 #define SIMDUTF_H
@@ -611,6 +611,20 @@
   #define simdutf_maybe_unused
 #endif
 
+#if SIMDUTF_CPLUSPLUS > 202302L && defined(__has_cpp_attribute)
+  #if __has_cpp_attribute(indeterminate)
+    #define simdutf_indeterminate [[indeterminate]]
+  #endif
+#endif
+#if !defined(simdutf_indeterminate) && defined(__has_attribute)
+  #if __has_attribute(uninitialized)
+    #define simdutf_indeterminate __attribute__((uninitialized))
+  #endif
+#endif
+#ifndef simdutf_indeterminate
+  #define simdutf_indeterminate
+#endif
+
 #endif // SIMDUTF_COMMON_DEFS_H
 /* end file include/simdutf/common_defs.h */
 /* begin file include/simdutf/encoding_types.h */
@@ -991,7 +1005,7 @@ SIMDUTF_DISABLE_UNDESIRED_WARNINGS
 #define SIMDUTF_SIMDUTF_VERSION_H
 
 /** The version of simdutf being used (major.minor.revision) */
-#define SIMDUTF_VERSION "9.4.0"
+#define SIMDUTF_VERSION "9.5.0"
 
 namespace simdutf {
 enum {
@@ -1002,7 +1016,7 @@ enum {
   /**
    * The minor version (major.MINOR.revision) of simdutf being used.
    */
-  SIMDUTF_VERSION_MINOR = 4,
+  SIMDUTF_VERSION_MINOR = 5,
   /**
    * The revision (major.minor.REVISION) of simdutf being used.
    */
@@ -5130,12 +5144,14 @@ simdutf_constexpr23 size_t maximal_subpart(InputPtr ptr, size_t n) noexcept {
 
 // WHATWG / Unicode substitution of maximal subparts. One U+FFFD per subpart.
 // `write == false` counts UTF-16 code units and does not store.
-template <endianness endian, bool write, typename InputPtr>
+template <endianness endian, bool write, bool record_error = false,
+          typename InputPtr>
 #if SIMDUTF_CPLUSPLUS20
   requires simdutf::detail::indexes_into_byte_like<InputPtr>
 #endif
-simdutf_constexpr23 size_t transcode_with_replacement(
-    InputPtr data, size_t len, char16_t *utf16_output) noexcept {
+simdutf_constexpr23 size_t
+transcode_with_replacement(InputPtr data, size_t len, char16_t *utf16_output,
+                           bool *saw_error = nullptr) noexcept {
   size_t i = 0;
   size_t written = 0;
   uint32_t cp = 0;
@@ -5143,6 +5159,9 @@ simdutf_constexpr23 size_t transcode_with_replacement(
   size_t seen = 0;
   uint8_t lo = 0x80;
   uint8_t hi = 0xBF;
+  if constexpr (!record_error) {
+    (void)saw_error;
+  }
   auto store = [&](uint32_t c) {
     if (c >= 0x10000) {
       c -= 0x10000;
@@ -5166,6 +5185,12 @@ simdutf_constexpr23 size_t transcode_with_replacement(
       written += 1;
     }
   };
+  auto replace = [&]() {
+    if constexpr (record_error) {
+      *saw_error = true;
+    }
+    store(0xFFFD);
+  };
   while (i < len) {
     if (needed == 0 && i + 16 <= len) {
 #if SIMDUTF_CPLUSPLUS23
@@ -5185,6 +5210,15 @@ simdutf_constexpr23 size_t transcode_with_replacement(
         }
       }
     }
+    if (needed == 0) {
+      while (i < len && uint8_t(static_cast<unsigned char>(data[i])) < 0x80) {
+        store(uint8_t(static_cast<unsigned char>(data[i])));
+        i++;
+      }
+      if (i == len) {
+        break;
+      }
+    }
     const uint8_t b = uint8_t(static_cast<unsigned char>(data[i]));
     if (needed == 0) {
       i++;
@@ -5194,7 +5228,7 @@ simdutf_constexpr23 size_t transcode_with_replacement(
         store(b);
       } else if (b <= 0xDF) {
         if (b < 0xC2) {
-          store(0xFFFD);
+          replace();
         } else {
           needed = 1;
           cp = b & 0x1F;
@@ -5216,7 +5250,7 @@ simdutf_constexpr23 size_t transcode_with_replacement(
         needed = 3;
         cp = b & 0x07;
       } else {
-        store(0xFFFD);
+        replace();
       }
       continue;
     }
@@ -5226,7 +5260,7 @@ simdutf_constexpr23 size_t transcode_with_replacement(
       cp = 0;
       lo = 0x80;
       hi = 0xBF;
-      store(0xFFFD);
+      replace();
       continue;
     }
     i++;
@@ -5242,7 +5276,7 @@ simdutf_constexpr23 size_t transcode_with_replacement(
     }
   }
   if (needed != 0) {
-    store(0xFFFD);
+    replace();
   }
   return written;
 }
@@ -5264,6 +5298,17 @@ simdutf_constexpr23 size_t count_with_replacement(InputPtr data,
                                                   size_t len) noexcept {
   return transcode_with_replacement<endianness::LITTLE, false>(data, len,
                                                                nullptr);
+}
+
+template <typename InputPtr>
+#if SIMDUTF_CPLUSPLUS20
+  requires simdutf::detail::indexes_into_byte_like<InputPtr>
+#endif
+simdutf_constexpr23 size_t count_with_replacement(InputPtr data, size_t len,
+                                                  bool &saw_error) noexcept {
+  saw_error = false;
+  return transcode_with_replacement<endianness::LITTLE, false, true>(
+      data, len, nullptr, &saw_error);
 }
 
 template <typename InputPtr>
@@ -6818,7 +6863,13 @@ convert_valid_utf8_to_utf16be(
  * in UTF-16LE format.
  *
  * This function does not validate the input. It is acceptable to pass invalid
- * UTF-8 strings but in such cases the result is implementation defined.
+ * UTF-8 strings. The result is then implementation defined, but it remains a
+ * safe buffer size: convert_utf8_to_utf16, convert_utf8_to_utf16le,
+ * convert_utf8_to_utf16be and their _with_errors variants never write more
+ * char16_t than this function returns, even when they reject the input. To
+ * transcode invalid input instead of rejecting it, use
+ * utf16_length_from_utf8_with_replacement and
+ * convert_utf8_to_utf16_with_replacement.
  *
  * This function is not BOM-aware.
  *
@@ -7468,7 +7519,10 @@ convert_valid_utf16be_to_utf8(
  * string would require in UTF-8 format.
  *
  * This function does not validate the input. It is acceptable to pass invalid
- * UTF-16 strings but in such cases the result is implementation defined.
+ * UTF-16 strings. The result is then implementation defined, but it remains a
+ * safe buffer size: convert_utf16_to_utf8 and convert_utf16_to_utf8_with_errors
+ * never write more bytes than this function returns, even when they reject
+ * the input.
  *
  * @param input         the UTF-16 string to convert
  * @param length        the length of the string in 2-byte code units (char16_t)
@@ -7534,7 +7588,10 @@ utf8_length_from_utf16_with_replacement(
  * format.
  *
  * This function does not validate the input. It is acceptable to pass invalid
- * UTF-16 strings but in such cases the result is implementation defined.
+ * UTF-16 strings. The result is then implementation defined, but it remains a
+ * safe buffer size: convert_utf16le_to_utf8 and
+ * convert_utf16le_to_utf8_with_errors never write more bytes than this function
+ * returns, even when they reject the input.
  *
  * @param input         the UTF-16LE string to convert
  * @param length        the length of the string in 2-byte code units (char16_t)
@@ -7563,7 +7620,10 @@ utf8_length_from_utf16le(std::span<const char16_t> valid_utf16_input) noexcept {
  * format.
  *
  * This function does not validate the input. It is acceptable to pass invalid
- * UTF-16 strings but in such cases the result is implementation defined.
+ * UTF-16 strings. The result is then implementation defined, but it remains a
+ * safe buffer size: convert_utf16be_to_utf8 and
+ * convert_utf16be_to_utf8_with_errors never write more bytes than this function
+ * returns, even when they reject the input.
  *
  * @param input         the UTF-16BE string to convert
  * @param length        the length of the string in 2-byte code units (char16_t)
@@ -8115,7 +8175,7 @@ public:
    * @param utf16_output  the pointer to buffer that can hold conversion result
    * @return a result pair struct (of type simdutf::result containing the two
    * fields error and count) with an error code and either position of the error
-   * (in the input in code units) if any, or the number of code units validated
+   * (in the input in code units) if any, or the number of char16_t written
    * if successful.
    */
   simdutf_warn_unused virtual result convert_utf8_to_utf16le_with_errors(
@@ -8134,7 +8194,7 @@ public:
    * @param utf16_output  the pointer to buffer that can hold conversion result
    * @return a result pair struct (of type simdutf::result containing the two
    * fields error and count) with an error code and either position of the error
-   * (in the input in code units) if any, or the number of code units validated
+   * (in the input in code units) if any, or the number of char16_t written
    * if successful.
    */
   simdutf_warn_unused virtual result convert_utf8_to_utf16be_with_errors(
@@ -8217,7 +8277,9 @@ public:
    * require in UTF-16LE format.
    *
    * This function does not validate the input. It is acceptable to pass invalid
-   * UTF-8 strings but in such cases the result is implementation defined.
+   * UTF-8 strings. The result is then implementation defined, but it remains a
+   * safe buffer size for convert_utf8_to_utf16le, convert_utf8_to_utf16be and
+   * their _with_errors variants, even when they reject the input.
    *
    * @param input         the UTF-8 string to process
    * @param length        the length of the string in bytes
@@ -8388,7 +8450,10 @@ public:
    * UTF-8 format.
    *
    * This function does not validate the input. It is acceptable to pass invalid
-   * UTF-16 strings but in such cases the result is implementation defined.
+   * UTF-16 strings. The result is then implementation defined, but it remains a
+   * safe buffer size: convert_utf16le_to_utf8 and
+   * convert_utf16le_to_utf8_with_errors never write more bytes than this
+   * function returns, even when they reject the input.
    *
    * This function is not BOM-aware.
    *
@@ -8406,7 +8471,10 @@ public:
    * UTF-8 format.
    *
    * This function does not validate the input. It is acceptable to pass invalid
-   * UTF-16 strings but in such cases the result is implementation defined.
+   * UTF-16 strings. The result is then implementation defined, but it remains a
+   * safe buffer size: convert_utf16be_to_utf8 and
+   * convert_utf16be_to_utf8_with_errors never write more bytes than this
+   * function returns, even when they reject the input.
    *
    * This function is not BOM-aware.
    *
