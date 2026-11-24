@@ -1127,7 +1127,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
             f.open(name_buf);
             if (f.is_open())
             {
-                f >> dev.model;
+                std::getline(f, dev.model);
                 f.close();
             }
             else f.clear();
@@ -1139,7 +1139,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
             f.open(name_buf);
             if (f.is_open())
             {
-                f >> dev.serial_no;
+                std::getline(f, dev.serial_no);
                 f.close();
             }
             else f.clear();
@@ -1151,7 +1151,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
             f.open(name_buf);
             if (f.is_open())
             {
-                f >> dev.fw_rev;
+                std::getline(f, dev.fw_rev);
                 f.close();
             }
         }
