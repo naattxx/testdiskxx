@@ -489,7 +489,7 @@ static auto get_data(struct ufile *file, const ntfs_volume *vol) -> int
     {
       data = new struct data();
     }
-    catch (std::bad_alloc)
+    catch (std::bad_alloc&)
     {
       log_error("ERROR: Couldn't allocate memory in get_data().");
       count = -1;
@@ -1242,7 +1242,7 @@ static void scan_disk(ntfs_volume *vol, dir_list_t &dir_list)
               dir_list.push_back(new_file);
               results++;
             }
-            catch (std::bad_alloc)
+            catch (std::bad_alloc&)
             {
               log_error("Out of memory. some files might not be displayed");
               break;
