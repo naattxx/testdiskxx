@@ -46,7 +46,7 @@ struct cache_buffer_struct
 
 struct cache_struct
 {
-    disk_t *disk_car;
+    disk_t disk_car;
     struct cache_buffer_struct cache[CACHE_BUFFER_NBR];
 #ifdef DEBUG_CACHE
     uint64_t nbr_fnct_sect;
@@ -121,7 +121,7 @@ static auto cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int c
     {
         struct cache_buffer_struct *cache;
         const unsigned int count_new = (read_ahead != 0 && count < data->cache_size_min &&
-                                                (offset + data->cache_size_min < data->disk_car->disk_real_size)
+                                                (offset + data->cache_size_min < data->disk_car.disk_real_size)
                                             ? data->cache_size_min
                                             : count);
         data->cache_buffer_nbr = (data->cache_buffer_nbr + 1) % CACHE_BUFFER_NBR;
@@ -138,7 +138,7 @@ static auto cache_pread_aux(disk_t &disk_car, void *buffer, const unsigned int c
         }
         cache->cache_size = count_new;
         cache->cache_offset = offset;
-        cache->cache_status = data->disk_car->pread(*data->disk_car, cache->buffer, count_new, offset);
+        cache->cache_status = data->disk_car.pread(data->disk_car, cache->buffer, count_new, offset);
 #ifdef DEBUG_CACHE
         data->nbr_fnct_sect += count;
         data->nbr_pread_call++;
@@ -213,7 +213,7 @@ static auto cache_pwrite(disk_t &disk_car, const void *buffer, const unsigned in
         }
     }
     disk_car.write_used = true;
-    return data->disk_car->pwrite(*data->disk_car, buffer, count, offset);
+    return data->disk_car.pwrite(data->disk_car, buffer, count, offset);
 }
 
 /*@
@@ -223,7 +223,7 @@ static auto cache_pwrite(disk_t &disk_car, const void *buffer, const unsigned in
   @*/
 static void cache_clean(disk_t &disk_car)
 {
-    if (disk_car.data)
+    if (disk_car.data != nullptr)
     {
         auto *data = static_cast<struct cache_struct *>(disk_car.data);
         unsigned int i;
@@ -233,13 +233,13 @@ static void cache_clean(disk_t &disk_car)
                  (long long unsigned)data->nbr_fnct_sect, data->nbr_pread_call,
                  (long long unsigned)data->nbr_pread_sect);
 #endif
-        data->disk_car->clean(*data->disk_car);
+        data->disk_car.clean(data->disk_car);
         for (i = 0; i < CACHE_BUFFER_NBR; i++)
         {
             struct cache_buffer_struct *cache = &data->cache[i];
-            delete cache->buffer;
+            delete[] cache->buffer;
         }
-        delete static_cast<struct cache_struct *>(disk_car.data);
+        delete data;
         disk_car.data = nullptr;
     }
 }
@@ -251,7 +251,7 @@ static void cache_clean(disk_t &disk_car)
 static auto cache_sync(disk_t &disk_car) -> int
 {
     auto *data = static_cast<struct cache_struct *>(disk_car.data);
-    return data->disk_car->sync(*data->disk_car);
+    return data->disk_car.sync(data->disk_car);
 }
 
 /*@
@@ -280,9 +280,9 @@ static auto cache_description(disk_t &disk_car) -> std::string_view
 {
     std::string_view tmp;
     auto *data = static_cast<struct cache_struct *>(disk_car.data);
-    dup_geometry(&data->disk_car->geom, &disk_car.geom);
-    data->disk_car->disk_size = disk_car.disk_size;
-    tmp = data->disk_car->description(*data->disk_car);
+    dup_geometry(&data->disk_car.geom, &disk_car.geom);
+    data->disk_car.disk_size = disk_car.disk_size;
+    tmp = data->disk_car.description(data->disk_car);
     /*@ assert valid_read_string(tmp); */
     return tmp;
 }
@@ -297,9 +297,9 @@ static auto cache_description_short(disk_t &disk_car) -> std::string_view
 {
     std::string_view tmp;
     auto *data = static_cast<struct cache_struct *>(disk_car.data);
-    dup_geometry(&data->disk_car->geom, &disk_car.geom);
-    data->disk_car->disk_size = disk_car.disk_size;
-    tmp = data->disk_car->description_short(*data->disk_car);
+    dup_geometry(&data->disk_car.geom, &disk_car.geom);
+    data->disk_car.disk_size = disk_car.disk_size;
+    tmp = data->disk_car.description_short(data->disk_car);
     /*@ assert valid_read_string(tmp); */
     return tmp;
 }
@@ -309,7 +309,7 @@ auto new_diskcache(disk_t &disk_car, const TESTDISK_O testdisk_mode) -> disk_t
     unsigned int i;
     auto *data = new struct cache_struct;
     disk_t new_disk_car = disk_car;
-    data->disk_car = new disk_t(disk_car);
+    data->disk_car = disk_t(disk_car);
 #ifdef DEBUG_CACHE
     data->nbr_fnct_sect = 0;
     data->nbr_pread_sect = 0;

@@ -289,5 +289,6 @@ auto main(int argc, char **argv) -> int
 
     testdisk_disk_selection(app, verbose, dump, list_disk,save_header);
 
+    delete_list_disk(list_disk);
     return 0;
 }
