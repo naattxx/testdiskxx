@@ -45,6 +45,7 @@
 #include "exfat.hpp"
 #include "exfat_dir.hpp"
 #include "fat.hpp"
+#include "fat_common.hpp"
 #include "src/common.hpp"
 #include "src/dir.hpp"
 #include "src/intrf.hpp"
@@ -185,12 +186,6 @@ static auto makeutf8(char *utf8, const char *utf16, int length) -> unsigned int
   return (state == ERR ? 0 : size);
 }
 #endif
-
-#define ATTR_RO 1     /* read-only */
-#define ATTR_HIDDEN 2 /* hidden */
-#define ATTR_SYS 4    /* system */
-#define ATTR_DIR 16   /* directory */
-#define ATTR_ARCH 32  /* archived */
 
 static auto exfat_get_next_cluster(disk_t &disk_car,
                                    const partition_t &partition,
@@ -349,10 +344,13 @@ auto exfat_dir_struct::get_dir(disk_t &disk, const partition_t &partition,
   while (!is_EOC(cluster) && cluster >= 2 && nbr_cluster < NBR_CLUSTER_MAX &&
          stop == 0)
   {
-    if (exfat_read_cluster(disk, partition, exfat_header,
-                           buffer_dir + (static_cast<uint64_t>(nbr_cluster)
-                                         << cluster_shift),
-                           cluster) != (1u << cluster_shift))
+    if (std::cmp_not_equal(
+            exfat_read_cluster(disk, partition, exfat_header,
+                               buffer_dir + (static_cast<uint64_t>(nbr_cluster)
+                                             << cluster_shift),
+                               cluster),
+            1u << cluster_shift
+        ))
     {
       log_error("exFAT: Can't read directory cluster.\n");
       stop = 1;
