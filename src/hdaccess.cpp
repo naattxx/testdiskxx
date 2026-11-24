@@ -1127,11 +1127,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
             f.open(name_buf);
             if (f.is_open())
             {
-                char tmp[41];
-                if (!f.get(tmp, 40).bad())
-                {
-                    dev.model = strip_dup(tmp);
-                }
+                f >> dev.model;
                 f.close();
             }
             else f.clear();
@@ -1143,11 +1139,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
             f.open(name_buf);
             if (f.is_open())
             {
-                char tmp[41];
-                if (!f.get(tmp, 40).bad())
-                {
-                    dev.serial_no = strip_dup(tmp);
-                }
+                f >> dev.serial_no;
                 f.close();
             }
             else f.clear();
@@ -1159,11 +1151,7 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
             f.open(name_buf);
             if (f.is_open())
             {
-                char tmp[41];
-                if (!f.get(tmp, 40).bad())
-                {
-                    dev.fw_rev = strip_dup(tmp);
-                }
+                f >> dev.fw_rev;
                 f.close();
             }
         }
@@ -1176,24 +1164,17 @@ static void disk_get_model(const int hd_h, disk_t &dev, [[maybe_unused]] const u
         struct hd_driveid hdi {};
         if (ioctl(hd_h, HDIO_GET_IDENTITY, &hdi) == 0)
         {
-            char tmp[41];
             if (dev.model.empty())
             {
-                memcpy(tmp, hdi.model, 40);
-                tmp[40] = '\0';
-                dev.model = strip_dup(tmp);
+                dev.model = reinterpret_cast<char*>(hdi.model);
             }
             if (dev.serial_no.empty())
             {
-                memcpy(tmp, hdi.serial_no, 20);
-                tmp[20] = '\0';
-                dev.serial_no = strip_dup(tmp);
+                dev.serial_no = reinterpret_cast<char*>(hdi.serial_no);
             }
             if (dev.fw_rev.empty())
             {
-                memcpy(tmp, hdi.fw_rev, 8);
-                tmp[8] = '\0';
-                dev.fw_rev = strip_dup(tmp);
+                dev.fw_rev = reinterpret_cast<char*>(hdi.fw_rev);
             }
         }
     }
