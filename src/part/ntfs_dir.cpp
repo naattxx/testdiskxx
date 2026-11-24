@@ -274,7 +274,7 @@ static auto ntfs_td_list_entry(struct ntfs_dir_struct *ls, ntfschar *name,
       {
         char *stream_name = nullptr;
         new_file.status   = file_status{.ads=true};
-        new_file.name     = new char[MAX_PATH];
+        new_file.name.resize(MAX_PATH);
         if (ntfs_ucstombs(
                 reinterpret_cast<ntfschar *>(reinterpret_cast<char *>(rec) +
                                              le16_to_cpu(rec->name_offset)),

@@ -250,7 +250,7 @@ static auto dir_exfat_aux(const unsigned char *buffer, const unsigned int size,
           std::start_lifetime_as<struct exfat_file_entry>(&buffer[offset]);
       file_info_t new_file;
       sec_count        = entry->sec_count;
-      new_file.name    = new char[512];
+      new_file.name.resize(512);
       new_file.name[0] = 0;
       new_file.st_ino  = 0;
       new_file.st_mode =
