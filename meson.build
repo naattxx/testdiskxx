@@ -24,6 +24,10 @@ conf_data.set('_ARM64_', target_machine.cpu_family() == 'aarch64')
 
 conf_data.set('TESTDISK_LSB', host_machine.endian() == 'little')
 conf_data.set(
+  'HAVE_CHMOD',
+  compiler.has_function('chmod', prefix: '#include <sys/stat.h>'),
+)
+conf_data.set(
   'HAVE_LSTAT',
   compiler.has_function('lstat', prefix: '#include <sys/stat.h>'),
 )
