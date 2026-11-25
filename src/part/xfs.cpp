@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <config.h>
 
 #include <cstddef>
@@ -106,21 +107,18 @@ static auto test_xfs(const disk_t &disk_car, const struct xfs_sb *sb,
 auto check_xfs(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[XFS_SUPERBLOCK_SIZE];
-  if (disk_car.pread(disk_car, buffer, XFS_SUPERBLOCK_SIZE,
+  std::array<unsigned char, XFS_SUPERBLOCK_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), XFS_SUPERBLOCK_SIZE,
                      partition.part_offset) != XFS_SUPERBLOCK_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_xfs(disk_car, std::start_lifetime_as<struct xfs_sb>(buffer), partition,
+  if (test_xfs(disk_car, std::start_lifetime_as<struct xfs_sb>(buffer.data()), partition,
                verbose) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_xfs_info(std::start_lifetime_as<struct xfs_sb>(buffer), partition);
-  delete[] buffer;
+  set_xfs_info(std::start_lifetime_as<struct xfs_sb>(buffer.data()), partition);
   return 0;
 }
 

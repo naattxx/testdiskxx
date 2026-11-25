@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
@@ -56,23 +57,19 @@ static auto test_gfs2(const disk_t &disk, const struct gfs2_sb *sb,
 
 auto check_gfs2(disk_t &disk, partition_t &partition) -> int
 {
-  unsigned char *buffer;
-  buffer = new unsigned char[512];
-  if (disk.pread(disk, buffer, 512,
+  std::array<unsigned char, 512> buffer;
+  if (disk.pread(disk, buffer.data(), 512,
                  partition.part_offset +
                      (GFS2_SB_ADDR << GFS2_BASIC_BLOCK_SHIFT)) != 512)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_gfs2(disk, std::start_lifetime_as<struct gfs2_sb>(buffer),
+  if (test_gfs2(disk, std::start_lifetime_as<struct gfs2_sb>(buffer.data()),
                 partition, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
   set_gfs2_info(partition);
-  delete[] buffer;
   return 0;
 }
 

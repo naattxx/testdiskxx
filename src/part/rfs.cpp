@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <config.h>
 
 #include <cstddef>
@@ -56,32 +57,28 @@ static void set_rfs4_info(const struct reiser4_master_sb *sb4,
 auto check_rfs(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[REISERFS_SUPER_BLOCK_SIZE];
-  if (disk_car.pread(disk_car, buffer, REISERFS_SUPER_BLOCK_SIZE,
+  std::array<unsigned char, REISERFS_SUPER_BLOCK_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), REISERFS_SUPER_BLOCK_SIZE,
                      partition.part_offset + 128 * 512) !=
       REISERFS_SUPER_BLOCK_SIZE) /* 64k offset */
   {
-    delete[] buffer;
     return 1;
   }
   if (test_rfs(disk_car,
-               std::start_lifetime_as<struct reiserfs_super_block>(buffer),
+               std::start_lifetime_as<struct reiserfs_super_block>(buffer.data()),
                partition, verbose) == 0)
   {
-    set_rfs_info(std::start_lifetime_as<struct reiserfs_super_block>(buffer),
+    set_rfs_info(std::start_lifetime_as<struct reiserfs_super_block>(buffer.data()),
                  partition);
-    delete[] buffer;
     return 0;
   }
-  if (test_rfs4(disk_car, std::start_lifetime_as<struct reiser4_master_sb>(buffer),
+  if (test_rfs4(disk_car, std::start_lifetime_as<struct reiser4_master_sb>(buffer.data()),
                 partition, verbose) == 0)
   {
-    set_rfs4_info(std::start_lifetime_as<struct reiser4_master_sb>(buffer),
+    set_rfs4_info(std::start_lifetime_as<struct reiser4_master_sb>(buffer.data()),
                   partition);
-    delete[] buffer;
     return 0;
   }
-  delete[] buffer;
   return 1;
 }
 

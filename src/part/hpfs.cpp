@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 #include "fat.hpp"
 #include "fat_common.hpp"
 #include "hpfs.hpp"
@@ -91,18 +92,17 @@ auto recover_HPFS(const disk_t &disk_car,
 auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[disk_car.sector_size];
-  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
+  std::vector<unsigned char> buffer(disk_car.sector_size);
+  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer.data(), disk_car.sector_size,
                                         partition.part_offset),
                          disk_car.sector_size))
   {
     screen_buffer_add("check_HPFS: Read error\n");
     log_error("check_HPFS: Read error\n");
-    delete[] buffer;
     return 1;
   }
   if (test_HPFS(disk_car,
-                std::start_lifetime_as<struct fat_boot_sector>(buffer),
+                std::start_lifetime_as<struct fat_boot_sector>(buffer.data()),
                 partition, verbose, false) != 0)
   {
     if (verbose > 0)
@@ -110,10 +110,8 @@ auto check_HPFS(disk_t &disk_car, partition_t &partition, const int verbose)
       log_info("\n\ntest_HPFS()\n");
       log_partition(disk_car, partition);
     }
-    delete[] buffer;
     return 1;
   }
   set_HPFS_info(partition);
-  delete[] buffer;
   return 0;
 }

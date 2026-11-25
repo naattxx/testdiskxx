@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 #include <fstream>
 #include <iostream>
@@ -26,6 +27,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #ifdef DISABLED_FOR_FRAMAC
 #undef HAVE_FSYNC
@@ -1241,11 +1243,11 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
   /* This function can failed if there are bad sectors */
   uint64_t min_offset;
   uint64_t max_offset;
-  char *buffer = new char[sector_size];
+  std::vector<char> buffer(sector_size);
   min_offset   = 0;
   max_offset   = sector_size;
   /* Search the maximum device size */
-  while (pread(hd_h, buffer, sector_size, max_offset) == sector_size)
+  while (pread(hd_h, buffer.data(), sector_size, max_offset) == sector_size)
   {
     min_offset = max_offset;
     max_offset *= 2;
@@ -1255,7 +1257,7 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
   {
     uint64_t cur_offset;
     cur_offset = (min_offset + max_offset) / 2 / sector_size * sector_size;
-    if (pread(hd_h, buffer, sector_size, cur_offset) == sector_size)
+    if (pread(hd_h, buffer.data(), sector_size, cur_offset) == sector_size)
       min_offset = cur_offset + sector_size;
     else
     {
@@ -1265,9 +1267,8 @@ static auto compute_device_size(const int hd_h, const char *device, const int ve
         break;
     }
   }
-  if (pread(hd_h, buffer, sector_size, min_offset) == sector_size)
+  if (pread(hd_h, buffer.data(), sector_size, min_offset) == sector_size)
     min_offset += sector_size;
-  delete[] buffer;
   if (verbose > 1)
   {
     // log_verbose("file_test_availability compute_device_size {} size {}\n",
@@ -1839,7 +1840,6 @@ auto file_test_availability(const char *device, const int verbose, TESTDISK_O te
     else
 #endif
     {
-        unsigned char *buffer;
         const struct tdewf_file_header *ewf;
         const uint8_t evf_file_signature[8] = {'E', 'V', 'F', 0x09, 0x0D, 0x0A, 0xFF, 0x00};
         const struct dosemu_image_header *hdr;
@@ -1847,17 +1847,17 @@ auto file_test_availability(const char *device, const int verbose, TESTDISK_O te
         log_debug("file_test_availability {} is a file", device);
 #endif
         disk_car.sector_size = DEFAULT_SECTOR_SIZE;
-        buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-        ewf = std::start_lifetime_as<struct tdewf_file_header>(buffer);
-        if (read(hd_h, buffer, DEFAULT_SECTOR_SIZE) != DEFAULT_SECTOR_SIZE)
+        std::array<unsigned char, DEFAULT_SECTOR_SIZE> buffer;
+        ewf = std::start_lifetime_as<struct tdewf_file_header>(buffer.data());
+        if (read(hd_h, buffer.data(), DEFAULT_SECTOR_SIZE) != DEFAULT_SECTOR_SIZE)
         {
-            memset(buffer, 0, DEFAULT_SECTOR_SIZE);
+            buffer.fill(0);
         }
 #ifdef __FRAMAC__
         Frama_C_make_unknown((char *)buffer, DEFAULT_SECTOR_SIZE);
 #endif
 #ifndef DISABLED_FOR_FRAMAC
-        hdr = std::start_lifetime_as<struct dosemu_image_header>(buffer);
+        hdr = std::start_lifetime_as<struct dosemu_image_header>(buffer.data());
         if (is_dosemu_image(hdr))
         {
             log_info("{} DOSEMU", device);
@@ -1871,9 +1871,8 @@ auto file_test_availability(const char *device, const int verbose, TESTDISK_O te
                                        disk_car.geom.sectors_per_head * disk_car.sector_size;
             disk_car.offset = to_little_endian(hdr->header_end);
         }
-        else if (memcmp(buffer, evf_file_signature, 8) == 0 && to_little_endian(ewf->fields_segment) == 1)
+        else if (memcmp(buffer.data(), evf_file_signature, 8) == 0 && to_little_endian(ewf->fields_segment) == 1)
         {
-          delete[] buffer;
           delete data;
           close(hd_h);
 #if __has_include(<libewf.h>) && defined(HAVE_LIBEWF)
@@ -1909,10 +1908,9 @@ auto file_test_availability(const char *device, const int verbose, TESTDISK_O te
                     disk_car.disk_real_size = 0;
             }
 #ifndef DISABLED_FOR_FRAMAC
-            disk_car.autoset_geometry(buffer, verbose);
+            disk_car.autoset_geometry(buffer.data(), verbose);
 #endif
         }
-        delete[] buffer;
     }
     disk_car.update_fields();
     if (disk_car.disk_real_size != 0)
@@ -1955,13 +1953,12 @@ void disk_t::update_geometry()
 {
     if (autodetect)
     {
-        auto *buffer = new unsigned char[sector_size];
-        if (std::cmp_equal(pread(*this, buffer, sector_size, 0), sector_size))
+        std::vector<unsigned char> buffer(sector_size);
+        if (std::cmp_equal(pread(*this, buffer.data(), sector_size, 0), sector_size))
         {
             log_trace("autoset_geometry");
-            autoset_geometry(buffer, 1);
+            autoset_geometry(buffer.data(), 1);
         }
-        delete[] buffer;
     }
 #ifdef DJGPP
     if (description == disk_description)

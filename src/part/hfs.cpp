@@ -20,6 +20,7 @@
 
  */
 #include <algorithm>
+#include <array>
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
@@ -35,21 +36,18 @@ static void set_HFS_info(partition_t &partition, const hfs_mdb_t *hfs_mdb);
 auto check_HFS(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[HFS_SUPERBLOCK_SIZE];
-  if (disk_car.pread(disk_car, buffer, HFS_SUPERBLOCK_SIZE,
+  std::array<unsigned char, HFS_SUPERBLOCK_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), HFS_SUPERBLOCK_SIZE,
                      partition.part_offset + 0x400) != HFS_SUPERBLOCK_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_HFS(disk_car, reinterpret_cast<hfs_mdb_t *>(buffer), partition,
+  if (test_HFS(disk_car, reinterpret_cast<hfs_mdb_t *>(buffer.data()), partition,
                verbose, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_HFS_info(partition, reinterpret_cast<hfs_mdb_t *>(buffer));
-  delete[] buffer;
+  set_HFS_info(partition, reinterpret_cast<hfs_mdb_t *>(buffer.data()));
   return 0;
 }
 

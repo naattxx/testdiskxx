@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 
 #include <cstdio>
@@ -36,20 +37,17 @@ static auto test_Linux_SWAP(const union swap_header *swap_header) -> int;
 
 auto check_Linux_SWAP(disk_t &disk_car, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[MAX_PAGE_SIZE];
-  if (disk_car.pread(disk_car, buffer, MAX_PAGE_SIZE, partition.part_offset) !=
+  std::array<unsigned char, MAX_PAGE_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), MAX_PAGE_SIZE, partition.part_offset) !=
       MAX_PAGE_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_Linux_SWAP(reinterpret_cast<union swap_header *>(buffer)) != 0)
+  if (test_Linux_SWAP(reinterpret_cast<union swap_header *>(buffer.data())) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_Linux_SWAP_info(reinterpret_cast<union swap_header *>(buffer), partition);
-  delete[] buffer;
+  set_Linux_SWAP_info(reinterpret_cast<union swap_header *>(buffer.data()), partition);
   return 0;
 }
 

@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 #include <cstddef>
 #include <cstdio>
@@ -76,21 +77,18 @@ static auto test_JFS(const disk_t &disk_car, const struct jfs_superblock *sb,
 
 auto check_JFS(disk_t &disk_car, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[JFS_SUPERBLOCK_SIZE];
-  if (disk_car.pread(disk_car, buffer, JFS_SUPERBLOCK_SIZE,
+  std::array<unsigned char, JFS_SUPERBLOCK_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), JFS_SUPERBLOCK_SIZE,
                      partition.part_offset + 64 * 512) != JFS_SUPERBLOCK_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_JFS(disk_car, std::start_lifetime_as<struct jfs_superblock>(buffer),
+  if (test_JFS(disk_car, std::start_lifetime_as<struct jfs_superblock>(buffer.data()),
                partition, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_JFS_info(std::start_lifetime_as<struct jfs_superblock>(buffer), partition);
-  delete[] buffer;
+  set_JFS_info(std::start_lifetime_as<struct jfs_superblock>(buffer.data()), partition);
   return 0;
 }
 

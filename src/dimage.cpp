@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <string_view>
+#include <vector>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -62,38 +63,33 @@ static void disk_image_backward(int disk_dst, disk_t &disk,
                                 uint64_t dst_offset)
 {
   uint64_t src_offset;
-  auto *buffer = new unsigned char[disk.sector_size];
+  std::vector<unsigned char> buffer(disk.sector_size);
   for (src_offset = src_offset_end - disk.sector_size;
        src_offset > src_offset_start;
        src_offset -= disk.sector_size, dst_offset -= disk.sector_size)
   {
     const ssize_t pread_res =
-        disk.pread(disk, buffer, disk.sector_size, src_offset);
+        disk.pread(disk, buffer.data(), disk.sector_size, src_offset);
     if (std::cmp_not_equal(pread_res, disk.sector_size))
     {
-      delete[] buffer;
       return;
     }
 #ifdef HAVE_PWRITE
-    if (pwrite(disk_dst, buffer, pread_res, src_offset) < 0)
+    if (pwrite(disk_dst, buffer.data(), pread_res, src_offset) < 0)
     {
-      delete[] buffer;
       return;
     }
 #else
     if (lseek(disk_dst, src_offset, SEEK_SET) < 0)
     {
-      delete[] buffer;
       return;
     }
-    if (write(disk_dst, buffer, pread_res) != pread_res)
+    if (write(disk_dst, buffer.data(), pread_res) != pread_res)
     {
-      delete[] buffer;
       return;
     }
 #endif
   }
-  delete[] buffer;
 }
 
 auto disk_image(disk_t &disk, const partition_t &partition,

@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 #include <cstddef>
 #include <cstdio>
@@ -61,21 +62,18 @@ static auto test_LUKS(const disk_t &disk_car, const struct luks_phdr *sb,
 
 auto check_LUKS(disk_t &disk_car, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-  if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+  std::array<unsigned char, DEFAULT_SECTOR_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), DEFAULT_SECTOR_SIZE,
                      partition.part_offset) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_LUKS(disk_car, std::start_lifetime_as<struct luks_phdr>(buffer),
+  if (test_LUKS(disk_car, std::start_lifetime_as<struct luks_phdr>(buffer.data()),
                 partition, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_LUKS_info(std::start_lifetime_as<struct luks_phdr>(buffer), partition);
-  delete[] buffer;
+  set_LUKS_info(std::start_lifetime_as<struct luks_phdr>(buffer.data()), partition);
   return 0;
 }
 

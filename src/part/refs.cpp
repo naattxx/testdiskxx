@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 
 #include <cstdio>
@@ -46,20 +47,17 @@ static auto test_ReFS(const struct ReFS_boot_sector *refs_header) -> int
 
 auto check_ReFS(disk_t &disk, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[ReFS_BS_SIZE];
-  if (disk.pread(disk, buffer, ReFS_BS_SIZE, partition.part_offset) !=
+  std::array<unsigned char, ReFS_BS_SIZE> buffer;
+  if (disk.pread(disk, buffer.data(), ReFS_BS_SIZE, partition.part_offset) !=
       ReFS_BS_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_ReFS(std::start_lifetime_as<struct ReFS_boot_sector>(buffer)) != 0)
+  if (test_ReFS(std::start_lifetime_as<struct ReFS_boot_sector>(buffer.data())) != 0)
   {
-    delete[] buffer;
     return 1;
   }
   set_ReFS_info(partition);
-  delete[] buffer;
   return 0;
 }
 

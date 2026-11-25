@@ -23,6 +23,7 @@
 #include <array>
 #include <string_view>
 #include <tuple>
+#include <vector>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_SUN)
 #include <config.h>
 
@@ -210,24 +211,21 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
   unsigned int i;
   sun_disklabel *sunlabel;
   list_part_t new_list_part;
-  unsigned char *buffer;
   /*@ assert valid_list_part(new_list_part); */
   if (disk_car.sector_size < DEFAULT_SECTOR_SIZE)
     return new_list_part;
-  buffer = new unsigned char[disk_car.sector_size];
+  std::vector<unsigned char> buffer(disk_car.sector_size);
   screen_buffer_reset();
-  sunlabel = reinterpret_cast<sun_disklabel *>(buffer);
-  if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+  sunlabel = reinterpret_cast<sun_disklabel *>(buffer.data());
+  if (disk_car.pread(disk_car, buffer.data(), DEFAULT_SECTOR_SIZE,
                      static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
   {
     screen_buffer_add(msg_PART_RD_ERR);
-    delete[] buffer;
     return new_list_part;
   }
   if (to_big_endian(sunlabel->magic) != SUN_LABEL_MAGIC)
   {
     screen_buffer_add("Bad SUN partition\n");
-    delete[] buffer;
     return new_list_part;
   }
   /*@
@@ -254,7 +252,6 @@ static auto read_part_sun(disk_t &disk_car, const int verbose,
       std::ignore = insert_new_partition(new_list_part, new_partition, false);
     }
   }
-  delete[] buffer;
   /*@ assert valid_list_part(new_list_part); */
   return new_list_part;
 }

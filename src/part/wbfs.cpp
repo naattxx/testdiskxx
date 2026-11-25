@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
@@ -53,21 +54,18 @@ static void set_WBFS_info(partition_t &partition)
 
 auto check_WBFS(disk_t &disk, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[2 * DEFAULT_SECTOR_SIZE];
-  if (disk.pread(disk, buffer, 2 * DEFAULT_SECTOR_SIZE,
+  std::array<unsigned char, 2 * DEFAULT_SECTOR_SIZE> buffer;
+  if (disk.pread(disk, buffer.data(), 2 * DEFAULT_SECTOR_SIZE,
                  partition.part_offset + 0x100000) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_WBFS(disk, std::start_lifetime_as<struct wbfs_head>(buffer), partition,
+  if (test_WBFS(disk, std::start_lifetime_as<struct wbfs_head>(buffer.data()), partition,
                 false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
   set_WBFS_info(partition);
-  delete[] buffer;
   return 0;
 }
 

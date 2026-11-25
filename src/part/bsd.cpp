@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <cstdlib>
 #include <memory>
 
@@ -114,24 +115,20 @@ static auto test_BSD(const disk_t &disk_car, const struct disklabel *bsd_header,
 auto check_BSD(disk_t &disk_car, partition_t &partition, const int verbose,
                const unsigned int max_partitions) -> int
 {
-  unsigned char *buffer;
-  buffer = new unsigned char[BSD_DISKLABEL_SIZE];
-  if (disk_car.pread(disk_car, buffer, BSD_DISKLABEL_SIZE,
+  std::array<unsigned char, BSD_DISKLABEL_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), BSD_DISKLABEL_SIZE,
                      partition.part_offset + 0x200) != BSD_DISKLABEL_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_BSD(disk_car, std::start_lifetime_as<struct disklabel>(buffer),
+  if (test_BSD(disk_car, std::start_lifetime_as<struct disklabel>(buffer.data()),
                partition, verbose, false, max_partitions))
   {
-    delete[] buffer;
     return 1;
   }
   partition.set_name(
-      std::string_view(std::start_lifetime_as<struct disklabel>(buffer)->d_packname, 16)
+      std::string_view(std::start_lifetime_as<struct disklabel>(buffer.data())->d_packname, 16)
   );
-  delete[] buffer;
   return 0;
 }
 

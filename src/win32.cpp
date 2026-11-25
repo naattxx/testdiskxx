@@ -368,20 +368,18 @@ static void file_win32_clean(disk_t &disk)
 
 static auto file_win32_compute_sector_size(HANDLE handle) -> unsigned int
 {
-    char *buffer = new char[4096];
+    std::array<unsigned char, 4096> buffer;
     unsigned int sector_size;
     for (sector_size = 512; sector_size <= 4096; sector_size *= 2)
     {
         long int ret;
         DWORD dwByteRead;
-        ret = ReadFile(handle, buffer, sector_size, &dwByteRead, nullptr);
+        ret = ReadFile(handle, buffer.data(), sector_size, &dwByteRead, nullptr);
         if (ret && dwByteRead == sector_size)
         {
-            delete[] buffer;
             return sector_size;
         }
     }
-    delete[] buffer;
     return 0;
 }
 

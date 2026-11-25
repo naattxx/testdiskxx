@@ -28,6 +28,7 @@
 #include <ctime>
 #include <format>
 #include <string_view>
+#include <utility>
 #include "ext2.hpp"
 #include "src/common.hpp"
 #include "src/fnctdsk.hpp"
@@ -39,21 +40,18 @@ static void set_EXT2_info(const struct ext2_super_block *sb,
 auto check_EXT2(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new struct ext2_super_block;
-  if (disk_car.pread(disk_car, buffer, EXT2_SUPERBLOCK_SIZE,
-                     partition.part_offset + 0x400) !=
-      int(EXT2_SUPERBLOCK_SIZE))
+  struct ext2_super_block buffer;
+  if (std::cmp_not_equal(disk_car.pread(disk_car, &buffer, EXT2_SUPERBLOCK_SIZE,
+                     partition.part_offset + 0x400),
+      EXT2_SUPERBLOCK_SIZE))
   {
-    delete buffer;
     return 1;
   }
-  if (test_EXT2(buffer, partition) != 0)
+  if (test_EXT2(&buffer, partition) != 0)
   {
-    delete buffer;
     return 1;
   }
-  set_EXT2_info(buffer, partition, verbose);
-  delete buffer;
+  set_EXT2_info(&buffer, partition, verbose);
   return 0;
 }
 

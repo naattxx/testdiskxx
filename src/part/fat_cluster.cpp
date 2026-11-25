@@ -27,6 +27,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 #include "src/common.hpp"
 #include "src/intrf.hpp"
 // #include "src/intrfn.hpp"
@@ -49,7 +50,7 @@ auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
   uint64_t offset;
   uint64_t skip_offset;
   int ind_stop = 0;
-  auto *buffer = new unsigned char[disk_car.sector_size];
+  std::vector<unsigned char> buffer(disk_car.sector_size);
 #ifdef HAVE_NCURSES
   wmove(stdscr, 22, 0);
   wattrset(stdscr, A_REVERSE);
@@ -84,14 +85,14 @@ auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
       ind_stop |= check_enter_key_or_s(stdscr);
     }
 #endif
-    if (std::cmp_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
+    if (std::cmp_equal(disk_car.pread(disk_car, buffer.data(), disk_car.sector_size,
                                       partition.part_offset + offset),
                        disk_car.sector_size) &&
-        (buffer[0] == '.' && is_fat_directory(buffer)))
+        (buffer[0] == '.' && is_fat_directory(buffer.data())))
 
     {
       const unsigned long int cluster = fat_get_cluster_from_entry(
-          std::start_lifetime_as<struct msdos_dir_entry>(buffer)
+          std::start_lifetime_as<struct msdos_dir_entry>(buffer.data())
       );
       log_info("sector {}, cluster {}\n",
                (unsigned long)(offset / disk_car.sector_size), cluster);
@@ -104,7 +105,6 @@ auto find_sectors_per_cluster(disk_t &disk_car, const partition_t &partition,
 #endif
     }
   }
-  delete[] buffer;
   return find_sectors_per_cluster_aux(
       sector_cluster, nbr_subdir, sectors_per_cluster, offset_org, verbose,
       partition.part_size / disk_car.sector_size, upart_type

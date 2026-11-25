@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <config.h>
 
 #include <cstdio>
@@ -41,22 +42,18 @@ auto check_ufs(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
   const struct ufs_super_block *sb;
-  unsigned char *buffer;
-  buffer = new unsigned char[UFS_SUPERBLOCK_SIZE];
-  sb     = std::start_lifetime_as<struct ufs_super_block>(buffer);
-  if (disk_car.pread(disk_car, buffer, UFS_SUPERBLOCK_SIZE,
+  std::array<unsigned char, UFS_SUPERBLOCK_SIZE> buffer;
+  sb     = std::start_lifetime_as<struct ufs_super_block>(buffer.data());
+  if (disk_car.pread(disk_car, buffer.data(), UFS_SUPERBLOCK_SIZE,
                      partition.part_offset + UFS_SBLOCK) != UFS_SUPERBLOCK_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
   if (test_ufs(disk_car, sb, partition, verbose) != 0)
   {
-    delete[] buffer;
     return 1;
   }
   set_ufs_info(sb, partition);
-  delete[] buffer;
   return 0;
 }
 

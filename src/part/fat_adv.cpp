@@ -34,6 +34,7 @@
 #include <memory>
 #include <optional>
 #include <utility>
+#include <vector>
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -386,10 +387,9 @@ static auto fat32_find_root_cluster(
 #ifdef HAVE_NCURSES
     int interactive = 1;
 #endif
-    unsigned char *buffer;
     int ind_stop = 0;
     dir_list_t rootdir_list;
-    buffer = new unsigned char[cluster_size];
+    std::vector<unsigned char> buffer(cluster_size);
 #ifdef HAVE_NCURSES
     wmove(stdscr, 22, 0);
     wattrset(stdscr, A_REVERSE);
@@ -412,7 +412,7 @@ static auto fat32_find_root_cluster(
         ind_stop |= check_enter_key_or_s(stdscr);
       }
 #endif
-      if (std::cmp_equal(disk_car.pread(disk_car, buffer, cluster_size,
+      if (std::cmp_equal(disk_car.pread(disk_car, buffer.data(), cluster_size,
                                         partition.part_offset +
                                             (start_data +
                                              static_cast<uint64_t>(
@@ -422,7 +422,7 @@ static auto fat32_find_root_cluster(
                          cluster_size))
       {
         const auto *entry1 =
-            std::start_lifetime_as<struct msdos_dir_entry>(&buffer[0]);
+            std::start_lifetime_as<struct msdos_dir_entry>(buffer.data());
         const auto *entry2 =
             std::start_lifetime_as<struct msdos_dir_entry>(&buffer[0x20]);
         if (verbose > 1)
@@ -433,7 +433,7 @@ static auto fat32_find_root_cluster(
                dump_ncurses(buffer,cluster_size);
              */
         }
-        if (buffer[0] == '.' && is_fat_directory(buffer))
+        if (buffer[0] == '.' && is_fat_directory(buffer.data()))
         { /* Directory found */
           if (fat_get_cluster_from_entry(entry2) == 0 &&
               buffer[0x40] != 0) /* First-level directory with files */
@@ -441,7 +441,7 @@ static auto fat32_find_root_cluster(
             dir_list_t dir_list;
             log_info("First-level directory found at cluster {}\n",
                      root_cluster);
-            dir_fat_aux(buffer, cluster_size, 0, dir_list);
+            dir_fat_aux(buffer.data(), cluster_size, 0, dir_list);
             if (verbose > 0)
             {
               dir_aff_log(std::nullopt, dir_list);
@@ -538,19 +538,17 @@ static auto fat32_find_root_cluster(
                     // cluster({})=>{}\n",new_root_cluster,tmp);
                 if (tmp == 0)
                 {
-                  delete[] buffer;
                   return new_root_cluster;
                 }
                 /* Check cluster number */
                 if ((tmp < 2) || (tmp >= 2 + no_of_cluster))
                 {
                   log_error("bad cluster number\n");
-                  delete[] buffer;
                   return new_root_cluster;
                 }
                 /* Read the cluster */
                 if (std::cmp_not_equal(
-                        disk_car.pread(disk_car, buffer, cluster_size,
+                        disk_car.pread(disk_car, buffer.data(), cluster_size,
                                        partition.part_offset +
                                            (start_data +
                                             static_cast<uint64_t>(tmp - 2) *
@@ -560,7 +558,6 @@ static auto fat32_find_root_cluster(
                     ))
                 {
                   log_critical("cluster can't be read\n");
-                  delete[] buffer;
                   return new_root_cluster;
                 }
                 /* Check if this cluster is a directory structure. FAT can be
@@ -570,12 +567,10 @@ static auto fat32_find_root_cluster(
                   if (check_FAT_dir_entry(&buffer[i * 0x20], i) != 1)
                   {
                     log_error("cluster data is not a directory structure\n");
-                    delete[] buffer;
                     return new_root_cluster;
                   }
                 }
               }
-              delete[] buffer;
               return new_root_cluster;
             }
 
@@ -588,7 +583,7 @@ static auto fat32_find_root_cluster(
 
             {
               dir_list_t dir_list;
-              dir_fat_aux(buffer, cluster_size, 0, dir_list);
+              dir_fat_aux(buffer.data(), cluster_size, 0, dir_list);
               if (is_root_cluster_candidat(dir_list))
               {
                 int test_date = 1;
@@ -604,13 +599,11 @@ static auto fat32_find_root_cluster(
                                              root_cluster))
                   {
                   case c_YES:
-                    delete (buffer);
                     return root_cluster;
                   case 'A':
                     interactive = 0;
                     break;
                   case 'Q':
-                    delete (buffer);
                     return 0;
                   default:
                     break;
@@ -652,7 +645,6 @@ static auto fat32_find_root_cluster(
       }
 #endif
     }
-    delete[] buffer;
   }
   return root_cluster;
 }
@@ -887,12 +879,12 @@ static auto analyse_dir_entries(disk_t &disk_car, const partition_t &partition,
   int etat                  = 0;
   unsigned int sector_etat1 = 0;
   uint64_t hd_offset;
-  auto *buffer = new unsigned char[disk_car.sector_size];
+  std::vector<unsigned char> buffer(disk_car.sector_size);
   hd_offset    = partition.part_offset +
                  static_cast<uint64_t>(offset) * disk_car.sector_size;
   for (i = 0; i < 200; i++)
   {
-    if (std::cmp_not_equal(disk_car.pread(disk_car, buffer,
+    if (std::cmp_not_equal(disk_car.pread(disk_car, buffer.data(),
                                           disk_car.sector_size, hd_offset),
                            disk_car.sector_size))
     {
@@ -910,7 +902,6 @@ static auto analyse_dir_entries(disk_t &disk_car, const partition_t &partition,
             if (i == 0 && j == 0)
             { /* The first entry must not be empty, otherwise there is no file
                */
-              delete[] buffer;
               return 0;
             }
             etat         = 1;
@@ -924,7 +915,6 @@ static auto analyse_dir_entries(disk_t &disk_car, const partition_t &partition,
         { /* Not an entry or non empty entry */
           if (etat == 1)
           {
-            delete[] buffer;
             if (i == sector_etat1)
             { /* In the same sector, empty entry must not be followed by
                  non-empty entry */
@@ -941,7 +931,6 @@ static auto analyse_dir_entries(disk_t &disk_car, const partition_t &partition,
     }
     hd_offset += disk_car.sector_size;
   }
-  delete[] buffer;
   return 0;
 }
 
@@ -1881,7 +1870,7 @@ static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
   unsigned long int old_percent = 0;
 #endif
   int ind_stop = 0;
-  auto *buffer = new unsigned char[disk_car.sector_size];
+  std::vector<unsigned char> buffer(disk_car.sector_size);
   if (verbose > 0)
   {
     log_trace("fat_find_type(max_offset={}, p_fat12={}, p_fat16={}, p_fat32={}, debug={}, dump_ind={})",
@@ -1912,13 +1901,13 @@ static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
       ind_stop |= check_enter_key_or_s(stdscr);
     }
 #endif
-    if (std::cmp_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
+    if (std::cmp_equal(disk_car.pread(disk_car, buffer.data(), disk_car.sector_size,
                                       partition.part_offset + offset),
                        disk_car.sector_size))
     {
       unsigned long int fat_offset = 0;
       const unsigned int fat_type =
-          fat_find_fat_start(buffer, p_fat12, p_fat16, p_fat32, &fat_offset,
+          fat_find_fat_start(buffer.data(), p_fat12, p_fat16, p_fat32, &fat_offset,
                              disk_car.sector_size);
       if (fat_type != 0 && fat_offset <= (offset / disk_car.sector_size))
       {
@@ -1966,7 +1955,6 @@ static auto fat_find_type(disk_t &disk_car, const partition_t &partition,
   wclrtoeol(stdscr);
   wrefresh(stdscr);
 #endif
-  delete[] buffer;
   return 0;
 }
 

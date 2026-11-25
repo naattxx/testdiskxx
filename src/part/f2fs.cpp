@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 
 #include <cstdio>
@@ -47,20 +48,17 @@ static void set_f2fs_info(partition_t &partition,
 
 auto check_f2fs(disk_t &disk, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[F2FS_BLKSIZE];
-  if (disk.pread(disk, buffer, F2FS_BLKSIZE,
+  std::array<unsigned char, F2FS_BLKSIZE> buffer;
+  if (disk.pread(disk, buffer.data(), F2FS_BLKSIZE,
                  partition.part_offset + F2FS_SUPER_OFFSET) != F2FS_BLKSIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_f2fs(std::start_lifetime_as<struct f2fs_super_block>(buffer)) != 0)
+  if (test_f2fs(std::start_lifetime_as<struct f2fs_super_block>(buffer.data())) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_f2fs_info(partition, std::start_lifetime_as<struct f2fs_super_block>(buffer));
-  delete[] buffer;
+  set_f2fs_info(partition, std::start_lifetime_as<struct f2fs_super_block>(buffer.data()));
   return 0;
 }
 

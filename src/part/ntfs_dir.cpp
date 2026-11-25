@@ -370,8 +370,10 @@ auto ntfs_dir_struct::copy_file([[maybe_unused]] disk_t &disk_car,
     char *stream_name;
     s64 offset;
     u32 block_size;
-    buffer = new char[bufsize];
-    if (!buffer)
+    try {
+      buffer = new char[bufsize];
+    }
+    catch (...)
     {
       ntfs_inode_close(inode);
       return CP_NOMEM;

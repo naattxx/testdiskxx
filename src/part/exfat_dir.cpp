@@ -31,6 +31,8 @@
 #include <ios>
 #include <memory>
 #include <optional>
+#include <span>
+#include <vector>
 #if __has_include(<iconv.h>)
 #include <iconv.h>
 #endif
@@ -192,18 +194,17 @@ static auto exfat_get_next_cluster(disk_t &disk_car,
                                    const uint64_t offset,
                                    const unsigned int cluster) -> unsigned int
 {
-  auto *buffer = new unsigned char[disk_car.sector_size];
+  std::vector<unsigned char> buffer(disk_car.sector_size);
   unsigned int next_cluster;
-  const auto *p32         = reinterpret_cast<const uint32_t *>(buffer);
+  const auto *p32         = reinterpret_cast<const uint32_t *>(buffer.data());
   const uint64_t offset_s = cluster / (disk_car.sector_size / 4);
   const uint64_t offset_o = cluster % (disk_car.sector_size / 4);
-  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
+  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer.data(), disk_car.sector_size,
                                         partition.part_offset + offset +
                                             offset_s * disk_car.sector_size),
                          disk_car.sector_size))
   {
     log_error("exfat_get_next_cluster read error\n");
-    delete[] buffer;
     return 0;
   }
   /* 0x00000000: free cluster
@@ -211,7 +212,6 @@ static auto exfat_get_next_cluster(disk_t &disk_car,
    * 0xFFFFFFFF: EOC End of cluster
    * */
   next_cluster = to_little_endian(p32[offset_o]);
-  delete[] buffer;
   return next_cluster;
 }
 

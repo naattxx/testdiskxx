@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 
 #include <cstddef>
@@ -50,22 +51,19 @@ static void set_btrfs_info(const struct btrfs_super_block *sb,
 
 auto check_btrfs(disk_t &disk_car, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[BTRFS_SUPER_INFO_SIZE];
-  if (disk_car.pread(disk_car, buffer, BTRFS_SUPER_INFO_SIZE,
+  std::array<unsigned char, BTRFS_SUPER_INFO_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), BTRFS_SUPER_INFO_SIZE,
                      partition.part_offset + BTRFS_SUPER_INFO_OFFSET) !=
       BTRFS_SUPER_INFO_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_btrfs(std::start_lifetime_as<struct btrfs_super_block>(buffer)) != 0)
+  if (test_btrfs(std::start_lifetime_as<struct btrfs_super_block>(buffer.data())) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_btrfs_info(std::start_lifetime_as<struct btrfs_super_block>(buffer),
+  set_btrfs_info(std::start_lifetime_as<struct btrfs_super_block>(buffer.data()),
                  partition);
-  delete[] buffer;
   return 0;
 }
 

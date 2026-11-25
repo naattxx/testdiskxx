@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 
 #include <cstddef>
@@ -87,21 +88,18 @@ static auto test_LVM(const disk_t &disk_car, const pv_disk_t *pv,
 auto check_LVM(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[LVM_PV_DISK_SIZE];
-  if (disk_car.pread(disk_car, buffer, LVM_PV_DISK_SIZE,
+  std::array<unsigned char, LVM_PV_DISK_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), LVM_PV_DISK_SIZE,
                      partition.part_offset) != LVM_PV_DISK_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_LVM(disk_car, reinterpret_cast<pv_disk_t *>(buffer), partition,
+  if (test_LVM(disk_car, reinterpret_cast<pv_disk_t *>(buffer.data()), partition,
                verbose, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
   set_LVM_info(partition);
-  delete[] buffer;
   return 0;
 }
 
@@ -165,22 +163,19 @@ static auto test_LVM2(const disk_t &disk_car,
 auto check_LVM2(disk_t &disk_car, partition_t &partition, const int verbose)
     -> int
 {
-  auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-  if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+  std::array<unsigned char, DEFAULT_SECTOR_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), DEFAULT_SECTOR_SIZE,
                      partition.part_offset + 0x200) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
   if (test_LVM2(disk_car,
-                std::start_lifetime_as<struct lvm2_label_header>(buffer),
+                std::start_lifetime_as<struct lvm2_label_header>(buffer.data()),
                 partition, verbose, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
   set_LVM2_info(partition);
-  delete[] buffer;
   return 0;
 }
 

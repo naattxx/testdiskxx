@@ -22,6 +22,7 @@
 
 #include <string_view>
 #include <tuple>
+#include <vector>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_HUMAX)
 #include <config.h>
 
@@ -163,19 +164,17 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
   struct humaxlabel *humaxlabel;
   list_part_t new_list_part;
   uint32_t *p32;
-  unsigned char *buffer;
   /*@ assert valid_list_part(new_list_part); */
   if (disk_car.sector_size < DEFAULT_SECTOR_SIZE)
     return new_list_part;
-  buffer = new unsigned char[disk_car.sector_size];
+  std::vector<unsigned char> buffer(disk_car.sector_size);
   screen_buffer_reset();
-  humaxlabel = std::start_lifetime_as<struct humaxlabel>(buffer);
-  p32        = reinterpret_cast<uint32_t *>(buffer);
-  if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+  humaxlabel = std::start_lifetime_as<struct humaxlabel>(buffer.data());
+  p32        = reinterpret_cast<uint32_t *>(buffer.data());
+  if (disk_car.pread(disk_car, buffer.data(), DEFAULT_SECTOR_SIZE,
                      static_cast<uint64_t>(0)) != DEFAULT_SECTOR_SIZE)
   {
     screen_buffer_add(msg_PART_RD_ERR);
-    delete[] buffer;
     return new_list_part;
   }
   for (i = 0; i < 0x200 / 4; i++)
@@ -184,7 +183,6 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
   if (to_little_endian(humaxlabel->magic) != 0xAA55)
   {
     screen_buffer_add("Bad HUMAX partition\n");
-    delete[] buffer;
     return new_list_part;
   }
   /*@
@@ -209,7 +207,6 @@ static auto read_part_humax(disk_t &disk_car, const int verbose,
       std::ignore = insert_new_partition(new_list_part, new_partition, false);
     }
   }
-  delete[] buffer;
   return new_list_part;
 }
 

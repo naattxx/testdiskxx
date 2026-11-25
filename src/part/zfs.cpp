@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
@@ -55,21 +56,18 @@ static auto test_ZFS(const disk_t &disk, const struct vdev_boot_header *sb,
 
 auto check_ZFS(disk_t &disk, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-  if (disk.pread(disk, buffer, DEFAULT_SECTOR_SIZE,
+  std::array<unsigned char, DEFAULT_SECTOR_SIZE> buffer;
+  if (disk.pread(disk, buffer.data(), DEFAULT_SECTOR_SIZE,
                  partition.part_offset + 0x2000) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_ZFS(disk, std::start_lifetime_as<struct vdev_boot_header>(buffer),
+  if (test_ZFS(disk, std::start_lifetime_as<struct vdev_boot_header>(buffer.data()),
                partition, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_ZFS_info(std::start_lifetime_as<struct vdev_boot_header>(buffer), partition);
-  delete[] buffer;
+  set_ZFS_info(std::start_lifetime_as<struct vdev_boot_header>(buffer.data()), partition);
   return 0;
 }
 

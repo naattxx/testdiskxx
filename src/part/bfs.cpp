@@ -20,6 +20,7 @@
 
  */
 
+#include <array>
 #include <config.h>
 #include <cstdio>
 #include <cstdlib>
@@ -61,22 +62,18 @@ static auto test_BeFS(const disk_t &disk_car,
 
 auto check_BeFS(disk_t &disk_car, partition_t &partition) -> int
 {
-  unsigned char *buffer;
-  buffer = new unsigned char[BFS_SUPERBLOCK_SIZE];
-  if (disk_car.pread(disk_car, buffer, BFS_SUPERBLOCK_SIZE,
+  std::array<unsigned char, BFS_SUPERBLOCK_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), BFS_SUPERBLOCK_SIZE,
                      partition.part_offset + 0x200) != BFS_SUPERBLOCK_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_BeFS(disk_car, std::start_lifetime_as<struct disk_super_block>(buffer),
+  if (test_BeFS(disk_car, std::start_lifetime_as<struct disk_super_block>(buffer.data()),
                 partition, false) != 0)
   {
-    delete[] buffer;
     return 1;
   }
-  set_BeFS_info(std::start_lifetime_as<struct disk_super_block>(buffer), partition);
-  delete[] buffer;
+  set_BeFS_info(std::start_lifetime_as<struct disk_super_block>(buffer.data()), partition);
   return 0;
 }
 

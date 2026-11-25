@@ -20,6 +20,7 @@
 
  */
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <string_view>
 #include <utility>
@@ -47,7 +48,7 @@ struct cache_buffer_struct
 struct cache_struct
 {
     disk_t disk_car;
-    struct cache_buffer_struct cache[CACHE_BUFFER_NBR];
+    std::array<struct cache_buffer_struct, CACHE_BUFFER_NBR> cache;
 #ifdef DEBUG_CACHE
     uint64_t nbr_fnct_sect;
     uint64_t nbr_pread_sect;

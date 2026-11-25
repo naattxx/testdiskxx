@@ -19,6 +19,7 @@
     Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
  */
+#include <array>
 #include <config.h>
 
 #include <cstdlib>
@@ -38,20 +39,17 @@ static auto test_netware(const struct disk_netware *netware_block) -> int
 
 auto check_netware(disk_t &disk_car, partition_t &partition) -> int
 {
-  auto *buffer = new unsigned char[DEFAULT_SECTOR_SIZE];
-  if (disk_car.pread(disk_car, buffer, DEFAULT_SECTOR_SIZE,
+  std::array<unsigned char, DEFAULT_SECTOR_SIZE> buffer;
+  if (disk_car.pread(disk_car, buffer.data(), DEFAULT_SECTOR_SIZE,
                      partition.part_offset) != DEFAULT_SECTOR_SIZE)
   {
-    delete[] buffer;
     return 1;
   }
-  if (test_netware(std::start_lifetime_as<struct disk_netware>(buffer)) != 0)
+  if (test_netware(std::start_lifetime_as<struct disk_netware>(buffer.data())) != 0)
   {
-    delete[] buffer;
     return 1;
   }
   partition.upart_type = UP_NETWARE;
-  delete[] buffer;
   return 0;
 }
 

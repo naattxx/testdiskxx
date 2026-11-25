@@ -27,6 +27,7 @@
 #include <optional>
 #include <string_view>
 #include <utility>
+#include <vector>
 #if !defined(SINGLE_PARTITION_TYPE) || defined(SINGLE_PARTITION_I386)
 #include <config.h>
 
@@ -593,24 +594,22 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
   unsigned int i;
   CHSgeometry_t geometry;
   list_part_t new_list_part;
-  auto *buffer = new unsigned char[disk_car.sector_size];
+  std::vector<unsigned char> buffer(disk_car.sector_size);
   /*@ assert valid_list_part(new_list_part); */
   screen_buffer_reset();
-  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer, disk_car.sector_size,
+  if (std::cmp_not_equal(disk_car.pread(disk_car, buffer.data(), disk_car.sector_size,
                                         static_cast<uint64_t>(0)),
                          disk_car.sector_size))
   {
     screen_buffer_add(msg_PART_RD_ERR);
-    delete[] buffer;
     return new_list_part;
   }
   geometry.cylinders          = 0;
   geometry.heads_per_cylinder = 0;
   geometry.sectors_per_head   = 0;
-  if (get_geometry_from_i386mbr(buffer, verbose, &geometry) != 0)
+  if (get_geometry_from_i386mbr(buffer.data(), verbose, &geometry) != 0)
   {
     screen_buffer_add(msg_TBL_NMARK);
-    delete[] buffer;
     return new_list_part;
   }
 
@@ -619,7 +618,7 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
     @*/
   for (i = 0; i < 4; i++)
   {
-    const struct partition_dos *p = pt_offset(buffer, i);
+    const struct partition_dos *p = pt_offset(buffer.data(), i);
     status_type_t status;
     switch (p->sys_ind)
     {
@@ -654,7 +653,6 @@ static auto read_part_i386(disk_t &disk_car, const int verbose,
   new_list_part =
       get_ext_data_i386(disk_car, new_list_part, verbose, saveheader);
   get_geometry_from_list_part(disk_car, new_list_part, verbose);
-  delete[] buffer;
   return new_list_part;
 }
 
