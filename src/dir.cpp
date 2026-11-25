@@ -35,6 +35,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#if __has_include(<sys/types.h>)
+#include <sys/types.h>
+#endif
 #if __has_include(<sys/stat.h>)
 #include <sys/stat.h>
 #endif
@@ -404,7 +407,6 @@ static struct
 #ifdef S_IXOTH
     {.lmask = LINUX_S_IXOTH, .mask = S_IXOTH},
 #endif
-    {.lmask = 0,             .mask = 0      },
 };
 
 /*@
@@ -413,16 +415,15 @@ static struct
 [[maybe_unused]]
 static auto mode_xlate(unsigned int lmode) -> mode_t
 {
-    unsigned int i;
     mode_t mode = 0;
     /*@
       @ loop unroll 20;
-      @ loop assigns i, mode;
+      @ loop assigns mode;
       @*/
-    for (i = 0; mode_table[i].lmask; i++)
+    for (auto &[lmask, mask] : mode_table)
     {
-        if (lmode & mode_table[i].lmask)
-            mode |= mode_table[i].mask;
+        if (lmode & lmask)
+            mode |= mask;
     }
     return mode;
 }
